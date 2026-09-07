@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DashboardStrip } from "@/components/portal/dashboard-strip";
 import { PORTAL_INPUT, PORTAL_PRIMARY, PortalCard } from "@/components/portal/primitives";
 import { RequestList } from "@/components/portal/request-list";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -23,7 +24,6 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
     return () => clearTimeout(handle);
   }, [term, debounceMs]);
 
-  const open = usePortalTicketsQuery({ scope: "open" });
   const matches = usePortalTicketsQuery({ scope: "all", q: query }, { skip: query.length < 2 });
   const articles = useSearchArticlesQuery(query, { skip: query.length < 2 });
 
@@ -89,17 +89,7 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <PortalCard title="Open requests">
-          <p className="text-xms-ink text-[32px] font-semibold" aria-live="polite">
-            {open.data ? open.data.items.length : "..."}
-          </p>
-          <Link
-            href="/portal/requests"
-            className="text-xms-accent text-[14px] font-medium underline-offset-2 hover:underline"
-          >
-            See my requests
-          </Link>
-        </PortalCard>
+        <DashboardStrip />
         <PortalCard title="Still need help?">
           <p className="text-xms-body text-[14px]">
             Tell us what is wrong or what you need. You will get a request key by email.

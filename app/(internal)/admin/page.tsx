@@ -13,6 +13,9 @@ const CARDS = [
   { screen: "admin.roles", detail: "Operator and portal role catalogs with their implications." },
   { screen: "admin.groups", detail: "Assignment groups, leads and members." },
   { screen: "admin.config", detail: "State machines, priority matrix, SLA policy and the catalogs." },
+  { screen: "admin.audit", detail: "One search over audit, security and usage events, with the request pivot." },
+  { screen: "admin.security", detail: "Sign-in failures, denials, isolation probes, admin changes." },
+  { screen: "admin.usage", detail: "Active users, top actions and screens, searches with no result, API errors." },
 ];
 
 /** Registered as `admin`: cards into each section, gated per card by its permission (fail closed). */
@@ -24,7 +27,10 @@ export default function AdminPage() {
   );
   if (visible.length === 0) {
     return (
-      <EmptyBanner title="Not permitted" detail="Administration needs the admin:accounts or admin:users permission." />
+      <EmptyBanner
+        title="Not permitted"
+        detail="Administration needs the admin:accounts, admin:users, audit:read or analytics:read permission."
+      />
     );
   }
   return (

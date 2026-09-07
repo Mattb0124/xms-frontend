@@ -34,7 +34,15 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /knowledge Solutions list (chips, search, New article), /knowledge/new, /knowledge/[key] (record bar,
                         section editor, Visibility, History, Feedback, Submit, Publish, Retire, Generalize with the findings
                         sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker, day groups, quick Log time) (P2.12.x);
-                        /operations, /accounts (stubs until their plan item),
+                        /operations (P2.19.3: period switcher, synthesis line, six tiles, SLA meters, outcomes, backlog by age,
+                        open by priority and type, notable tickets, per-account strip; needs reports:view-portfolio),
+                        /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
+                        the same panels, "View as client" re-fetches as_client=true and shows only what came back, Reports card
+                        with runs and "Generate weekly report"), /reports/packs/[id] (frozen numbers, narrative, PPTX link),
+                        /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
+                        values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
+                        /admin/usage (P2.19.4 tiles and count lists); the Queue has an Export menu (Excel, CSV) over the current
+                        view and chips (P2.11.4),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
                         account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5),
@@ -48,6 +56,16 @@ components/tickets/     ticket-columns (the Queue column set), transition-menu (
                         attachments (DropZone, useUploads, UploadList, ScanAcknowledgement, AttachmentRow, AttachmentsCard; the
                         composer blocks Send while a scan is pending; P1.6.2), email-panel (inbound with matched_by and
                         disposition copy, loop signals, View raw; outbound with delivery state)
+components/reporting/   format (percent, hours, period, age buckets, periods), period-switcher, measure-panels (TileStrip, SlaPanel,
+                        OutcomesPanel, BacklogPanel, BreakdownPanel, NotablePanel, ConsumptionPanel, synthesisLine; each renders
+                        only when its measure is present so the client view reuses them), operations-dashboard, account-dashboard,
+                        accounts-list, reports-card (runs, RunStatusPill, generate), report-pack
+lib/exports/            fetchDownload (bearer fetch to a blob, filename from Content-Disposition, x-row-count), saveBlob (object
+                        URL and a temporary anchor), downloadFile; presigned pack URLs never come through here
+lib/tickets/export-conditions  the Queue's view and chips expressed as the server ConditionSet (base64url) for /v1/exports/tickets
+components/tickets/export-menu  Export action (Excel, CSV) with the row-count toast and export.run telemetry
+components/admin/audit-search, security-dashboard (CountList), usage-dashboard
+components/portal/dashboard-strip  the client's own numbers on the portal home from /v1/portal/dashboard, client language
 components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
                         publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
 components/time/        Timesheet (week grouped by day, totals), weekOf and groupByDay helpers
