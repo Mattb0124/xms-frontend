@@ -66,11 +66,9 @@ describe("xms token contract", () => {
   it("provides a dark inversion for every light token", () => {
     const light = scope.split(".dark .xms-scope")[0];
     const dark = scope.split(".dark .xms-scope")[1] ?? "";
-    const lightTokens = [
-      ...light.matchAll(
-        /(--xms-(?:ink|body|label|muted|accent|navy|bar|bg|card|tint|line|ai-bg|ai-border|ai-accent|row-hover|cell-hover)):/g,
-      ),
-    ].map((m) => m[1]);
+    const lightTokens = [...light.matchAll(/(--xms-(?:ink|body|label|muted|accent|navy|bar|bg|card|tint|line|ai-bg|ai-border|ai-accent|row-hover|cell-hover)):/g)].map(
+      (m) => m[1],
+    );
     for (const token of new Set(lightTokens)) {
       expect(dark, `${token} has no dark value`).toContain(`${token}:`);
     }

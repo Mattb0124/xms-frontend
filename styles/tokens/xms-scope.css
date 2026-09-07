@@ -48,24 +48,12 @@
   --xms-sla-paused: #9aa3b2;
 
   /* v3 state ramp: ticket state pills only */
-  --xms-state-new-fg: #334155;
-  --xms-state-new-bg: #f1f5f9;
-  --xms-state-new-br: #d7dee8;
-  --xms-state-in-progress-fg: #1d4ed8;
-  --xms-state-in-progress-bg: #eff4ff;
-  --xms-state-in-progress-br: #cbdcfa;
-  --xms-state-awaiting-client-fg: #9a5b06;
-  --xms-state-awaiting-client-bg: #fef6e7;
-  --xms-state-awaiting-client-br: #f4ddb4;
-  --xms-state-awaiting-approval-fg: #0e7490;
-  --xms-state-awaiting-approval-bg: #ecfafe;
-  --xms-state-awaiting-approval-br: #bfe6f0;
-  --xms-state-resolved-fg: #0f7a50;
-  --xms-state-resolved-bg: #edfaf3;
-  --xms-state-resolved-br: #bee6d3;
-  --xms-state-closed-fg: #64748b;
-  --xms-state-closed-bg: #ffffff;
-  --xms-state-closed-br: #dde2ea;
+  --xms-state-new-fg: #334155;               --xms-state-new-bg: #f1f5f9;               --xms-state-new-br: #d7dee8;
+  --xms-state-in-progress-fg: #1d4ed8;       --xms-state-in-progress-bg: #eff4ff;       --xms-state-in-progress-br: #cbdcfa;
+  --xms-state-awaiting-client-fg: #9a5b06;   --xms-state-awaiting-client-bg: #fef6e7;   --xms-state-awaiting-client-br: #f4ddb4;
+  --xms-state-awaiting-approval-fg: #0e7490; --xms-state-awaiting-approval-bg: #ecfafe; --xms-state-awaiting-approval-br: #bfe6f0;
+  --xms-state-resolved-fg: #0f7a50;          --xms-state-resolved-bg: #edfaf3;          --xms-state-resolved-br: #bee6d3;
+  --xms-state-closed-fg: #64748b;            --xms-state-closed-bg: #ffffff;            --xms-state-closed-br: #dde2ea;
 
   /* v3 type bars (3px, beside the type label only) */
   --xms-type-incident: #dc2626;
@@ -130,24 +118,12 @@
   --xms-ai-bg: #182140;
   --xms-ai-border: #2d3f74;
   --xms-ai-accent: #9ab5ff;
-  --xms-state-new-fg: #cbd5e1;
-  --xms-state-new-bg: #1e293b;
-  --xms-state-new-br: #334155;
-  --xms-state-in-progress-fg: #93b4f5;
-  --xms-state-in-progress-bg: #172554;
-  --xms-state-in-progress-br: #1e3a8a;
-  --xms-state-awaiting-client-fg: #f2c66d;
-  --xms-state-awaiting-client-bg: #3b2a0a;
-  --xms-state-awaiting-client-br: #6b4a10;
-  --xms-state-awaiting-approval-fg: #67e8f9;
-  --xms-state-awaiting-approval-bg: #0c2538;
-  --xms-state-awaiting-approval-br: #164e63;
-  --xms-state-resolved-fg: #6ee7b7;
-  --xms-state-resolved-bg: #052e1c;
-  --xms-state-resolved-br: #065f46;
-  --xms-state-closed-fg: #94a3b8;
-  --xms-state-closed-bg: #0f172a;
-  --xms-state-closed-br: #334155;
+  --xms-state-new-fg: #cbd5e1;               --xms-state-new-bg: #1e293b;               --xms-state-new-br: #334155;
+  --xms-state-in-progress-fg: #93b4f5;       --xms-state-in-progress-bg: #172554;       --xms-state-in-progress-br: #1e3a8a;
+  --xms-state-awaiting-client-fg: #f2c66d;   --xms-state-awaiting-client-bg: #3b2a0a;   --xms-state-awaiting-client-br: #6b4a10;
+  --xms-state-awaiting-approval-fg: #67e8f9; --xms-state-awaiting-approval-bg: #0c2538; --xms-state-awaiting-approval-br: #164e63;
+  --xms-state-resolved-fg: #6ee7b7;          --xms-state-resolved-bg: #052e1c;          --xms-state-resolved-br: #065f46;
+  --xms-state-closed-fg: #94a3b8;            --xms-state-closed-bg: #0f172a;            --xms-state-closed-br: #334155;
 }
 
 @layer components {
@@ -185,31 +161,11 @@
     background: var(--xms-state-closed-bg);
     border: 1px solid var(--xms-state-closed-br);
   }
-  .xms-state[data-state="new"] {
-    color: var(--xms-state-new-fg);
-    background: var(--xms-state-new-bg);
-    border-color: var(--xms-state-new-br);
-  }
-  .xms-state[data-state="in-progress"] {
-    color: var(--xms-state-in-progress-fg);
-    background: var(--xms-state-in-progress-bg);
-    border-color: var(--xms-state-in-progress-br);
-  }
-  .xms-state[data-state="awaiting-client"] {
-    color: var(--xms-state-awaiting-client-fg);
-    background: var(--xms-state-awaiting-client-bg);
-    border-color: var(--xms-state-awaiting-client-br);
-  }
-  .xms-state[data-state="awaiting-approval"] {
-    color: var(--xms-state-awaiting-approval-fg);
-    background: var(--xms-state-awaiting-approval-bg);
-    border-color: var(--xms-state-awaiting-approval-br);
-  }
-  .xms-state[data-state="resolved"] {
-    color: var(--xms-state-resolved-fg);
-    background: var(--xms-state-resolved-bg);
-    border-color: var(--xms-state-resolved-br);
-  }
+  .xms-state[data-state="new"]               { color: var(--xms-state-new-fg);               background: var(--xms-state-new-bg);               border-color: var(--xms-state-new-br); }
+  .xms-state[data-state="in-progress"]       { color: var(--xms-state-in-progress-fg);       background: var(--xms-state-in-progress-bg);       border-color: var(--xms-state-in-progress-br); }
+  .xms-state[data-state="awaiting-client"]   { color: var(--xms-state-awaiting-client-fg);   background: var(--xms-state-awaiting-client-bg);   border-color: var(--xms-state-awaiting-client-br); }
+  .xms-state[data-state="awaiting-approval"] { color: var(--xms-state-awaiting-approval-fg); background: var(--xms-state-awaiting-approval-bg); border-color: var(--xms-state-awaiting-approval-br); }
+  .xms-state[data-state="resolved"]          { color: var(--xms-state-resolved-fg);          background: var(--xms-state-resolved-bg);          border-color: var(--xms-state-resolved-br); }
 
   /* Type bar: <span class="xms-type" data-type="incident">Incident</span> */
   .xms-type {
@@ -225,21 +181,11 @@
     border-radius: 1px;
     background: var(--xms-account-none);
   }
-  .xms-type[data-type="incident"]::before {
-    background: var(--xms-type-incident);
-  }
-  .xms-type[data-type="request"]::before {
-    background: var(--xms-type-request);
-  }
-  .xms-type[data-type="change"]::before {
-    background: var(--xms-type-change);
-  }
-  .xms-type[data-type="problem"]::before {
-    background: var(--xms-type-problem);
-  }
-  .xms-type[data-type="project-task"]::before {
-    background: var(--xms-type-project-task);
-  }
+  .xms-type[data-type="incident"]::before     { background: var(--xms-type-incident); }
+  .xms-type[data-type="request"]::before      { background: var(--xms-type-request); }
+  .xms-type[data-type="change"]::before       { background: var(--xms-type-change); }
+  .xms-type[data-type="problem"]::before      { background: var(--xms-type-problem); }
+  .xms-type[data-type="project-task"]::before { background: var(--xms-type-project-task); }
 
   /* Account dot: <span class="xms-account" data-hue="1">Brookfield UK</span> */
   .xms-account {
@@ -255,24 +201,12 @@
     border-radius: 999px;
     background: var(--xms-account-none);
   }
-  .xms-account[data-hue="1"]::before {
-    background: var(--xms-account-1);
-  }
-  .xms-account[data-hue="2"]::before {
-    background: var(--xms-account-2);
-  }
-  .xms-account[data-hue="3"]::before {
-    background: var(--xms-account-3);
-  }
-  .xms-account[data-hue="4"]::before {
-    background: var(--xms-account-4);
-  }
-  .xms-account[data-hue="5"]::before {
-    background: var(--xms-account-5);
-  }
-  .xms-account[data-hue="6"]::before {
-    background: var(--xms-account-6);
-  }
+  .xms-account[data-hue="1"]::before { background: var(--xms-account-1); }
+  .xms-account[data-hue="2"]::before { background: var(--xms-account-2); }
+  .xms-account[data-hue="3"]::before { background: var(--xms-account-3); }
+  .xms-account[data-hue="4"]::before { background: var(--xms-account-4); }
+  .xms-account[data-hue="5"]::before { background: var(--xms-account-5); }
+  .xms-account[data-hue="6"]::before { background: var(--xms-account-6); }
 
   /* AI-origin block: summaries, suggestion cards, the synthesis line */
   .xms-ai {

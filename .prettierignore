@@ -5,3 +5,8 @@
 .next/
 node_modules/
 pnpm-lock.yaml
+styles/tokens/aiinnovation-tokens.css
+styles/tokens/house.css
+styles/tokens/xms-scope.css
+next-env.d.ts
+tsconfig.json
