@@ -12,11 +12,15 @@ export interface ReasonDialogProps {
   required?: boolean;
   danger?: boolean;
   busy?: boolean;
+  /** The field's label; "Reason" unless the sheet records something else (an explanation, say). */
+  fieldLabel?: string;
+  /** The longest text the route accepts. */
+  maxLength?: number;
   onConfirm: (reason: string) => void | Promise<void>;
   onClose: () => void;
 }
 
-/** A small reason sheet: the kill switch, replay and discard all record why. */
+/** A small reason sheet: the kill switch, replay, discard and the reconciliation explain all record why. */
 export function ReasonDialog({
   title,
   detail,
@@ -24,6 +28,8 @@ export function ReasonDialog({
   required,
   danger,
   busy,
+  fieldLabel = "Reason",
+  maxLength = 500,
   onConfirm,
   onClose,
 }: ReasonDialogProps) {
@@ -46,11 +52,14 @@ export function ReasonDialog({
         <h2 className="text-xms-ink text-[15px] font-semibold">{title}</h2>
         {detail ? <p className="text-xms-body text-[13px]">{detail}</p> : null}
         <label className="flex flex-col gap-1 text-[12px]">
-          <span className="text-xms-label">Reason{required ? "" : " (optional)"}</span>
+          <span className="text-xms-label">
+            {fieldLabel}
+            {required ? "" : " (optional)"}
+          </span>
           <textarea
-            aria-label="Reason"
+            aria-label={fieldLabel}
             className={cn(INPUT, "h-[80px] py-2")}
-            maxLength={500}
+            maxLength={maxLength}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             autoFocus
