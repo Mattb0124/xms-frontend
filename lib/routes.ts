@@ -25,7 +25,7 @@ export interface Screen {
 export const SCREENS: Screen[] = [
   {
     path: "/",
-    screen: "my_work",
+    screen: "my-work",
     label: "My work",
     section: "Home",
     permission: null,
@@ -61,7 +61,7 @@ export const SCREENS: Screen[] = [
   },
   {
     path: "/tickets/new",
-    screen: "ticket_new",
+    screen: "ticket.new",
     label: "New ticket",
     section: "Tickets",
     permission: "tickets:create",

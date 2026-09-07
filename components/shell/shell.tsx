@@ -6,11 +6,13 @@ import { CommandPalette } from "@/components/shell/command-palette";
 import { ContentHeaderBar } from "@/components/shell/content-header-bar";
 import { FinderBar, type FinderKind } from "@/components/shell/finder-bar";
 import { FinderOverlay, type HistoryEntry } from "@/components/shell/finder-overlay";
+import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { PinnedSidebar } from "@/components/shell/pinned-sidebar";
 import { initials } from "@/components/xms/actor-chip";
 import { usePersistedList, useToggleInList } from "@/lib/persisted-set";
 import { matchScreen, visibleScreens } from "@/lib/routes";
 import { useMe } from "@/redux/me";
+import { useUnreadCountQuery } from "@/redux/ticketsApi";
 
 const PINS_KEY = "xms.pins";
 const STARS_KEY = "xms.starred";
@@ -44,6 +46,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const [finder, setFinder] = useState<FinderKind | null>(null);
   const [palette, setPalette] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [notifications, setNotifications] = useState(false);
+  const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: 60_000, skip: !me.principal });
 
   const [pins, togglePin] = useToggleInList(PINS_KEY);
   const [stars, toggleStar, hasStar] = useToggleInList(STARS_KEY);
@@ -89,6 +93,7 @@ export function Shell({ children }: { children: ReactNode }) {
       if (event.key === "Escape") {
         setFinder(null);
         setPalette(false);
+        setNotifications(false);
         return;
       }
       if (typing) return;
@@ -117,11 +122,16 @@ export function Shell({ children }: { children: ReactNode }) {
         onToggleStar={() => toggleStar(currentHref)}
         onSearchFocus={() => setFinder("all")}
         onAxel={() => {}}
-        unreadCount={0}
-        onNotifications={() => {}}
+        unreadCount={unread?.count ?? 0}
+        onNotifications={() => setNotifications((open) => !open)}
         userInitials={me.principal?.displayName ? initials(me.principal.displayName) : "?"}
         onUser={() => {}}
       />
+      {notifications ? (
+        <div className="relative">
+          <NotificationsMenu onClose={() => setNotifications(false)} />
+        </div>
+      ) : null}
       <div className="flex flex-1">
         {sidebarOpen ? (
           <PinnedSidebar
