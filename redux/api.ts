@@ -77,6 +77,11 @@ export const xmsApi = createApi({
     "AiSettings",
     "AiAccuracy",
     "AiDefaults",
+    "Connectors",
+    "ConnectorMaps",
+    "ConnectorRuns",
+    "ConnectorDeadLetters",
+    "TicketSync",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
