@@ -53,6 +53,8 @@ export interface TicketView {
   closed_at: string | null;
   cancelled_at: string | null;
   sla: TicketSla;
+  /** Whether the reader follows this ticket (unmuted watcher); record reads only. */
+  watching?: boolean;
   created_by: string;
   created_by_name: string;
   created_at: string;

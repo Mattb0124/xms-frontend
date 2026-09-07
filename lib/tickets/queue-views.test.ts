@@ -15,7 +15,7 @@ describe("queue views", () => {
     expect(viewByKey("p1").params).toEqual({ open: true, priority: ["p1"] });
     expect(viewByKey("awaiting_client").params).toEqual({ state: ["awaiting_client"] });
     expect(viewByKey("resolved").params.state).toEqual(["resolved", "fulfilled", "completed", "done"]);
-    expect(viewByKey("breached").clientFilter).toBe("breached");
+    expect(viewByKey("breached").params).toEqual({ open: true, breached: true });
     expect(viewByKey("nonsense").key).toBe("open");
     expect(QUEUE_VIEWS.map((view) => view.key)).toHaveLength(new Set(QUEUE_VIEWS.map((view) => view.key)).size);
   });

@@ -28,16 +28,28 @@ app/layout.tsx          fonts, .xms-scope, Providers
 app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, needs attention, my open tickets),
                         /tickets Queue (system views, chips, Count card, selection bar, cursor paging), /tickets/new (record form
                         with the priority preview), /tickets/[key] (record bar, transition menu, properties, Conversation,
-                        Activity, Links, Resolution, rail), /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics);
-                        /operations, /knowledge, /time, /accounts (stubs until their plan item),
+                        Activity, Time, Links, Resolution, rail with Service levels, Solutions, Contract, Requester, Watching),
+                        /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics);
+                        /knowledge Solutions list (chips, search, New article), /knowledge/new, /knowledge/[key] (record bar,
+                        section editor, Visibility, History, Feedback, Submit, Publish, Retire, Generalize with the findings
+                        sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker, day groups, quick Log time) (P2.12.x);
+                        /operations, /accounts (stubs until their plan item),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only),
                         /dev/tokens (token check), /dev/sign-in (dev-mode token paste only)
 components/tickets/     ticket-columns (the Queue column set), transition-menu (state pill menu, pause, resolve, confirm sheets),
-                        resolve-form (close discipline mirror), conversation-tab (Composer with Reply / Work note), activity-tab,
-                        links-tab, properties-panel, sla-rail (meters with countdown, requester, watch), assignee-picker
-lib/tickets/            vocab, priority preview matrix, sla helpers (tighter clock, local countdown, meter), queue-views
-                        (system views and the URL grammar), transition-errors (typed 409 toasts), use-transition
+                        resolve-form (close discipline mirror over the catalog codes), solution-picker (search over published
+                        articles), solutions-rail (matching articles with Use this, similar tickets, resolution records, propose
+                        an article), time-tab (entries with adjustments, LogTimeForm), contract-card (burn from the position),
+                        resolution-tab, conversation-tab (Composer with Reply / Work note), activity-tab, links-tab,
+                        properties-panel, sla-rail (meters with countdown, requester, watch from the record), assignee-picker
+components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
+                        publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
+components/time/        Timesheet (week grouped by day, totals), weekOf and groupByDay helpers
+lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
+                        GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
+                        queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
+                        (typed 409 toasts), use-transition
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
                         ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), status pills, buttons
 lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
@@ -52,6 +64,7 @@ components/portal/      PortalChrome (account name and accent, nav, user menu, 4
                         from components/tickets or app/(internal) is imported here
 lib/portal/             client-language (the seven client statuses, type and level copy, priority words, relative time)
 test-kit/portal.tsx     constructed portal fixtures, the fetch stub and renderPortal for the portal tests
+test-kit/desk.tsx       renderDesk (store plus toasts) for desk component tests, re-exporting the fetch stub
 components/shell/       FinderBar, FinderOverlay, PinnedSidebar, ContentHeaderBar (HeaderFilters, HeaderAction portals),
                         CommandPalette, NotificationsMenu (bell dropdown, 60 s unread poll), Shell, ScreenStub
 components/xms/         the house composition components (P1.4.2), one file each, import by path, no barrel
@@ -66,7 +79,9 @@ lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
 redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types),
                         ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
                         links, watchers, notifications, directory lookups), portalApi.ts (the /v1/portal mirror and the
-                        searchArticles placeholder),
+                        searchArticles placeholder), knowledgeApi.ts (articles, drafts, publish, retire, generalize,
+                        visibility, feedback, search, the Solutions rail, candidates, catalogs), timeApi.ts (ticket time,
+                        my timesheet, adjustments, contract position, buckets),
                         store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)

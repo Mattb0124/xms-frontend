@@ -21,7 +21,7 @@ describe("PinnedSidebar", () => {
   it("shows only the unrestricted pins to a user with no permissions", () => {
     render(<PinnedSidebar {...base} permissions={new Set()} />);
     const labels = screen.getAllByRole("link").map((link) => link.textContent);
-    expect(labels).toEqual(["My work", "Solutions"]);
+    expect(labels).toEqual(["My work"]);
     expect(screen.queryByText("Admin")).not.toBeInTheDocument();
   });
 
@@ -41,7 +41,7 @@ describe("PinnedSidebar", () => {
     const queue = screen.getByRole("link", { name: /Queue/ });
     expect(queue).toHaveAttribute("aria-current", "page");
     expect(queue).toHaveTextContent("42");
-    expect(screen.getByText(/Browse all screens · 10/)).toBeEnabled();
+    expect(screen.getByText(/Browse all screens · 12/)).toBeEnabled();
   });
 
   it("never shows a pin the user is not permitted to see", () => {

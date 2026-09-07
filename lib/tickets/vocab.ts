@@ -55,8 +55,14 @@ export const RESOLUTION_CODES: ResolutionCode[] = [
   { key: "known_error", label: "Known error, no fix available", noSolution: true },
 ];
 
-export function isNoSolutionCode(code: string | null | undefined): boolean {
-  return RESOLUTION_CODES.some((entry) => entry.key === code && entry.noSolution);
+/** No-solution codes waive the solution link; the catalog from the API wins over the seed fallback. */
+export function isNoSolutionCode(code: string | null | undefined, codes: ResolutionCode[] = RESOLUTION_CODES): boolean {
+  return codes.some((entry) => entry.key === code && entry.noSolution);
+}
+
+export function resolutionLabel(code: string | null | undefined, codes: ResolutionCode[] = RESOLUTION_CODES): string {
+  if (!code) return "none";
+  return codes.find((entry) => entry.key === code)?.label ?? code;
 }
 
 export const SOURCE_LABEL: Record<string, string> = {

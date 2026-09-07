@@ -5,6 +5,9 @@ import { INPUT } from "@/components/admin/primitives";
 import { ResolveForm, toResolutionBody } from "@/components/tickets/resolve-form";
 import { StatePill } from "@/components/xms/state-pill";
 import { useTransition } from "@/lib/tickets/use-transition";
+import { useCatalogs } from "@/lib/tickets/use-catalogs";
+import { useTicketSolutionsQuery } from "@/redux/knowledgeApi";
+import { useTicketTimeQuery } from "@/redux/timeApi";
 import { PAUSE_REASONS, type PauseReason } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
 import { useGetTransitionsQuery, type AllowedTransition, type TicketView } from "@/redux/ticketsApi";
@@ -27,6 +30,9 @@ const TERMINAL_CONFIRM = new Set(["closed", "cancelled", "rejected"]);
 export function TransitionMenu({ ticket, className }: { ticket: TicketView; className?: string }) {
   const { data } = useGetTransitionsQuery(ticket.key);
   const { transition, pending } = useTransition(ticket.key);
+  const catalogs = useCatalogs(ticket.account_id);
+  const { data: time } = useTicketTimeQuery(ticket.key);
+  const { data: rail } = useTicketSolutionsQuery(ticket.key);
   const [open, setOpen] = useState(false);
   const [sheet, setSheet] = useState<Sheet>({ kind: "none" });
   const [pauseReason, setPauseReason] = useState<PauseReason>("awaiting_client");
@@ -149,6 +155,9 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
           <ResolveForm
             requires={sheet.target.requires}
             targetLabel={sheet.target.label}
+            codes={catalogs.resolutionCodes}
+            loggedMinutes={time?.total_minutes ?? 0}
+            suggested={rail?.articles ?? []}
             pending={pending}
             serverMissing={serverMissing}
             onCancel={() => setSheet({ kind: "none" })}

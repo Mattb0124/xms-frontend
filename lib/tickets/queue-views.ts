@@ -14,6 +14,7 @@ export interface TicketListParams {
   unassigned?: boolean;
   open?: boolean;
   mine?: boolean;
+  breached?: boolean;
   q?: string;
   sort?: "updated_desc" | "created_desc" | "priority";
   limit?: number;
@@ -24,8 +25,6 @@ export interface QueueView {
   key: string;
   label: string;
   params: TicketListParams;
-  /** Client-side narrowing the API has no parameter for (breached rows). */
-  clientFilter?: "breached";
 }
 
 export const RESOLVED_STATES = ["resolved", "fulfilled", "completed", "done"];
@@ -34,7 +33,7 @@ export const QUEUE_VIEWS: QueueView[] = [
   { key: "open", label: "All open", params: { open: true } },
   { key: "mine", label: "My work", params: { open: true, mine: true } },
   { key: "unassigned", label: "Unassigned", params: { open: true, unassigned: true } },
-  { key: "breached", label: "Breached", params: { open: true }, clientFilter: "breached" },
+  { key: "breached", label: "Breached", params: { open: true, breached: true } },
   { key: "p1", label: "P1", params: { open: true, priority: ["p1"] } },
   { key: "awaiting_client", label: "Awaiting client", params: { state: ["awaiting_client"] } },
   { key: "resolved", label: "Resolved", params: { state: RESOLVED_STATES } },

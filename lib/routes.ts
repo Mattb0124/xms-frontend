@@ -77,12 +77,28 @@ export const SCREENS: Screen[] = [
   },
   {
     path: "/knowledge",
-    screen: "solutions",
+    screen: "knowledge",
     label: "Solutions",
     section: "Knowledge",
-    permission: null,
+    permission: "tickets:view",
     pinned: true,
     purpose: "The knowledge base.",
+  },
+  {
+    path: "/knowledge/new",
+    screen: "knowledge.new",
+    label: "New article",
+    section: "Knowledge",
+    permission: "kb:author",
+    purpose: "Draft an article by hand.",
+  },
+  {
+    path: "/knowledge/[key]",
+    screen: "knowledge.article",
+    label: "Article",
+    section: "Knowledge",
+    permission: "tickets:view",
+    purpose: "The article record: sections, visibility, versions, feedback.",
   },
   {
     path: "/knowledge/review",
@@ -94,10 +110,10 @@ export const SCREENS: Screen[] = [
   },
   {
     path: "/time",
-    screen: "timesheet",
+    screen: "time",
     label: "My timesheet",
     section: "Time",
-    permission: "time:log",
+    permission: "tickets:view",
     purpose: "Your entries for the week.",
   },
   {

@@ -9,7 +9,7 @@ describe("route registry", () => {
 
   it("shows only unrestricted screens to a user with no permissions", () => {
     const labels = visibleScreens([]).map((s) => s.label);
-    expect(labels).toEqual(["My work", "Solutions"]);
+    expect(labels).toEqual(["My work"]);
     expect(labels).not.toContain("Admin");
   });
 

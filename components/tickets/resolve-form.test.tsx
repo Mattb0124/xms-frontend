@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderDesk, stubFetch } from "@/test-kit/desk";
 import { disciplineItems, EMPTY_RESOLVE, ResolveForm, toResolutionBody } from "@/components/tickets/resolve-form";
 
 const RESOLVE = ["resolution", "solution_link", "time_logged"];
@@ -44,9 +45,14 @@ describe("disciplineItems", () => {
 });
 
 describe("ResolveForm", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   it("keeps Submit disabled until the checklist is complete, then submits the draft", async () => {
+    stubFetch({});
     const onSubmit = vi.fn(async () => undefined);
-    render(<ResolveForm requires={RESOLVE} targetLabel="Resolved" onSubmit={onSubmit} onCancel={() => undefined} />);
+    renderDesk(
+      <ResolveForm requires={RESOLVE} targetLabel="Resolved" onSubmit={onSubmit} onCancel={() => undefined} />,
+    );
     const submit = screen.getByRole("button", { name: "Move to Resolved" });
     expect(submit).toBeDisabled();
     expect(screen.getByText("4 items missing before Resolved.")).toBeInTheDocument();
@@ -72,7 +78,8 @@ describe("ResolveForm", () => {
   });
 
   it("shows what the server still needs", () => {
-    render(
+    stubFetch({});
+    renderDesk(
       <ResolveForm
         requires={RESOLVE}
         targetLabel="Resolved"

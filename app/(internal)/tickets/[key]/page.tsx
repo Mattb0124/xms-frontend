@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { AdminGate, formatDate } from "@/components/admin/primitives";
+import { AdminGate } from "@/components/admin/primitives";
 import { ActivityTab } from "@/components/tickets/activity-tab";
+import { ContractCard } from "@/components/tickets/contract-card";
 import { ConversationTab } from "@/components/tickets/conversation-tab";
 import { LinksTab } from "@/components/tickets/links-tab";
 import { PropertiesPanel } from "@/components/tickets/properties-panel";
+import { ResolutionTab } from "@/components/tickets/resolution-tab";
 import { RequesterCard, ServiceLevels, WatchCard } from "@/components/tickets/sla-rail";
+import { SolutionsRail } from "@/components/tickets/solutions-rail";
+import { TimeTab } from "@/components/tickets/time-tab";
 import { TransitionMenu } from "@/components/tickets/transition-menu";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
@@ -21,50 +25,18 @@ import { useToast } from "@/components/xms/toast";
 import { TypeBar } from "@/components/xms/type-bar";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
-import { RESOLUTION_CODES } from "@/lib/tickets/vocab";
-import { useGetTicketQuery, usePatchTicketMutation, type TicketView } from "@/redux/ticketsApi";
+import { useCatalogs } from "@/lib/tickets/use-catalogs";
+import { useGetTicketQuery, usePatchTicketMutation } from "@/redux/ticketsApi";
 
 const TABS = [
   { key: "conversation", label: "Conversation" },
   { key: "activity", label: "Activity" },
+  { key: "time", label: "Time" },
   { key: "links", label: "Links" },
   { key: "resolution", label: "Resolution" },
 ];
 
 const TERMINAL = new Set(["closed", "cancelled", "rejected"]);
-
-function ResolutionTab({ ticket }: { ticket: TicketView }) {
-  const code = RESOLUTION_CODES.find((entry) => entry.key === ticket.resolution.code);
-  if (!ticket.resolution.code && !ticket.resolved_at) {
-    return (
-      <p className="text-xms-label text-[13px]">Not resolved yet. The close discipline runs on the resolving move.</p>
-    );
-  }
-  return (
-    <dl className="grid grid-cols-[160px_1fr] gap-y-2 text-[13px]">
-      <dt className="text-xms-label">Resolution code</dt>
-      <dd className="text-xms-ink">{code?.label ?? ticket.resolution.code ?? "none"}</dd>
-      <dt className="text-xms-label">Notes</dt>
-      <dd className="text-xms-ink whitespace-pre-wrap">{ticket.resolution.notes ?? ""}</dd>
-      <dt className="text-xms-label">Solution</dt>
-      <dd className="text-xms-ink">
-        {ticket.resolution.solution_article_id
-          ? `Article ${ticket.resolution.solution_article_id}`
-          : ticket.resolution.solution_candidate
-            ? "New-article candidate"
-            : code?.noSolution
-              ? "Waived by the resolution code"
-              : "none"}
-      </dd>
-      <dt className="text-xms-label">Time exemption</dt>
-      <dd className="text-xms-ink">{ticket.resolution.time_exemption_reason ?? "none"}</dd>
-      <dt className="text-xms-label">Resolved</dt>
-      <dd className="xms-mono text-xms-ink">{formatDate(ticket.resolved_at)}</dd>
-      <dt className="text-xms-label">Reopened</dt>
-      <dd className="xms-mono text-xms-ink">{ticket.reopen_count} times</dd>
-    </dl>
-  );
-}
 
 /** The ticket record (User Experience 3.4, Wireframes v3): record bar, properties, tabbed work area, rail. */
 function TicketRecord({ ticketKey }: { ticketKey: string }) {
@@ -77,6 +49,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   const [patch] = usePatchTicketMutation();
   const { push } = useToast();
   const [tab, setTab] = useState("conversation");
+  const catalogs = useCatalogs(ticket?.account_id);
   const fetchedAt = useMemo(
     () => (fulfilledTimeStamp ? new Date(fulfilledTimeStamp) : undefined),
     [fulfilledTimeStamp],
@@ -133,7 +106,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           </span>
         ) : null}
       </div>
-      <div className="grid gap-4 xl:grid-cols-[300px_1fr_280px]">
+      <div className="grid gap-4 xl:grid-cols-[300px_1fr_300px]">
         <PropertiesPanel ticket={ticket} readOnly={readOnly} />
         <Panel title="Work area" flush>
           <div className="px-4 pt-2">
@@ -144,14 +117,17 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
               <ConversationTab ticketKey={ticket.key} requesterLine={requesterLine} readOnly={readOnly} />
             ) : null}
             {tab === "activity" ? <ActivityTab ticketKey={ticket.key} /> : null}
+            {tab === "time" ? <TimeTab ticketKey={ticket.key} catalogs={catalogs} readOnly={readOnly} /> : null}
             {tab === "links" ? <LinksTab ticketKey={ticket.key} readOnly={readOnly} /> : null}
-            {tab === "resolution" ? <ResolutionTab ticket={ticket} /> : null}
+            {tab === "resolution" ? <ResolutionTab ticket={ticket} catalogs={catalogs} /> : null}
           </div>
         </Panel>
         <div className="flex flex-col gap-4">
           <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} />
+          <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
+          <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <RequesterCard ticket={ticket} />
-          <WatchCard ticketKey={ticket.key} />
+          <WatchCard ticketKey={ticket.key} watching={ticket.watching ?? true} />
         </div>
       </div>
     </div>

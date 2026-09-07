@@ -83,13 +83,7 @@ function QueueScreen() {
 
   const accountsById = useMemo(() => new Map((accounts ?? []).map((account) => [account.id, account])), [accounts]);
   const columns = useMemo(() => ticketColumns({ accounts: accountsById }), [accountsById]);
-  const rows = useMemo(() => {
-    const items = data?.items ?? [];
-    if (view.clientFilter === "breached") {
-      return items.filter((ticket) => ticket.sla.response?.breached || ticket.sla.resolution?.breached);
-    }
-    return items;
-  }, [data, view]);
+  const rows = useMemo(() => data?.items ?? [], [data]);
 
   // A new URL (view, chips, search, page size) restarts paging and selection
   // (state derived from props during render, no effect).

@@ -69,9 +69,15 @@ export function RequesterCard({ ticket }: { ticket: TicketView }) {
   );
 }
 
-export function WatchCard({ ticketKey }: { ticketKey: string }) {
+export function WatchCard({ ticketKey, watching = true }: { ticketKey: string; watching?: boolean }) {
   const [watch, { isLoading }] = useWatchTicketMutation();
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(!watching);
+  // The record is the truth for the initial state; re-sync when it changes.
+  const [seen, setSeen] = useState(watching);
+  if (seen !== watching) {
+    setSeen(watching);
+    setMuted(!watching);
+  }
   const { push } = useToast();
   return (
     <RailCard

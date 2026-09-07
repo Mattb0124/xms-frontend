@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { INPUT } from "@/components/admin/primitives";
+import { SolutionPicker, type PickedSolution } from "@/components/tickets/solution-picker";
 import { CloseDisciplineChecklist, type DisciplineItem } from "@/components/xms/close-discipline-checklist";
-import { isNoSolutionCode, RESOLUTION_CODES } from "@/lib/tickets/vocab";
+import { isNoSolutionCode, RESOLUTION_CODES, type ResolutionCode } from "@/lib/tickets/vocab";
+import type { SearchHit } from "@/redux/knowledgeApi";
 import type { ResolutionBody } from "@/redux/ticketsApi";
 
 export interface ResolveDraft {
@@ -28,14 +30,19 @@ export const EMPTY_RESOLVE: ResolveDraft = {
  * The server re-checks and answers `missing_requirements`; this only stops
  * an obviously incomplete submit.
  */
-export function disciplineItems(draft: ResolveDraft, requires: string[], loggedMinutes = 0): DisciplineItem[] {
+export function disciplineItems(
+  draft: ResolveDraft,
+  requires: string[],
+  loggedMinutes = 0,
+  codes: ResolutionCode[] = RESOLUTION_CODES,
+): DisciplineItem[] {
   const items: DisciplineItem[] = [];
   if (requires.includes("resolution")) {
     items.push({ key: "resolution_code", label: "Resolution code", done: draft.code !== "" });
     items.push({ key: "notes", label: "Resolution notes", done: draft.notes.trim() !== "" });
   }
   if (requires.includes("solution_link")) {
-    const waived = isNoSolutionCode(draft.code);
+    const waived = isNoSolutionCode(draft.code, codes);
     items.push({
       key: "solution",
       label: "Solution link or new-article candidate",
@@ -73,9 +80,15 @@ export interface ResolveFormProps {
   /** Items the server reported missing on the last attempt, shown under the checklist. */
   serverMissing?: string[];
   targetLabel: string;
+  /** Resolution codes from the account catalog; the seed vocabulary is the fallback. */
+  codes?: ResolutionCode[];
+  /** Articles the Solutions rail already suggested, offered before any search. */
+  suggested?: SearchHit[];
+  /** A solution pre-selected from the rail. */
+  preselected?: PickedSolution | null;
 }
 
-/** The Resolve sheet: code, notes, candidate, exemption, and the checklist that gates Submit. */
+/** The Resolve sheet: code, notes, solution picker or candidate, exemption, and the checklist that gates Submit. */
 export function ResolveForm({
   requires,
   loggedMinutes = 0,
@@ -84,10 +97,18 @@ export function ResolveForm({
   pending,
   serverMissing,
   targetLabel,
+  codes = RESOLUTION_CODES,
+  suggested = [],
+  preselected = null,
 }: ResolveFormProps) {
-  const [draft, setDraft] = useState<ResolveDraft>(EMPTY_RESOLVE);
-  const items = useMemo(() => disciplineItems(draft, requires, loggedMinutes), [draft, requires, loggedMinutes]);
+  const [draft, setDraft] = useState<ResolveDraft>({ ...EMPTY_RESOLVE, solutionArticleId: preselected?.id ?? "" });
+  const [picked, setPicked] = useState<PickedSolution | null>(preselected);
+  const items = useMemo(
+    () => disciplineItems(draft, requires, loggedMinutes, codes),
+    [draft, requires, loggedMinutes, codes],
+  );
   const ready = items.every((item) => item.done);
+  const waived = isNoSolutionCode(draft.code, codes);
   return (
     <form
       className="flex flex-col gap-3"
@@ -106,7 +127,7 @@ export function ResolveForm({
           className={INPUT}
         >
           <option value="">Choose a code</option>
-          {RESOLUTION_CODES.map((code) => (
+          {codes.map((code) => (
             <option key={code.key} value={code.key}>
               {code.label}
             </option>
@@ -124,26 +145,32 @@ export function ResolveForm({
         />
       </label>
       {requires.includes("solution_link") ? (
-        <div className="flex flex-col gap-2 text-[12px]">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              aria-label="Propose a new article from this ticket"
-              checked={draft.solutionCandidate}
-              onChange={(event) => setDraft({ ...draft, solutionCandidate: event.target.checked })}
-            />
-            <span className="text-xms-ink">Propose a new article from this ticket</span>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Or the solution article id</span>
-            <input
-              aria-label="Solution article id"
-              value={draft.solutionArticleId}
-              onChange={(event) => setDraft({ ...draft, solutionArticleId: event.target.value })}
-              className={`${INPUT} xms-mono`}
-              placeholder="uuid of the article (rail lands with the knowledge base)"
-            />
-          </label>
+        <div className="flex flex-col gap-2 text-[12px]" data-testid="solution-section">
+          {waived ? (
+            <p className="text-xms-label">This code needs no solution link.</p>
+          ) : (
+            <>
+              <span className="text-xms-label">Solution article</span>
+              <SolutionPicker
+                value={picked}
+                suggested={suggested}
+                disabled={draft.solutionCandidate}
+                onChange={(value) => {
+                  setPicked(value);
+                  setDraft({ ...draft, solutionArticleId: value?.id ?? "" });
+                }}
+              />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  aria-label="Propose a new article from this ticket"
+                  checked={draft.solutionCandidate}
+                  onChange={(event) => setDraft({ ...draft, solutionCandidate: event.target.checked })}
+                />
+                <span className="text-xms-ink">Or propose a new article from this ticket</span>
+              </label>
+            </>
+          )}
         </div>
       ) : null}
       {requires.includes("time_logged") && loggedMinutes === 0 ? (
