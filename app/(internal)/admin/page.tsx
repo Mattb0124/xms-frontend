@@ -13,6 +13,8 @@ const CARDS = [
   { screen: "admin.roles", detail: "Operator and portal role catalogs with their implications." },
   { screen: "admin.groups", detail: "Assignment groups, leads and members." },
   { screen: "admin.config", detail: "State machines, priority matrix, SLA policy and the catalogs." },
+  { screen: "admin.holiday_calendars", detail: "Country holiday sets shared by account and person calendars." },
+  { screen: "roster", detail: "People, roles, FTE, time zones, working calendars, skills and certifications." },
   {
     screen: "admin.connectors",
     detail: "Every ServiceNow instance: health, mode, kill switch, maps, runs, dead letters with replay and discard.",
@@ -33,14 +35,14 @@ export default function AdminPage() {
     return (
       <EmptyBanner
         title="Not permitted"
-        detail="Administration needs the admin:accounts, admin:users, admin:connectors, audit:read or analytics:read permission."
+        detail="Administration needs the admin:accounts, admin:users, admin:config, admin:connectors, capacity:view, audit:read or analytics:read permission."
       />
     );
   }
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {visible.map((card) => (
-        <Panel key={card.screen} title={card.entry.label} caption="Admin">
+        <Panel key={card.screen} title={card.entry.label} caption={card.entry.section}>
           <p className="text-xms-body mb-3 text-[13px]">{card.detail}</p>
           <Link href={card.entry.path} className="text-xms-accent text-[13px] font-medium">
             Open {card.entry.label.toLowerCase()}

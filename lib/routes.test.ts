@@ -35,3 +35,24 @@ describe("route registry", () => {
     expect(matchScreen("/nowhere")).toBeUndefined();
   });
 });
+
+describe("roster and calendar routes", () => {
+  it("shows Roster to capacity:view and the calendar screens to admin:config", () => {
+    const labels = visibleScreens(new Set(["capacity:view"])).map((s) => s.label);
+    expect(labels).toContain("Roster");
+    expect(labels).toContain("Person record");
+    expect(labels).not.toContain("Holiday libraries");
+    const admin = visibleScreens(new Set(["admin:config"])).map((s) => s.screen);
+    expect(admin).toEqual(expect.arrayContaining(["admin.calendar", "admin.calendar.new", "admin.holiday_calendars"]));
+    expect(SCREENS.find((s) => s.screen === "roster")?.section).toBe("Capacity");
+  });
+
+  it("matches the roster and calendar paths, including the nested new-calendar route", () => {
+    expect(matchScreen("/roster")?.screen).toBe("roster");
+    expect(matchScreen("/roster/11111111-1111-4111-8111-111111111111")?.screen).toBe("roster.person");
+    expect(matchScreen("/admin/calendars/abc")?.screen).toBe("admin.calendar");
+    expect(matchScreen("/admin/accounts/acc-1/calendars/new")?.screen).toBe("admin.calendar.new");
+    expect(matchScreen("/admin/accounts/acc-1")?.screen).toBe("admin.account");
+    expect(matchScreen("/admin/holiday-calendars")?.screen).toBe("admin.holiday_calendars");
+  });
+});
