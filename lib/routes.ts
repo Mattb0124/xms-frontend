@@ -182,6 +182,14 @@ export const SCREENS: Screen[] = [
     purpose: "People against skills as a heat map; per account, the required technologies with single points of failure and gaps.",
   },
   {
+    path: "/capacity/demand",
+    screen: "capacity.demand",
+    label: "Demand",
+    section: "Capacity",
+    permission: "capacity:view",
+    purpose: "Pipeline and project demand by month, entered by hand or imported from the template.",
+  },
+  {
     path: "/operations",
     screen: "operations",
     label: "Operations",

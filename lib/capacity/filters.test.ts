@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   capacityFilterFromSearch,
   capacityFilterToSearch,
+  demandFilterFromSearch,
+  demandFilterToSearch,
   skillsFilterFromSearch,
   skillsFilterToSearch,
   varianceFilterFromSearch,
@@ -43,6 +45,22 @@ describe("capacity filters", () => {
     });
     expect(varianceFilterToSearch({ month: "2026-08", person: "p-1" }, "2026-09")).toBe("?month=2026-08&person=p-1");
     expect(varianceFilterToSearch({ month: "2026-09" }, "2026-09")).toBe("");
+  });
+
+  it("reads the demand range with the three-month default and writes only what leaves it", () => {
+    expect(demandFilterFromSearch(new URLSearchParams(""), "2026-09")).toEqual({ from: "2026-09", to: "2026-12", account: undefined });
+    expect(demandFilterFromSearch(new URLSearchParams("from=2026-11&to=2027-02&account=a-1"), "2026-09")).toEqual({
+      from: "2026-11",
+      to: "2027-02",
+      account: "a-1",
+    });
+    // A `to` before `from` or a malformed one falls back to the horizon from `from`.
+    expect(demandFilterFromSearch(new URLSearchParams("from=2026-11&to=2026-10"), "2026-09").to).toBe("2027-02");
+    expect(demandFilterFromSearch(new URLSearchParams("to=nope"), "2026-09").to).toBe("2026-12");
+    expect(demandFilterToSearch({ from: "2026-09", to: "2026-12" }, "2026-09")).toBe("");
+    expect(demandFilterToSearch({ from: "2026-09", to: "2026-10" }, "2026-09")).toBe("?to=2026-10");
+    expect(demandFilterToSearch({ from: "2026-11", to: "2027-02", account: "a-1" }, "2026-09")).toBe("?from=2026-11&account=a-1");
+    expect(demandFilterToSearch({ from: "2026-11", to: "2026-11" }, "2026-09")).toBe("?from=2026-11&to=2026-11");
   });
 
   it("reads the skills lens with its own filter only, and writes the account lens but not the people one", () => {

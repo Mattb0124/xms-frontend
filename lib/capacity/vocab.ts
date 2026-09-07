@@ -1,7 +1,15 @@
 import type { SignalTone } from "@/components/xms/signal-pill";
 import { formatHours } from "@/lib/time/budget";
 import { SKILL_KIND_LABEL } from "@/lib/roster/vocab";
-import type { CapacityCheck, CapacityStatus, CoverageStatus, MatrixSkill, PtoKind } from "@/redux/capacityApi";
+import type {
+  CapacityCheck,
+  CapacityStatus,
+  CoverageStatus,
+  DemandRow,
+  DemandSource,
+  MatrixSkill,
+  PtoKind,
+} from "@/redux/capacityApi";
 
 /**
  * The capacity vocabulary (Capacity & Allocation functional 5.1, 5.3 to
@@ -91,6 +99,46 @@ export function groupSkillsByKind(skills: MatrixSkill[]): SkillGroup[] {
       skills: [...list].sort((a, b) => a.name.localeCompare(b.name)),
     }));
 }
+
+/** The demand sources (5.7): pipeline weighted by probability, project as committed, imported lines from the template. */
+export const DEMAND_SOURCE: Record<DemandSource, { label: string; tone: SignalTone }> = {
+  pipeline: { label: "Pipeline", tone: "ready" },
+  project: { label: "Project", tone: "complete" },
+  import: { label: "Imported", tone: "blocked" },
+};
+
+/** The minutes a line adds to the month: project as committed, anything else weighted by its probability. */
+export function weightedMinutes(row: Pick<DemandRow, "source" | "hours" | "probability">): number {
+  const minutes = row.hours * 60;
+  return row.source === "project" ? Math.round(minutes) : Math.round(minutes * row.probability);
+}
+
+/** "50%" from the API's 0.5. */
+export function formatProbability(probability: number): string {
+  return `${Math.round(probability * 100)}%`;
+}
+
+/** The account key, else the prospect name, else the id prefix. */
+export function demandSubject(row: Pick<DemandRow, "account_key" | "prospect_name" | "account_id">): string {
+  return row.account_key ?? row.prospect_name ?? row.account_id?.slice(0, 8) ?? "";
+}
+
+/** "YYYY-MM" moved by a number of months, either way. */
+export function addMonths(month: string, count: number): string {
+  const year = Number(month.slice(0, 4));
+  const index = Number(month.slice(5, 7)) - 1 + count;
+  const date = new Date(Date.UTC(year, index, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+/** The spreadsheet template's header, in any order; source, month and hours are required. */
+export const DEMAND_TEMPLATE_COLUMNS = ["source", "account", "prospect", "month", "hours", "probability", "role"] as const;
+
+export const DEMAND_TEMPLATE_EXAMPLE = [
+  DEMAND_TEMPLATE_COLUMNS.join(","),
+  "project,BRK,,2026-12,40,,",
+  "pipeline,,Acme Corp,2026-12,200,50%,architect",
+].join("\n");
 
 /** "+22 h", "-1.5 h", "0 h": a variance in hours with its sign. */
 export function formatSignedHours(minutes: number): string {

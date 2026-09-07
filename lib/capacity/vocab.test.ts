@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { capacityError, describeCapacityError } from "@/lib/capacity/errors";
 import {
+  addMonths,
   COVERAGE_STATUS,
   coverageChipLabel,
   currentMonth,
+  DEMAND_SOURCE,
+  DEMAND_TEMPLATE_EXAMPLE,
+  demandSubject,
+  formatProbability,
   formatSignedHours,
   formatVariancePercent,
   fractionLabel,
@@ -16,10 +21,30 @@ import {
   monthLabel,
   monthStart,
   remainingLabel,
+  weightedMinutes,
 } from "@/lib/capacity/vocab";
-import { aCapacityCheck, aSkillsMatrixPeople } from "@/redux/capacityApi.test";
+import { aCapacityCheck, aDemandRow, aProjectDemandRow, aSkillsMatrixPeople } from "@/redux/capacityApi.test";
 
 describe("capacity vocab", () => {
+  it("weights demand like the server, words the sources and subjects, and moves months", () => {
+    expect(weightedMinutes(aDemandRow())).toBe(6000);
+    expect(weightedMinutes(aDemandRow({ hours: 10, probability: 0.33 }))).toBe(198);
+    // Project demand counts in full whatever probability the row carries.
+    expect(weightedMinutes(aProjectDemandRow({ probability: 0.1 }))).toBe(2400);
+    expect(weightedMinutes(aDemandRow({ source: "import", hours: 100, probability: 0.25 }))).toBe(1500);
+    expect(formatProbability(0.5)).toBe("50%");
+    expect(formatProbability(1)).toBe("100%");
+    expect(DEMAND_SOURCE.pipeline.label).toBe("Pipeline");
+    expect(DEMAND_SOURCE.project.tone).toBe("complete");
+    expect(demandSubject(aDemandRow())).toBe("Acme Corp");
+    expect(demandSubject(aProjectDemandRow())).toBe("BRK");
+    expect(demandSubject({ account_key: null, prospect_name: null, account_id: "55555555-5555-4555-8555-555555555555" })).toBe("55555555");
+    expect(addMonths("2026-09", 3)).toBe("2026-12");
+    expect(addMonths("2026-11", 3)).toBe("2027-02");
+    expect(addMonths("2026-01", -1)).toBe("2025-12");
+    expect(DEMAND_TEMPLATE_EXAMPLE.split("\n")[0]).toBe("source,account,prospect,month,hours,probability,role");
+  });
+
   it("words the coverage statuses and the account record chips, and ramps the heat map by level", () => {
     expect(COVERAGE_STATUS.ok).toEqual({ label: "Covered", tone: "complete" });
     expect(COVERAGE_STATUS.spof).toEqual({ label: "Single point of failure", tone: "needs-input" });
@@ -115,6 +140,29 @@ describe("capacity errors", () => {
     ).toBe("Only the person themselves or a capacity manager may change this.");
     expect(describeCapacityError(capacityError({ status: 404, data: { code: "not_found", entity: "pto" } }))).toBe(
       "That time off has already been removed.",
+    );
+  });
+});
+
+describe("demand errors", () => {
+  it("words subject_required, the import problems and the unknown account keys", () => {
+    expect(describeCapacityError(capacityError({ status: 400, data: { code: "subject_required" } }))).toBe(
+      "Name an account or a prospect.",
+    );
+    const invalid = capacityError({
+      status: 400,
+      data: { code: "invalid_import", problems: [{ line: 2, problem: "month must be YYYY-MM" }, { line: 3, problem: "x" }] },
+    });
+    expect(invalid.problems).toEqual([
+      { line: 2, problem: "month must be YYYY-MM" },
+      { line: 3, problem: "x" },
+    ]);
+    expect(describeCapacityError(invalid)).toBe("The file has 2 problems; nothing was imported.");
+    const unknown = capacityError({ status: 400, data: { code: "unknown_account", keys: ["ZZZ", "YYY"] } });
+    expect(unknown.keys).toEqual(["ZZZ", "YYY"]);
+    expect(describeCapacityError(unknown)).toBe("Unknown or not granted account keys: ZZZ, YYY. Nothing was imported.");
+    expect(describeCapacityError(capacityError({ status: 404, data: { code: "not_found", entity: "demand" } }))).toBe(
+      "That demand line has already been removed.",
     );
   });
 });

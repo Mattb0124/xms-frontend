@@ -1,4 +1,4 @@
-import { currentMonth, isMonth } from "@/lib/capacity/vocab";
+import { addMonths, currentMonth, isMonth } from "@/lib/capacity/vocab";
 import type { SkillsLens } from "@/redux/capacityApi";
 
 /**
@@ -20,6 +20,17 @@ export interface VariancePageFilter {
   account?: string;
   person?: string;
 }
+
+/** Forward demand: a month range (the current month to three months ahead by default) and an account. */
+export interface DemandPageFilter {
+  /** "YYYY-MM". */
+  from: string;
+  to: string;
+  account?: string;
+}
+
+/** How far ahead the demand screen looks by default. */
+export const DEMAND_HORIZON_MONTHS = 3;
 
 /** The skills matrix: the lens, a role under the people lens, an account under the account lens. */
 export interface SkillsPageFilter {
@@ -70,6 +81,24 @@ export function varianceFilterToSearch(filter: VariancePageFilter, fallbackMonth
   if (filter.month !== fallbackMonth) params.set("month", filter.month);
   if (filter.account) params.set("account", filter.account);
   if (filter.person) params.set("person", filter.person);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+}
+
+/** The range is written only where it leaves the default; a `to` before `from` collapses to `from`. */
+export function demandFilterFromSearch(search: URLSearchParams, fallbackFrom = currentMonth()): DemandPageFilter {
+  const requestedFrom = search.get("from");
+  const from = isMonth(requestedFrom) ? requestedFrom : fallbackFrom;
+  const requested = search.get("to");
+  const to = isMonth(requested) && requested >= from ? requested : addMonths(from, DEMAND_HORIZON_MONTHS);
+  return { from, to, account: value(search, "account") };
+}
+
+export function demandFilterToSearch(filter: DemandPageFilter, fallbackFrom = currentMonth()): string {
+  const params = new URLSearchParams();
+  if (filter.from !== fallbackFrom) params.set("from", filter.from);
+  if (filter.to !== addMonths(filter.from, DEMAND_HORIZON_MONTHS)) params.set("to", filter.to);
+  if (filter.account) params.set("account", filter.account);
   const text = params.toString();
   return text ? `?${text}` : "";
 }

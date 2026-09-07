@@ -5,6 +5,7 @@ import { Suspense, useMemo, useRef } from "react";
 import { AdminGate, INPUT } from "@/components/admin/primitives";
 import { CapacityGrid } from "@/components/capacity/capacity-grid";
 import { CapacityTabs } from "@/components/capacity/capacity-tabs";
+import { DemandOverlay } from "@/components/capacity/demand-overlay";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { FilterBar, type FilterCriterion } from "@/components/xms/filter-bar";
@@ -141,16 +142,17 @@ function CapacityScreen() {
         {view.data ? (
           <CapacityGrid view={view.data} month={filter.month} accounts={accounts.data} canManage={canManage} />
         ) : null}
+        {view.data ? <DemandOverlay view={view.data} month={filter.month} /> : null}
       </div>
     </>
   );
 }
 
 /**
- * Registered as `capacity` (Capacity & Allocation functional 5.4 and 5.5,
- * CAP-03, CAP-04): the month grid with the filters in the URL, one row
- * per person, and the allocation cells per account editable inline under
- * capacity:manage.
+ * Registered as `capacity` (Capacity & Allocation functional 5.4, 5.5 and
+ * 5.7, CAP-03, CAP-04, CAP-08): the month grid with the filters in the
+ * URL, one row per person, the allocation cells per account editable
+ * inline under capacity:manage, and the month's demand overlay beneath.
  */
 export default function CapacityPage() {
   return (

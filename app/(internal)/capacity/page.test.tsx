@@ -121,7 +121,43 @@ describe("CapacityPage", () => {
       "href",
       `/capacity/variance${capacityFilterToSearch({ month: "2026-09" })}`,
     );
+    // The demand overlay: the server's weighted pipeline and project figures against the month, with the subjects.
+    const overlay = screen.getByTestId("demand-overlay");
+    expect(overlay.querySelector("[data-overlay-allocated]")).toHaveTextContent("200 h");
+    expect(overlay.querySelector("[data-overlay-pipeline]")).toHaveTextContent("100 h");
+    expect(overlay.querySelector("[data-overlay-project]")).toHaveTextContent("40 h");
+    expect(overlay.querySelector("[data-overlay-total]")).toHaveTextContent("140 h");
+    expect(overlay.querySelector("[data-overlay-available]")).toHaveTextContent("263.5 h");
+    expect(overlay).toHaveTextContent("140 h of demand against 76.8 h remaining");
+    const subjects = within(overlay).getByRole("list", { name: "Demand by subject" });
+    expect(within(subjects).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      "BRK Project 40 h",
+      "Acme Corp Pipeline 200 h at 50%, 100 h weighted",
+    ]);
+    const bar = within(overlay).getByRole("img", { name: /Allocated 200 h/ });
+    expect(bar.querySelector("[data-segment='allocated']")).toHaveStyle({ width: "58.82%" });
+    expect(bar.querySelector("[data-segment='pipeline']")).toHaveStyle({ width: "29.41%" });
+    expect(bar.querySelector("[data-segment='project']")).toHaveStyle({ width: "11.76%" });
   });
+
+  it("says so when the month has no demand and links to the demand screen", async () => {
+    navigation.search = "month=2026-09";
+    stubFetch({
+      "GET /v1/admin/me": me(["capacity:view"]),
+      "GET /v1/capacity": () =>
+        json(
+          aCapacityView({
+            demand: { pipeline_minutes_weighted: 0, project_minutes: 0, total_minutes: 0, by_subject: [] },
+          }),
+        ),
+    });
+    renderDesk(<CapacityPage />);
+    const overlay = await screen.findByTestId("demand-overlay");
+    expect(overlay).toHaveTextContent("No demand entered for September 2026.");
+    expect(within(overlay).getByRole("link", { name: "Enter demand" })).toHaveAttribute("href", "/capacity/demand?from=2026-09");
+    expect(within(overlay).queryByRole("list", { name: "Demand by subject" })).not.toBeInTheDocument();
+  });
+
 
   it("rewrites the URL when the month or a filter changes", async () => {
     stubFetch({
