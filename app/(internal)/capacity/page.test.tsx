@@ -116,6 +116,8 @@ describe("CapacityPage", () => {
     expect(totals.querySelector("[data-total-available]")).toHaveTextContent("263.5 h");
     expect(totals.querySelector("[data-total-allocated]")).toHaveTextContent("200 h");
     expect(totals.querySelector("[data-total-actual]")).toHaveTextContent("29.5 h");
+    // The remaining total is the server's sum (each person's remaining clamped at 0), not available minus allocated.
+    expect(totals.querySelector("[data-total-remaining]")).toHaveTextContent("76.8 h");
     // The month travels to the other screen (left off the link only when it is the current month).
     expect(screen.getByRole("link", { name: "Planned versus actual" })).toHaveAttribute(
       "href",

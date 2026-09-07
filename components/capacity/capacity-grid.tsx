@@ -290,7 +290,10 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
             <td className="xms-mono px-3 py-2 text-right" data-total-actual>
               {formatHours(view.totals.actual_minutes)}
             </td>
-            <td colSpan={2 + columns.length} />
+            <td className="xms-mono px-3 py-2 text-right" data-total-remaining>
+              {formatHours(view.totals.remaining_minutes)}
+            </td>
+            <td colSpan={1 + columns.length} />
           </tr>
         </tfoot>
       </table>

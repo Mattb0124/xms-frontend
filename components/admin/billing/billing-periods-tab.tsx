@@ -73,6 +73,26 @@ export function BillingExportsList({ accountId, periodId }: { accountId: string;
   );
 }
 
+/** Who moved the period, by name as the server resolved it ("System" for the automatic lock), with the day. */
+export function PeriodPeople({ period }: { period: BillingPeriod }) {
+  const moves: { key: string; label: string; name: string | null; at: string | null }[] = [
+    { key: "submitted", label: "Submitted by", name: period.submitted_by_name, at: period.submitted_at },
+    { key: "approved", label: "Approved by", name: period.approved_by_name, at: period.approved_at },
+    { key: "locked", label: "Locked by", name: period.locked_by_name, at: period.locked_at },
+  ].filter((move) => move.name !== null);
+  if (moves.length === 0) return null;
+  return (
+    <span className="flex flex-col gap-0.5" data-period-people>
+      {moves.map((move) => (
+        <span key={move.key} className="text-xms-label text-[11px]" data-by={move.key}>
+          {move.label} <span className="text-xms-body">{move.name}</span>
+          {move.at ? <span className="xms-mono"> {move.at.slice(0, 10)}</span> : null}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function SummaryCell({ period }: { period: BillingPeriod }) {
   const summary = period.summary;
   if (!summary) return <span className="text-xms-label text-[12px]">Not summarised yet</span>;
@@ -258,6 +278,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
                             Locks on its own {period.auto_lock_at.slice(0, 10)}
                           </span>
                         ) : null}
+                        <PeriodPeople period={period} />
                       </span>
                     </td>
                     <td className={CELL}>

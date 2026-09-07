@@ -78,6 +78,8 @@ describe("CapacityVariancePage", () => {
     const totals = screen.getByTestId("variance-totals");
     expect(totals.querySelector("[data-total-planned]")).toHaveTextContent("40 h");
     expect(totals.querySelector("[data-total-actual]")).toHaveTextContent("63.5 h");
+    expect(totals.querySelector("[data-total-variance]")).toHaveTextContent("+23.5 h");
+
     const exportButton = screen.getByRole("button", { name: "Export" });
     expect(exportButton).toBeDisabled();
     expect(exportButton).toHaveAttribute("title", "Export waits for an export route.");

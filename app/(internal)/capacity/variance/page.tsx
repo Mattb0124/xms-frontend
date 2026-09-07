@@ -221,7 +221,10 @@ function VarianceScreen() {
                   <td className="xms-mono px-3 py-2 text-right" data-total-actual>
                     {formatHours(report.data.totals.actual_minutes)}
                   </td>
-                  <td colSpan={2} />
+                  <td className="xms-mono px-3 py-2 text-right" data-total-variance>
+                    {formatSignedHours(report.data.totals.variance_minutes)}
+                  </td>
+                  <td />
                 </tr>
               </tfoot>
             </table>

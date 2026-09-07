@@ -49,8 +49,24 @@ describe("BillingPeriodsTab", () => {
     expect(locked).toHaveTextContent("billable 1.8 h (175.00), absorbed 0.5 h (50.00)");
     expect(locked.querySelector("[data-unrated]")).toHaveTextContent("0.5 h carry no rate");
     expect(locked).toHaveTextContent("3f2a9c8e1b7d");
+    // Who moved it, by the names the server resolved, with the day.
+    expect(locked.querySelector("[data-by='submitted']")).toHaveTextContent("Submitted by Ana Silva 2026-09-01");
+    expect(locked.querySelector("[data-by='approved']")).toHaveTextContent("Approved by Ben Ito 2026-09-02");
+    expect(locked.querySelector("[data-by='locked']")).toHaveTextContent("Locked by Ben Ito 2026-09-03");
+    expect(open.querySelector("[data-period-people]")).toBeNull();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(screen.queryByRole("form", { name: "New billing period" })).not.toBeInTheDocument();
+  });
+
+  it("names the automatic lock as System", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["tickets:view"]),
+      [PERIODS]: () => json([aLockedPeriod({ locked_by: null, locked_by_name: "System", locked_at: "2026-09-07T09:00:00Z" })]),
+    });
+    renderDesk(<BillingPeriodsTab accountId="acct-1" />);
+    const locked = await screen.findByRole("row", { name: /August 2026/ });
+    expect(locked.querySelector("[data-by='locked']")).toHaveTextContent("Locked by System 2026-09-07");
+    expect(locked.querySelector("[data-by='approved']")).toHaveTextContent("Approved by Ben Ito");
   });
 
   it("creates a period for the chosen month under time:lock-period", async () => {
