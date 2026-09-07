@@ -89,6 +89,11 @@ export const xmsApi = createApi({
     "Calendars",
     "Calendar",
     "HolidayCalendars",
+    "MigrationBatches",
+    "MigrationBatch",
+    "MigrationRecords",
+    "Reconciliation",
+    "AccountConfig",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({

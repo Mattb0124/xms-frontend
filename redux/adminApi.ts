@@ -146,6 +146,8 @@ export type ConfigKind =
 
 export interface ConfigVersion {
   id: string;
+  /** Present on override rows (acct.config_overrides), absent on operator defaults. */
+  account_id?: string;
   kind: ConfigKind;
   scope_key: string;
   version: number;
@@ -159,6 +161,24 @@ export interface ConfigVersion {
 export interface ConfigDescription {
   active?: ConfigVersion;
   versions: ConfigVersion[];
+}
+
+/** What resolves for one account today, where it came from, and the history behind it (technical 3.4). */
+export interface AccountConfigView {
+  effective: { source: "default" | "override"; version: number; versionId: string; body: unknown };
+  default: ConfigVersion | null;
+  overrides: ConfigVersion[];
+}
+
+export interface AccountConfigKey {
+  accountId: string;
+  kind: ConfigKind;
+  /** The ticket type for the state machine; omitted for the `*` scope. */
+  scope?: string;
+}
+
+function accountConfigTag({ accountId, kind, scope }: AccountConfigKey) {
+  return { type: "AccountConfig" as const, id: `${accountId}:${kind}:${scope ?? "*"}` };
 }
 
 export interface CreateAccountBody {
@@ -311,6 +331,30 @@ export const adminApi = xmsApi.injectEndpoints({
       query: ({ kind, scope }) => ({ url: `/v1/admin/config/${kind}`, params: scope ? { scope } : undefined }),
       providesTags: (_result, _error, { kind, scope }) => [{ type: "Config", id: `${kind}:${scope ?? "*"}` }],
     }),
+    getAccountConfig: build.query<AccountConfigView, AccountConfigKey>({
+      query: ({ accountId, kind, scope }) => ({
+        url: `/v1/accounts/${accountId}/config/${kind}`,
+        params: scope ? { scope } : undefined,
+      }),
+      providesTags: (_result, _error, key) => [accountConfigTag(key)],
+    }),
+    setAccountOverride: build.mutation<ConfigVersion, AccountConfigKey & { body: Record<string, unknown> }>({
+      query: ({ accountId, kind, scope, body }) => ({
+        url: `/v1/accounts/${accountId}/config/${kind}/override`,
+        method: "PUT",
+        params: scope ? { scope } : undefined,
+        body: { body },
+      }),
+      invalidatesTags: (_result, _error, key) => [accountConfigTag(key)],
+    }),
+    removeAccountOverride: build.mutation<{ removed: string }, AccountConfigKey>({
+      query: ({ accountId, kind, scope }) => ({
+        url: `/v1/accounts/${accountId}/config/${kind}/override`,
+        method: "DELETE",
+        params: scope ? { scope } : undefined,
+      }),
+      invalidatesTags: (_result, _error, key) => [accountConfigTag(key)],
+    }),
 
     listAssignableUsers: build.query<AssignableUser[], void>({
       query: () => "/v1/users",
@@ -349,5 +393,8 @@ export const {
   useUpdateGroupMutation,
   useReplaceGroupMembersMutation,
   useGetConfigQuery,
+  useGetAccountConfigQuery,
+  useSetAccountOverrideMutation,
+  useRemoveAccountOverrideMutation,
   useListAssignableUsersQuery,
 } = adminApi;
