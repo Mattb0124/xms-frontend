@@ -1,5 +1,5 @@
 ---
-description: "Run the local lint, format, type-check, unit test and build gates for XMS Web before opening a pull request, reproducing the pipeline gates so failures are found before review rather than in CI."
+description: 'Run the local lint, format, type-check, unit test and build gates for XMS Web before opening a pull request, reproducing the pipeline gates so failures are found before review rather than in CI.'
 ---
 
 # Pre-PR Quality Check (frontend)

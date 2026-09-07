@@ -11,18 +11,22 @@ export default function DemoPage() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p className="text-gray-600 mb-4">Welcome to your dashboard! Here you can see all your data.</p>
+      <p className="text-gray-600 mb-4">
+        Welcome to your dashboard! Here you can see all your data.
+      </p>
       <div className="grid grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="border rounded p-4">
             <h2 className="font-semibold">Item {i}</h2>
             <p className="text-sm text-gray-500">Description</p>
-            <button className="bg-blue-500 text-white px-3 py-1 rounded mt-2">Action</button>
+            <button className="bg-blue-500 text-white px-3 py-1 rounded mt-2">
+              Action
+            </button>
           </div>
         ))}
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -38,22 +42,28 @@ dashboard"). Numbered placeholders. Hardcoded `text-gray-*` and
 // Emotional intent: CONFIDENT — make the number trustworthy, the trend obvious
 // Hero: net revenue dominating the top, sparkline whispering below
 export default async function RevenuePage() {
-  const [revenue, trend, recent] = await Promise.all([getNetRevenue(), getTrend(), getRecentPayments()]);
+  const [revenue, trend, recent] = await Promise.all([
+    getNetRevenue(),
+    getTrend(),
+    getRecentPayments(),
+  ])
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 space-y-8">
       <section>
-        <p className="text-sm text-muted-foreground tracking-wide uppercase">Net revenue · last 30 days</p>
-        <h1 className="mt-2 text-7xl font-semibold tracking-tight tabular-nums">${(revenue / 100).toLocaleString()}</h1>
+        <p className="text-sm text-muted-foreground tracking-wide uppercase">
+          Net revenue · last 30 days
+        </p>
+        <h1 className="mt-2 text-7xl font-semibold tracking-tight tabular-nums">
+          ${(revenue / 100).toLocaleString()}
+        </h1>
         <div className="mt-3 flex items-center gap-3">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-              trend.delta >= 0
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                : "bg-destructive/10 text-destructive",
-            )}
-          >
+          <span className={cn(
+            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+            trend.delta >= 0
+              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+              : 'bg-destructive/10 text-destructive'
+          )}>
             {trend.delta >= 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
             {Math.abs(trend.delta).toFixed(1)}%
           </span>
@@ -79,7 +89,7 @@ export default async function RevenuePage() {
         </ul>
       </section>
     </main>
-  );
+  )
 }
 ```
 
@@ -94,18 +104,18 @@ know this is a fintech product without reading the title.
 
 When you instinctively reach for a tutorial component, STOP:
 
-| NEVER (reflex)                    | GOLDEN (reach for this instead)                                                                            |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `<table>` for everything          | Cards for heterogeneous; table for sortable columns                                                        |
-| `Form` + `Section` boxes          | Server Action + flat sections separated by `space-y-8`                                                     |
-| `<dl><dt><dd>` for metrics        | Hero typography `text-6xl tabular-nums`                                                                    |
-| Generic ProgressBar               | Sparkline / area chart / radial gauge                                                                      |
-| `<Button>Save</Button>`           | Autosave with optimistic UI (see [ux-settings](../../../experimental/web-rules/references/ux-settings.md)) |
-| `text-gray-500`                   | `text-muted-foreground` (semantic token)                                                                   |
-| `text-base` for headings          | `text-3xl tracking-tight` or larger                                                                        |
-| Default border                    | Tinted backgrounds, gradients, `bg-card` token                                                             |
-| `confirm()` for destructive       | Typed confirmation OR Undo toast                                                                           |
-| `useState` + `useEffect` for data | Server Component `await getData()`                                                                         |
+| NEVER (reflex) | GOLDEN (reach for this instead) |
+|----------------|-------------------------------|
+| `<table>` for everything | Cards for heterogeneous; table for sortable columns |
+| `Form` + `Section` boxes | Server Action + flat sections separated by `space-y-8` |
+| `<dl><dt><dd>` for metrics | Hero typography `text-6xl tabular-nums` |
+| Generic ProgressBar | Sparkline / area chart / radial gauge |
+| `<Button>Save</Button>` | Autosave with optimistic UI (see [ux-settings](../../../experimental/web-rules/references/ux-settings.md)) |
+| `text-gray-500` | `text-muted-foreground` (semantic token) |
+| `text-base` for headings | `text-3xl tracking-tight` or larger |
+| Default border | Tinted backgrounds, gradients, `bg-card` token |
+| `confirm()` for destructive | Typed confirmation OR Undo toast |
+| `useState` + `useEffect` for data | Server Component `await getData()` |
 
 Modern stack idioms to reach for: Server Components by default,
 Server Actions for mutations, `useOptimistic` for live UI,

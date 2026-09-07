@@ -1,6 +1,6 @@
 ---
-name: "create-skill"
-description: "Author a new Claude Code skill in this repo as a SKILL.md under .claude/skills/<slug>/, following the XMS house format (YAML frontmatter with a trigger-rich description, then a scannable instruction body). Use when the user asks to create, write, or scaffold a skill, or when you notice a repeatable pattern or best practice worth capturing, especially around architecture, security, performance, testing, or a recurring workflow, so the next agent applies it consistently instead of re-deriving it. Also covers when a pattern deserves a skill, the naming conventions, and how to publish it via Packmind."
+name: 'create-skill'
+description: 'Author a new Claude Code skill in this repo as a SKILL.md under .claude/skills/<slug>/, following the XMS house format (YAML frontmatter with a trigger-rich description, then a scannable instruction body). Use when the user asks to create, write, or scaffold a skill, or when you notice a repeatable pattern or best practice worth capturing, especially around architecture, security, performance, testing, or a recurring workflow, so the next agent applies it consistently instead of re-deriving it. Also covers when a pattern deserves a skill, the naming conventions, and how to publish it via Packmind.'
 ---
 
 # Skill: Create a Skill
@@ -34,8 +34,8 @@ Do **not** create a skill for a one-off task, something already covered by an ex
 
 ```markdown
 ---
-name: "<slug>"
-description: "<what it does> + <precise WHEN to use it>"
+name: '<slug>'
+description: '<what it does> + <precise WHEN to use it>'
 ---
 ```
 
@@ -51,9 +51,9 @@ After the frontmatter, write scannable Markdown the agent follows top to bottom.
 
 1. **`# Skill: <Title>`** then a 2-4 sentence orientation: what this covers, the canonical in-repo exemplar to copy, and how it relates to adjacent skills.
 2. **Core sections** with `##` headings tailored to the task. Common ones:
-   - _Where it lives / naming_ (paths, conventions).
-   - _The pattern / house shape_ (the actual recipe, with real file paths and short fenced code blocks). Ground every claim in a real path you have read.
-   - _Conventions / rules_ (the do's and don'ts, the standards it must respect).
+   - *Where it lives / naming* (paths, conventions).
+   - *The pattern / house shape* (the actual recipe, with real file paths and short fenced code blocks). Ground every claim in a real path you have read.
+   - *Conventions / rules* (the do's and don'ts, the standards it must respect).
 3. **`## Steps`**, a numbered, do-this-then-that procedure. This is the operational core; make it executable without further guessing.
 4. **`## Checkpoints`**, a short verification checklist ("Does X match the exemplar byte-for-byte? Are dates absolute? Do the tests assert behavior?"). Let the agent self-check before declaring done.
 

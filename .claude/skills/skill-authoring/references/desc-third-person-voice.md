@@ -34,7 +34,6 @@ description: Reviews code for security vulnerabilities, performance issues, and 
 ```
 
 **Pattern to follow:**
-
 1. First sentence: What the skill does (verb phrase)
 2. Second sentence: "This skill should be used when..." (triggers)
 

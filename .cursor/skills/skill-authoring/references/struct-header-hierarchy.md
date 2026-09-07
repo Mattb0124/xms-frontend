@@ -15,15 +15,12 @@ Use markdown headers to create clear section hierarchy. Claude parses headers to
 # PDF Processing
 
 #### Quick Start
-
 Some quick instructions...
 
 ## Advanced Usage
-
 More detailed usage patterns...
 
 ##### Edge Cases
-
 Edge case handling...
 ```
 
@@ -39,15 +36,12 @@ Edge case handling...
 # PDF Processing
 
 ## Quick Start
-
 Some quick instructions...
 
 ## Advanced Usage
-
 More detailed usage patterns...
 
 ### Edge Cases
-
 Edge case handling...
 ```
 

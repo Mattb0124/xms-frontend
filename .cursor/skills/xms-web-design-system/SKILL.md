@@ -1,6 +1,6 @@
 ---
-name: "xms-web-design-system"
-description: "Build and maintain XMS Web UI with the XMS design system as fixed by the v2 wireframes: the three token layers in frontend/styles/tokens, the .xms-scope identity tokens (navy finder bar, blue actions, no row striping, IBM Plex Mono for keys and SLA values, violet for AI-origin content only), the never-re-themed state trios, and the ServiceNow-shaped screen grammar. Use when creating any UI in frontend, styling a component or page, picking a colour, building a dense list, record form, record view, eyebrow header or ink banner, or fixing styling that does not flip in dark mode. Answers which token to use; the companion skill no-hardcoded-styling answers where the style is allowed to live."
+name: 'xms-web-design-system'
+description: 'Build and maintain XMS Web UI with the XMS design system as fixed by the v2 wireframes: the three token layers in frontend/styles/tokens, the .xms-scope identity tokens (navy finder bar, blue actions, no row striping, IBM Plex Mono for keys and SLA values, violet for AI-origin content only), the never-re-themed state trios, and the ServiceNow-shaped screen grammar. Use when creating any UI in frontend, styling a component or page, picking a colour, building a dense list, record form, record view, eyebrow header or ink banner, or fixing styling that does not flip in dark mode. Answers which token to use; the companion skill no-hardcoded-styling answers where the style is allowed to live.'
 ---
 
 # Skill: XMS Web Design System
@@ -13,36 +13,36 @@ The whole product renders inside `.xms-scope`, so every `--xms-*` token is avail
 
 The tokens were seeded once from AIX and are now owned by XMS. There is no shared package, because the repositories are separate (ADR-12).
 
-| File                      | Holds                                                                                                                                                  | Editable                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| `aiinnovation-tokens.css` | The vendored `--aiinds-*` primitives                                                                                                                   | **Never.** A resync would clobber it. Override in a layer above |
-| `house.css`               | The `--aix-*` aliases, the `--state-*` signal trios, `.aix-state-pill`, the dark flips                                                                 | Rarely, and only for house-wide changes                         |
-| `xms-scope.css`           | `.xms-scope`, the `--xms-*` identity tokens, `.xms-card-shell`, `.xms-section`, `.xms-eyebrow`, `.xms-banner`, `.xms-pill`, the control geometry block | **Yes.** This is where new XMS styling goes                     |
-| `tailwind-preset.js`      | The `xms.*` and `aiinds.*` Tailwind namespaces, `darkMode: ["class"]`                                                                                  | Yes, when a token needs a utility                               |
+| File | Holds | Editable |
+|---|---|---|
+| `aiinnovation-tokens.css` | The vendored `--aiinds-*` primitives | **Never.** A resync would clobber it. Override in a layer above |
+| `house.css` | The `--aix-*` aliases, the `--state-*` signal trios, `.aix-state-pill`, the dark flips | Rarely, and only for house-wide changes |
+| `xms-scope.css` | `.xms-scope`, the `--xms-*` identity tokens, `.xms-card-shell`, `.xms-section`, `.xms-eyebrow`, `.xms-banner`, `.xms-pill`, the control geometry block | **Yes.** This is where new XMS styling goes |
+| `tailwind-preset.js` | The `xms.*` and `aiinds.*` Tailwind namespaces, `darkMode: ["class"]` | Yes, when a token needs a utility |
 
 The `--aix-*` names in `house.css` are not drift and must not be renamed: they are the carried-over house alias layer. `--xms-*` is the solution identity on top of them.
 
 ## Identity tokens (`.xms-scope`)
 
-| Token                                               | Light                                                                                                                               | Dark      | Use                                                                                                            |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------- |
-| `--xms-ink`                                         | `#0F1623`                                                                                                                           | `#eaf0f8` | Headings, ticket keys, scorecard numbers                                                                       |
-| `--xms-body`                                        | `#3D4A5C`                                                                                                                           | `#d5dce8` | Body text and table cells                                                                                      |
-| `--xms-label`                                       | `#5A6784`                                                                                                                           | `#a9b4c6` | Field labels, section captions                                                                                 |
-| `--xms-muted`                                       | `#7B8CA0`                                                                                                                           | `#8a97ad` | Meta, timestamps, placeholders; never essential copy                                                           |
-| `--xms-accent`                                      | `#2563EB`, hover `#1D4ED8`                                                                                                          | `#7ea0ff` | Actions, links, active pill outline, selected item bar, focus. **Never large fills except the primary button** |
-| `--xms-navy`                                        | `#10193A`                                                                                                                           | `#0b1226` | The finder bar and the finder overlay only                                                                     |
-| `--xms-line`                                        | `#E4E8F5`, strong `#C9D2E6`                                                                                                         | `#243349` | Borders, dividers, table hairlines                                                                             |
-| `--xms-bg`                                          | `#F4F5F7`                                                                                                                           | `#0c1626` | Page canvas                                                                                                    |
-| `--xms-bar`                                         | `#F0F3FA`                                                                                                                           | `#121b2e` | Content header bar                                                                                             |
-| `--xms-card`                                        | `#FFFFFF`                                                                                                                           | `#141f31` | Cards, tables, rail cards                                                                                      |
-| `--xms-tint`                                        | `#EFF4FF`                                                                                                                           | `#1a2740` | Selected row, active pill fill, state pill background                                                          |
-| `--xms-ai-bg`, `--xms-ai-border`, `--xms-ai-accent` | `#EDF1FF`, `#C7D6F7`, `#7C9AE8`                                                                                                     | tinted    | AI-origin content only: summaries, suggestions, drafts, the synthesis line. **Never status**                   |
-| `--xms-row-hover`, `--xms-cell-hover`               | `#F7F8FA`, `#EFF4FF`                                                                                                                | tinted    | Dense list hover. There is no zebra token                                                                      |
-| `--xms-mono`                                        | IBM Plex Mono                                                                                                                       | same      | Keys, SLA values, counts, tool calls, 11px uppercase labels with `.06em` tracking                              |
-| `--xms-state-<state>-fg/-bg/-br`                    | New slate, In progress blue, Awaiting client amber, Awaiting approval teal, Resolved green, Closed grey (values in Wireframes §8.1) | tinted    | Ticket state pills only                                                                                        |
-| `--xms-type-incident/-request/-change/-problem`     | `#DC2626`, `#0E7490`, `#7A5AF8`, `#B45309`                                                                                          | same      | The 3px type bar beside the type label only                                                                    |
-| `--xms-account-1` to `-6`                           | blue, teal, amber, green, violet, magenta (Wireframes §8.3)                                                                         | same      | The 8px identity dot before an account name; assigned per account at creation                                  |
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--xms-ink` | `#0F1623` | `#eaf0f8` | Headings, ticket keys, scorecard numbers |
+| `--xms-body` | `#3D4A5C` | `#d5dce8` | Body text and table cells |
+| `--xms-label` | `#5A6784` | `#a9b4c6` | Field labels, section captions |
+| `--xms-muted` | `#7B8CA0` | `#8a97ad` | Meta, timestamps, placeholders; never essential copy |
+| `--xms-accent` | `#2563EB`, hover `#1D4ED8` | `#7ea0ff` | Actions, links, active pill outline, selected item bar, focus. **Never large fills except the primary button** |
+| `--xms-navy` | `#10193A` | `#0b1226` | The finder bar and the finder overlay only |
+| `--xms-line` | `#E4E8F5`, strong `#C9D2E6` | `#243349` | Borders, dividers, table hairlines |
+| `--xms-bg` | `#F4F5F7` | `#0c1626` | Page canvas |
+| `--xms-bar` | `#F0F3FA` | `#121b2e` | Content header bar |
+| `--xms-card` | `#FFFFFF` | `#141f31` | Cards, tables, rail cards |
+| `--xms-tint` | `#EFF4FF` | `#1a2740` | Selected row, active pill fill, state pill background |
+| `--xms-ai-bg`, `--xms-ai-border`, `--xms-ai-accent` | `#EDF1FF`, `#C7D6F7`, `#7C9AE8` | tinted | AI-origin content only: summaries, suggestions, drafts, the synthesis line. **Never status** |
+| `--xms-row-hover`, `--xms-cell-hover` | `#F7F8FA`, `#EFF4FF` | tinted | Dense list hover. There is no zebra token |
+| `--xms-mono` | IBM Plex Mono | same | Keys, SLA values, counts, tool calls, 11px uppercase labels with `.06em` tracking |
+| `--xms-state-<state>-fg/-bg/-br` | New slate, In progress blue, Awaiting client amber, Awaiting approval teal, Resolved green, Closed grey (values in Wireframes §8.1) | tinted | Ticket state pills only |
+| `--xms-type-incident/-request/-change/-problem` | `#DC2626`, `#0E7490`, `#7A5AF8`, `#B45309` | same | The 3px type bar beside the type label only |
+| `--xms-account-1` to `-6` | blue, teal, amber, green, violet, magenta (Wireframes §8.3) | same | The 8px identity dot before an account name; assigned per account at creation |
 
 **Text has four levels and nothing else:** ink for headings and keys, body for copy and cells, label for field captions, muted for meta and placeholders. Essential copy is never muted. `text-gray-*` and `text-slate-*` do not belong in this product; use the tokens.
 
@@ -61,18 +61,18 @@ The account's logo and accent apply to **the portal header band and the email he
 
 ## Screen grammar (ServiceNow-shaped)
 
-| Pattern                         | Rule                                                                                                                                                                                                                                                                                                                                               |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dense list                      | Card with a Count badge and in-card search, sticky header, **no row striping** (hairline `--xms-line` between rows plus `--xms-row-hover`), 32 to 34px controls, 4px radii on controls and 6px on cards, the content header bar above with filter pills (the first is the blue-outlined "Show:" dimension), gear, local search and the primary New |
-| Condition builder               | Field, operator, value rows stacked with AND; a breadcrumb filter trail where clicking a segment removes that criterion; saved as a view                                                                                                                                                                                                           |
-| Full-screen record form for New | Slim topbar (back, "Ticket · New record", Cancel, Submit), two-column label-left grid with red asterisks, full-width short description and description, searchable roster combobox for assignee                                                                                                                                                    |
-| Record view                     | Thin record bar, editable properties that commit on change or blur, tabbed work area (Conversation, Activity, Resolution), slim related-info rail                                                                                                                                                                                                  |
-| Admin                           | Same list plus record grammar as everything else. No bespoke admin chrome                                                                                                                                                                                                                                                                          |
-| Navigation                      | Navy finder bar (All, Favourites, History, centre workspace pill with star, global search, Axel, bell, avatar) plus a pinned sidebar with starred views and "Browse all screens"; the 27-screen tree lives in the All overlay with pin toggles. The content header bar carries the hamburger and the screen switcher                               |
-| AI surfaces                     | Summary blocks, suggestion cards, the synthesis line and Axel chips use the `--xms-ai-*` family; the docked Axel panel pushes the content and shows suggestion cards with Accept and Reject, tool-call rows in mono, and withheld notices                                                                                                          |
-| Skeleton                        | Mirrors the anatomy, initial load only. Refetches keep rendered data                                                                                                                                                                                                                                                                               |
-| Page header                     | ALL-CAPS accent eyebrow, ink title, one-line subtitle                                                                                                                                                                                                                                                                                              |
-| Ink banner                      | Lead phrase in accent-light, remainder in banner foreground                                                                                                                                                                                                                                                                                        |
+| Pattern | Rule |
+|---|---|
+| Dense list | Card with a Count badge and in-card search, sticky header, **no row striping** (hairline `--xms-line` between rows plus `--xms-row-hover`), 32 to 34px controls, 4px radii on controls and 6px on cards, the content header bar above with filter pills (the first is the blue-outlined "Show:" dimension), gear, local search and the primary New |
+| Condition builder | Field, operator, value rows stacked with AND; a breadcrumb filter trail where clicking a segment removes that criterion; saved as a view |
+| Full-screen record form for New | Slim topbar (back, "Ticket · New record", Cancel, Submit), two-column label-left grid with red asterisks, full-width short description and description, searchable roster combobox for assignee |
+| Record view | Thin record bar, editable properties that commit on change or blur, tabbed work area (Conversation, Activity, Resolution), slim related-info rail |
+| Admin | Same list plus record grammar as everything else. No bespoke admin chrome |
+| Navigation | Navy finder bar (All, Favourites, History, centre workspace pill with star, global search, Axel, bell, avatar) plus a pinned sidebar with starred views and "Browse all screens"; the 27-screen tree lives in the All overlay with pin toggles. The content header bar carries the hamburger and the screen switcher |
+| AI surfaces | Summary blocks, suggestion cards, the synthesis line and Axel chips use the `--xms-ai-*` family; the docked Axel panel pushes the content and shows suggestion cards with Accept and Reject, tool-call rows in mono, and withheld notices |
+| Skeleton | Mirrors the anatomy, initial load only. Refetches keep rendered data |
+| Page header | ALL-CAPS accent eyebrow, ink title, one-line subtitle |
+| Ink banner | Lead phrase in accent-light, remainder in banner foreground |
 
 XMS dense lists have no row striping (the v2 wireframes overrode the POC's zebra); rows separate on a hairline and a hover fill.
 

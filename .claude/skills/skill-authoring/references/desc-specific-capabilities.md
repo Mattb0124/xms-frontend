@@ -34,7 +34,6 @@ description: Extract text and tables from PDF files, fill interactive forms, mer
 ```
 
 **Capability naming patterns:**
-
 - Use verbs: Extract, Fill, Merge, Convert, Generate, Analyze
 - Include objects: text, tables, forms, images, data
 - Mention formats: PDF, Excel, JSON, Markdown

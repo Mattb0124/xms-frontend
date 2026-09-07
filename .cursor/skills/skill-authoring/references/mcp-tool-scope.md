@@ -22,9 +22,9 @@ Each MCP tool should do one thing well. Multi-purpose tools with many optional p
         "type": "string",
         "enum": ["create", "update", "delete", "get", "list"]
       },
-      "user_id": { "type": "string" },
-      "user_data": { "type": "object" },
-      "filters": { "type": "object" }
+      "user_id": {"type": "string"},
+      "user_data": {"type": "object"},
+      "filters": {"type": "object"}
     }
   }
 }
@@ -47,8 +47,8 @@ Each MCP tool should do one thing well. Multi-purpose tools with many optional p
       "description": "Creates a new user account",
       "inputSchema": {
         "properties": {
-          "name": { "type": "string", "description": "User's full name" },
-          "email": { "type": "string", "description": "User's email address" }
+          "name": {"type": "string", "description": "User's full name"},
+          "email": {"type": "string", "description": "User's email address"}
         },
         "required": ["name", "email"]
       }
@@ -58,7 +58,7 @@ Each MCP tool should do one thing well. Multi-purpose tools with many optional p
       "description": "Retrieves user profile by ID",
       "inputSchema": {
         "properties": {
-          "user_id": { "type": "string", "description": "User's unique identifier" }
+          "user_id": {"type": "string", "description": "User's unique identifier"}
         },
         "required": ["user_id"]
       }
@@ -68,7 +68,7 @@ Each MCP tool should do one thing well. Multi-purpose tools with many optional p
       "description": "Permanently deletes a user account",
       "inputSchema": {
         "properties": {
-          "user_id": { "type": "string", "description": "User's unique identifier" }
+          "user_id": {"type": "string", "description": "User's unique identifier"}
         },
         "required": ["user_id"]
       }

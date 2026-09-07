@@ -44,14 +44,12 @@ description: Handles PDF files
 ```
 
 **Allowed characters:**
-
 - Lowercase letters (a-z)
 - Digits (0-9)
 - Hyphens (-)
 - Unicode letters for i18n support
 
 **Benefits:**
-
 - Passes skills-ref validation
 - Consistent discovery across Windows, macOS, and Linux
 - Valid URL slugs for plugin marketplaces

@@ -1,5 +1,5 @@
 ---
-description: "Scaffold a new RTK Query API slice in XMS Web with generated contract types, cache tags registered on the base API, and re-exported hooks, so data fetching stays consistent, authenticated and correctly invalidated."
+description: 'Scaffold a new RTK Query API slice in XMS Web with generated contract types, cache tags registered on the base API, and re-exported hooks, so data fetching stays consistent, authenticated and correctly invalidated.'
 ---
 
 # Create an RTK Query API Slice

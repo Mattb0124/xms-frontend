@@ -65,7 +65,6 @@ the `Bugs` folder's platform list. NEVER create a dev/enhancement ticket in a
 the current sprint list explicitly (by its `Sprint N (M/D - M/D)` name inside
 folder `901516703258`), and if you are unsure which list is right, ask the user
 rather than guessing.
-
 - **Custom fields** (list-resolved, inherited across sprint lists):
   - `Platform` (drop_down) id `b8bfb2b8-6ab6-4af4-898f-f911baf10263`. Options:
     `AIX - OS` `832541e9-a24c-442a-8d1b-3c5ae7738308` · `AIX - EEA`
@@ -106,7 +105,6 @@ Docs so the team can read them alongside the ticket. Convention: **one folder
 - **Link it from the ticket:** add a `clickup_create_comment` on the task with the `document_url` (`https://app.clickup.com/{workspace}/docs/{document_id}`). Docs are not attached to tasks directly; the comment is the trail.
 
 Gotchas:
-
 - There is **no move-doc or delete-doc MCP tool**. To relocate a doc (e.g. into the
   Specs folder) you must **re-create** it there and delete the old one **in the UI**.
   So pick the parent correctly on creation.
@@ -146,29 +144,23 @@ task description on creation:
 
 ```markdown
 ## Context
-
 Why this is needed: the business context / driver behind the requirement.
 
 ## Scope / User Story
-
 What the system must do, functionally. Where possible express as user stories:
 "As a <role>, I want <capability>, so that <outcome>."
 
 ## Success Criteria
-
 The observable conditions that must be true before we call this "done".
-
 - [ ] ...
 - [ ] ...
 
 ## Additional Comments (optional)
-
 Risks, concerns, cross-team dependencies, and any negative instructions
 (what must NOT happen as a result of this change). Use for complex work that
 needs triangulation across fronts.
 
 ## Attachments (optional)
-
 Reference any images/specs attached to the ticket.
 ```
 
@@ -178,16 +170,16 @@ Reference any images/specs attached to the ticket.
 
 ## 3. Required fields
 
-| Field              | What it is                                          | ClickUp mechanism                | Owner                                      |
-| ------------------ | --------------------------------------------------- | -------------------------------- | ------------------------------------------ |
-| Status             | Workflow state (see below)                          | task status                      | Ticket Owner (whoever sets the transition) |
-| Short Description  | The `[Platform Module] - [Short Description]` title | task name                        | Project Manager                            |
-| Assignee           | Current ticket owner; changes on handoffs           | assignee                         | Project Manager (and per-transition rules) |
-| Comments           | Running status / evidence / decisions trail         | task comments                    | Ticket Owner                               |
-| Sprint Points      | Fibonacci complexity (see scale)                    | custom field (dropdown)          | Development Team                           |
-| Priority           | Low / Medium / High / Urgent (urgency x impact)     | native ClickUp priority          | Project Manager                            |
-| Next Release (Y/N) | Boolean; Yes = prioritized for the next release     | custom field (checkbox/dropdown) | Project Manager                            |
-| Platform           | Which platform the ticket addresses                 | custom field (dropdown)          | Project Manager                            |
+| Field | What it is | ClickUp mechanism | Owner |
+|-------|------------|-------------------|-------|
+| Status | Workflow state (see below) | task status | Ticket Owner (whoever sets the transition) |
+| Short Description | The `[Platform Module] - [Short Description]` title | task name | Project Manager |
+| Assignee | Current ticket owner; changes on handoffs | assignee | Project Manager (and per-transition rules) |
+| Comments | Running status / evidence / decisions trail | task comments | Ticket Owner |
+| Sprint Points | Fibonacci complexity (see scale) | custom field (dropdown) | Development Team |
+| Priority | Low / Medium / High / Urgent (urgency x impact) | native ClickUp priority | Project Manager |
+| Next Release (Y/N) | Boolean; Yes = prioritized for the next release | custom field (checkbox/dropdown) | Project Manager |
+| Platform | Which platform the ticket addresses | custom field (dropdown) | Project Manager |
 
 Read the list's custom fields with `clickup_get_custom_fields` to get the field
 ids and option ids before setting Next Release / Platform. Priority maps to
@@ -202,21 +194,21 @@ Set the status, then **do the handoff**: change the assignee and leave a comment
 per the rule. The comment is mandatory wherever a rule says "leave comments",
 it is the traceability record.
 
-| #   | Status                | Eligible | Meaning / entry condition                                                                                                                                                                                               |
-| --- | --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Backlog               | Dev/Enh  | Documented in enough detail to start, but not yet prioritized or scheduled for this sprint.                                                                                                                             |
-| 2   | Waiting for Triage    | Bugs     | Bug reported, awaiting triage; severity + urgency drive triage order.                                                                                                                                                   |
-| 3   | Planning              | Dev/Enh  | Picked up; turning functional requirements into a technical plan (prereqs, dependencies, approaches, success criteria, sprint points, ETA). Moves to In Progress once the plan is final and Sprint Points are assigned. |
-| 4   | In Progress           | Dev/Enh  | Plan finalized; implementation underway.                                                                                                                                                                                |
-| 5   | Investigating         | Bugs     | Bug-only hybrid of planning + WIP: reproduction, edge-case validation, approach validation (hotfix vs definitive), regression checks.                                                                                   |
-| 6   | Testing/QA - Dev      | ALL      | Work finished, testable in **Dev**. Set by the developer who promoted it; **reassign to QA**; comment latest status + testing instructions.                                                                             |
-| 7   | Testing Passed / Dev  | ALL      | Passed in Dev, ready to promote to **Demo**. Set by QA; **reassign to the original ticket owner**; comment testing evidence.                                                                                            |
-| 8   | Testing/QA - Demo     | ALL      | Testable in **Demo**. Set by the developer who promoted it; **reassign to QA**; comment status + instructions.                                                                                                          |
-| 9   | Testing Passed / Demo | ALL      | Passed in Demo, ready to promote to **Prod**. Set by QA; **reassign to original owner**; comment evidence.                                                                                                              |
-| 10  | Deployed to Prod      | ALL      | Promoted to Production. Dev assigns to QA (Dev/Enh) or to the support resource (Bug) for final validation; extra Prod testing is selective, by impact/complexity.                                                       |
-| 11  | Resolved              | ALL      | **Terminal.** Dev/Enh: QA validated (evidence attached) from Deployed to Prod. Bug: support confirmed with the affected user(s), resolution comments attached.                                                          |
-| 12  | On Hold               | ALL      | Started work paused. Product Director documents rationale in comments and takes ownership until resumed.                                                                                                                |
-| 13  | Cancelled             | ALL      | **Terminal.** No longer required (started or not). Product Director documents rationale in comments and takes ownership before cancelling.                                                                              |
+| # | Status | Eligible | Meaning / entry condition |
+|---|--------|----------|---------------------------|
+| 1 | Backlog | Dev/Enh | Documented in enough detail to start, but not yet prioritized or scheduled for this sprint. |
+| 2 | Waiting for Triage | Bugs | Bug reported, awaiting triage; severity + urgency drive triage order. |
+| 3 | Planning | Dev/Enh | Picked up; turning functional requirements into a technical plan (prereqs, dependencies, approaches, success criteria, sprint points, ETA). Moves to In Progress once the plan is final and Sprint Points are assigned. |
+| 4 | In Progress | Dev/Enh | Plan finalized; implementation underway. |
+| 5 | Investigating | Bugs | Bug-only hybrid of planning + WIP: reproduction, edge-case validation, approach validation (hotfix vs definitive), regression checks. |
+| 6 | Testing/QA - Dev | ALL | Work finished, testable in **Dev**. Set by the developer who promoted it; **reassign to QA**; comment latest status + testing instructions. |
+| 7 | Testing Passed / Dev | ALL | Passed in Dev, ready to promote to **Demo**. Set by QA; **reassign to the original ticket owner**; comment testing evidence. |
+| 8 | Testing/QA - Demo | ALL | Testable in **Demo**. Set by the developer who promoted it; **reassign to QA**; comment status + instructions. |
+| 9 | Testing Passed / Demo | ALL | Passed in Demo, ready to promote to **Prod**. Set by QA; **reassign to original owner**; comment evidence. |
+| 10 | Deployed to Prod | ALL | Promoted to Production. Dev assigns to QA (Dev/Enh) or to the support resource (Bug) for final validation; extra Prod testing is selective, by impact/complexity. |
+| 11 | Resolved | ALL | **Terminal.** Dev/Enh: QA validated (evidence attached) from Deployed to Prod. Bug: support confirmed with the affected user(s), resolution comments attached. |
+| 12 | On Hold | ALL | Started work paused. Product Director documents rationale in comments and takes ownership until resumed. |
+| 13 | Cancelled | ALL | **Terminal.** No longer required (started or not). Product Director documents rationale in comments and takes ownership before cancelling. |
 
 ### Typical happy paths
 
@@ -237,14 +229,14 @@ the Product Director.
 Assigned by the **Development Team** during Planning/Triage. Satisfy the
 **majority** of the criteria for a level, not all.
 
-| Pts | Meaning           | Criteria (majority)                                                                                                                                                                                           | Reference examples                                                                                                                       | ETA                                                   |
-| --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| 1   | Trivial           | Known solution, no design decisions; localized to one component; no new logic paths; no coordination; existing tests suffice.                                                                                 | Config/copy change, dependency bump with green CI, single-field label fix                                                                | 1-2 hours                                             |
-| 2   | Simple            | Obvious approach; stays within one layer; small new logic following an existing pattern; standard scoped tests.                                                                                               | Small UI fix, backend validator update, add a field end-to-end within one layer                                                          | 2-4 hours                                             |
-| 3   | Standard          | Clear scope, familiar territory; introduces state / non-trivial control flow / several validation branches; single bounded context; deliberate test coverage.                                                 | New form with server-side validation + error states, new endpoint following an existing pattern, prompt-pack revision within guidelines  | 1-2 days                                              |
-| 5   | Substantial       | Spans 2+ layers OR modifies a shared contract/interface/schema; design decisions needed but discoverable within the sprint; likely coordination with one adjacent team; non-trivial regression risk.          | New agent on the established chain pattern, feature needing backend + frontend + schema, migrating a shared block across a few consumers | 3-5 days                                              |
-| 8   | Large             | Cross-cutting; touches shared foundations (schemas, shared blocks, infra, platform contracts) OR needs research; coordination across 2+ teams; large test surface; explicit rollback/migration plan required. | Guidelines bump requiring migration of all agents, introducing a new architectural pattern, replacing a shared dependency                | 1-2 weeks. Decompose into 3s and 5s first if you can. |
-| 13  | Too big to commit | **Do not pull into a sprint.** Mandatory: (a) decompose into <=8 pt subtasks, or (b) open a spike capped at 3 pts to produce the decomposition and real estimates.                                            |                                                                                                                                          | >2 weeks                                              |
+| Pts | Meaning | Criteria (majority) | Reference examples | ETA |
+|-----|---------|---------------------|--------------------|-----|
+| 1 | Trivial | Known solution, no design decisions; localized to one component; no new logic paths; no coordination; existing tests suffice. | Config/copy change, dependency bump with green CI, single-field label fix | 1-2 hours |
+| 2 | Simple | Obvious approach; stays within one layer; small new logic following an existing pattern; standard scoped tests. | Small UI fix, backend validator update, add a field end-to-end within one layer | 2-4 hours |
+| 3 | Standard | Clear scope, familiar territory; introduces state / non-trivial control flow / several validation branches; single bounded context; deliberate test coverage. | New form with server-side validation + error states, new endpoint following an existing pattern, prompt-pack revision within guidelines | 1-2 days |
+| 5 | Substantial | Spans 2+ layers OR modifies a shared contract/interface/schema; design decisions needed but discoverable within the sprint; likely coordination with one adjacent team; non-trivial regression risk. | New agent on the established chain pattern, feature needing backend + frontend + schema, migrating a shared block across a few consumers | 3-5 days |
+| 8 | Large | Cross-cutting; touches shared foundations (schemas, shared blocks, infra, platform contracts) OR needs research; coordination across 2+ teams; large test surface; explicit rollback/migration plan required. | Guidelines bump requiring migration of all agents, introducing a new architectural pattern, replacing a shared dependency | 1-2 weeks. Decompose into 3s and 5s first if you can. |
+| 13 | Too big to commit | **Do not pull into a sprint.** Mandatory: (a) decompose into <=8 pt subtasks, or (b) open a spike capped at 3 pts to produce the decomposition and real estimates. | | >2 weeks |
 
 ## 6. Priority
 
@@ -256,11 +248,11 @@ Set by the Project Manager. Maps to ClickUp native priority.
 Build with `clickup_create_dashboard`. Each KPI is **segmented by platform and
 by ticket type (Tasks vs Bugs)**.
 
-| KPI                              | Definition                                                                   | Business value                                                        |
-| -------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| # of Open Tickets per Sprint     | Tickets currently open (Backlog + In Progress and other non-terminal states) | Volumetric analysis                                                   |
-| # of Resolved Tickets per Sprint | Tickets moved to Resolved or Cancelled during the sprint                     | Volumetric analysis                                                   |
-| Sprint Points                    | Total Sprint Points for the current sprint                                   | Sprint complexity + staffing bandwidth trends (avg points per sprint) |
+| KPI | Definition | Business value |
+|-----|------------|----------------|
+| # of Open Tickets per Sprint | Tickets currently open (Backlog + In Progress and other non-terminal states) | Volumetric analysis |
+| # of Resolved Tickets per Sprint | Tickets moved to Resolved or Cancelled during the sprint | Volumetric analysis |
+| Sprint Points | Total Sprint Points for the current sprint | Sprint complexity + staffing bandwidth trends (avg points per sprint) |
 
 ## Creating a ticket (checklist)
 

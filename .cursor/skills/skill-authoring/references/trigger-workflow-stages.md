@@ -40,13 +40,12 @@ description: Checks code for style issues and potential bugs. This skill should 
 ```
 
 **Common workflow stage phrases:**
-
-| Stage         | Trigger phrases                                            |
-| ------------- | ---------------------------------------------------------- |
-| Start         | "when starting", "before beginning", "to set up"           |
-| During        | "while working on", "during development"                   |
-| Before commit | "before committing", "pre-commit", "ready to save"         |
-| Review        | "during review", "when reviewing", "checking the PR"       |
-| Deploy        | "before deploying", "ready to ship", "going to production" |
+| Stage | Trigger phrases |
+|-------|-----------------|
+| Start | "when starting", "before beginning", "to set up" |
+| During | "while working on", "during development" |
+| Before commit | "before committing", "pre-commit", "ready to save" |
+| Review | "during review", "when reviewing", "checking the PR" |
+| Deploy | "before deploying", "ready to ship", "going to production" |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

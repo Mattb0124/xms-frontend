@@ -36,13 +36,12 @@ description: Parses CSV files into structured data, validates column types, and 
 ```
 
 **Replace vague terms:**
-
-| Vague      | Precise                       |
-| ---------- | ----------------------------- |
+| Vague | Precise |
+|-------|---------|
 | helps with | extracts, validates, converts |
-| manages    | schedules, deploys, monitors  |
-| handles    | parses, transforms, routes    |
-| works with | reads, writes, streams        |
-| deals with | resolves, retries, escalates  |
+| manages | schedules, deploys, monitors |
+| handles | parses, transforms, routes |
+| works with | reads, writes, streams |
+| deals with | resolves, retries, escalates |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

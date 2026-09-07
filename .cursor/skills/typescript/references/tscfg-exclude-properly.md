@@ -34,7 +34,14 @@ TypeScript walks through all included directories to discover files. Overly broa
     "rootDir": "src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "coverage", "**/*.test.ts", "**/*.spec.ts", "**/__tests__/**"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ]
 }
 ```
 
@@ -70,7 +77,6 @@ tsc --explainFiles
 ```
 
 **Common files to exclude:**
-
 - `node_modules` (always)
 - Build output directories (`dist`, `build`, `out`)
 - Test files for production builds

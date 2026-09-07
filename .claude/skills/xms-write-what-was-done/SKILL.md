@@ -1,5 +1,5 @@
 ---
-name: "xms-write-what-was-done"
+name: 'xms-write-what-was-done'
 description: 'Author the post-implementation WHAT-WAS-DONE.md that closes an XMS feature spec, recording the as-built result: what actually shipped, the commit map per repo, decisions locked during the build, known gaps accepted at delivery, required deploy order, and how future work plugs in. Use after building a feature that has a FUNCTIONAL-SPEC/TECHNICAL-SPEC pair, when a task says "document what was done", "write the as-built", or "close out the spec". Pairs with xms-write-spec.'
 ---
 
@@ -24,10 +24,10 @@ When an XMS feature ships, its spec directory gains a third file: `WHAT-WAS-DONE
 **Related:** [Functional Spec](./FUNCTIONAL-SPEC.md), [Technical Spec](./TECHNICAL-SPEC.md), [<Adjacent>](../<slug>/WHAT-WAS-DONE.md)
 **Branches:** `feature/<slug>` in <which repos>, branched off `<base branch>`
 
-| Repo     | Commits (in order)                                          |
-| -------- | ----------------------------------------------------------- |
-| backend  | `0e8be053` phase 1 module, `5942dc72` activity fan-out, ... |
-| frontend | `a6305f55` landing bell, `acdd078e` follow toggle, ...      |
+| Repo | Commits (in order) |
+|---|---|
+| backend | `0e8be053` phase 1 module, `5942dc72` activity fan-out, ... |
+| frontend | `a6305f55` landing bell, `acdd078e` follow toggle, ... |
 
 ---
 ```

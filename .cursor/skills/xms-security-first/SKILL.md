@@ -9,20 +9,19 @@ XMS is built to pass security audits, not to be patched after them. Every change
 
 ## 1. The five failures every change is checked against
 
-| Failure    | The question to ask of the change                                                                                                                   |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Isolation  | Can any path let one account read, write, search or infer another account's data?                                                                   |
+| Failure | The question to ask of the change |
+|---|---|
+| Isolation | Can any path let one account read, write, search or infer another account's data? |
 | Visibility | Can an internal artefact (work note, rate, internal attachment, AI suggestion, audit row) reach a portal user, an email, a sync, a report or a log? |
-| Realm      | Can a portal identity reach an internal surface, or an internal token be used where a service credential was expected?                              |
-| Evidence   | Does the change write the audit, security and usage events that let us prove afterwards what happened and who did it?                               |
-| Egress     | Does any data leave the boundary (email, connector, harness, export, log, error report) without the account's settings and redaction being applied? |
+| Realm | Can a portal identity reach an internal surface, or an internal token be used where a service credential was expected? |
+| Evidence | Does the change write the audit, security and usage events that let us prove afterwards what happened and who did it? |
+| Egress | Does any data leave the boundary (email, connector, harness, export, log, error report) without the account's settings and redaction being applied? |
 
 If the answer to any question is "maybe", the change is not done.
 
 ## 2. Non-negotiable controls by layer
 
 ### Data layer (`backend/src/db`)
-
 - Every account-scoped table has `account_id NOT NULL`, `ENABLE` and `FORCE ROW LEVEL SECURITY`, the operator and portal policies with `USING` and `WITH CHECK`, created in the same migration as the table.
 - No cross-account foreign key; shared data uses explicit visibility tables and `SECURITY DEFINER` boolean functions.
 - Append-only tables keep their raise-on-update-or-delete trigger; never "temporarily" drop it.
@@ -31,7 +30,6 @@ If the answer to any question is "maybe", the change is not done.
 - Secrets never in rows; Secrets Manager names only.
 
 ### API (`backend/src`)
-
 - Every route declares its permission or `@Public()` with a reason; the route-and-permission snapshot must change in the same pull request.
 - Principal resolution is the single guard; no handler reads headers for identity or account; no `default` fallbacks.
 - Realm separation: portal routes only under the portal controller group; portal tokens rejected elsewhere with 403; internal tokens rejected on portal routes.
@@ -42,7 +40,6 @@ If the answer to any question is "maybe", the change is not done.
 - Errors carry codes, never stack traces or internal names, to clients.
 
 ### Worker (`backend/src/worker`)
-
 - Jobs claim work with `SKIP LOCKED` or SQS; every job binds the account context before touching account data.
 - Inbound payloads (email, webhooks, ServiceNow, imports) are untrusted: parsed with limits, size-capped, stored raw under the account prefix, deduplicated by external id, never executed or rendered as HTML without sanitising.
 - Webhook signatures verified with constant-time comparison; unsigned or unconfigured means reject.
@@ -50,7 +47,6 @@ If the answer to any question is "maybe", the change is not done.
 - Retries are classified; poison goes to the DLQ with an alarm; replay is an audited admin action.
 
 ### Frontend (`frontend/`)
-
 - No authorisation decisions in the browser; UI gating mirrors the server and fails closed while loading.
 - No secrets, no server-only variables in `NEXT_PUBLIC_*`; CSP enforced; no `dangerouslySetInnerHTML` without a sanitiser and a review comment.
 - Portal route group renders only the portal view models; no import from internal components that could leak fields.
@@ -58,7 +54,6 @@ If the answer to any question is "maybe", the change is not done.
 - Downloads and uploads go through presigned URLs minted by the API after an RLS-protected read.
 
 ### Infrastructure (`infra/`)
-
 - Everything in Terraform; no console changes; `terraform plan` on pull request.
 - Least-privilege task roles per service (API, worker, MCP, migrator); no wildcard IAM.
 - Buckets private, versioned, account-prefixed policies, Object Lock for the event archive; queues with DLQs; RDS encrypted, Multi-AZ in prod, no public access; WAF on the portal.
@@ -66,7 +61,6 @@ If the answer to any question is "maybe", the change is not done.
 - Logs and traces retained per policy; alarms for the signals in `AUDIT-AND-ANALYTICS.md` section 7.3.
 
 ### AI (`backend/src/axel`, `xms_mcp`)
-
 - One egress: the adapter. Pre-flight checks the account switch, the capability opt-in and the caller's permission before any request.
 - Redaction before egress; attachments never leave as binaries.
 - MCP tools run as the caller (forwarded bearer), never as a service identity with broad grants; write tools only propose, except the two audited exceptions.
@@ -74,17 +68,17 @@ If the answer to any question is "maybe", the change is not done.
 
 ## 3. Tests that must exist before merge
 
-| Change                          | Required test                                                                                                           |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| New account-scoped table        | Appears in the generated isolation suite (both roles) automatically; the pull request shows the suite count increasing  |
-| New route                       | Auth rejection cases (anonymous, garbage token, wrong realm, missing grant), permission denial, and the snapshot update |
-| New mutation                    | Audit event asserted in the same transaction; optimistic version 409; idempotency where applicable                      |
-| New portal surface              | A test that inserts a work note, an internal attachment and an AI suggestion and asserts none is returned               |
-| New inbound parser              | Corpus test including malformed, oversized and hostile samples                                                          |
-| New outbound template or export | Compile-time type check that only client-visible view models are referenced; a test that a work note cannot appear      |
-| New worker job                  | Idempotency under redelivery; DLQ on poison; account binding asserted                                                   |
-| New Terraform                   | Plan reviewed; policy check (no public bucket, no wildcard IAM, encryption on)                                          |
-| New AI capability               | Switch-off test (no HTTP call), threshold withhold test, audit linkage test                                             |
+| Change | Required test |
+|---|---|
+| New account-scoped table | Appears in the generated isolation suite (both roles) automatically; the pull request shows the suite count increasing |
+| New route | Auth rejection cases (anonymous, garbage token, wrong realm, missing grant), permission denial, and the snapshot update |
+| New mutation | Audit event asserted in the same transaction; optimistic version 409; idempotency where applicable |
+| New portal surface | A test that inserts a work note, an internal attachment and an AI suggestion and asserts none is returned |
+| New inbound parser | Corpus test including malformed, oversized and hostile samples |
+| New outbound template or export | Compile-time type check that only client-visible view models are referenced; a test that a work note cannot appear |
+| New worker job | Idempotency under redelivery; DLQ on poison; account binding asserted |
+| New Terraform | Plan reviewed; policy check (no public bucket, no wildcard IAM, encryption on) |
+| New AI capability | Switch-off test (no HTTP call), threshold withhold test, audit linkage test |
 
 ## 4. Pull request checklist (paste into the description)
 

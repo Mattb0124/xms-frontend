@@ -40,7 +40,6 @@ description: Creates well-formatted git commits following conventional commit st
 ```
 
 **Common slash command patterns:**
-
 - `/commit` - Git operations
 - `/review` - Code review
 - `/test` - Test running

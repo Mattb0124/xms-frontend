@@ -32,7 +32,6 @@ description: Generates API documentation
 # Activation Test Plan
 
 ## Test Phrases (should trigger)
-
 1. "generate API docs" ✓
 2. "create swagger spec" ✗ - Added "Swagger" to description
 3. "write OpenAPI definition" ✗ - Added "OpenAPI" to description
@@ -43,17 +42,14 @@ description: Generates API documentation
 8. "I need documentation for my API" ✓
 
 ## Negative Tests (should NOT trigger)
-
 1. "what does this API do?" ✗ (should not trigger - this is a question)
 2. "call the API" ✗ (should not trigger - this is execution)
 
 ## Updated Description
-
 description: Generates API documentation, Swagger specs, OpenAPI definitions, and API reference pages. This skill should be used when creating API docs, documenting endpoints, or writing API reference.
 ```
 
 **Testing process:**
-
 1. Write 10+ phrases users might say
 2. Test each in Claude Code
 3. Note which fail to trigger

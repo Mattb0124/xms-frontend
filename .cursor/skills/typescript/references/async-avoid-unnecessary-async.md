@@ -13,13 +13,13 @@ Remove `async` from functions that only wrap a single Promise without using `awa
 
 ```typescript
 async function getUser(userId: string): Promise<User> {
-  return userRepository.findById(userId);
+  return userRepository.findById(userId)
   // async keyword creates unnecessary Promise wrapper
   // No await, no try/catch — async adds nothing here
 }
 
 async function deleteUser(userId: string): Promise<void> {
-  return userRepository.delete(userId);
+  return userRepository.delete(userId)
   // Same pattern — async is pure overhead
 }
 ```
@@ -28,12 +28,12 @@ async function deleteUser(userId: string): Promise<void> {
 
 ```typescript
 function getUser(userId: string): Promise<User> {
-  return userRepository.findById(userId);
+  return userRepository.findById(userId)
   // Direct Promise return, no wrapper
 }
 
 function deleteUser(userId: string): Promise<void> {
-  return userRepository.delete(userId);
+  return userRepository.delete(userId)
 }
 ```
 
@@ -43,17 +43,16 @@ function deleteUser(userId: string): Promise<void> {
 // Correct — return await ensures the error is caught
 async function getUser(userId: string): Promise<User> {
   try {
-    return await userRepository.findById(userId);
+    return await userRepository.findById(userId)
     // Without await, rejected promise skips the catch block
   } catch (error) {
-    logger.error("Failed to fetch user", { userId, error });
-    throw new UserNotFoundError(userId);
+    logger.error('Failed to fetch user', { userId, error })
+    throw new UserNotFoundError(userId)
   }
 }
 ```
 
 **When async IS needed:**
-
 - Multiple sequential await statements
 - Try/catch around await (use `return await` here)
 - Conditional await logic

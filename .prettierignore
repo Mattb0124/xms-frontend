@@ -1,0 +1,7 @@
+# Skill and rule files are prose maintained outside this app; never reformatted.
+.claude/
+.cursor/
+.agents/
+.next/
+node_modules/
+pnpm-lock.yaml

@@ -11,14 +11,14 @@ SKILL.md frontmatter must only contain recognized fields. The skills-ref validat
 
 **Allowed fields:**
 
-| Field           | Required | Max Length | Description                                     |
-| --------------- | -------- | ---------- | ----------------------------------------------- |
-| `name`          | Yes      | 64 chars   | Skill identifier (lowercase, hyphens, digits)   |
-| `description`   | Yes      | 1024 chars | What the skill does and when to use it          |
-| `license`       | No       | -          | License identifier (e.g., MIT, Apache-2.0)      |
-| `allowed-tools` | No       | -          | Tool patterns the skill requires (experimental) |
-| `metadata`      | No       | -          | Custom key-value pairs for client-specific data |
-| `compatibility` | No       | 500 chars  | Version or platform compatibility info          |
+| Field | Required | Max Length | Description |
+|-------|----------|------------|-------------|
+| `name` | Yes | 64 chars | Skill identifier (lowercase, hyphens, digits) |
+| `description` | Yes | 1024 chars | What the skill does and when to use it |
+| `license` | No | - | License identifier (e.g., MIT, Apache-2.0) |
+| `allowed-tools` | No | - | Tool patterns the skill requires (experimental) |
+| `metadata` | No | - | Custom key-value pairs for client-specific data |
+| `compatibility` | No | 500 chars | Version or platform compatibility info |
 
 **Incorrect (unknown field):**
 
@@ -52,11 +52,11 @@ metadata:
 
 **Migration guide:**
 
-| Old Field  | Migration                   |
-| ---------- | --------------------------- |
-| `author`   | Move to `metadata.author`   |
-| `version`  | Move to `metadata.version`  |
-| `tags`     | Move to `metadata.tags`     |
+| Old Field | Migration |
+|-----------|-----------|
+| `author` | Move to `metadata.author` |
+| `version` | Move to `metadata.version` |
+| `tags` | Move to `metadata.tags` |
 | `category` | Move to `metadata.category` |
 
 Reference: [skills-ref validator](https://github.com/agentskills/agentskills/tree/main/skills-ref)

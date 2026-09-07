@@ -11,44 +11,38 @@ Keep examples and reference material in separate files, loading them only when u
 
 **Incorrect (examples embedded in SKILL.md):**
 
-````markdown
+```markdown
 # API Generator
 
 ## Instructions
-
 Generate REST API endpoints following these patterns...
 
 ## Examples
 
 ### Example 1: User CRUD
-
 ```typescript
 // 50 lines of user API example
 ```
-````
 
 ### Example 2: Product Catalog
-
 ```typescript
 // 50 lines of product API example
 ```
 
 ### Example 3: Order Processing
-
 ```typescript
 // 50 lines of order API example
 ```
 
 [... 10 more examples ...]
-
-````
+```
 
 ```text
 # 650+ lines of examples in main file
 # ~1300 tokens loaded every activation
 # User just wants to generate one endpoint
 # Examples rarely referenced
-````
+```
 
 **Correct (examples in separate file):**
 
@@ -56,15 +50,12 @@ Generate REST API endpoints following these patterns...
 # API Generator
 
 ## Instructions
-
 Generate REST API endpoints following these patterns...
 
 ## Examples
-
 For implementation examples, see [examples.md](examples.md).
 
 Quick reference:
-
 - User CRUD: `examples.md#user-crud`
 - Product Catalog: `examples.md#products`
 - Order Processing: `examples.md#orders`
@@ -78,7 +69,6 @@ Quick reference:
 ```
 
 **What to lazy load:**
-
 - Code examples (especially multiple examples)
 - API reference documentation
 - Error code listings

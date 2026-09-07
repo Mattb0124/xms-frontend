@@ -56,22 +56,22 @@ On invoke:
 Inspect current branch, recent remotes, and open PR/MRs when a CLI is
 available.
 
-| Signal                                                 | Phase                                                                      |
-| ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| On `production` / no work branch yet / user says start | **Start work**                                                             |
-| On `feature\|fix\|hotfix/...` with unfinished work     | Stay on work branch (coding); offer **Cut release/dev** when they say done |
-| On `release/dev/...` or user ready to land on dev      | **Release → dev**                                                          |
-| User says dev validated / ready for prod               | **Land → production**                                                      |
-| Prod PR conflicts / need trunk sync                    | **Sync from production**                                                   |
-| After merges, cleanup                                  | **Cleanup** (always ask)                                                   |
+| Signal | Phase |
+|--------|--------|
+| On `production` / no work branch yet / user says start | **Start work** |
+| On `feature\|fix\|hotfix/...` with unfinished work | Stay on work branch (coding); offer **Cut release/dev** when they say done |
+| On `release/dev/...` or user ready to land on dev | **Release → dev** |
+| User says dev validated / ready for prod | **Land → production** |
+| Prod PR conflicts / need trunk sync | **Sync from production** |
+| After merges, cleanup | **Cleanup** (always ask) |
 
 If ambiguous, show a short menu:
 
-1. Start work branch
-2. Cut / continue release → dev
-3. Sync work branch from production
-4. Land → production (requires explicit “dev validated”)
-5. Cleanup branches
+1. Start work branch  
+2. Cut / continue release → dev  
+3. Sync work branch from production  
+4. Land → production (requires explicit “dev validated”)  
+5. Cleanup branches  
 
 ---
 
@@ -86,7 +86,7 @@ If ambiguous, show a short menu:
   confirmation (e.g. `no-ticket` as the id segment).
 - **Short description:** kebab-case, concise
 
-**Release branch:** `release/dev/` + full work branch name
+**Release branch:** `release/dev/` + full work branch name  
 
 Example: `fix/XMS-1234/null-guard` → `release/dev/fix/XMS-1234/null-guard`
 
@@ -94,14 +94,14 @@ Example: `fix/XMS-1234/null-guard` → `release/dev/fix/XMS-1234/null-guard`
 
 ## Agent authority
 
-| Action                                                                        | Policy                               |
-| ----------------------------------------------------------------------------- | ------------------------------------ |
-| Interview, draft branch names, draft squash title/body                        | Freely                               |
-| `fetch` / read-only git / inspect remotes                                     | Freely                               |
-| Create/update branches, merge trunk into work, merge `dev` into release, push | After phase confirmation             |
-| Create PR/MR                                                                  | After preview approval of title/body |
-| Merge PR/MR                                                                   | Explicit approval                    |
-| Delete local/remote branches                                                  | Explicit approval, never auto-delete |
+| Action | Policy |
+|--------|--------|
+| Interview, draft branch names, draft squash title/body | Freely |
+| `fetch` / read-only git / inspect remotes | Freely |
+| Create/update branches, merge trunk into work, merge `dev` into release, push | After phase confirmation |
+| Create PR/MR | After preview approval of title/body |
+| Merge PR/MR | Explicit approval |
+| Delete local/remote branches | Explicit approval, never auto-delete |
 
 ---
 

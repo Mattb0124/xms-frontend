@@ -15,19 +15,15 @@ Structure skill content across three disclosure levels: metadata at startup, ful
 # PDF Processor
 
 ## Instructions
-
 [50 lines of core instructions]
 
 ## Complete API Reference
-
 [500 lines of API documentation]
 
 ## All File Format Details
-
 [300 lines of format specs]
 
 ## Every Example
-
 [400 lines of examples]
 ```
 
@@ -59,22 +55,19 @@ description: Extract text, tables, and forms from PDFs.
 # Level 2: SKILL.md body (loaded on activation)
 
 ## Quick Start
-
 Extract text with `extractText(pdf)`. For advanced API options,
 see [api-reference.md](api-reference.md).
 
 ## Supported Formats
-
 PDF 1.0-2.0 supported. For format details,
 see [formats.md](formats.md).
 ```
 
 **Disclosure levels:**
-
-| Level | When Loaded      | Content                             |
-| ----- | ---------------- | ----------------------------------- |
-| 1     | Session start    | name, description (~50 tokens)      |
-| 2     | Skill activation | SKILL.md body (~200 tokens)         |
-| 3     | On demand        | Reference files (~500+ tokens each) |
+| Level | When Loaded | Content |
+|-------|-------------|---------|
+| 1 | Session start | name, description (~50 tokens) |
+| 2 | Skill activation | SKILL.md body (~200 tokens) |
+| 3 | On demand | Reference files (~500+ tokens each) |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

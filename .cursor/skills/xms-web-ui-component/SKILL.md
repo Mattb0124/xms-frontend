@@ -1,5 +1,5 @@
 ---
-name: "xms-web-ui-component"
+name: 'xms-web-ui-component'
 description: 'Scaffold a new shared UI primitive in frontend/components/ui following the house shadcn and Radix pattern (cva variants, cn, forwardRef, asChild, XMS tokens). Use when adding a reusable component to frontend, when you are about to write a styled div cluster that other features will copy, or when a task says "make this reusable", "add a primitive", "extract this component". Covers the file template, the token rules, Radix compounds, and the export contract.'
 ---
 
@@ -29,22 +29,28 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const recordChipVariants = cva("inline-flex items-center rounded border px-2 py-0.5 text-[13px] font-medium", {
-  variants: {
-    tone: {
-      neutral: "border-xms-line bg-xms-card text-xms-ink",
-      selected: "border-xms-accent bg-xms-tint text-xms-ink",
+const recordChipVariants = cva(
+  "inline-flex items-center rounded border px-2 py-0.5 text-[13px] font-medium",
+  {
+    variants: {
+      tone: {
+        neutral: "border-xms-line bg-xms-card text-xms-ink",
+        selected: "border-xms-accent bg-xms-tint text-xms-ink",
+      },
     },
+    defaultVariants: { tone: "neutral" },
   },
-  defaultVariants: { tone: "neutral" },
-});
+);
 
 export interface RecordChipProps
-  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof recordChipVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof recordChipVariants> {}
 
-const RecordChip = React.forwardRef<HTMLSpanElement, RecordChipProps>(({ className, tone, ...props }, ref) => (
-  <span ref={ref} className={cn(recordChipVariants({ tone }), className)} {...props} />
-));
+const RecordChip = React.forwardRef<HTMLSpanElement, RecordChipProps>(
+  ({ className, tone, ...props }, ref) => (
+    <span ref={ref} className={cn(recordChipVariants({ tone }), className)} {...props} />
+  ),
+);
 RecordChip.displayName = "RecordChip";
 
 export { RecordChip, recordChipVariants };

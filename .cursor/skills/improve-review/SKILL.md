@@ -1,5 +1,5 @@
 ---
-name: "improve-review"
+name: 'improve-review'
 description: 'The outer loop that makes code review self-improving: read how humans reacted to the last cycle of automated review findings, classify each as validated, corrected, refined or ambiguous, decide which lessons are durable, and open a pull request editing the review-changes skill. Use at a sprint boundary, when the user says "the reviewer keeps getting X wrong", "improve the review skill", "why does it keep flagging this", or after a review cycle produced obvious false positives. Never merges its own change.'
 ---
 
@@ -28,12 +28,12 @@ Until the ADO pipeline exists, run this manually: the human pastes the correctio
 
 ## Classify each item
 
-| Class         | Meaning                                                                            |
-| ------------- | ---------------------------------------------------------------------------------- |
-| **Validated** | The human agreed, accepted the suggestion, or fixed it as recommended              |
-| **Corrected** | The human said it was wrong, noisy, or the wrong severity                          |
-| **Refined**   | Mostly right, but the human adjusted the scope, the reasoning or the preferred fix |
-| **Ambiguous** | Not enough signal. Leave it alone                                                  |
+| Class | Meaning |
+|---|---|
+| **Validated** | The human agreed, accepted the suggestion, or fixed it as recommended |
+| **Corrected** | The human said it was wrong, noisy, or the wrong severity |
+| **Refined** | Mostly right, but the human adjusted the scope, the reasoning or the preferred fix |
+| **Ambiguous** | Not enough signal. Leave it alone |
 
 Ambiguous is a real answer. Do not manufacture a lesson from silence: a finding nobody replied to may have been correct and uncontroversial.
 

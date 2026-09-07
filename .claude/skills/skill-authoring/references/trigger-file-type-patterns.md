@@ -41,13 +41,12 @@ description: Analyzes data from Excel (.xlsx, .xls) and CSV files, generating st
 ```
 
 **File type patterns to include:**
-
-| Domain       | Extensions to mention     |
-| ------------ | ------------------------- |
-| Documents    | .pdf, .docx, .doc, .txt   |
-| Spreadsheets | .xlsx, .xls, .csv, .tsv   |
-| Code         | .ts, .js, .py, .go, .rs   |
-| Config       | .json, .yaml, .toml, .env |
-| Images       | .png, .jpg, .svg, .webp   |
+| Domain | Extensions to mention |
+|--------|----------------------|
+| Documents | .pdf, .docx, .doc, .txt |
+| Spreadsheets | .xlsx, .xls, .csv, .tsv |
+| Code | .ts, .js, .py, .go, .rs |
+| Config | .json, .yaml, .toml, .env |
+| Images | .png, .jpg, .svg, .webp |
 
 Reference: [Claude Code Skills Docs](https://code.claude.com/docs/en/skills)

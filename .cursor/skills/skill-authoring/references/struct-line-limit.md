@@ -15,23 +15,18 @@ The main SKILL.md file should stay under 500 lines. Longer files consume excessi
 # API Generator
 
 ## Instructions
-
 [100 lines of core instructions]
 
 ## Complete API Reference
-
 [500 lines of OpenAPI spec]
 
 ## All Error Codes
-
 [300 lines of error documentation]
 
 ## Full Examples
-
 [800 lines of example code]
 
 ## Changelog
-
 [300 lines of version history]
 ```
 
@@ -47,19 +42,15 @@ The main SKILL.md file should stay under 500 lines. Longer files consume excessi
 # API Generator
 
 ## Instructions
-
 [100 lines of core instructions]
 
 ## API Reference
-
 For complete API documentation, see [api-reference.md](api-reference.md)
 
 ## Error Handling
-
 For error codes, see [errors.md](errors.md)
 
 ## Examples
-
 For usage examples, see [examples.md](examples.md)
 ```
 
@@ -70,13 +61,12 @@ For usage examples, see [examples.md](examples.md)
 ```
 
 **File splitting strategy:**
-
-| Content Type      | Location     |
-| ----------------- | ------------ |
-| Core instructions | SKILL.md     |
-| API reference     | reference.md |
-| Examples          | examples.md  |
-| Error codes       | errors.md    |
-| Executable code   | scripts/     |
+| Content Type | Location |
+|--------------|----------|
+| Core instructions | SKILL.md |
+| API reference | reference.md |
+| Examples | examples.md |
+| Error codes | errors.md |
+| Executable code | scripts/ |
 
 Reference: [Claude Code Skills Docs](https://code.claude.com/docs/en/skills)

@@ -13,10 +13,14 @@ Inline conditional types are re-evaluated on every function call. Extracting the
 
 ```typescript
 function processResponse<T>(
-  response: T,
-): T extends { data: infer D } ? (D extends Array<infer Item> ? Item[] : D) : never {
+  response: T
+): T extends { data: infer D }
+   ? D extends Array<infer Item>
+     ? Item[]
+     : D
+   : never {
   // Compiler re-computes this complex conditional on every call
-  return response.data;
+  return response.data
 }
 
 function getFirstItem<T>(collection: T): T extends Array<infer U> ? U : T {
@@ -27,14 +31,18 @@ function getFirstItem<T>(collection: T): T extends Array<infer U> ? U : T {
 **Correct (extracted, cacheable):**
 
 ```typescript
-type ExtractData<T> = T extends { data: infer D } ? (D extends Array<infer Item> ? Item[] : D) : never;
+type ExtractData<T> = T extends { data: infer D }
+  ? D extends Array<infer Item>
+    ? Item[]
+    : D
+  : never
 
 function processResponse<T>(response: T): ExtractData<T> {
   // Compiler caches ExtractData<T> resolution
-  return response.data;
+  return response.data
 }
 
-type UnwrapArray<T> = T extends Array<infer U> ? U : T;
+type UnwrapArray<T> = T extends Array<infer U> ? U : T
 
 function getFirstItem<T>(collection: T): UnwrapArray<T> {
   // Reuses cached UnwrapArray<T> computation
@@ -42,7 +50,6 @@ function getFirstItem<T>(collection: T): UnwrapArray<T> {
 ```
 
 **Benefits:**
-
 - Type alias acts as a cache boundary
 - Reduces duplicate computation across multiple call sites
 - Improves IDE responsiveness for autocomplete

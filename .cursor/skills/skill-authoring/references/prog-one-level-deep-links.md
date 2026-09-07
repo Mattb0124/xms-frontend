@@ -13,19 +13,15 @@ SKILL.md can link to reference files, but those files should not link to further
 
 ```markdown
 # SKILL.md
-
 See [config.md](config.md) for configuration options.
 
 # config.md
-
 For authentication, see [auth.md](auth.md).
 
 # auth.md
-
 For OAuth details, see [oauth.md](oauth.md).
 
 # oauth.md
-
 For token refresh, see [tokens.md](tokens.md).
 ```
 
@@ -40,25 +36,18 @@ For token refresh, see [tokens.md](tokens.md).
 
 ```markdown
 # SKILL.md
-
 ## Configuration
-
 See [config.md](config.md) for all configuration options.
 
 ## Authentication
-
 See [auth.md](auth.md) for authentication setup.
 
 # config.md (NO further links)
-
 ## All Configuration Options
-
 [Complete config documentation, no outgoing links]
 
 # auth.md (NO further links)
-
 ## Authentication
-
 [Complete auth documentation including OAuth and tokens]
 ```
 
@@ -69,7 +58,6 @@ See [auth.md](auth.md) for authentication setup.
 ```
 
 **Reference file guidelines:**
-
 - Self-contained: Include all relevant information
 - No outgoing links: Don't reference other skill files
 - Focused: One topic per reference file

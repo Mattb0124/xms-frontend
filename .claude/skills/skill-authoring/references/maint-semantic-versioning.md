@@ -38,35 +38,27 @@ Track skill versions using semantic versioning (MAJOR.MINOR.PATCH). This allows 
 # CHANGELOG.md
 
 ## [2.1.0] - 2024-01-15
-
 ### Added
-
 - Support for GraphQL endpoints
 
 ## [2.0.0] - 2024-01-01
-
 ### Changed
-
 - BREAKING: Changed output format from JSON to YAML
 - BREAKING: Renamed 'endpoint' parameter to 'path'
 
 ## [1.2.3] - 2023-12-15
-
 ### Fixed
-
 - Handle paths with special characters
 ```
 
 **Version increment rules:**
-
-| Change Type              | Version | Example       |
-| ------------------------ | ------- | ------------- |
-| Breaking (incompatible)  | MAJOR   | 1.x.x → 2.0.0 |
-| New feature (compatible) | MINOR   | 1.1.x → 1.2.0 |
-| Bug fix                  | PATCH   | 1.1.1 → 1.1.2 |
+| Change Type | Version | Example |
+|-------------|---------|---------|
+| Breaking (incompatible) | MAJOR | 1.x.x → 2.0.0 |
+| New feature (compatible) | MINOR | 1.1.x → 1.2.0 |
+| Bug fix | PATCH | 1.1.1 → 1.1.2 |
 
 **Breaking changes include:**
-
 - Changing output format
 - Renaming required parameters
 - Removing capabilities

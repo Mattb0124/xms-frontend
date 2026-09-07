@@ -56,7 +56,6 @@ python scripts/process.py --input file.pdf
 ```
 
 **Common language identifiers:**
-
 - `typescript`, `javascript`, `python`, `bash`, `go`, `rust`
 - `yaml`, `json`, `toml` for configuration
 - `markdown` for documentation examples

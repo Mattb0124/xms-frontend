@@ -15,7 +15,6 @@ Test skills with unusual but valid inputs: empty files, very large files, specia
 # CSV Parser - Test Results
 
 ## Tests Run
-
 1. Standard CSV file (10 rows, 5 columns) ✓
 
 ## Deployed
@@ -35,12 +34,10 @@ Test skills with unusual but valid inputs: empty files, very large files, specia
 # CSV Parser - Test Results
 
 ## Standard Cases
-
 1. Standard CSV (10 rows, 5 columns) ✓
 2. Large CSV (10,000 rows) ✓
 
 ## Edge Cases
-
 3. Empty file (0 rows) ✓ - Returns "No data found"
 4. Headers only (0 data rows) ✓ - Returns headers list
 5. Single column ✓
@@ -49,24 +46,21 @@ Test skills with unusual but valid inputs: empty files, very large files, specia
 8. TSV file (tab-separated) ✗ - Added delimiter detection
 
 ## Error Cases
-
 9. Binary file (not CSV) ✓ - Returns "Invalid format"
 10. Malformed CSV (inconsistent columns) ✓ - Reports row errors
 
 ## Instructions Updated
-
 - Added: "Detect delimiter automatically (comma, tab, semicolon)"
 - Added: "Handle unicode characters in all fields"
 - Added: "For empty files, report 'No data found' instead of error"
 ```
 
 **Common edge cases to test:**
-
-| Category   | Edge Cases                    |
-| ---------- | ----------------------------- |
-| Size       | Empty, 1 item, very large     |
+| Category | Edge Cases |
+|----------|------------|
+| Size | Empty, 1 item, very large |
 | Characters | Unicode, emoji, special chars |
-| Format     | Missing fields, extra fields  |
-| Types      | Null, undefined, wrong type   |
+| Format | Missing fields, extra fields |
+| Types | Null, undefined, wrong type |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

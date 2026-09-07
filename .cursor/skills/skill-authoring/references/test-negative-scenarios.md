@@ -52,17 +52,15 @@ description: Helps debug Python code and fix errors.
    - Result: Did not trigger ✓
 
 ## Updated Description
-
 description: Debugs Python errors, traces exceptions, and fixes bugs in Python code. This skill should be used when encountering Python errors, tracebacks, or exceptions. This skill does NOT write new Python code or explain Python concepts.
 ```
 
 **Negative test categories:**
-
 | If skill does... | Test that it doesn't trigger on... |
-| ---------------- | ---------------------------------- |
-| Debug errors     | General questions about language   |
-| Generate code    | Explanation requests               |
-| Process files    | File organization questions        |
-| API calls        | API documentation questions        |
+|------------------|-----------------------------------|
+| Debug errors | General questions about language |
+| Generate code | Explanation requests |
+| Process files | File organization questions |
+| API calls | API documentation questions |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

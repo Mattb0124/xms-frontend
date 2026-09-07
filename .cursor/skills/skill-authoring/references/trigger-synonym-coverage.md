@@ -42,7 +42,6 @@ description: Generates API documentation, Swagger specs, and OpenAPI definitions
 ```
 
 **Synonym research process:**
-
 1. List 5-10 ways users might describe the task
 2. Include industry jargon and casual terms
 3. Add common abbreviations (API, DB, UI, PR)
