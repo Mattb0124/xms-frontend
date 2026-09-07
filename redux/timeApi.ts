@@ -2,9 +2,13 @@ import { xmsApi } from "@/redux/api";
 
 /**
  * Time, Contracts & Budget endpoints (technical spec section 4, day-30
- * cut): entries on tickets and buckets, adjustments, the timesheet, and the
- * contract position the server computes.
+ * cut): entries on tickets and buckets, adjustments, the timesheet, the
+ * contract position the server computes, and the comp-time report (TB-13).
  */
+
+/** The after-hours class the account calendar derives for an entry (TB-13). */
+export type AfterHoursClass = "standard" | "after_hours" | "weekend" | "holiday";
+
 export interface TimeEntry {
   id: string;
   ticket_id?: string | null;
@@ -12,12 +16,18 @@ export interface TimeEntry {
   person_id?: string;
   person_name: string;
   performed_on: string;
+  /** Local start time as the API stores it ("19:30:00"), or null when the person gave none. */
+  performed_start: string | null;
   minutes: number;
   adjusted_minutes?: number;
   activity_type: string;
   billable_class: string;
   description: string;
+  /** True whenever `after_hours_class` is not standard. */
   after_hours: boolean;
+  after_hours_class: AfterHoursClass;
+  /** Numeric as a string, e.g. "1.500"; "1.000" when no premium applied. */
+  rate_multiplier: string;
   created_at: string;
   ticket_number?: string | null;
   bucket_label?: string | null;
@@ -34,7 +44,10 @@ export interface LogTimeBody {
   activity_type: string;
   billable_class?: string;
   description?: string;
+  /** The person's own word that the work was after hours; only counts when no start time lets the calendar judge. */
   after_hours?: boolean;
+  /** Local start time, HH:MM 24-hour in the account calendar's zone (TB-13). */
+  performed_start?: string;
 }
 
 export interface AdjustTimeBody {
@@ -102,9 +115,28 @@ export interface Bucket {
   status: string;
 }
 
+/** One person's comp-time line: non-standard entries on comp-time contracts that carried no premium. */
+export interface CompTimePerson {
+  person_id: string;
+  person_name: string;
+  minutes: number;
+  entries: number;
+}
+
+/** The comp-time report for an account over a date range (TB-13); every number is the server's. */
+export interface CompTimeReport {
+  from: string;
+  to: string;
+  entries: TimeEntry[];
+  total_minutes: number;
+  by_person: CompTimePerson[];
+}
+
 function timeTag(ticketKey: string) {
   return { type: "Time" as const, id: ticketKey };
 }
+
+const COMP_TIME = timeTag("comp-time");
 
 export const timeApi = xmsApi.injectEndpoints({
   endpoints: (build) => ({
@@ -114,7 +146,7 @@ export const timeApi = xmsApi.injectEndpoints({
     }),
     logTicketTime: build.mutation<TimeEntry, { ticketKey: string; body: LogTimeBody }>({
       query: ({ ticketKey, body }) => ({ url: `/v1/tickets/${ticketKey}/time`, method: "POST", body }),
-      invalidatesTags: (_result, _error, { ticketKey }) => [timeTag(ticketKey), timeTag("mine"), "Position"],
+      invalidatesTags: (_result, _error, { ticketKey }) => [timeTag(ticketKey), timeTag("mine"), COMP_TIME, "Position"],
     }),
     myTime: build.query<TimeEntry[], { from: string; to: string }>({
       query: ({ from, to }) => ({ url: "/v1/time/mine", params: { from, to } }),
@@ -136,6 +168,10 @@ export const timeApi = xmsApi.injectEndpoints({
       query: ({ accountId, contractId }) => `/v1/accounts/${accountId}/contracts/${contractId}/position`,
       providesTags: (_result, _error, { contractId }) => [{ type: "Position", id: contractId }],
     }),
+    compTime: build.query<CompTimeReport, { accountId: string; from: string; to: string }>({
+      query: ({ accountId, from, to }) => ({ url: `/v1/accounts/${accountId}/time/comp-time`, params: { from, to } }),
+      providesTags: [COMP_TIME],
+    }),
     listBuckets: build.query<Bucket[], string>({
       query: (accountId) => `/v1/accounts/${accountId}/buckets`,
     }),
@@ -145,7 +181,7 @@ export const timeApi = xmsApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: [timeTag("mine"), "Position"],
+      invalidatesTags: [timeTag("mine"), COMP_TIME, "Position"],
     }),
   }),
   overrideExisting: false,
@@ -159,6 +195,7 @@ export const {
   useMyUnloggedQuery,
   useAdjustTimeMutation,
   useContractPositionQuery,
+  useCompTimeQuery,
   useListBucketsQuery,
   useLogBucketTimeMutation,
 } = timeApi;

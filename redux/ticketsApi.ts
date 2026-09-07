@@ -197,12 +197,26 @@ export interface DirectoryGroup {
   status?: string;
 }
 
+/** How a contract handles a non-standard after-hours class (TB-13): a premium multiplier, comp time, or nothing. */
+export type AfterHoursHandling = "premium_rate" | "comp_time" | "none";
+
 export interface Contract {
   id: string;
   key: string;
   name: string;
   model: string;
   status: string;
+  after_hours_handling: AfterHoursHandling;
+  /** Numeric as a string ("1.500") under premium_rate; null otherwise. */
+  after_hours_multiplier: string | null;
+  version: number;
+}
+
+/** PATCH body: the version the screen holds plus the handling fields to change (contracts:manage). */
+export interface PatchContractBody {
+  version: number;
+  after_hours_handling?: AfterHoursHandling;
+  after_hours_multiplier?: number | null;
 }
 
 function ticketTag(key: string) {
@@ -333,6 +347,17 @@ export const ticketsApi = xmsApi.injectEndpoints({
       query: (accountId) => `/v1/accounts/${accountId}/contracts`,
       providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:contracts` }],
     }),
+    patchContract: build.mutation<Contract, { accountId: string; contractId: string; body: PatchContractBody }>({
+      query: ({ accountId, contractId, body }) => ({
+        url: `/v1/accounts/${accountId}/contracts/${contractId}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { accountId, contractId }) => [
+        { type: "Account", id: `${accountId}:contracts` },
+        { type: "Position", id: contractId },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -360,4 +385,5 @@ export const {
   useListGrantedAccountsQuery,
   useListDirectoryGroupsQuery,
   useListAccountContractsQuery,
+  usePatchContractMutation,
 } = ticketsApi;

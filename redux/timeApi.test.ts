@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
-import { timeApi, type ContractPosition, type TimeEntry } from "@/redux/timeApi";
+import { timeApi, type CompTimeReport, type ContractPosition, type TimeEntry } from "@/redux/timeApi";
 import { json, stubFetch } from "@/test-kit/portal";
 
 export function anEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
@@ -14,8 +14,54 @@ export function anEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
     activity_type: "analysis",
     billable_class: "billable",
     description: "Traced the failing job",
+    performed_start: null,
     after_hours: false,
+    after_hours_class: "standard",
+    rate_multiplier: "1.000",
     created_at: "2026-09-07T10:00:00Z",
+    ...overrides,
+  };
+}
+
+/** An entry the calendar classed after hours with the contract's premium applied (TB-13). */
+export function anAfterHoursEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
+  return anEntry({
+    id: "e-ah",
+    performed_start: "19:30:00",
+    after_hours: true,
+    after_hours_class: "after_hours",
+    rate_multiplier: "1.500",
+    ...overrides,
+  });
+}
+
+export function aCompTimeReport(overrides: Partial<CompTimeReport> = {}): CompTimeReport {
+  const entries = [
+    anAfterHoursEntry({ id: "ct-1", person_id: "p-1", rate_multiplier: "1.000", minutes: 90 }),
+    anAfterHoursEntry({
+      id: "ct-2",
+      person_id: "p-1",
+      rate_multiplier: "1.000",
+      minutes: 30,
+      after_hours_class: "weekend",
+    }),
+    anAfterHoursEntry({
+      id: "ct-3",
+      person_id: "p-2",
+      person_name: "Dev Patel",
+      rate_multiplier: "1.000",
+      minutes: 60,
+    }),
+  ];
+  return {
+    from: "2026-08-08",
+    to: "2026-09-07",
+    entries,
+    total_minutes: 180,
+    by_person: [
+      { person_id: "p-1", person_name: "Cara Lee", minutes: 120, entries: 2 },
+      { person_id: "p-2", person_name: "Dev Patel", minutes: 60, entries: 1 },
+    ],
     ...overrides,
   };
 }
@@ -122,7 +168,8 @@ describe("timeApi timesheets", () => {
     };
     const calls = stubFetch({
       "GET /v1/timesheets/me": () => json(week),
-      "GET /v1/timesheets/me/unlogged": () => json({ from: "2026-09-07", to: "2026-09-07", days: [], unlogged_minutes: 0 }),
+      "GET /v1/timesheets/me/unlogged": () =>
+        json({ from: "2026-09-07", to: "2026-09-07", days: [], unlogged_minutes: 0 }),
     });
     const store = makeStore();
     await store.dispatch(timeApi.endpoints.myWeek.initiate()).unwrap();
@@ -159,5 +206,74 @@ describe("timeApi timesheets", () => {
       .unwrap();
     await vi.waitFor(() => expect(weeks).toBe(2));
     subscription.unsubscribe();
+  });
+});
+
+/** The after-hours cut (TB-13): the start time travels as performed_start; the comp-time report reads by account and range. */
+describe("timeApi after hours", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("posts performed_start as HH:MM and reads the entry's class and multiplier back", async () => {
+    const calls = stubFetch({
+      "POST /v1/tickets/CS0001001/time": () => json(anAfterHoursEntry(), 201),
+    });
+    const store = makeStore();
+    const entry = await store
+      .dispatch(
+        timeApi.endpoints.logTicketTime.initiate({
+          ticketKey: "CS0001001",
+          body: { performed_on: "2026-09-07", minutes: 45, activity_type: "analysis", performed_start: "19:30" },
+        }),
+      )
+      .unwrap();
+    expect(calls[0].body).toEqual({
+      performed_on: "2026-09-07",
+      minutes: 45,
+      activity_type: "analysis",
+      performed_start: "19:30",
+    });
+    expect(entry.after_hours_class).toBe("after_hours");
+    expect(entry.rate_multiplier).toBe("1.500");
+    expect(entry.after_hours).toBe(true);
+  });
+
+  it("reads the comp-time report with the range as query parameters and refreshes it after time is logged", async () => {
+    let reads = 0;
+    stubFetch({
+      "GET /v1/accounts/acct-1/time/comp-time": () => {
+        reads += 1;
+        return json(aCompTimeReport());
+      },
+      "POST /v1/accounts/acct-1/buckets/b-1/time": () => json(anEntry(), 201),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(
+      timeApi.endpoints.compTime.initiate({ accountId: "acct-1", from: "2026-08-08", to: "2026-09-07" }),
+    );
+    const report = await subscription.unwrap();
+    expect(report.total_minutes).toBe(180);
+    expect(report.by_person.map((row) => row.person_name)).toEqual(["Cara Lee", "Dev Patel"]);
+    await store
+      .dispatch(
+        timeApi.endpoints.logBucketTime.initiate({
+          accountId: "acct-1",
+          bucketId: "b-1",
+          body: { performed_on: "2026-09-07", minutes: 30, activity_type: "analysis" },
+        }),
+      )
+      .unwrap();
+    await vi.waitFor(() => expect(reads).toBe(2));
+    subscription.unsubscribe();
+  });
+
+  it("sends the range on the comp-time route", async () => {
+    const calls = stubFetch({ "GET /v1/accounts/acct-1/time/comp-time": () => json(aCompTimeReport()) });
+    const store = makeStore();
+    await store
+      .dispatch(timeApi.endpoints.compTime.initiate({ accountId: "acct-1", from: "2026-08-08", to: "2026-09-07" }))
+      .unwrap();
+    expect(`${calls[0].key}${calls[0].search}`).toBe(
+      "GET /v1/accounts/acct-1/time/comp-time?from=2026-08-08&to=2026-09-07",
+    );
   });
 });
