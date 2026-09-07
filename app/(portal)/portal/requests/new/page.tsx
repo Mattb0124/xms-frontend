@@ -29,7 +29,11 @@ export default function PortalNewRequestPage() {
             try {
               const created = await create(body).unwrap();
               track({ request: created.key, type: body.type });
-              push({ title: `${created.key} created`, detail: "You will get an email with every reply.", tone: "success" });
+              push({
+                title: `${created.key} created`,
+                detail: "You will get an email with every reply.",
+                tone: "success",
+              });
               router.push(`/portal/requests/${created.key}`);
             } catch (error) {
               setServerError(describeError(apiError(error)));

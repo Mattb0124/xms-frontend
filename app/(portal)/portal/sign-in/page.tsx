@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ClerkSignIn } from "@/components/portal/clerk-sign-in";
-import { PORTAL_INPUT, PORTAL_PRIMARY, PORTAL_SECONDARY, PortalCard, PortalNotice } from "@/components/portal/primitives";
+import {
+  PORTAL_INPUT,
+  PORTAL_PRIMARY,
+  PORTAL_SECONDARY,
+  PortalCard,
+  PortalNotice,
+} from "@/components/portal/primitives";
 import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
 import { setDevToken } from "@/lib/auth/token";
 import { xmsApi } from "@/redux/api";
@@ -35,9 +41,8 @@ export default function PortalSignInPage() {
             }}
           >
             <label htmlFor="portal-dev-token" className="text-xms-body text-[13px]">
-              Paste a token from{" "}
-              <code className="xms-mono">pnpm dev:token --email pat@client.test --org acct-brk</code> run in the
-              backend folder.
+              Paste a token from <code className="xms-mono">pnpm dev:token --email pat@client.test --org acct-brk</code>{" "}
+              run in the backend folder.
             </label>
             <textarea
               id="portal-dev-token"
