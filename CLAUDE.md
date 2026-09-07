@@ -38,11 +38,16 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         section editor, Visibility, History, Feedback, Submit, Publish, Retire, Generalize with the findings
                         sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker over /v1/timesheets/me, expected against logged per
                         day with the unlogged highlight, week and unlogged totals, quick Log time; time:log) (P2.12.x, P2.18.3);
+                        the Log time form (ticket Time tab and the timesheet) takes an optional Start time sent as performed_start
+                        and hides the person's own after-hours statement while one is given; entry rows carry the after-hours
+                        badge (class, the contract's handling in words, the multiplier when not 1) (TB-13);
                         /operations (P2.19.3: period switcher, synthesis line, six tiles, SLA meters, outcomes, backlog by age,
                         open by priority and type, notable tickets, per-account strip; needs reports:view-portfolio),
                         /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
                         the same panels, "View as client" re-fetches as_client=true and shows only what came back, Reports card
-                        with runs and "Generate weekly report"), /reports/packs/[id] (frozen numbers, narrative, PPTX link),
+                        with runs and "Generate weekly report", Comp time panel over /v1/accounts/:id/time/comp-time by date
+                        range with per-person minutes and entries; tickets:view, left out of the client view) (TB-13),
+                        /reports/packs/[id] (frozen numbers, narrative, PPTX link),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
                         values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
                         /admin/usage (P2.19.4 tiles and count lists); the Queue has an Export menu (Excel, CSV) over the current
@@ -50,10 +55,14 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
                         account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
-                        with the default marked, New calendar) and a Connectors
+                        with the default marked, New calendar), a Contracts tab (key, name, model, status and after-hours
+                        handling under tickets:view; under contracts:manage an inline editor per row: None, Premium rate with
+                        the multiplier, Comp time, saved through PATCH with the version, multiplier_required and stale_version
+                        worded) (TB-13), a Connectors
                         tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4) and a Configuration
                         tab (admin:config, fails closed: the six catalogs with the effective source Default or Override and
-                        its version, a JSON body editor per kind with client-side parse, Save as override sending { body },
+                        its version, or "Nothing active" when effective is null with the editor still usable from an empty
+                        object, a JSON body editor per kind with client-side parse, Save as override sending { body },
                         the server's invalid_config problems listed, Remove override with the version history and the
                         operator default underneath, a ticket-type scope selector for the state machine) (P2.9.2);
                         /admin/migration (P2.22.2, admin:migration: Batches list with account, object kind and status as URL
@@ -62,7 +71,9 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         default; prefills from ?account_id&instance_id&opened_from&opened_to&supersedes), /admin/migration/[id]
                         (counts, properties, run progress polling every 10 s while moving, Run with confirm and the reason when
                         it is off, Records with status filter, search and the record drawer with the source payload, Log,
-                        Reconciliation with Explain on delta_open lines and Sign off surfacing signer_ran_batch and delta_open);
+                        Reconciliation with Explain on delta_open lines and Sign off disabled from the server's can_sign and
+                        sign_blocker in words, refusals on a stale view in the server's words; people are named through
+                        run_by_name, signed_by_name and explained_by_name, never id prefixes);
                         /admin/accounts/[id]/calendars/new and /admin/calendars/[id] (P3.26.1, TM-06: CalendarEditor with the week
                         grid, holiday library, make default, retire; PreviewPanel), /admin/holiday-calendars (libraries list and create);
                         /admin/connectors (health overview across granted accounts, admin:connectors) and /admin/connectors/[id]
@@ -72,7 +83,8 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
 components/tickets/     ticket-columns (the Queue column set), transition-menu (state pill menu, pause, resolve, confirm sheets),
                         resolve-form (close discipline mirror over the catalog codes), solution-picker (search over published
                         articles), solutions-rail (matching articles with Use this, similar tickets, resolution records, propose
-                        an article), time-tab (entries with adjustments, LogTimeForm), contract-card (burn from the position),
+                        an article), time-tab (entries with adjustments and the AfterHoursBadge with the contract's rule from
+                        the account's contracts, LogTimeForm with Start time), contract-card (burn from the position),
                         resolution-tab, conversation-tab (Composer with Reply / Work note), activity-tab, links-tab,
                         properties-panel, sla-rail (meters with countdown, requester, watch from the record), assignee-picker,
                         attachments (DropZone, useUploads, UploadList, ScanAcknowledgement, AttachmentRow, AttachmentsCard; the
@@ -90,9 +102,15 @@ components/admin/audit-search, security-dashboard (CountList), usage-dashboard
 components/portal/dashboard-strip  the client's own numbers on the portal home from /v1/portal/dashboard, client language
 components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
                         publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
-components/time/        Timesheet (the week from /v1/timesheets/me: day rows with dayTone and dayStatus, entries, header totals),
-                        TimeTodayCard (My work: today from /v1/timesheets/me/unlogged, hidden without time:log), weekOf and
-                        groupByDay helpers
+components/time/        Timesheet (the week from /v1/timesheets/me: day rows with dayTone and dayStatus, entries with the start
+                        time and the after-hours badge, header totals), TimeTodayCard (My work: today from
+                        /v1/timesheets/me/unlogged, hidden without time:log), AfterHoursBadge (class pill, the handling in
+                        words when the contract is known, the multiplier when not 1), CompTimePanel (per-person comp time by
+                        range; tickets:view), weekOf and groupByDay helpers
+lib/time/after-hours    class and handling labels, describeHandling ("Premium 1.5x per contract", "Comp time"),
+                        formatMultiplier, hasPremium, startTimeLabel, isStartTime (HH:MM 24-hour)
+components/admin/contracts/  account-contracts-tab (DenseTable of contracts with handlingCell, HandlingEditor over
+                        patchContract with validateHandling; multiplier_required and stale_version worded)
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
                         queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
@@ -158,15 +176,20 @@ lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenVi
 lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
 redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types, plus
-                        getAccountConfig, setAccountOverride and removeAccountOverride on the AccountConfig tag),
-                        migrationApi.ts (batches with filters, create, one batch with its report, run, records with status
-                        and search, one record with its payload, reconciliation reports, explain, sign-off; tags
-                        MigrationBatches, MigrationBatch, MigrationRecords, Reconciliation),
+                        getAccountConfig (effective may be null when nothing is active), setAccountOverride and
+                        removeAccountOverride on the AccountConfig tag),
+                        migrationApi.ts (batches with filters and run_by_name, create, one batch with its report, run, records
+                        with status and search, one record with its payload, reconciliation reports with signed_by_name,
+                        explained_by_name, can_sign and sign_blocker, explain, sign-off; tags MigrationBatches,
+                        MigrationBatch, MigrationRecords, Reconciliation),
                         ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
-                        links, watchers, notifications, directory lookups), portalApi.ts (the /v1/portal mirror and the
+                        links, watchers, notifications, directory lookups, account contracts with after_hours_handling and
+                        after_hours_multiplier, patchContract with the version), portalApi.ts (the /v1/portal mirror and the
                         searchArticles placeholder), knowledgeApi.ts (articles, drafts, publish, retire, generalize,
                         visibility, feedback, search, the Solutions rail, candidates, catalogs), timeApi.ts (ticket time,
-                        my timesheet, adjustments, contract position, buckets), attachmentsApi.ts (list, presign, confirm, download,
+                        my timesheet, adjustments, contract position, buckets; entries carry performed_start,
+                        after_hours_class and rate_multiplier, LogTimeBody takes performed_start, compTime reads the
+                        account's comp-time report by range and refreshes when time is logged), attachmentsApi.ts (list, presign, confirm, download,
                         delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
                         and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
                         connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
