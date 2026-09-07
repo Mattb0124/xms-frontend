@@ -14,12 +14,18 @@ export function formatHours(minutes: number): string {
   return `${(Math.round(hours * 10) / 10).toFixed(1)} h`;
 }
 
+/** "1,225.00" from the API's numeric string or number; null without a usable value. */
+export function formatMoney(value: string | number | null | undefined): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  const number = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(number)) return null;
+  return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 /** "USD 1,225.00" from the API's numeric string or number; "n/a" without an amount. */
 export function formatAmount(value: string | number | null | undefined, currency: string): string {
-  if (value === null || value === undefined || value === "") return "n/a";
-  const number = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(number)) return "n/a";
-  return `${currency} ${number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const money = formatMoney(value);
+  return money === null ? "n/a" : `${currency} ${money}`;
 }
 
 export type BudgetTone = "good" | "warn" | "breach";
@@ -88,7 +94,8 @@ export function thresholdMarkers(thresholds: BudgetThresholds, availableMinutes:
 
 /** "50% fired 2026-09-04", "75% next, at 30 h", "90%". */
 export function thresholdLabel(marker: ThresholdMarker): string {
-  if (marker.fired) return marker.firedAt ? `${marker.percent}% fired ${marker.firedAt.slice(0, 10)}` : `${marker.percent}% fired`;
+  if (marker.fired)
+    return marker.firedAt ? `${marker.percent}% fired ${marker.firedAt.slice(0, 10)}` : `${marker.percent}% fired`;
   if (marker.next) return `${marker.percent}% next, at ${formatHours(marker.atMinutes)}`;
   return `${marker.percent}%`;
 }

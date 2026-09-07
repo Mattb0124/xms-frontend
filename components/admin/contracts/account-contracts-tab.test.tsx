@@ -122,7 +122,13 @@ describe("contract rule words", () => {
     });
     // Switching away from the rule drops its number even when the field still holds one.
     expect(
-      rulesBody(3, { ...draft, overageRule: "block", overageMultiplier: "1.25", rolloverRule: "carry_term", capHours: "20" }),
+      rulesBody(3, {
+        ...draft,
+        overageRule: "block",
+        overageMultiplier: "1.25",
+        rolloverRule: "carry_term",
+        capHours: "20",
+      }),
     ).toEqual({
       version: 3,
       after_hours_handling: "none",

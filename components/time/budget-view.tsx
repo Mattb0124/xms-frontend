@@ -146,7 +146,9 @@ export function ContractBudgetCard({
     <Panel
       title={`${contract.key} ${contract.name}`}
       caption={rules}
-      actions={position ? <SignalPill tone={STATUS[position.status].tone} label={STATUS[position.status].label} /> : null}
+      actions={
+        position ? <SignalPill tone={STATUS[position.status].tone} label={STATUS[position.status].label} /> : null
+      }
     >
       <div className="flex flex-col gap-3" data-contract={contract.id} data-tone={tone}>
         {!period || !position ? (

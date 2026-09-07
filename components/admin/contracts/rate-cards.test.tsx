@@ -87,7 +87,9 @@ describe("rate card draft", () => {
   });
 
   it("words the two refusals", () => {
-    expect(describeRateCardError({ status: 409, data: { code: "rate_card_exists", effective_from: "2026-07-01" } })).toBe(
+    expect(
+      describeRateCardError({ status: 409, data: { code: "rate_card_exists", effective_from: "2026-07-01" } }),
+    ).toBe(
       "A version already starts on 2026-07-01. Versions are never edited; choose a later effective date for the change.",
     );
     expect(describeRateCardError({ status: 400, data: { code: "duplicate_role" } })).toBe(

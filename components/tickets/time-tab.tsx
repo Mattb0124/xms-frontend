@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { INPUT, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { AfterHoursBadge } from "@/components/time/after-hours-badge";
+import { EntryAmount, OverBudgetPill } from "@/components/time/entry-amount";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { useTrack } from "@/lib/telemetry/provider";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
 import { isStartTime, startTimeLabel, type HandlingRule } from "@/lib/time/after-hours";
+import { overageBlockedMessage } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useListAccountContractsQuery } from "@/redux/ticketsApi";
@@ -118,13 +120,14 @@ export function LogTimeForm({ catalogs, onSubmit, pending }: LogTimeFormProps) {
         } catch (caught) {
           const parsed = apiError(caught);
           setError(
-            parsed.code === "billing_period_locked"
-              ? "That date is inside a locked billing period."
-              : parsed.code === "future_date"
-                ? "The date cannot be in the future."
-                : parsed.code === "ticket_closed"
-                  ? "The ticket is closed; time stays reportable but cannot be added."
-                  : describeError(parsed),
+            overageBlockedMessage(caught) ??
+              (parsed.code === "billing_period_locked"
+                ? "That date is inside a locked billing period."
+                : parsed.code === "future_date"
+                  ? "The date cannot be in the future."
+                  : parsed.code === "ticket_closed"
+                    ? "The ticket is closed; time stays reportable but cannot be added."
+                    : describeError(parsed)),
           );
         }
       }}
@@ -285,8 +288,16 @@ function EntryRow({ entry, catalogs, rule }: { entry: TimeEntry; catalogs: DeskC
           <span className="text-xms-ink">{formatMinutes(entry.minutes)}</span>
         )}
       </td>
+      <td className="px-3 text-right">
+        <EntryAmount entry={entry} />
+      </td>
       <td className="text-xms-body max-w-[320px] truncate px-3">
         <AfterHoursBadge entry={entry} rule={rule} className="mr-2 inline-flex items-center gap-1.5" />
+        {entry.over_budget ? (
+          <span className="mr-2 inline-flex" data-over-budget>
+            <OverBudgetPill entry={entry} />
+          </span>
+        ) : null}
         {entry.description}
       </td>
     </tr>
@@ -350,6 +361,7 @@ export function TimeTab({
                 <th className="px-3 py-2">Activity</th>
                 <th className="px-3 py-2">Class</th>
                 <th className="px-3 py-2 text-right">Minutes</th>
+                <th className="px-3 py-2 text-right">Amount</th>
                 <th className="px-3 py-2">Description</th>
               </tr>
             </thead>
@@ -359,7 +371,7 @@ export function TimeTab({
               ))}
               {data.entries.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-xms-label px-3 py-4 text-center">
+                  <td colSpan={7} className="text-xms-label px-3 py-4 text-center">
                     No time logged yet.
                   </td>
                 </tr>
@@ -373,6 +385,7 @@ export function TimeTab({
                 <td className="xms-mono px-3 py-2 text-right" data-testid="time-total">
                   {formatMinutes(data.total_minutes)}
                 </td>
+                <td />
                 <td />
               </tr>
             </tfoot>

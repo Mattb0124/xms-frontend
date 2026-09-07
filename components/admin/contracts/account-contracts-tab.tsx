@@ -224,7 +224,11 @@ function ContractRulesEditor({
     setProblem(invalid);
     if (invalid) return;
     try {
-      const saved = await patch({ accountId, contractId: contract.id, body: rulesBody(contract.version, draft) }).unwrap();
+      const saved = await patch({
+        accountId,
+        contractId: contract.id,
+        body: rulesBody(contract.version, draft),
+      }).unwrap();
       track({
         account_id: accountId,
         contract_id: contract.id,

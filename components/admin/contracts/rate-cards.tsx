@@ -30,7 +30,12 @@ export interface RateCardDraft {
 }
 
 export function emptyRateCardDraft(currency: string): RateCardDraft {
-  return { effectiveFrom: "", currency, note: "", lines: [{ role: ROLE_OPTIONS[0].value, billRate: "", overageRate: "" }] };
+  return {
+    effectiveFrom: "",
+    currency,
+    note: "",
+    lines: [{ role: ROLE_OPTIONS[0].value, billRate: "", overageRate: "" }],
+  };
 }
 
 function money(value: string): number | null {
@@ -260,7 +265,10 @@ export function NewRateCardForm({
           type="button"
           className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[12px]")}
           onClick={() =>
-            setDraft({ ...draft, lines: [...draft.lines, { role: ROLE_OPTIONS[0].value, billRate: "", overageRate: "" }] })
+            setDraft({
+              ...draft,
+              lines: [...draft.lines, { role: ROLE_OPTIONS[0].value, billRate: "", overageRate: "" }],
+            })
           }
         >
           Add line
@@ -280,15 +288,7 @@ export function NewRateCardForm({
 }
 
 /** The versions of one scope (a contract's own or the account defaults), newest first, with the New version action. */
-function VersionList({
-  accountId,
-  contract,
-  canEdit,
-}: {
-  accountId: string;
-  contract?: Contract;
-  canEdit: boolean;
-}) {
+function VersionList({ accountId, contract, canEdit }: { accountId: string; contract?: Contract; canEdit: boolean }) {
   const { data, isLoading, isError } = useRateCardsQuery({ accountId, contractId: contract?.id });
   const [adding, setAdding] = useState(false);
   const scope = contract ? contract.key : "the account default";
@@ -329,7 +329,15 @@ function VersionList({
   );
 }
 
-function ContractRateCards({ accountId, contract, canEdit }: { accountId: string; contract: Contract; canEdit: boolean }) {
+function ContractRateCards({
+  accountId,
+  contract,
+  canEdit,
+}: {
+  accountId: string;
+  contract: Contract;
+  canEdit: boolean;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-xms-line border-b py-2 last:border-b-0" data-contract-rate-cards={contract.id}>
@@ -365,7 +373,10 @@ export function RateCardsPanel({ accountId, contracts }: { accountId: string; co
   const me = useMe();
   const canEdit = me.hasPermission("contracts:manage");
   return (
-    <Panel title="Rate cards" caption="Versions per contract, then the account defaults; entries freeze the rate in force on their date">
+    <Panel
+      title="Rate cards"
+      caption="Versions per contract, then the account defaults; entries freeze the rate in force on their date"
+    >
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           {contracts.map((contract) => (

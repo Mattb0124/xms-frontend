@@ -8,6 +8,7 @@ import {
   forecastSentence,
   formatAmount,
   formatHours,
+  formatMoney,
   overageBlockedMessage,
   thresholdLabel,
   thresholdMarkers,
@@ -25,6 +26,9 @@ describe("budget words", () => {
   });
 
   it("formats amounts with the currency and two decimals", () => {
+    expect(formatMoney("150.5")).toBe("150.50");
+    expect(formatMoney("abc")).toBeNull();
+    expect(formatMoney(null)).toBeNull();
     expect(formatAmount("225.00", "USD")).toBe("USD 225.00");
     expect(formatAmount(1225, "EUR")).toBe("EUR 1,225.00");
     expect(formatAmount(null, "USD")).toBe("n/a");
@@ -47,7 +51,12 @@ describe("budget words", () => {
     expect(forecastSentence(aForecast(), 2400)).toBe(
       "At the current rate of 2 h per business day the period ends at 110% of the budget; the budget runs out in 15 business days.",
     );
-    expect(forecastSentence(aForecast({ run_rate_minutes: 90, forecast_percent: 88.5, business_days_to_exhaustion: null }), 2400)).toBe(
+    expect(
+      forecastSentence(
+        aForecast({ run_rate_minutes: 90, forecast_percent: 88.5, business_days_to_exhaustion: null }),
+        2400,
+      ),
+    ).toBe(
       "At the current rate of 1.5 h per business day the period ends at 88.5% of the budget; the budget lasts the period.",
     );
     expect(forecastSentence(aForecast({ business_days_to_exhaustion: 0 }), 2400)).toContain(

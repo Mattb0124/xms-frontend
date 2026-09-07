@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { dayStatus, dayTone, Timesheet, weekOf } from "@/components/time/timesheet";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
-import { anAfterHoursEntry, anEntry } from "@/redux/timeApi.test";
+import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/redux/timeApi.test";
 import type { TimesheetWeek, TimesheetWeekDay } from "@/redux/timeApi";
 
 /** A constructed week: Monday to Sunday of 2026-09-07 with the calendar's 8-hour days. */
@@ -139,5 +139,40 @@ describe("Timesheet", () => {
     expect(holiday.querySelector("[data-start]")).toHaveTextContent("");
     // Without the contract the timesheet cannot explain the handling rule.
     expect(document.querySelector("[data-handling]")).toBeNull();
+  });
+
+  it("shows the amount and the rate where the entry carries them and the over-budget pill", () => {
+    const week = aWeek({
+      days: [
+        aWeekDay({
+          logged_minutes: 180,
+          unlogged_minutes: 300,
+          entries: [
+            aRatedEntry({ id: "e-rated", ticket_number: "1000001" }),
+            aRatedEntry({
+              id: "e-over",
+              ticket_number: "1000002",
+              minutes: 60,
+              adjusted_minutes: 60,
+              amount: "200.00",
+              rate_snapshot: "200.00",
+              over_budget: true,
+            }),
+            anEntry({ id: "e-plain", minutes: 30, adjusted_minutes: 30, bucket_label: "Internal" }),
+          ],
+        }),
+      ],
+    });
+    render(<Timesheet week={week} catalogs={catalogs} />);
+    const rated = document.querySelector('[data-entry="e-rated"]') as HTMLElement;
+    expect(rated.querySelector("[data-amount]")).toHaveTextContent("225.00");
+    expect(rated.querySelector("[data-rate-snapshot]")).toHaveTextContent("at 150.00/h");
+    expect(rated.querySelector("[data-over-budget]")).toBeNull();
+    const over = document.querySelector('[data-entry="e-over"]') as HTMLElement;
+    expect(within(over).getByText("Over budget")).toBeInTheDocument();
+    expect(over.querySelector("[data-amount]")).toHaveTextContent("200.00");
+    const plain = document.querySelector('[data-entry="e-plain"]') as HTMLElement;
+    expect(plain.querySelector("[data-amount]")).toBeNull();
+    expect(plain.querySelector("[data-over-budget]")).toBeNull();
   });
 });

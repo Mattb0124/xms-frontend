@@ -4,7 +4,7 @@ import { formatMinutes, LogTimeForm, TimeTab, today, validateDraft } from "@/com
 import { toDeskCatalogs } from "@/lib/tickets/use-catalogs";
 import { ACCOUNT_ID, CONTRACT_ID, aCompTimeContract, aPremiumContract } from "@/redux/ticketsApi.test";
 import type { LogTimeBody } from "@/redux/timeApi";
-import { anAfterHoursEntry, anEntry } from "@/redux/timeApi.test";
+import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS0001001" }));
@@ -151,5 +151,46 @@ describe("TimeTab", () => {
       }),
     );
     await screen.findByText("45m logged on CS0001001");
+  });
+
+  it("shows the amount and the frozen rate where present, the over-budget pill, and words overage_blocked", async () => {
+    stubFetch({
+      "GET /v1/admin/me": viewer(["tickets:view", "time:log"]),
+      "GET /v1/tickets/CS0001001/time": () =>
+        json({
+          entries: [
+            aRatedEntry({ description: "Rated" }),
+            aRatedEntry({
+              id: "e-over",
+              description: "Past the line",
+              over_budget: true,
+              rate_snapshot: "200.00",
+              amount: "300.00",
+            }),
+            anEntry({ id: "e-plain", description: "Unrated" }),
+          ],
+          total_minutes: 225,
+        }),
+      "POST /v1/tickets/CS0001001/time": () =>
+        json({ code: "overage_blocked", available_minutes: 600, consumed_minutes: 570, requested_minutes: 60 }, 409),
+    });
+    renderDesk(<TimeTab ticketKey="CS0001001" catalogs={catalogs} />);
+    const rated = (await screen.findByText("Rated")).closest("tr") as HTMLElement;
+    expect(rated.querySelector("[data-amount]")).toHaveTextContent("225.00");
+    expect(rated.querySelector("[data-rate-snapshot]")).toHaveTextContent("at 150.00/h");
+    expect(rated.querySelector("[data-over-budget]")).toBeNull();
+    const over = screen.getByText("Past the line").closest("tr") as HTMLElement;
+    expect(within(over).getByText("Over budget")).toBeInTheDocument();
+    expect(over.querySelector("[data-amount]")).toHaveTextContent("300.00");
+    const plain = screen.getByText("Unrated").closest("tr") as HTMLElement;
+    expect(plain.querySelector("[data-amount]")).toBeNull();
+    expect(plain.querySelector("[data-over-budget]")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "1h" }));
+    fireEvent.click(screen.getByRole("button", { name: "Log time" }));
+    await screen.findByText(
+      "This entry would take the period over its 10 h budget (9.5 h used); the contract blocks overage.",
+    );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 });

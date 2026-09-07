@@ -2,6 +2,7 @@
 
 import { formatMinutes } from "@/components/tickets/time-tab";
 import { AfterHoursBadge } from "@/components/time/after-hours-badge";
+import { EntryAmount, OverBudgetPill } from "@/components/time/entry-amount";
 import { KeyLink } from "@/components/xms/key-link";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
 import { startTimeLabel } from "@/lib/time/after-hours";
@@ -116,6 +117,7 @@ export function Timesheet({ week, catalogs }: { week: TimesheetWeek; catalogs: D
             <th className="px-3 py-2">Ticket or bucket</th>
             <th className="px-3 py-2">Activity</th>
             <th className="px-3 py-2 text-right">Minutes</th>
+            <th className="px-3 py-2 text-right">Amount</th>
             <th className="px-3 py-2">Description</th>
           </tr>
         </thead>
@@ -140,6 +142,7 @@ function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: strin
         <td className="xms-mono text-xms-ink px-3 py-1.5 text-right text-[12px] font-semibold" data-day-total>
           {day.logged_minutes > 0 ? formatMinutes(day.logged_minutes) : ""}
         </td>
+        <td />
         <td className={cn("px-3 text-[12px]", TONE_TEXT[tone])} data-day-status>
           {dayStatus(day)}
         </td>
@@ -165,8 +168,16 @@ function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: strin
             <td className="xms-mono text-xms-ink px-3 text-right">
               {formatMinutes(entry.adjusted_minutes ?? entry.minutes)}
             </td>
+            <td className="px-3 text-right">
+              <EntryAmount entry={entry} />
+            </td>
             <td className="text-xms-body max-w-[320px] truncate px-3">
               <AfterHoursBadge entry={entry} className="mr-2 inline-flex items-center gap-1.5" />
+              {entry.over_budget ? (
+                <span className="mr-2 inline-flex" data-over-budget>
+                  <OverBudgetPill entry={entry} />
+                </span>
+              ) : null}
               {entry.description}
             </td>
           </tr>

@@ -192,7 +192,11 @@ export function BudgetEntriesList({ accountId, contract, period, catalogs }: Bud
                       {formatHours(entry.adjusted_minutes ?? entry.minutes)}
                     </td>
                     <td className="xms-mono text-xms-body px-3 text-right text-[12px]" data-amount>
-                      {entry.amount === null ? <span className="text-xms-muted">unrated</span> : formatAmount(entry.amount, contract.currency)}
+                      {entry.amount === null ? (
+                        <span className="text-xms-muted">unrated</span>
+                      ) : (
+                        formatAmount(entry.amount, contract.currency)
+                      )}
                     </td>
                   </tr>
                 );

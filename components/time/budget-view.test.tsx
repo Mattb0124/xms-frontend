@@ -1,7 +1,15 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountBudgetView } from "@/components/time/budget-view";
-import { aBudget, aBudgetCard, aBudgetEntries, aForecast, aPosition, aThresholdEvent, aThresholds } from "@/redux/timeApi.test";
+import {
+  aBudget,
+  aBudgetCard,
+  aBudgetEntries,
+  aForecast,
+  aPosition,
+  aThresholdEvent,
+  aThresholds,
+} from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" }));
@@ -64,7 +72,9 @@ describe("AccountBudgetView", () => {
     expect(card.querySelector("[data-forecast]")).toHaveTextContent(
       "At the current rate of 2 h per business day the period ends at 110% of the budget; the budget runs out in 15 business days.",
     );
-    expect(within(card).getByText("Rate over the last 5 business days; 5 of 22 business days elapsed.")).toBeInTheDocument();
+    expect(
+      within(card).getByText("Rate over the last 5 business days; 5 of 22 business days elapsed."),
+    ).toBeInTheDocument();
     expect(card.querySelector("[data-unrated]")).toBeNull();
     expect(screen.getByText(/As of/)).toHaveTextContent("2026-09-07");
   });
@@ -113,7 +123,11 @@ describe("AccountBudgetView", () => {
             contracts: [
               aBudgetCard({
                 position: overPosition(),
-                forecast: aForecast({ forecast_minutes: 2900, forecast_percent: 120.8, business_days_to_exhaustion: 0 }),
+                forecast: aForecast({
+                  forecast_minutes: 2900,
+                  forecast_percent: 120.8,
+                  business_days_to_exhaustion: 0,
+                }),
                 thresholds: aThresholds({ fired: [50, 75, 90, 100], next_percent: null, next_at_minutes: null }),
               }),
             ],
@@ -161,7 +175,9 @@ describe("AccountBudgetView", () => {
       "href",
       "/tickets/CS1000001",
     );
-    expect(within(document.querySelector('[data-entry="be-2"]') as HTMLElement).getByText("Internal")).toBeInTheDocument();
+    expect(
+      within(document.querySelector('[data-entry="be-2"]') as HTMLElement).getByText("Internal"),
+    ).toBeInTheDocument();
     const exportButton = screen.getByRole("button", { name: "Export" });
     expect(exportButton).toBeDisabled();
     expect(exportButton).toHaveAttribute("title", expect.stringContaining("not available yet"));

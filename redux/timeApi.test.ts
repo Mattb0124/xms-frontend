@@ -41,7 +41,14 @@ export function anEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
 
 /** An entry logged under a rate card: the rate and the amount frozen on the row (TB-05). */
 export function aRatedEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
-  return anEntry({ id: "e-rated", minutes: 90, adjusted_minutes: 90, rate_snapshot: "150.00", amount: "225.00", ...overrides });
+  return anEntry({
+    id: "e-rated",
+    minutes: 90,
+    adjusted_minutes: 90,
+    rate_snapshot: "150.00",
+    amount: "225.00",
+    ...overrides,
+  });
 }
 
 /** An entry the calendar classed after hours with the contract's premium applied (TB-13). */
@@ -512,9 +519,7 @@ describe("timeApi budget", () => {
     const store = makeStore();
     const subscription = store.dispatch(timeApi.endpoints.rateCards.initiate({ accountId: "acct-1" }));
     await subscription.unwrap();
-    await store
-      .dispatch(timeApi.endpoints.rateCards.initiate({ accountId: "acct-1", contractId: "c-1" }))
-      .unwrap();
+    await store.dispatch(timeApi.endpoints.rateCards.initiate({ accountId: "acct-1", contractId: "c-1" })).unwrap();
     const created = await store
       .dispatch(
         timeApi.endpoints.createRateCard.initiate({
@@ -523,7 +528,10 @@ describe("timeApi budget", () => {
             contract_id: "c-1",
             effective_from: "2026-10-01",
             currency: "USD",
-            entries: [{ role: "consultant", bill_rate: 160, overage_rate: 210 }, { role: "architect", bill_rate: 220 }],
+            entries: [
+              { role: "consultant", bill_rate: 160, overage_rate: 210 },
+              { role: "architect", bill_rate: 220 },
+            ],
           },
         }),
       )
@@ -537,7 +545,10 @@ describe("timeApi budget", () => {
       contract_id: "c-1",
       effective_from: "2026-10-01",
       currency: "USD",
-      entries: [{ role: "consultant", bill_rate: 160, overage_rate: 210 }, { role: "architect", bill_rate: 220 }],
+      entries: [
+        { role: "consultant", bill_rate: 160, overage_rate: 210 },
+        { role: "architect", bill_rate: 220 },
+      ],
     });
     // The saved version reloads the lists the screen holds (both the defaults and the contract's).
     await vi.waitFor(() => expect(reads).toBeGreaterThanOrEqual(3));

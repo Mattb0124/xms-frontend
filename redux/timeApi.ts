@@ -350,7 +350,10 @@ export const timeApi = xmsApi.injectEndpoints({
       providesTags: (_result, _error, accountId) => [budgetTag(accountId)],
     }),
     budgetEntries: build.query<BudgetEntries, BudgetEntriesFilter>({
-      query: (filter) => ({ url: `/v1/accounts/${filter.accountId}/budget/entries`, params: budgetEntriesParams(filter) }),
+      query: (filter) => ({
+        url: `/v1/accounts/${filter.accountId}/budget/entries`,
+        params: budgetEntriesParams(filter),
+      }),
       providesTags: (_result, _error, { accountId }) => [budgetTag(accountId)],
     }),
     rateCards: build.query<RateCard[], { accountId: string; contractId?: string }>({
