@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
 import { AccountSettingsTab } from "@/components/admin/account-settings-tab";
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
@@ -9,6 +9,7 @@ import { AccountConnectorsTab } from "@/components/admin/connectors/account-conn
 import { AccountContractsTab } from "@/components/admin/contracts/account-contracts-tab";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
+import { AccountBudgetView } from "@/components/time/budget-view";
 import {
   AccountStatusPill,
   AdminGate,
@@ -50,6 +51,7 @@ const TABS = [
   { key: "access", label: "Access" },
   { key: "calendars", label: "Calendars" },
   { key: "contracts", label: "Contracts" },
+  { key: "budget", label: "Budget" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
   { key: "configuration", label: "Configuration" },
@@ -253,14 +255,20 @@ function AccessTab({ id }: { id: string }) {
   );
 }
 
-/** Registered as `admin.account`: Overview, Settings and Access tabs with the status actions. */
-export default function AdminAccountRecordPage() {
+/** The tab a link opens (`?tab=budget` from the threshold notifications); the overview otherwise. */
+export function initialTab(search: URLSearchParams | null): string {
+  const requested = search?.get("tab");
+  return requested && TABS.some((tab) => tab.key === requested) ? requested : "overview";
+}
+
+function AccountRecordScreen() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const search = useSearchParams();
   const { data, refetch } = useGetAccountQuery(id);
   const [transition, { isLoading: transitioning }] = useTransitionAccountMutation();
   const onError = useMutationErrors(refetch);
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState(() => initialTab(search));
 
   const act = async (action: "activate" | "suspend" | "offboard") => {
     try {
@@ -271,7 +279,7 @@ export default function AdminAccountRecordPage() {
   };
 
   return (
-    <AdminGate permission="admin:accounts">
+    <>
       {data ? (
         <RecordBar
           backHref="/admin/accounts"
@@ -302,9 +310,25 @@ export default function AdminAccountRecordPage() {
       {tab === "access" ? <AccessTab id={id} /> : null}
       {tab === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
       {tab === "contracts" ? <AccountContractsTab accountId={id} /> : null}
+      {tab === "budget" ? <AccountBudgetView accountId={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
       {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
       {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
+    </>
+  );
+}
+
+/**
+ * Registered as `admin.account`: Overview, Settings, Access, Calendars,
+ * Contracts, Budget, Intake, Connectors and Configuration tabs with the
+ * status actions; `?tab=` picks the opening tab.
+ */
+export default function AdminAccountRecordPage() {
+  return (
+    <AdminGate permission="admin:accounts">
+      <Suspense fallback={<Skeleton lines={6} />}>
+        <AccountRecordScreen />
+      </Suspense>
     </AdminGate>
   );
 }
