@@ -3,6 +3,7 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { AccountSettingsTab } from "@/components/admin/account-settings-tab";
+import { BillingPeriodsTab } from "@/components/admin/billing/billing-periods-tab";
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
@@ -52,6 +53,7 @@ const TABS = [
   { key: "calendars", label: "Calendars" },
   { key: "contracts", label: "Contracts" },
   { key: "budget", label: "Budget" },
+  { key: "billing", label: "Billing" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
   { key: "configuration", label: "Configuration" },
@@ -311,6 +313,7 @@ function AccountRecordScreen() {
       {tab === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
       {tab === "contracts" ? <AccountContractsTab accountId={id} /> : null}
       {tab === "budget" ? <AccountBudgetView accountId={id} /> : null}
+      {tab === "billing" ? <BillingPeriodsTab accountId={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
       {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
       {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
@@ -320,7 +323,7 @@ function AccountRecordScreen() {
 
 /**
  * Registered as `admin.account`: Overview, Settings, Access, Calendars,
- * Contracts, Budget, Intake, Connectors and Configuration tabs with the
+ * Contracts, Budget, Billing, Intake, Connectors and Configuration tabs with the
  * status actions; `?tab=` picks the opening tab.
  */
 export default function AdminAccountRecordPage() {
