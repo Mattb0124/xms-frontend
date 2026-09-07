@@ -1,6 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import AccountPage, { initialAccountTab } from "@/app/(internal)/accounts/[id]/page";
+import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
 import { aBudget } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 import { anAccountDashboard } from "@/test-kit/reporting";
@@ -41,7 +42,28 @@ describe("AccountPage", () => {
     expect(screen.getByRole("tab", { name: "Budget" })).toHaveAttribute("aria-selected", "true");
     expect(calls.some((call) => call.key === "GET /v1/accounts/acct-1/budget")).toBe(true);
     expect(calls.some((call) => call.key === "GET /v1/dashboards/accounts/acct-1")).toBe(false);
+    // No capacity:view: the coverage chips are neither asked for nor shown.
+    expect(calls.some((call) => call.key === "GET /v1/capacity/skills-matrix")).toBe(false);
+    expect(screen.queryByRole("list", { name: "Skills coverage" })).not.toBeInTheDocument();
   });
+
+  it("shows the coverage chips above the tabs for a reader with capacity:view", async () => {
+    search = "tab=budget";
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["tickets:view", "capacity:view"]),
+      "GET /v1/accounts/acct-1/budget": () => json(aBudget()),
+      "GET /v1/catalogs": () => json({ resolution_codes: [], activity_types: [], billable_classes: [] }),
+      "GET /v1/capacity/skills-matrix": () =>
+        json(aSkillsMatrixAccount({ accounts: [{ ...aSkillsMatrixAccount().accounts[0], account_id: "acct-1" }] })),
+    });
+    renderDesk(<AccountPage />);
+    await screen.findByText("Single point of failure: onestream");
+    expect(screen.getByText("Gap: sap")).toHaveAttribute("data-state", "overdue");
+    expect(decodeURIComponent(calls.find((call) => call.key === "GET /v1/capacity/skills-matrix")?.search ?? "")).toBe(
+      "?lens=account&account=acct-1",
+    );
+  });
+
 
   it("opens on the dashboard without a tab and switches to the budget on click", async () => {
     search = "";

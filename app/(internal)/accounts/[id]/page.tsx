@@ -3,6 +3,7 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AdminGate } from "@/components/admin/primitives";
+import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { AccountDashboard } from "@/components/reporting/account-dashboard";
 import { AccountBudgetView } from "@/components/time/budget-view";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -24,6 +25,7 @@ function AccountScreen({ accountId }: { accountId: string }) {
   const [tab, setTab] = useState(() => initialAccountTab(search));
   return (
     <>
+      <AccountCoverageChips accountId={accountId} />
       <TabBar tabs={TABS} active={tab} onChange={setTab} className="mb-4" />
       {tab === "dashboard" ? <AccountDashboard accountId={accountId} /> : null}
       {tab === "budget" ? <AccountBudgetView accountId={accountId} /> : null}
@@ -35,7 +37,8 @@ function AccountScreen({ accountId }: { accountId: string }) {
  * Registered as `account` (P2.19.3, DR-03): one account's dashboard with
  * "View as client" and the Reports card, and the Budget view as a tab
  * (`?tab=budget`, the target of the threshold notifications) for readers
- * with tickets:view and no admin:accounts.
+ * with tickets:view and no admin:accounts; the skills coverage chips sit
+ * above the tabs under capacity:view.
  */
 export default function AccountPage() {
   const params = useParams<{ id: string }>();

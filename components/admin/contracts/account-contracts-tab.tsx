@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RateCardsPanel } from "@/components/admin/contracts/rate-cards";
+import { useSkillName } from "@/components/capacity/account-coverage";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { Panel } from "@/components/xms/panel";
@@ -74,6 +75,8 @@ export interface RulesDraft {
   thresholds: string;
   notifyClient: boolean;
   forecastWindow: string;
+  /** The required technology codes as a comma list ("onestream, anaplan"). */
+  technologies: string;
 }
 
 function numberText(value: string | null, fallback: string): string {
@@ -91,7 +94,26 @@ export function draftFromContract(contract: Contract): RulesDraft {
     thresholds: contract.threshold_percents.join(", "),
     notifyClient: contract.threshold_notify_client,
     forecastWindow: String(contract.forecast_window_days),
+    technologies: contract.technology_codes.join(", "),
   };
+}
+
+const TECHNOLOGIES_PROBLEM =
+  "Technology codes are lower-case letters, digits, dots, dashes and underscores, up to fifty of them, separated by commas, for example onestream, anaplan.";
+
+const TECHNOLOGY_CODE = /^[a-z0-9][a-z0-9_.-]{0,59}$/;
+
+/** The comma list as lower-case codes, deduplicated in the order given; null when a part is not a code the server takes. */
+export function parseTechnologyCodes(text: string): string[] | null {
+  const codes: string[] = [];
+  for (const part of text.split(",")) {
+    const code = part.trim().toLowerCase();
+    if (code === "") continue;
+    if (!TECHNOLOGY_CODE.test(code)) return null;
+    if (!codes.includes(code)) codes.push(code);
+  }
+  if (codes.length > 50) return null;
+  return codes;
 }
 
 const THRESHOLDS_PROBLEM =
@@ -133,6 +155,7 @@ export function validateRules(draft: RulesDraft): string | null {
   const window = Number(draft.forecastWindow);
   if (!Number.isInteger(window) || window < 1 || window > 90)
     return "The forecast window is a whole number of business days from 1 to 90.";
+  if (parseTechnologyCodes(draft.technologies) === null) return TECHNOLOGIES_PROBLEM;
   return null;
 }
 
@@ -153,6 +176,7 @@ export function rulesBody(version: number, draft: RulesDraft): PatchContractBody
     rollover_rule: draft.rolloverRule,
     ...(draft.rolloverRule === "cap" ? { rollover_cap_hours: Number(draft.capHours) } : {}),
     forecast_window_days: Number(draft.forecastWindow),
+    technology_codes: parseTechnologyCodes(draft.technologies) ?? [],
   };
 }
 
@@ -384,6 +408,24 @@ function ContractRulesEditor({
           </p>
         </fieldset>
 
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-xms-ink font-semibold">Coverage</legend>
+          <label className="flex flex-col gap-1">
+            <span className="text-xms-label">Technologies (codes, comma separated)</span>
+            <input
+              aria-label="Technology codes"
+              className={cn(INPUT, "xms-mono w-[320px]")}
+              value={draft.technologies}
+              onChange={(event) => set({ technologies: event.target.value })}
+              placeholder="onestream, anaplan"
+            />
+          </label>
+          <p className="text-xms-label">
+            The skills matrix reads these codes: a technology one person covers at level 3 is a single point of failure,
+            one nobody covers is a gap, and both show as chips on the account record.
+          </p>
+        </fieldset>
+
         <InlineError message={problem} />
         <div className="flex items-center gap-2">
           <button type="button" className={PRIMARY_BUTTON} onClick={onSave} disabled={patchState.isLoading}>
@@ -409,6 +451,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
   const canRead = me.hasPermission("tickets:view");
   const canEdit = me.hasPermission("contracts:manage");
   const contracts = useListAccountContractsQuery(accountId, { skip: !canRead });
+  const skillName = useSkillName();
   const [editing, setEditing] = useState<string | null>(null);
   const rows = contracts.data ?? [];
   const current = rows.find((row) => row.id === editing) ?? null;
@@ -458,6 +501,16 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
       render: (row) => (
         <span className="text-xms-body text-[12px]" data-rules={row.id}>
           {rulesCell(row)}
+        </span>
+      ),
+    },
+    {
+      key: "technologies",
+      title: "Technologies",
+      sortValue: (row) => row.technology_codes.length,
+      render: (row) => (
+        <span className="text-xms-body text-[12px]" data-technologies={row.id} title={row.technology_codes.join(", ")}>
+          {row.technology_codes.length > 0 ? row.technology_codes.map(skillName).join(", ") : "No codes"}
         </span>
       ),
     },

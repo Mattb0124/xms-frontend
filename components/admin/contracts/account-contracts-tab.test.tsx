@@ -4,6 +4,7 @@ import {
   AccountContractsTab,
   draftFromContract,
   handlingCell,
+  parseTechnologyCodes,
   parseThresholds,
   rulesBody,
   rulesCell,
@@ -29,6 +30,7 @@ const DEFAULT_RULES = {
   overage_rule: "allow_flag",
   rollover_rule: "none",
   forecast_window_days: 10,
+  technology_codes: [],
 };
 
 describe("contract rule words", () => {
@@ -74,8 +76,11 @@ describe("contract rule words", () => {
       thresholds: "50, 75, 90, 100",
       notifyClient: false,
       forecastWindow: "10",
+      technologies: "",
     });
+    expect(draftFromContract(aContract({ technology_codes: ["onestream", "sap"] })).technologies).toBe("onestream, sap");
     expect(validateRules(draft)).toBeNull();
+    expect(validateRules({ ...draft, technologies: "OneStream, bad code" })).toMatch(/^Technology codes are lower-case/);
     expect(validateRules({ ...draft, thresholds: "50, x" })).toMatch(/^Thresholds are whole percentages/);
     expect(validateRules({ ...draft, overageRule: "allow_rate", overageMultiplier: "" })).toBe(
       "Allow at overage rate needs a multiplier, for example 1.25.",
@@ -90,6 +95,14 @@ describe("contract rule words", () => {
       "The forecast window is a whole number of business days from 1 to 90.",
     );
     expect(validateRules({ ...draft, forecastWindow: "91" })).toMatch(/from 1 to 90/);
+  });
+
+  it("parses the technology codes as a lower-case list without repeats", () => {
+    expect(parseTechnologyCodes("")).toEqual([]);
+    expect(parseTechnologyCodes("OneStream, anaplan, onestream ,sap.s4")).toEqual(["onestream", "anaplan", "sap.s4"]);
+    expect(parseTechnologyCodes("one stream")).toBeNull();
+    expect(parseTechnologyCodes("-bad")).toBeNull();
+    expect(parseTechnologyCodes(Array.from({ length: 51 }, (_, index) => `t${index}`).join(","))).toBeNull();
   });
 
   it("builds the PATCH body with the multiplier and the cap only under their rules", () => {
@@ -107,6 +120,7 @@ describe("contract rule words", () => {
         thresholds: "80, 100",
         notifyClient: true,
         forecastWindow: "5",
+        technologies: "OneStream, anaplan",
       }),
     ).toEqual({
       version: 3,
@@ -119,6 +133,7 @@ describe("contract rule words", () => {
       rollover_rule: "cap",
       rollover_cap_hours: 20,
       forecast_window_days: 5,
+      technology_codes: ["onestream", "anaplan"],
     });
     // Switching away from the rule drops its number even when the field still holds one.
     expect(
@@ -178,7 +193,41 @@ describe("AccountContractsTab", () => {
     expect(document.querySelector('[data-rules="c-3"]')).toHaveTextContent(
       "Overage blocked; carries a month; thresholds 50, 75, 90, 100%",
     );
+    expect(document.querySelector('[data-technologies="c-3"]')).toHaveTextContent("No codes");
     expect(screen.queryByRole("button", { name: /Edit rules/ })).not.toBeInTheDocument();
+  });
+
+  it("lists the required technologies by code and saves them through the rules editor", async () => {
+    let saved = false;
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts", "tickets:view", "contracts:manage"]),
+      [LIST]: () => json([aContract(saved ? { technology_codes: ["onestream", "sap"], version: 2 } : { technology_codes: ["onestream"] })]),
+      [CARDS]: () => json([]),
+      [PATCH]: () => {
+        saved = true;
+        return json(aContract({ technology_codes: ["onestream", "sap"], version: 2 }));
+      },
+    });
+    renderDesk(<AccountContractsTab accountId={ACCOUNT_ID} />);
+    await waitFor(() => expect(document.querySelector(`[data-technologies="${CONTRACT_ID}"]`)).toHaveTextContent("onestream"));
+    fireEvent.click(screen.getByRole("button", { name: "Edit rules for CT10001" }));
+    const editor = screen.getByLabelText("Contract rules for CT10001");
+    const codes = within(editor).getByLabelText("Technology codes");
+    expect(codes).toHaveValue("onestream");
+    fireEvent.change(codes, { target: { value: "onestream, Bad Code" } });
+    fireEvent.click(within(editor).getByRole("button", { name: "Save rules" }));
+    expect(within(editor).getByRole("alert")).toHaveTextContent(/^Technology codes are lower-case/);
+    expect(calls.some((call) => call.key === PATCH)).toBe(false);
+    fireEvent.change(codes, { target: { value: "onestream, SAP" } });
+    fireEvent.click(within(editor).getByRole("button", { name: "Save rules" }));
+    await screen.findByText("Contract rules saved");
+    expect(calls.find((call) => call.key === PATCH)?.body).toEqual({
+      version: 1,
+      after_hours_handling: "none",
+      ...DEFAULT_RULES,
+      technology_codes: ["onestream", "sap"],
+    });
+    await waitFor(() => expect(document.querySelector(`[data-technologies="${CONTRACT_ID}"]`)).toHaveTextContent("onestream, sap"));
   });
 
   it("saves premium rate with its multiplier and the version through PATCH, then shows the new handling", async () => {
@@ -315,6 +364,7 @@ describe("AccountContractsTab", () => {
       rollover_rule: "cap",
       rollover_cap_hours: 20,
       forecast_window_days: 5,
+      technology_codes: [],
     };
     expect(calls.filter((call) => call.key === PATCH).map((call) => call.body)).toEqual([expected, expected, expected]);
 
@@ -335,6 +385,7 @@ describe("AccountContractsTab", () => {
       overage_rule: "block",
       rollover_rule: "carry_month",
       forecast_window_days: 10,
+      technology_codes: [],
     });
   });
 });

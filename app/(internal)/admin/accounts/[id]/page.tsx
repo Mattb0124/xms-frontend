@@ -8,6 +8,7 @@ import { AccountCalendarsTab } from "@/components/admin/calendars/account-calend
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
 import { AccountContractsTab } from "@/components/admin/contracts/account-contracts-tab";
+import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
 import { AccountBudgetView } from "@/components/time/budget-view";
@@ -306,6 +307,7 @@ function AccountRecordScreen() {
       ) : (
         <Skeleton lines={1} className="mb-4 max-w-sm" />
       )}
+      <AccountCoverageChips accountId={id} />
       <TabBar tabs={TABS} active={tab} onChange={setTab} className="mb-4" />
       {tab === "overview" ? <OverviewTab id={id} /> : null}
       {tab === "settings" ? <AccountSettingsTab accountId={id} /> : null}
@@ -324,7 +326,8 @@ function AccountRecordScreen() {
 /**
  * Registered as `admin.account`: Overview, Settings, Access, Calendars,
  * Contracts, Budget, Billing, Intake, Connectors and Configuration tabs with the
- * status actions; `?tab=` picks the opening tab.
+ * status actions and the skills coverage chips under the record bar
+ * (capacity:view); `?tab=` picks the opening tab.
  */
 export default function AdminAccountRecordPage() {
   return (

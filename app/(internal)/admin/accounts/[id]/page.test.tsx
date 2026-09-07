@@ -1,6 +1,7 @@
 import { screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import AdminAccountRecordPage, { initialTab } from "@/app/(internal)/admin/accounts/[id]/page";
+import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
 import { aBudget } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
@@ -58,7 +59,7 @@ describe("AdminAccountRecordPage", () => {
     expect(calls.some((call) => call.key === `GET /v1/accounts/${ACCOUNT_ID}/budget`)).toBe(true);
   });
 
-  it("fails closed on the Budget tab without tickets:view", async () => {
+  it("fails closed on the Budget tab without tickets:view and leaves the skills lens alone without capacity:view", async () => {
     search = "tab=budget";
     const calls = stubFetch({
       "GET /v1/admin/me": me(["admin:accounts"]),
@@ -67,5 +68,25 @@ describe("AdminAccountRecordPage", () => {
     renderDesk(<AdminAccountRecordPage />);
     await screen.findByText(/Needs the tickets:view permission/);
     expect(calls.some((call) => call.key.endsWith("/budget"))).toBe(false);
+    expect(calls.some((call) => call.key === "GET /v1/capacity/skills-matrix")).toBe(false);
+    expect(screen.queryByRole("list", { name: "Skills coverage" })).not.toBeInTheDocument();
+  });
+
+  it("shows the single point of failure and gap chips under the record bar with capacity:view", async () => {
+    search = "";
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts", "capacity:view"]),
+      [`GET /v1/admin/accounts/${ACCOUNT_ID}`]: account,
+      "GET /v1/capacity/skills-matrix": () =>
+        json(aSkillsMatrixAccount({ accounts: [{ ...aSkillsMatrixAccount().accounts[0], account_id: ACCOUNT_ID }] })),
+      "GET /v1/roster/skills": () =>
+        json([{ id: "s-1", kind: "technology", code: "onestream", name: "OneStream", account_id: null, is_active: true }]),
+    });
+    renderDesk(<AdminAccountRecordPage />);
+    await screen.findByText("Single point of failure: OneStream");
+    expect(screen.getByText("Gap: sap")).toHaveAttribute("data-state", "overdue");
+    expect(decodeURIComponent(calls.find((call) => call.key === "GET /v1/capacity/skills-matrix")?.search ?? "")).toBe(
+      `?lens=account&account=${ACCOUNT_ID}`,
+    );
   });
 });
