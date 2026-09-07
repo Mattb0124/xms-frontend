@@ -8,6 +8,7 @@ import {
   PORTAL_SECONDARY,
   PortalCard,
 } from "@/components/portal/primitives";
+import { PortalAttachmentList, PortalUploadControl, usePortalUploads } from "@/components/portal/attachments";
 import { CommentComposer, RequestThread } from "@/components/portal/request-thread";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
@@ -41,6 +42,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
   const trackComment = useTrack("portal.comment");
   const trackSolved = useTrack("portal.solved_it");
   const [confirming, setConfirming] = useState<PortalTransition | null>(null);
+  const uploads = usePortalUploads(requestKey);
 
   if (ticket.isLoading) return <Skeleton lines={6} className="max-w-xl" />;
   if (ticket.isError || !ticket.data) {
@@ -154,6 +156,17 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
           </div>
         </div>
       ) : null}
+
+      <PortalCard title="Files">
+        <PortalAttachmentList requestKey={requestKey} />
+        {isTerminal(record.state) ? null : (
+          <PortalUploadControl
+            onFiles={(files) => void uploads.add(files)}
+            items={uploads.items}
+            disabled={uploads.busy}
+          />
+        )}
+      </PortalCard>
 
       <PortalCard title="Conversation">
         {timeline.isLoading ? (

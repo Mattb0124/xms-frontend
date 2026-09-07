@@ -28,21 +28,26 @@ app/layout.tsx          fonts, .xms-scope, Providers
 app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, needs attention, my open tickets),
                         /tickets Queue (system views, chips, Count card, selection bar, cursor paging), /tickets/new (record form
                         with the priority preview), /tickets/[key] (record bar, transition menu, properties, Conversation,
-                        Activity, Time, Links, Resolution, rail with Service levels, Solutions, Contract, Requester, Watching),
-                        /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics);
+                        Activity, Time, Links, Resolution, Email, rail with Service levels, Attachments, Solutions, Contract, Requester,
+                        Watching), /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics), /tickets/quarantine
+                        (held email: reason, stripped body, decide with confirm on the destructive ones; P1.6.5);
                         /knowledge Solutions list (chips, search, New article), /knowledge/new, /knowledge/[key] (record bar,
                         section editor, Visibility, History, Feedback, Submit, Publish, Retire, Generalize with the findings
                         sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker, day groups, quick Log time) (P2.12.x);
                         /operations, /accounts (stubs until their plan item),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
-                        /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only),
+                        /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
+                        account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5),
                         /dev/tokens (token check), /dev/sign-in (dev-mode token paste only)
 components/tickets/     ticket-columns (the Queue column set), transition-menu (state pill menu, pause, resolve, confirm sheets),
                         resolve-form (close discipline mirror over the catalog codes), solution-picker (search over published
                         articles), solutions-rail (matching articles with Use this, similar tickets, resolution records, propose
                         an article), time-tab (entries with adjustments, LogTimeForm), contract-card (burn from the position),
                         resolution-tab, conversation-tab (Composer with Reply / Work note), activity-tab, links-tab,
-                        properties-panel, sla-rail (meters with countdown, requester, watch from the record), assignee-picker
+                        properties-panel, sla-rail (meters with countdown, requester, watch from the record), assignee-picker,
+                        attachments (DropZone, useUploads, UploadList, ScanAcknowledgement, AttachmentRow, AttachmentsCard; the
+                        composer blocks Send while a scan is pending; P1.6.2), email-panel (inbound with matched_by and
+                        disposition copy, loop signals, View raw; outbound with delivery state)
 components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
                         publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
 components/time/        Timesheet (week grouped by day, totals), weekOf and groupByDay helpers
@@ -50,17 +55,22 @@ lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, a
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
                         queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
                         (typed 409 toasts), use-transition
+lib/attachments/        uploadAttachment (presign, PUT or POST form, confirm; stages and typed refusals), formatBytes,
+                        scanChip and originLabel (desk and portal copy), the quarantine placeholders
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
-                        ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), status pills, buttons
+                        ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), IntakeTab (aliases with state
+                        pills and the loop guard reason), status pills, buttons
 lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
 app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome (never the internal shell):
                         / search-first home (own requests plus the knowledge placeholder), /sign-in (dev token paste,
                         Clerk SignIn when configured), /requests (Open or All, org-wide toggle with
                         portal:view-org-tickets), /requests/new (default form per type, inline validation),
-                        /requests/[key] (public thread, composer, cancel, confirm closure, reopen)
+                        /requests/[key] (public thread, composer, Files card with upload and scan states, cancel, confirm closure,
+                        reopen); /requests/new queues files and uploads them after the request exists
 components/portal/      PortalChrome (account name and accent, nav, user menu, 401 redirect), SearchHome, RequestList,
                         RequestForm (validateRequest), RequestThread and CommentComposer, RequestDetail, primitives
-                        (ClientStatusPill, PortalCard, buttons and inputs). Renders portal view models only; nothing
+                        (ClientStatusPill, PortalCard, buttons and inputs), attachments (PortalUploadControl, PortalAttachmentList,
+                        client scan copy). Renders portal view models only; nothing
                         from components/tickets or app/(internal) is imported here
 lib/portal/             client-language (the seven client statuses, type and level copy, priority words, relative time)
 test-kit/portal.tsx     constructed portal fixtures, the fetch stub and renderPortal for the portal tests
@@ -81,7 +91,9 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         links, watchers, notifications, directory lookups), portalApi.ts (the /v1/portal mirror and the
                         searchArticles placeholder), knowledgeApi.ts (articles, drafts, publish, retire, generalize,
                         visibility, feedback, search, the Solutions rail, candidates, catalogs), timeApi.ts (ticket time,
-                        my timesheet, adjustments, contract position, buckets),
+                        my timesheet, adjustments, contract position, buckets), attachmentsApi.ts (list, presign, confirm, download,
+                        delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
+                        and decide, account aliases),
                         store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)

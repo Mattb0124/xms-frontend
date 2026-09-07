@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AccountSettingsTab } from "@/components/admin/account-settings-tab";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
+import { IntakeTab } from "@/components/admin/intake-tab";
 import {
   AccountStatusPill,
   AdminGate,
@@ -43,6 +44,7 @@ const TABS = [
   { key: "overview", label: "Overview" },
   { key: "settings", label: "Settings" },
   { key: "access", label: "Access" },
+  { key: "intake", label: "Intake" },
 ];
 
 function OverviewTab({ id }: { id: string }) {
@@ -290,6 +292,7 @@ export default function AdminAccountRecordPage() {
       {tab === "overview" ? <OverviewTab id={id} /> : null}
       {tab === "settings" ? <AccountSettingsTab accountId={id} /> : null}
       {tab === "access" ? <AccessTab id={id} /> : null}
+      {tab === "intake" ? <IntakeTab accountId={id} /> : null}
     </AdminGate>
   );
 }

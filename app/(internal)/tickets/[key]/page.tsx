@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminGate } from "@/components/admin/primitives";
 import { ActivityTab } from "@/components/tickets/activity-tab";
+import { AttachmentsCard } from "@/components/tickets/attachments";
+import { EmailPanel } from "@/components/tickets/email-panel";
 import { ContractCard } from "@/components/tickets/contract-card";
 import { ConversationTab } from "@/components/tickets/conversation-tab";
 import { LinksTab } from "@/components/tickets/links-tab";
@@ -31,6 +33,7 @@ import { useGetTicketQuery, usePatchTicketMutation } from "@/redux/ticketsApi";
 const TABS = [
   { key: "conversation", label: "Conversation" },
   { key: "activity", label: "Activity" },
+  { key: "email", label: "Email" },
   { key: "time", label: "Time" },
   { key: "links", label: "Links" },
   { key: "resolution", label: "Resolution" },
@@ -117,6 +120,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
               <ConversationTab ticketKey={ticket.key} requesterLine={requesterLine} readOnly={readOnly} />
             ) : null}
             {tab === "activity" ? <ActivityTab ticketKey={ticket.key} /> : null}
+            {tab === "email" ? <EmailPanel ticketKey={ticket.key} /> : null}
             {tab === "time" ? <TimeTab ticketKey={ticket.key} catalogs={catalogs} readOnly={readOnly} /> : null}
             {tab === "links" ? <LinksTab ticketKey={ticket.key} readOnly={readOnly} /> : null}
             {tab === "resolution" ? <ResolutionTab ticket={ticket} catalogs={catalogs} /> : null}
@@ -124,6 +128,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         </Panel>
         <div className="flex flex-col gap-4">
           <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} />
+          <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <RequesterCard ticket={ticket} />

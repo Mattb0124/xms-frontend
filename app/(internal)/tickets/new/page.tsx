@@ -12,6 +12,8 @@ import {
   SECONDARY_BUTTON,
 } from "@/components/admin/primitives";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
+import { DropZone } from "@/components/tickets/attachments";
+import { formatBytes, uploadAttachment } from "@/lib/attachments/upload";
 import { Panel } from "@/components/xms/panel";
 import { PriorityPill } from "@/components/xms/priority-pill";
 import { useToast } from "@/components/xms/toast";
@@ -82,6 +84,8 @@ function NewTicketForm() {
   const [error, setError] = useState<string | null>(null);
   const [details, setDetails] = useState<string[]>([]);
   const [contractChoices, setContractChoices] = useState<{ id: string; key: string; name: string }[] | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const priority = derivePriority(draft.impact, draft.urgency);
   const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
@@ -106,7 +110,29 @@ function NewTicketForm() {
     try {
       const ticket = await create(body).unwrap();
       track({ type: ticket.type, priority: ticket.priority });
-      push({ title: `${ticket.key} created`, tone: "success" });
+      if (files.length > 0) {
+        // The ticket exists now; the queued files go up one by one and any refusal is reported, never blocking.
+        setUploading(true);
+        let failed = 0;
+        for (const file of files) {
+          try {
+            await uploadAttachment(ticket.key, file, { visibility: "public" });
+          } catch {
+            failed += 1;
+          }
+        }
+        setUploading(false);
+        push({
+          title: `${ticket.key} created`,
+          detail:
+            failed > 0
+              ? `${failed} file${failed === 1 ? "" : "s"} could not be attached.`
+              : `${files.length} file${files.length === 1 ? "" : "s"} attached.`,
+          tone: failed > 0 ? "error" : "success",
+        });
+      } else {
+        push({ title: `${ticket.key} created`, tone: "success" });
+      }
       router.push(`/tickets/${ticket.key}`);
     } catch (caught) {
       const parsed = apiError(caught);
@@ -123,7 +149,7 @@ function NewTicketForm() {
     }
   };
 
-  const canSubmit = accountId !== "" && draft.short_description.trim() !== "" && !isLoading;
+  const canSubmit = accountId !== "" && draft.short_description.trim() !== "" && !isLoading && !uploading;
 
   return (
     <form
@@ -325,6 +351,31 @@ function NewTicketForm() {
               aria-label="Description"
             />
           </label>
+        </div>
+      </Panel>
+      <Panel title="Files" caption="Uploaded and scanned once the ticket exists">
+        <div className="flex flex-col gap-2">
+          <DropZone
+            onFiles={(list) => setFiles((current) => [...current, ...Array.from(list)])}
+            disabled={isLoading || uploading}
+          />
+          {files.length > 0 ? (
+            <ul className="flex flex-col gap-1" aria-label="Queued files">
+              {files.map((file, index) => (
+                <li key={`${file.name}-${index}`} className="flex items-center gap-2 text-[12px]">
+                  <span className="text-xms-ink">{file.name}</span>
+                  <span className="xms-mono text-xms-label">{formatBytes(file.size)}</span>
+                  <button
+                    type="button"
+                    className="text-xms-label ml-auto hover:underline"
+                    onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </Panel>
     </form>

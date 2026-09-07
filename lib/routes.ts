@@ -7,7 +7,8 @@
  * (User Experience section 2.1).
  */
 
-export type Section = "Home" | "Tickets" | "Knowledge" | "Time" | "Accounts" | "Capacity" | "Reports" | "Admin";
+export type Section =
+  "Home" | "Tickets" | "Intake" | "Knowledge" | "Time" | "Accounts" | "Capacity" | "Reports" | "Admin";
 
 export interface Screen {
   path: string;
@@ -54,7 +55,7 @@ export const SCREENS: Screen[] = [
     path: "/tickets/quarantine",
     screen: "quarantine",
     label: "Quarantine",
-    section: "Tickets",
+    section: "Intake",
     permission: "tickets:work",
     pinned: true,
     purpose: "Unknown senders awaiting review.",
@@ -259,7 +260,17 @@ export const PORTAL_SCREENS: Screen[] = [
   { path: "/portal/requests/[key]", screen: "portal.request", label: "Request", section: "Tickets", permission: null },
 ];
 
-export const SECTIONS: Section[] = ["Home", "Tickets", "Knowledge", "Time", "Accounts", "Capacity", "Reports", "Admin"];
+export const SECTIONS: Section[] = [
+  "Home",
+  "Tickets",
+  "Intake",
+  "Knowledge",
+  "Time",
+  "Accounts",
+  "Capacity",
+  "Reports",
+  "Admin",
+];
 
 /**
  * Screens the principal may see. `permissions` undefined means "not loaded

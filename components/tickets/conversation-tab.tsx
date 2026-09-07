@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { DropZone, ScanAcknowledgement, UploadList, useUploads } from "@/components/tickets/attachments";
 import { ActorChip, type ActorKind } from "@/components/xms/actor-chip";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
+import { useGetTicketEmailQuery } from "@/redux/emailApi";
 import {
   useAddCommentMutation,
   useAddWorkNoteMutation,
@@ -21,11 +23,28 @@ export interface ComposerProps {
   pending?: boolean;
   recipientLine: string;
   readOnly?: boolean;
+  /** Attachment controls rendered between the text and the footer. */
+  attachments?: ReactNode;
+  /** When set, Send is disabled and this reason is shown (a scan is pending). */
+  blockedReason?: string;
+  onModeChange?: (mode: ComposerMode) => void;
 }
 
 /** The composer with its Public reply / Work note toggle (Wireframes v2 section 3.2). */
-export function Composer({ onSend, pending, recipientLine, readOnly }: ComposerProps) {
-  const [mode, setMode] = useState<ComposerMode>("reply");
+export function Composer({
+  onSend,
+  pending,
+  recipientLine,
+  readOnly,
+  attachments,
+  blockedReason,
+  onModeChange,
+}: ComposerProps) {
+  const [mode, setModeState] = useState<ComposerMode>("reply");
+  const setMode = (next: ComposerMode) => {
+    setModeState(next);
+    onModeChange?.(next);
+  };
   const [body, setBody] = useState("");
   const note = mode === "note";
   return (
@@ -35,7 +54,7 @@ export function Composer({ onSend, pending, recipientLine, readOnly }: ComposerP
       className={cn("xms-card flex flex-col", note && "border-xms-line-strong bg-xms-tint")}
       onSubmit={async (event) => {
         event.preventDefault();
-        if (!body.trim()) return;
+        if (!body.trim() || blockedReason) return;
         await onSend(mode, body.trim());
         setBody("");
       }}
@@ -80,11 +99,14 @@ export function Composer({ onSend, pending, recipientLine, readOnly }: ComposerP
         onChange={(event) => setBody(event.target.value)}
         className="text-xms-ink w-full resize-y bg-transparent px-3 py-2 text-[13px] outline-none"
       />
+      {attachments ? <div className="border-xms-line flex flex-col gap-2 border-t px-3 py-2">{attachments}</div> : null}
       <div className="border-xms-line flex items-center gap-2 border-t px-3 py-2">
-        <span className="text-xms-label text-[12px]">{note ? "Visible to the team only" : recipientLine}</span>
+        <span className="text-xms-label text-[12px]">
+          {blockedReason ?? (note ? "Visible to the team only" : recipientLine)}
+        </span>
         <button
           type="submit"
-          disabled={readOnly || pending || !body.trim()}
+          disabled={readOnly || pending || !body.trim() || Boolean(blockedReason)}
           className={cn(
             "ml-auto h-[30px] rounded-[4px] px-3 text-[12px] font-medium text-white disabled:opacity-50",
             note ? "bg-xms-navy" : "bg-xms-accent hover:bg-xms-accent-hover",
@@ -117,7 +139,7 @@ export function formatStamp(iso: string): string {
 }
 
 /** One message in the thread; work notes take the tint and the Internal chip. */
-export function MessageRow({ item }: { item: TimelineItem }) {
+export function MessageRow({ item, viaEmail }: { item: TimelineItem; viaEmail?: boolean }) {
   const note = item.kind === "work_note";
   return (
     <article
@@ -142,6 +164,11 @@ export function MessageRow({ item }: { item: TimelineItem }) {
             First response
           </span>
         ) : null}
+        {viaEmail ? (
+          <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[11px]" data-via="email">
+            via email
+          </span>
+        ) : null}
         <span className="xms-mono text-xms-label ml-auto">{formatStamp(item.created_at)}</span>
       </header>
       <p className="text-xms-ink text-[13px] whitespace-pre-wrap">{item.body}</p>
@@ -164,13 +191,33 @@ export function ConversationTab({ ticketKey, requesterLine, readOnly }: Conversa
   const trackReply = useTrack("reply.send");
   const trackNote = useTrack("note.add");
   const [showNotes, setShowNotes] = useState(true);
+  const [mode, setMode] = useState<ComposerMode>("reply");
+  const [acknowledged, setAcknowledged] = useState(false);
+  const uploads = useUploads(ticketKey, { visibility: () => (mode === "note" ? "internal" : "public") });
+  const { data: email } = useGetTicketEmailQuery(ticketKey);
+  const emailComments = new Set((email?.inbound ?? []).map((row) => row.comment_id).filter(Boolean));
   const messages = (data ?? []).filter((item) => item.kind === "comment" || (showNotes && item.kind === "work_note"));
+  const blockedReason = uploads.scanning && !acknowledged ? "A file is still being scanned." : undefined;
   return (
     <div className="flex flex-col gap-4">
       <Composer
         readOnly={readOnly}
         pending={comment.isLoading || note.isLoading}
         recipientLine={requesterLine}
+        onModeChange={setMode}
+        blockedReason={blockedReason}
+        attachments={
+          readOnly ? null : (
+            <>
+              <DropZone
+                onFiles={uploads.add}
+                label={mode === "note" ? "Attach internal files" : "Attach files for the client"}
+              />
+              <UploadList items={uploads.items} onRemove={uploads.remove} />
+              {uploads.scanning ? <ScanAcknowledgement checked={acknowledged} onChange={setAcknowledged} /> : null}
+            </>
+          )
+        }
         onSend={async (mode, body) => {
           try {
             if (mode === "reply") {
@@ -194,7 +241,7 @@ export function ConversationTab({ ticketKey, requesterLine, readOnly }: Conversa
       </div>
       {isLoading ? <Skeleton lines={4} /> : null}
       {messages.map((item) => (
-        <MessageRow key={item.id} item={item} />
+        <MessageRow key={item.id} item={item} viaEmail={emailComments.has(item.id)} />
       ))}
       {data && messages.length === 0 ? <p className="text-xms-label text-[13px]">No messages yet.</p> : null}
     </div>
