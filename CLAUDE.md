@@ -45,7 +45,11 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         view and chips (P2.11.4),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
-                        account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5),
+                        account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5) and a Connectors
+                        tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4);
+                        /admin/connectors (health overview across granted accounts, admin:connectors) and /admin/connectors/[id]
+                        (header with mode switch, kill switch, Test connection; tabs Settings with the watermark rewind, Field map,
+                        State map, Runs, Dead letters with replay and discard) (P2.21.4, SN-07 to SN-09),
                         /dev/tokens (token check), /dev/sign-in (dev-mode token paste only)
 components/tickets/     ticket-columns (the Queue column set), transition-menu (state pill menu, pause, resolve, confirm sheets),
                         resolve-form (close discipline mirror over the catalog codes), solution-picker (search over published
@@ -78,6 +82,14 @@ lib/attachments/        uploadAttachment (presign, PUT or POST form, confirm; st
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
                         ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), IntakeTab (aliases with state
                         pills and the loop guard reason), status pills, buttons
+components/admin/connectors/  pills (health, mode, map state, outcome, link state on the signal trios), health-list,
+                        add-servicenow-form, account-connectors-tab, instance-header (ModeSwitch, KillSwitchControl,
+                        TestConnectionButton), settings-tab (SettingsForm, WatermarkPanel), map-lifecycle (useMapLifecycle:
+                        select, draft, save, validate, activate), map-versions, field-map-editor, field-map-tab,
+                        state-map-editor, state-map-tab, pairs-editor, runs-tab, dead-letters-tab, reason-dialog
+components/tickets/sync-card  the rail's Sync card (external record link, link state, mode notice, conflict fields, last runs)
+lib/connectors/         vocab (XMS field table, tone maps, externalRecordUrl), errors (typed 409 and 400 bodies),
+                        use-connector-errors
 lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
 app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome (never the internal shell):
                         / search-first home (own requests plus the knowledge placeholder), /sign-in (dev token paste,
@@ -111,7 +123,9 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         visibility, feedback, search, the Solutions rail, candidates, catalogs), timeApi.ts (ticket time,
                         my timesheet, adjustments, contract position, buckets), attachmentsApi.ts (list, presign, confirm, download,
                         delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
-                        and decide, account aliases),
+                        and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
+                        connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
+                        ticket sync; useConnectorInstance selects the record out of the health list),
                         store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)
