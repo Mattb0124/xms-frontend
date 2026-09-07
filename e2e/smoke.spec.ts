@@ -1,10 +1,16 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("smoke", () => {
-  test("internal root renders inside the xms scope with the token check", async ({ page }) => {
+  test("internal root renders the shell inside the xms scope", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("html")).toHaveClass(/xms-scope/);
+    await expect(page.getByTestId("finder-bar")).toBeVisible();
+    await expect(page.getByTestId("pinned-sidebar")).toBeVisible();
     await expect(page.getByRole("heading", { name: "My work" })).toBeVisible();
+  });
+
+  test("token check page renders the state ramp", async ({ page }) => {
+    await page.goto("/dev/tokens");
     await expect(page.locator(".xms-state[data-state='awaiting-client']")).toHaveText("Awaiting client");
   });
 

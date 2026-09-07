@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 // Two typefaces and no third one (Wireframes v2 section 4): Inter for the UI,
@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${inter.variable} ${plexMono.variable} xms-scope h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <ThemeProvider>{children}</ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
