@@ -1,0 +1,120 @@
+import type { SignalTone } from "@/components/xms/signal-pill";
+import { formatHours } from "@/lib/time/budget";
+import type { CapacityCheck, CapacityStatus, PtoKind } from "@/redux/capacityApi";
+
+/**
+ * The capacity vocabulary (Capacity & Allocation functional 5.1, 5.3 to
+ * 5.6 and 5.9). The server computes every minute; this file words the
+ * fixed sets, formats hours and picks the tone.
+ */
+export const PTO_KIND_LABEL: Record<PtoKind, string> = {
+  vacation: "Vacation",
+  sick: "Sick",
+  other: "Other",
+};
+
+export const PTO_KINDS: { value: PtoKind; label: string }[] = [
+  { value: "vacation", label: PTO_KIND_LABEL.vacation },
+  { value: "sick", label: PTO_KIND_LABEL.sick },
+  { value: "other", label: PTO_KIND_LABEL.other },
+];
+
+/** "Full days", "Half days", "0.25 of a day" from the API's numeric string. */
+export function fractionLabel(fraction: string | number): string {
+  const value = Number(fraction);
+  if (value === 1) return "Full days";
+  if (value === 0.5) return "Half days";
+  return `${value} of a day`;
+}
+
+export const CAPACITY_STATUS: Record<CapacityStatus, { label: string; tone: SignalTone }> = {
+  available: { label: "Available", tone: "complete" },
+  warning: { label: "Near capacity", tone: "needs-input" },
+  over: { label: "Over", tone: "overdue" },
+  no_calendar: { label: "No calendar", tone: "blocked" },
+};
+
+/** "+22 h", "-1.5 h", "0 h": a variance in hours with its sign. */
+export function formatSignedHours(minutes: number): string {
+  if (minutes === 0) return formatHours(0);
+  return `${minutes > 0 ? "+" : "-"}${formatHours(Math.abs(minutes))}`;
+}
+
+/** "+55%", "-10%", "n/a" when nothing was planned; whole percentages. */
+export function formatVariancePercent(ratio: number | null): string {
+  if (ratio === null || !Number.isFinite(ratio)) return "n/a";
+  const percent = Math.round(ratio * 100);
+  if (percent === 0) return "0%";
+  return `${percent > 0 ? "+" : "-"}${Math.abs(percent)}%`;
+}
+
+/**
+ * The picker's hint (5.9): "76.8 h left", "Over by 13.3 h" (allocated past
+ * available, since the server clamps remaining at 0), "No calendar".
+ */
+export function remainingLabel(check: Pick<CapacityCheck, "status" | "remaining_minutes" | "allocated_minutes" | "available_minutes">): string {
+  if (check.status === "no_calendar") return "No calendar";
+  if (check.status === "over") return `Over by ${formatHours(check.allocated_minutes - check.available_minutes)}`;
+  return `${formatHours(check.remaining_minutes)} left`;
+}
+
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+export function isMonth(value: string | null | undefined): value is string {
+  return typeof value === "string" && MONTH.test(value);
+}
+
+/** "YYYY-MM" for the local date. */
+export function currentMonth(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** "YYYY-MM-01": the month as the allocation routes name it. */
+export function monthStart(month: string): string {
+  return `${month.slice(0, 7)}-01`;
+}
+
+/** The last day of the month as "YYYY-MM-DD". */
+export function monthEnd(month: string): string {
+  const year = Number(month.slice(0, 4));
+  const index = Number(month.slice(5, 7));
+  const last = new Date(Date.UTC(year, index, 0)).getUTCDate();
+  return `${month.slice(0, 7)}-${String(last).padStart(2, "0")}`;
+}
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/** "September 2026" from "2026-09" or "2026-09-01". */
+export function monthLabel(month: string): string {
+  const index = Number(month.slice(5, 7)) - 1;
+  return `${MONTH_NAMES[index] ?? month.slice(5, 7)} ${month.slice(0, 4)}`;
+}
+
+/** The grid cell's text for a stored value: "60", "1.5", "" for nothing. */
+export function minutesToHoursText(minutes: number | undefined): string {
+  if (minutes === undefined) return "";
+  const hours = minutes / 60;
+  return Number.isInteger(hours) ? String(hours) : String(Math.round(hours * 100) / 100);
+}
+
+/** The minutes behind a cell's text: empty or 0 clears; null when it is not a usable number of hours. */
+export function hoursTextToMinutes(text: string): number | null {
+  const trimmed = text.trim();
+  if (trimmed === "") return 0;
+  const hours = Number(trimmed);
+  if (!Number.isFinite(hours) || hours < 0) return null;
+  return Math.round(hours * 60);
+}

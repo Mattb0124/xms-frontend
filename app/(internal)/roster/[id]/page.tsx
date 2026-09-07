@@ -6,6 +6,7 @@ import { AdminGate, RecordBar, SwitchRow } from "@/components/admin/primitives";
 import { CalendarTab } from "@/components/roster/calendar-tab";
 import { CertificationsTab } from "@/components/roster/certifications-tab";
 import { DetailsTab } from "@/components/roster/details-tab";
+import { PtoTab } from "@/components/roster/pto-tab";
 import { SkillsTab } from "@/components/roster/skills-tab";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { SignalPill } from "@/components/xms/signal-pill";
@@ -18,7 +19,7 @@ import { useListGroupsQuery } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
 import { useGetPersonQuery, usePatchPersonMutation } from "@/redux/rosterApi";
 
-/** Registered as `roster.person`: header with the active switch, then Details, Calendar, Skills, Certifications. */
+/** Registered as `roster.person`: header with the active switch, then Details, Calendar, PTO, Skills, Certifications. */
 export default function PersonRecordPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -35,6 +36,7 @@ export default function PersonRecordPage() {
     () => [
       { key: "details", label: "Details" },
       { key: "calendar", label: "Calendar" },
+      { key: "pto", label: "PTO" },
       { key: "skills", label: "Skills", count: data?.skills.length },
       { key: "certifications", label: "Certifications", count: data?.certifications.length },
     ],
@@ -90,6 +92,7 @@ export default function PersonRecordPage() {
           {tab === "calendar" ? (
             <CalendarTab personId={id} calendar={data.calendar} canEdit={canManage} timeZone={data.time_zone} />
           ) : null}
+          {tab === "pto" ? <PtoTab personId={id} userId={data.user_id} canManage={canManage} /> : null}
           {tab === "skills" ? <SkillsTab personId={id} skills={data.skills} canEdit={canManage} /> : null}
           {tab === "certifications" ? (
             <CertificationsTab personId={id} certifications={data.certifications} canEdit={canManage} />
