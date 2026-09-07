@@ -50,7 +50,8 @@ describe("AccountContractsTab", () => {
         ]),
     });
     renderDesk(<AccountContractsTab accountId={ACCOUNT_ID} />);
-    await screen.findByText("CT10003");
+    // The key shows in the list and again on its rate cards disclosure.
+    await screen.findAllByText("CT10003");
     expect(screen.getByText("None")).toHaveAttribute("data-handling", "none");
     expect(screen.getByText("Premium 1.5x per contract")).toHaveAttribute("data-handling", "premium_rate");
     expect(screen.getByText("Comp time")).toHaveAttribute("data-handling", "comp_time");

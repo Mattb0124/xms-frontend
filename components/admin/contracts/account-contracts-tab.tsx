@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RateCardsPanel } from "@/components/admin/contracts/rate-cards";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { Panel } from "@/components/xms/panel";
@@ -255,6 +256,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
           refetch={contracts.refetch}
         />
       ) : null}
+      {contracts.data ? <RateCardsPanel accountId={accountId} contracts={rows} /> : null}
     </div>
   );
 }
