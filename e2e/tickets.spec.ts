@@ -38,7 +38,7 @@ test.describe("tickets golden path", () => {
     await expect(page.getByText("First response")).toBeVisible();
 
     await page.getByRole("tab", { name: "Work note" }).click();
-    await page.getByLabel("Work note").fill("Internal: waiting on the log export");
+    await page.getByRole("textbox", { name: "Work note" }).fill("Internal: waiting on the log export");
     await page.getByRole("button", { name: "Add note" }).click();
     await expect(page.getByText("Internal", { exact: true }).first()).toBeVisible();
 
