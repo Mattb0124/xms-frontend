@@ -57,8 +57,22 @@ export function anOverriddenConfig(): AccountConfigView {
   };
 }
 
+/** The account view when nothing is active for the kind: no default, no override, nothing effective. */
+export function aNothingActiveConfig(): AccountConfigView {
+  return { effective: null, default: null, overrides: [] };
+}
+
 describe("adminApi account configuration", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("reads a view with nothing active as data, not as a failure", async () => {
+    stubFetch({ [`GET /v1/accounts/${ACCOUNT_ID}/config/sla_policy`]: () => json(aNothingActiveConfig()) });
+    const store = makeStore();
+    const view = await store
+      .dispatch(adminApi.endpoints.getAccountConfig.initiate({ accountId: ACCOUNT_ID, kind: "sla_policy" }))
+      .unwrap();
+    expect(view).toEqual({ effective: null, default: null, overrides: [] });
+  });
 
   it("reads the account view, with the scope only where the kind takes one", async () => {
     const calls = stubFetch({
@@ -83,7 +97,7 @@ describe("adminApi account configuration", () => {
       `GET /v1/accounts/${ACCOUNT_ID}/config/sla_policy`,
       `GET /v1/accounts/${ACCOUNT_ID}/config/state_machine?scope=incident`,
     ]);
-    expect(view.effective.source).toBe("default");
+    expect(view.effective?.source).toBe("default");
   });
 
   it("wraps the override body as { body } on PUT and sends DELETE with the scope", async () => {

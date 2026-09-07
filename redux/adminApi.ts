@@ -164,8 +164,16 @@ export interface ConfigDescription {
 }
 
 /** What resolves for one account today, where it came from, and the history behind it (technical 3.4). */
+export interface EffectiveConfig {
+  source: "default" | "override";
+  version: number;
+  versionId: string;
+  body: unknown;
+}
+
 export interface AccountConfigView {
-  effective: { source: "default" | "override"; version: number; versionId: string; body: unknown };
+  /** Null when nothing is active for the kind: no operator default and no override (not a failure). */
+  effective: EffectiveConfig | null;
   default: ConfigVersion | null;
   overrides: ConfigVersion[];
 }

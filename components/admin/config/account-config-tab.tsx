@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { EffectiveSourcePill, OverrideEditor } from "@/components/admin/config/override-editor";
+import { EffectivePill, OverrideEditor } from "@/components/admin/config/override-editor";
 import { Panel } from "@/components/xms/panel";
 import { CATALOG_KINDS, defaultScope, type CatalogKind } from "@/lib/admin/config-catalog";
 import { cn } from "@/lib/utils";
@@ -36,9 +36,7 @@ function KindRow({
       >
         <span className="text-xms-ink font-medium">{entry.label}</span>
         {entry.scopes ? <span className="text-xms-label text-[12px]">per ticket type</span> : null}
-        <span className="ml-auto">
-          {data ? <EffectiveSourcePill source={data.effective.source} version={data.effective.version} /> : null}
-        </span>
+        <span className="ml-auto">{data ? <EffectivePill view={data} /> : null}</span>
       </button>
     </li>
   );

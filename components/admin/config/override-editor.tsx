@@ -36,6 +36,20 @@ export function EffectiveSourcePill({ source, version }: { source: "default" | "
   );
 }
 
+/** The pill for a kind with nothing active: no operator default and no override resolve for the account. */
+export function NothingActivePill() {
+  return <SignalPill tone="needs-input" label="Nothing active" />;
+}
+
+/** The effective pill or the nothing-active one, from the view. */
+export function EffectivePill({ view }: { view: AccountConfigView }) {
+  return view.effective ? (
+    <EffectiveSourcePill source={view.effective.source} version={view.effective.version} />
+  ) : (
+    <NothingActivePill />
+  );
+}
+
 function VersionStatusPill({ status }: { status: ConfigVersion["status"] }) {
   const tone = status === "active" ? "complete" : status === "draft" ? "needs-input" : "blocked";
   return <SignalPill tone={tone} label={status} />;
@@ -57,7 +71,8 @@ interface BodyEditorProps {
  * starts from what resolves today.
  */
 function BodyEditor({ accountId, kind, scope, view, refetch }: BodyEditorProps) {
-  const initialText = formatBody(view.effective.body);
+  // With nothing active the editor starts from an empty object so a first override can be written.
+  const initialText = formatBody(view.effective ? view.effective.body : {});
   const [text, setText] = useState(initialText);
   const [problems, setProblems] = useState<string[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -69,7 +84,7 @@ function BodyEditor({ accountId, kind, scope, view, refetch }: BodyEditorProps) 
   const parsed = useMemo(() => parseBody(text), [text]);
   const dirty = text !== initialText;
   const busy = saveState.isLoading || removeState.isLoading;
-  const overridden = view.effective.source === "override";
+  const overridden = view.effective?.source === "override";
 
   const onSave = async () => {
     if (!parsed.ok) return;
@@ -188,7 +203,7 @@ function VersionHistory({ view }: { view: AccountConfigView }) {
         ) : (
           <p className="text-xms-label text-[13px]">No operator default is active. Run the seed.</p>
         )}
-        {view.effective.source === "override" && view.default ? (
+        {view.effective?.source === "override" && view.default ? (
           <details className="mt-2">
             <summary className="text-xms-accent cursor-pointer text-[12px]">Show the operator default body</summary>
             <pre className="xms-mono text-xms-body bg-xms-tint mt-2 max-h-[320px] overflow-auto rounded-[4px] p-3 text-[11px] whitespace-pre-wrap">
@@ -241,15 +256,21 @@ export function OverrideEditor({ accountId, kind, scope, onScopeChange }: Overri
                 </select>
               </label>
             ) : null}
-            {data ? <EffectiveSourcePill source={data.effective.source} version={data.effective.version} /> : null}
+            {data ? <EffectivePill view={data} /> : null}
           </>
         }
       >
         {isLoading ? <Skeleton lines={8} /> : null}
         {isError ? <InlineError message={describeConfigError(configError(error))} /> : null}
+        {data && !data.effective ? (
+          <p role="status" className="text-xms-label mb-3 text-[13px]" data-nothing-active>
+            Nothing active for this kind. No operator default and no override resolve for this account; saving here
+            creates the first override.
+          </p>
+        ) : null}
         {data ? (
           <BodyEditor
-            key={`${kind}:${scope ?? "*"}:${data.effective.versionId}`}
+            key={`${kind}:${scope ?? "*"}:${data.effective?.versionId ?? "none"}`}
             accountId={accountId}
             kind={kind}
             scope={scope}

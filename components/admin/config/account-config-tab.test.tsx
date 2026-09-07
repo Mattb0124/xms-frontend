@@ -1,7 +1,14 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
-import { ACCOUNT_ID, aConfigVersion, anAccountConfig, anOverride, anOverriddenConfig } from "@/redux/adminApi.test";
+import {
+  ACCOUNT_ID,
+  aConfigVersion,
+  aNothingActiveConfig,
+  anAccountConfig,
+  anOverride,
+  anOverriddenConfig,
+} from "@/redux/adminApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));
@@ -184,5 +191,38 @@ describe("AccountConfigTab", () => {
     await waitFor(() => expect(editor().value).toContain('"response_minutes": 30'));
     expect(screen.queryByRole("button", { name: "Remove override" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save as override" })).toBeInTheDocument();
+  });
+
+  it("states that nothing is active for a kind, keeps the editor usable, and lists the SLA policy's invalid_config problems", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:config"]),
+      ...catalogRoutes({ [`GET /v1/accounts/${ACCOUNT_ID}/config/sla_policy`]: () => json(aNothingActiveConfig()) }),
+      [`PUT /v1/accounts/${ACCOUNT_ID}/config/sla_policy/override`]: () =>
+        json(
+          {
+            code: "invalid_config",
+            problems: ["calendar must be one of 24x7, business_hours", "targets.incident is required"],
+          },
+          400,
+        ),
+    });
+    renderDesk(<AccountConfigTab accountId={ACCOUNT_ID} />);
+    await screen.findAllByText("Default v1");
+    const row = screen.getByRole("button", { name: /SLA policy/ });
+    expect(within(row).getByText("Nothing active")).toHaveAttribute("data-state", "needs-input");
+    fireEvent.click(row);
+    await screen.findByRole("status");
+    expect(screen.getByRole("status")).toHaveTextContent("Nothing active for this kind.");
+    expect(screen.getAllByText("Nothing active")).toHaveLength(2);
+    expect(editor().value).toBe("{}");
+    expect(screen.getByText("No operator default is active. Run the seed.")).toBeInTheDocument();
+    expect(screen.getByText("No override yet. The operator default applies.")).toBeInTheDocument();
+    const save = screen.getByRole("button", { name: "Save as override" });
+    expect(save).toBeEnabled();
+    fireEvent.change(editor(), { target: { value: '{"calendar":"weekends"}' } });
+    fireEvent.click(save);
+    await screen.findByText("calendar must be one of 24x7, business_hours");
+    expect(screen.getByText("targets.incident is required")).toBeInTheDocument();
+    expect(calls.find((call) => call.key.startsWith("PUT "))?.body).toEqual({ body: { calendar: "weekends" } });
   });
 });
