@@ -13,8 +13,8 @@ YAML frontmatter must start on line 1 with `---`, use spaces (not tabs), and clo
 
 ```yaml
 ---
-name:	pdf-processing
-description:	Processes PDF files
+name: pdf-processing
+description: Processes PDF files
 ---
 # Tab characters (\t) instead of spaces
 # YAML parser fails silently
@@ -33,6 +33,7 @@ description: Processes PDF files for text extraction and form filling.
 ```
 
 **Common syntax errors:**
+
 - Using tabs instead of spaces
 - Missing space after colon (`name:value` vs `name: value`)
 - Unescaped special characters in strings

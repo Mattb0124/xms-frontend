@@ -30,16 +30,16 @@ Design and development guide for AI agent skills, including Claude Code skills a
 
 ## Rule Categories
 
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Skill Metadata Design | CRITICAL | `meta-` |
-| 2 | Description Engineering | CRITICAL | `desc-` |
-| 3 | Content Structure | HIGH | `struct-` |
-| 4 | Trigger Optimization | HIGH | `trigger-` |
-| 5 | Progressive Disclosure | MEDIUM-HIGH | `prog-` |
-| 6 | MCP Tool Design | MEDIUM | `mcp-` |
-| 7 | Testing and Validation | MEDIUM | `test-` |
-| 8 | Maintenance and Distribution | LOW-MEDIUM | `maint-` |
+| Priority | Category                     | Impact      | Prefix     |
+| -------- | ---------------------------- | ----------- | ---------- |
+| 1        | Skill Metadata Design        | CRITICAL    | `meta-`    |
+| 2        | Description Engineering      | CRITICAL    | `desc-`    |
+| 3        | Content Structure            | HIGH        | `struct-`  |
+| 4        | Trigger Optimization         | HIGH        | `trigger-` |
+| 5        | Progressive Disclosure       | MEDIUM-HIGH | `prog-`    |
+| 6        | MCP Tool Design              | MEDIUM      | `mcp-`     |
+| 7        | Testing and Validation       | MEDIUM      | `test-`    |
+| 8        | Maintenance and Distribution | LOW-MEDIUM  | `maint-`   |
 
 ## Quick Reference
 

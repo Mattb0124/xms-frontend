@@ -1,5 +1,5 @@
 ---
-name: 'todo-discipline'
+name: "todo-discipline"
 description: 'Enforces a tracked todo list for any multi-step work: an in-session task list plus a durable TODO.md in the repo for anything spanning several branches, repos, or sessions. Use when starting a feature, a spec build, a migration, or any task with 3+ steps; when the user says "create a todo list", "track this", "keep a list", "begin"; when picking up work someone else started; and before ending a turn with unfinished multi-step work. Also use when reviewing a change whose plan lives only in chat.'
 ---
 
@@ -11,14 +11,14 @@ Adjacent skills: `xms-write-spec` produces the spec a TODO is derived from, `xms
 
 ## When a list is required
 
-| Situation | In-session list | `TODO.md` in repo |
-| --- | --- | --- |
-| Single edit, one file, a question, a lookup | No | No |
-| 3 or more distinct steps in one turn | Yes | No |
-| Work spanning more than one repo or branch | Yes | Yes |
-| Work that will not finish this session | Yes | Yes |
-| Anything with a spec in `02-modules/<slug>/` | Yes | Yes |
-| Anything with a ClickUp ticket that is more than one commit | Yes | Yes |
+| Situation                                                   | In-session list | `TODO.md` in repo |
+| ----------------------------------------------------------- | --------------- | ----------------- |
+| Single edit, one file, a question, a lookup                 | No              | No                |
+| 3 or more distinct steps in one turn                        | Yes             | No                |
+| Work spanning more than one repo or branch                  | Yes             | Yes               |
+| Work that will not finish this session                      | Yes             | Yes               |
+| Anything with a spec in `02-modules/<slug>/`                | Yes             | Yes               |
+| Anything with a ClickUp ticket that is more than one commit | Yes             | Yes               |
 
 If you are unsure, write the list. The cost of an unnecessary list is thirty seconds; the cost of a missing one is a half-built feature nobody can resume.
 

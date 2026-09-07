@@ -16,7 +16,6 @@ Restrict which tools a skill can use via the `allowed-tools` frontmatter field. 
 name: code-analyzer
 description: Analyzes code for quality issues
 ---
-
 # Code Analyzer
 
 Analyze the codebase and report issues...
@@ -37,7 +36,6 @@ name: code-analyzer
 description: Analyzes code for quality issues
 allowed-tools: Read, Grep, Glob
 ---
-
 # Code Analyzer
 
 Analyze the codebase and report issues...
@@ -51,15 +49,17 @@ Analyze the codebase and report issues...
 ```
 
 **Common restriction patterns:**
-| Skill Type | Allowed Tools |
-|------------|---------------|
-| Read-only analysis | Read, Grep, Glob |
-| Code modification | Read, Edit, Write |
-| Git operations | Bash(git:*) |
-| Specific language | Bash(python:*), Bash(node:*) |
-| Full access | Omit allowed-tools |
+
+| Skill Type         | Allowed Tools                |
+| ------------------ | ---------------------------- |
+| Read-only analysis | Read, Grep, Glob             |
+| Code modification  | Read, Edit, Write            |
+| Git operations     | Bash(git:*)                  |
+| Specific language  | Bash(python:_), Bash(node:_) |
+| Full access        | Omit allowed-tools           |
 
 **Wildcard syntax:**
+
 - `Bash(git:*)` - Only git commands
 - `Bash(npm:*)` - Only npm commands
 - `Bash(python scripts/*.py)` - Only specific scripts

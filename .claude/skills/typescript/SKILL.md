@@ -2,6 +2,7 @@
 name: typescript
 description: TypeScript performance, tsconfig, type errors, async patterns — triggered when the user asks to "optimize TypeScript performance", "speed up tsc compilation", "configure tsconfig.json", "fix type errors", "improve async patterns", or encounters TS errors (TS2322, TS2339, "is not assignable to"). Also triggers on .ts, .tsx, .d.ts file work involving type definitions, module organization, or memory management. Does NOT cover TypeScript basics, framework-specific patterns, or testing.
 ---
+
 # TypeScript Best Practices
 
 Comprehensive performance optimization guide for TypeScript applications. Contains 45 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
@@ -9,6 +10,7 @@ Comprehensive performance optimization guide for TypeScript applications. Contai
 ## When to Apply
 
 Reference these guidelines when:
+
 - Configuring tsconfig.json for a new or existing project
 - Writing complex type definitions or generics
 - Optimizing async/await patterns and data fetching
@@ -17,16 +19,16 @@ Reference these guidelines when:
 
 ## Rule Categories by Priority
 
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Type System Performance | CRITICAL | `type-` |
-| 2 | Compiler Configuration | CRITICAL | `tscfg-` |
-| 3 | Async Patterns | HIGH | `async-` |
-| 4 | Module Organization | HIGH | `module-` |
-| 5 | Type Safety Patterns | MEDIUM-HIGH | `safety-` |
-| 6 | Memory Management | MEDIUM | `mem-` |
-| 7 | Runtime Optimization | LOW-MEDIUM | `runtime-` |
-| 8 | Advanced Patterns | LOW | `advanced-` |
+| Priority | Category                | Impact      | Prefix      |
+| -------- | ----------------------- | ----------- | ----------- |
+| 1        | Type System Performance | CRITICAL    | `type-`     |
+| 2        | Compiler Configuration  | CRITICAL    | `tscfg-`    |
+| 3        | Async Patterns          | HIGH        | `async-`    |
+| 4        | Module Organization     | HIGH        | `module-`   |
+| 5        | Type Safety Patterns    | MEDIUM-HIGH | `safety-`   |
+| 6        | Memory Management       | MEDIUM      | `mem-`      |
+| 7        | Runtime Optimization    | LOW-MEDIUM  | `runtime-`  |
+| 8        | Advanced Patterns       | LOW         | `advanced-` |
 
 ## Table of Contents
 

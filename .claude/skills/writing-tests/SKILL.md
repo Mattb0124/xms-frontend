@@ -1,5 +1,5 @@
 ---
-name: 'writing-tests'
+name: "writing-tests"
 description: 'How to write automated tests in XMS: Jest in backend (domain units, Testcontainers data-layer integration, supertest HTTP), Vitest in frontend, Playwright for end to end. Use whenever adding or reviewing tests, deciding what deserves a test, closing a coverage gap, or when a task says "add a test", "is this tested", "why is CI red". Covers the one principle (test behaviour at the lowest layer that exercises it), the universal rules (isolation, determinism, meaningful assertions, arrange-act-assert), the layer table with the real XMS paths, the mandatory isolation suite, the test kit factories, coverage floors, anti-patterns, and the pipeline gate.'
 ---
 
@@ -25,17 +25,17 @@ Two Packmind standards bind every test here: **Write Isolated Tests With Constru
 
 ## The layers (and where each lives)
 
-| Layer | Tool | Where | What it proves |
-|---|---|---|---|
-| Static | ESLint, `tsc --noEmit`, Prettier check | all packages | No suppressed errors. `ignoreBuildErrors` and `ignoreDuringBuilds` are forbidden by a lint rule on the Next config |
-| Domain unit | Jest | `backend/src/**/*.spec.ts` | State machine transitions, priority matrix, SLA business-minute math on calendars, pause accounting, breach latching, burn-down, capacity, rate snapshotting, period locking, loop detection, header threading, signature stripping |
-| Data layer integration | Jest + Testcontainers PostgreSQL | `backend/test/db/**` | Migrations apply from empty; RLS denies cross-account reads and writes; append-only triggers reject updates and deletes; locked periods reject writes |
-| HTTP | Jest + supertest | `backend/test/http/**` | Every route rejects anonymous and garbage tokens; portal tokens cannot reach operator routes; no grant means 404; DTO validation; controllers are thin |
-| Worker | Jest | `backend/src/worker/src/**/*.spec.ts` | Outbox dispatch idempotency, inbox deduplication, retry classification, DLQ routing, connector contract tests against recorded fixtures, email parsing corpus |
-| Axel adapter contract | Jest + recorded fixtures | `backend/test/axel/**` | Request shapes sent to the harness, per-account switch enforcement (no call when AI is off), suggestion persistence, HITL transitions, confidence withholding |
-| Web unit | **Vitest** | `frontend/**/*.test.ts(x)` | Pure logic (SLA display math, condition builder serialisation, form validation) and component behaviour with Testing Library |
-| End to end | Playwright | `frontend/e2e/**` | Golden paths against a seeded environment |
-| Load | k6 | `load/**` | Queue list at 50k tickets per account under 500ms p95 |
+| Layer                  | Tool                                   | Where                                 | What it proves                                                                                                                                                                                                                      |
+| ---------------------- | -------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static                 | ESLint, `tsc --noEmit`, Prettier check | all packages                          | No suppressed errors. `ignoreBuildErrors` and `ignoreDuringBuilds` are forbidden by a lint rule on the Next config                                                                                                                  |
+| Domain unit            | Jest                                   | `backend/src/**/*.spec.ts`            | State machine transitions, priority matrix, SLA business-minute math on calendars, pause accounting, breach latching, burn-down, capacity, rate snapshotting, period locking, loop detection, header threading, signature stripping |
+| Data layer integration | Jest + Testcontainers PostgreSQL       | `backend/test/db/**`                  | Migrations apply from empty; RLS denies cross-account reads and writes; append-only triggers reject updates and deletes; locked periods reject writes                                                                               |
+| HTTP                   | Jest + supertest                       | `backend/test/http/**`                | Every route rejects anonymous and garbage tokens; portal tokens cannot reach operator routes; no grant means 404; DTO validation; controllers are thin                                                                              |
+| Worker                 | Jest                                   | `backend/src/worker/src/**/*.spec.ts` | Outbox dispatch idempotency, inbox deduplication, retry classification, DLQ routing, connector contract tests against recorded fixtures, email parsing corpus                                                                       |
+| Axel adapter contract  | Jest + recorded fixtures               | `backend/test/axel/**`                | Request shapes sent to the harness, per-account switch enforcement (no call when AI is off), suggestion persistence, HITL transitions, confidence withholding                                                                       |
+| Web unit               | **Vitest**                             | `frontend/**/*.test.ts(x)`            | Pure logic (SLA display math, condition builder serialisation, form validation) and component behaviour with Testing Library                                                                                                        |
+| End to end             | Playwright                             | `frontend/e2e/**`                     | Golden paths against a seeded environment                                                                                                                                                                                           |
+| Load                   | k6                                     | `load/**`                             | Queue list at 50k tickets per account under 500ms p95                                                                                                                                                                               |
 
 Note the split: the backend is **Jest**, the web app is **Vitest**. Do not reach for Jest in `frontend/`.
 

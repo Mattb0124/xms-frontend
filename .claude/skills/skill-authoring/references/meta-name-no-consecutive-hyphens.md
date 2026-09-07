@@ -45,6 +45,7 @@ description: Processes PDF files
 ```
 
 **Common causes:**
+
 - Find-and-replace errors when renaming
 - Copy-paste from URLs with encoded characters
 - Automated slug generation without normalization
@@ -56,9 +57,9 @@ description: Processes PDF files
 function normalizeSkillName(name) {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/-+/g, '-')  // Collapse consecutive hyphens
-    .replace(/^-|-$/g, ''); // Remove boundary hyphens
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-") // Collapse consecutive hyphens
+    .replace(/^-|-$/g, ""); // Remove boundary hyphens
 }
 ```
 

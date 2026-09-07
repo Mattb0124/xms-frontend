@@ -33,6 +33,7 @@ description: Manages git operations including commits, branches, and merges. Use
 ```
 
 **Keyword research technique:**
+
 1. Write down 10 ways users might ask for this feature
 2. Include synonyms (PR/pull request, commit/save changes)
 3. Include command names users might type (/commit, /pr)

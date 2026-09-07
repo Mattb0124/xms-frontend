@@ -53,13 +53,14 @@ When MCP tools fail, return error messages that explain what went wrong and how 
 ```
 
 **Error message components:**
-| Component | Purpose | Example |
-|-----------|---------|---------|
-| code | Error category | 422 (validation), 404 (not found) |
-| message | Human-readable summary | "Invalid date format" |
-| field | Which parameter failed | "start_date" |
-| received | What was provided | "2024-1-5" |
-| expected | What format is needed | "YYYY-MM-DD" |
-| example | Working value | "2024-01-05" |
+
+| Component | Purpose                | Example                           |
+| --------- | ---------------------- | --------------------------------- |
+| code      | Error category         | 422 (validation), 404 (not found) |
+| message   | Human-readable summary | "Invalid date format"             |
+| field     | Which parameter failed | "start_date"                      |
+| received  | What was provided      | "2024-1-5"                        |
+| expected  | What format is needed  | "YYYY-MM-DD"                      |
+| example   | Working value          | "2024-01-05"                      |
 
 Reference: [MCP Best Practices](https://modelcontextprotocol.info/docs/best-practices/)

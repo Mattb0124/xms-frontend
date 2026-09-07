@@ -198,8 +198,8 @@ Run `git status` after commit. Report:
 
 ## Staged-only policy
 
-| Agent does | Agent does not |
-|------------|----------------|
-| Read `git diff --staged` | Run `git add` or stage files |
-| List staged files in preview | Include unstaged hunks in the message |
+| Agent does                    | Agent does not                                 |
+| ----------------------------- | ---------------------------------------------- |
+| Read `git diff --staged`      | Run `git add` or stage files                   |
+| List staged files in preview  | Include unstaged hunks in the message          |
 | Commit exactly what is staged | Auto-select which changes belong in the commit |

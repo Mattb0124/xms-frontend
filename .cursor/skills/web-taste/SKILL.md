@@ -188,7 +188,7 @@ beautiful. The emotional intent from Phase 1 drives every choice here.
 ### 1. Hierarchy Through Scale
 
 Not just font weight — dramatic scale contrast. The most important
-thing on screen should be *physically large*, not just bold.
+thing on screen should be _physically large_, not just bold.
 
 - **Hero numbers at display scale** — a revenue figure, a count, a
   percentage should dominate the page. Use `text-6xl` or `text-7xl`
@@ -206,9 +206,7 @@ thing on screen should be *physically large*, not just bold.
 // Hero metric — scale dominates, whisper labels
 <section className="p-8">
   <p className="text-sm text-muted-foreground">Net revenue · last 30 days</p>
-  <p className="mt-2 text-7xl font-semibold tracking-tight tabular-nums">
-    ${(revenue / 100).toLocaleString()}
-  </p>
+  <p className="mt-2 text-7xl font-semibold tracking-tight tabular-nums">${(revenue / 100).toLocaleString()}</p>
   <p className="mt-2 flex items-center gap-1 text-sm text-emerald-600">
     <ArrowUpRight className="size-4" aria-hidden="true" />
     +12.4% vs prior period
@@ -277,7 +275,7 @@ VISUALIZE it instead of putting it in a `LabeledRow`:
 
 A `<dl><dt>Revenue</dt><dd>$8,432</dd></dl>` is information. A large
 "$8,432" in `text-6xl tabular-nums` with a sparkline below it is an
-*experience*. The emotional intent from Phase 1 tells you which one
+_experience_. The emotional intent from Phase 1 tells you which one
 to use.
 
 ### 4. Card-Based Composition
@@ -384,7 +382,7 @@ typography, and data presentation.
 
 ## The Screen Becomes the Content
 
-Study Linear's issue detail view: the page isn't a form *about* an
+Study Linear's issue detail view: the page isn't a form _about_ an
 issue — the entire screen IS the issue. The title is the page
 heading at hero scale. The description IS the body. Actions live in
 chrome that fades away. There's no "Edit issue" page; editing
@@ -405,7 +403,7 @@ Techniques for this:
   typographic hierarchy for your domain.
 - **Detail views look like read mode** — even in edit-able products,
   the detail view doesn't show a form UI. The same content reads
-  beautifully *and* edits in place.
+  beautifully _and_ edits in place.
 
 ## Reference: Web Design DNA
 

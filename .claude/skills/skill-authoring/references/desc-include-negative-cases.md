@@ -35,6 +35,7 @@ description: Generates unit tests for individual functions with mocks and assert
 ```
 
 **When to add negative cases:**
+
 - Skill name suggests broader capability than actual scope
 - Common confusion with related but different skills
 - Frequently asked to do things outside scope

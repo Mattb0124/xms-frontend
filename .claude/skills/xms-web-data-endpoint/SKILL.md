@@ -1,5 +1,5 @@
 ---
-name: 'xms-web-data-endpoint'
+name: "xms-web-data-endpoint"
 description: 'Wire the data layer for an XMS Web feature: an RTK Query endpoint against the /v1 API with generated types and cache tags, or the Axel streaming client for an AI turn. Use when adding or extending server data access, adding a mutation, fixing a stale list after a write, wiring the Axel panel, or when a task says "fetch this", "the list does not refresh", "hook this up to the API". Covers the generated contract types, tag invalidation, why the client never sends an account id, and the server-authority rule.'
 ---
 

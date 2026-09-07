@@ -17,9 +17,9 @@ Every MCP tool parameter needs a clear description, type, and constraints. Missi
   "inputSchema": {
     "type": "object",
     "properties": {
-      "q": {"type": "string"},
-      "n": {"type": "integer"},
-      "s": {"type": "string"}
+      "q": { "type": "string" },
+      "n": { "type": "integer" },
+      "s": { "type": "string" }
     }
   }
 }

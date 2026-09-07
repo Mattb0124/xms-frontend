@@ -19,7 +19,7 @@ skills/
 
 ```yaml
 ---
-name: pdf-processing     # Different from directory!
+name: pdf-processing # Different from directory!
 description: Handles PDF files
 ---
 # skills-ref validate ./skills/pdf-tools/
@@ -36,7 +36,7 @@ skills/
 
 ```yaml
 ---
-name: pdf-processing     # Matches directory
+name: pdf-processing # Matches directory
 description: Handles PDF files
 ---
 # skills-ref validate ./skills/pdf-processing/
@@ -46,10 +46,12 @@ description: Handles PDF files
 **Unicode normalization:**
 
 The validator uses NFKC normalization, so these would match:
+
 - `caf\u00e9` (precomposed) matches `cafe\u0301` (decomposed)
 - Compatibility characters are normalized
 
 **Benefits:**
+
 - Passes skills-ref validation
 - Reliable discovery across all platforms
 - Simple mental model: directory = skill name

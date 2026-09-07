@@ -42,7 +42,21 @@ export const xmsApi = createApi({
     if (requestId) rememberRequestId(requestId);
     return result;
   },
-  tagTypes: ["Me", "Accounts", "Account", "Users", "User", "Roles", "Groups", "Tickets", "Ticket", "Notifications"],
+  tagTypes: [
+    "Me",
+    "Accounts",
+    "Account",
+    "Users",
+    "User",
+    "Roles",
+    "Role",
+    "Groups",
+    "Group",
+    "Config",
+    "Tickets",
+    "Ticket",
+    "Notifications",
+  ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
       query: () => "/v1/admin/me",

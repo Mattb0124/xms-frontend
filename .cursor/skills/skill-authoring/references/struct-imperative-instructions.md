@@ -15,6 +15,7 @@ Use direct commands like "Extract text" rather than passive constructions like "
 # PDF Processor
 
 ## Instructions
+
 Text could be extracted from the PDF if needed. Users may request
 tables to be parsed. It would be good to validate the output format.
 Forms may need to be filled based on user requirements.
@@ -32,6 +33,7 @@ Forms may need to be filled based on user requirements.
 # PDF Processor
 
 ## Instructions
+
 1. Extract all text from the PDF document
 2. Parse tables and preserve their structure
 3. Validate output format before returning
@@ -45,11 +47,12 @@ Forms may need to be filled based on user requirements.
 ```
 
 **Transform passive to imperative:**
-| Passive/Conditional | Imperative |
-|---------------------|------------|
-| Text should be extracted | Extract text |
-| It would be helpful to validate | Validate |
-| "The user may request" | When user requests, |
-| Consider checking | Check |
+
+| Passive/Conditional             | Imperative          |
+| ------------------------------- | ------------------- |
+| Text should be extracted        | Extract text        |
+| It would be helpful to validate | Validate            |
+| "The user may request"          | When user requests, |
+| Consider checking               | Check               |
 
 Reference: [Prompt Engineering Guide](https://www.promptingguide.ai/)

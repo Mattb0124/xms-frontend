@@ -13,14 +13,14 @@ Brief explanation of the rule and why it matters (1-3 sentences). Focus on perfo
 
 ```typescript
 // Bad code example here
-const badExample = inefficientOperation()
+const badExample = inefficientOperation();
 ```
 
 **Correct (description of what's right):**
 
 ```typescript
 // Good code example here
-const goodExample = efficientOperation()
+const goodExample = efficientOperation();
 ```
 
 Reference: [Link to documentation](https://example.com)

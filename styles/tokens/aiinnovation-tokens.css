@@ -8,313 +8,304 @@
  * ============================================================================ */
 
 :root {
-	/* ── Font families ────────────────────────────────────────────────────── */
-	--font-inter: "Inter", sans-serif;
-	--font-manrope: "Manrope", sans-serif;
-	--font-family-heading:
-		"Manrope", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif;
-	--font-family-body:
-		"Inter", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif;
+  /* ── Font families ────────────────────────────────────────────────────── */
+  --font-inter: "Inter", sans-serif;
+  --font-manrope: "Manrope", sans-serif;
+  --font-family-heading:
+    "Manrope", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif;
+  --font-family-body:
+    "Inter", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif;
 
-	/* ── Type scale ───────────────────────────────────────────────────────── */
-	--text-xs: 0.75rem; /* 12 */
-	--text-sm: 0.875rem; /* 14 */
-	--text-base: 1rem; /* 16 */
-	--text-lg: 1.125rem; /* 18 */
-	--text-xl: 1.25rem; /* 20 */
-	--text-2xl: 1.5rem; /* 24 */
-	--text-3xl: 1.875rem; /* 30 */
-	--text-4xl: 2.25rem; /* 36 */
-	--text-5xl: 3rem; /* 48 */
+  /* ── Type scale ───────────────────────────────────────────────────────── */
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.875rem; /* 14 */
+  --text-base: 1rem; /* 16 */
+  --text-lg: 1.125rem; /* 18 */
+  --text-xl: 1.25rem; /* 20 */
+  --text-2xl: 1.5rem; /* 24 */
+  --text-3xl: 1.875rem; /* 30 */
+  --text-4xl: 2.25rem; /* 36 */
+  --text-5xl: 3rem; /* 48 */
 
-	/* AI Innovation–specific compact sizes */
-	--text-xxs: 0.6875rem; /* 11   used in tabular captions */
-	--text-12-5: 0.78125rem; /* 12.5 ActionButton font */
-	--text-13: 0.8125rem; /* 13   AI Innovation nav, dense UI */
+  /* AI Innovation–specific compact sizes */
+  --text-xxs: 0.6875rem; /* 11   used in tabular captions */
+  --text-12-5: 0.78125rem; /* 12.5 ActionButton font */
+  --text-13: 0.8125rem; /* 13   AI Innovation nav, dense UI */
 
-	/* ── Font weights ─────────────────────────────────────────────────────── */
-	--font-weight-normal: 400;
-	--font-weight-medium: 500;
-	--font-weight-semibold: 600;
-	--font-weight-bold: 700;
-	--font-weight-extrabold: 800;
+  /* ── Font weights ─────────────────────────────────────────────────────── */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
 
-	/* ============================================================================
+  /* ============================================================================
 	 * AI INNOVATION PRIMARY COLOR — #245CE8
 	 * ============================================================================
 	 * The canonical primary color of AI Innovation. NOT exactly
 	 * Tailwind blue-600 (#2563eb) — slightly more saturated. The brand calls
 	 * this color "blue" (not "indigo"). Use this value, not a Tailwind class.
 	 * ============================================================================ */
-	--color-primary: #245ce8;
-	--color-primary-hover: #1d4ed8; /* Tailwind blue-700 — used in primary gradient */
-	--color-primary-pressed: #1e40af; /* Tailwind blue-800 — used in gradient peak */
-	--color-primary-glow: rgb(37 99 232 / 55%); /* gradient drop shadow */
-	--color-primary-soft: #ebf2fe; /* tinted bg, hover surface */
-	--color-primary-soft-border: #bbcdf9; /* matching border */
-	--color-primary-tint-light: #eff6ff; /* even softer tint */
-	--color-primary-text: #ffffff;
+  --color-primary: #245ce8;
+  --color-primary-hover: #1d4ed8; /* Tailwind blue-700 — used in primary gradient */
+  --color-primary-pressed: #1e40af; /* Tailwind blue-800 — used in gradient peak */
+  --color-primary-glow: rgb(37 99 232 / 55%); /* gradient drop shadow */
+  --color-primary-soft: #ebf2fe; /* tinted bg, hover surface */
+  --color-primary-soft-border: #bbcdf9; /* matching border */
+  --color-primary-tint-light: #eff6ff; /* even softer tint */
+  --color-primary-text: #ffffff;
 
-	/* Primary gradient (used on PRIMARY ActionButton, "Create" CTAs) */
-	--gradient-primary:
-		linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-	--gradient-primary-hover:
-		linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  /* Primary gradient (used on PRIMARY ActionButton, "Create" CTAs) */
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
 
-	/* AI gradient (used on AI Assistant button, AI surfaces) */
-	--gradient-ai: linear-gradient(135deg, #3b7bee 0%, #8b5cf6 100%);
-	--gradient-ai-active: linear-gradient(135deg, #245ce8 0%, #7c3aed 100%);
+  /* AI gradient (used on AI Assistant button, AI surfaces) */
+  --gradient-ai: linear-gradient(135deg, #3b7bee 0%, #8b5cf6 100%);
+  --gradient-ai-active: linear-gradient(135deg, #245ce8 0%, #7c3aed 100%);
 
-	/* Animated multi-stop gradient (sidebar rail, chat header) */
-	--gradient-animated-blue:
-		linear-gradient(180deg, #245ce8, #1e3a8a, #3730a3, #1e40af, #245ce8);
-	--gradient-animated-blue-h:
-		linear-gradient(90deg, #245ce8, #1e3a8a, #3730a3, #1e40af, #245ce8);
+  /* Animated multi-stop gradient (sidebar rail, chat header) */
+  --gradient-animated-blue: linear-gradient(180deg, #245ce8, #1e3a8a, #3730a3, #1e40af, #245ce8);
+  --gradient-animated-blue-h: linear-gradient(90deg, #245ce8, #1e3a8a, #3730a3, #1e40af, #245ce8);
 
-	/* Blue accent line (under active nav tab, dividers in dark headers) */
-	--accent-blue-line: #3b7bee;
+  /* Blue accent line (under active nav tab, dividers in dark headers) */
+  --accent-blue-line: #3b7bee;
 
-	/* ── AI Innovation dark navbar palette ───────────────────────────────────────
+  /* ── AI Innovation dark navbar palette ───────────────────────────────────────
 	 * The AI Innovation top navbar is DARK (zinc/black gradient) in BOTH
 	 * themes — that's a brand contract. But every value below is still a
 	 * token so a host project can rebrand the dark chrome from one place.
 	 */
-	--nav-bg-from: #0f0f12;
-	--nav-bg-to: #18181b;
-	--nav-border: #27272a;
-	--nav-text-default: #a1a1aa;       /* zinc-400 — inactive nav text */
-	--nav-text-strong:  #d4d4d8;       /* zinc-300 — workspace label */
-	--nav-text-active:  #ffffff;
-	--nav-hover-bg:     rgb(255 255 255 / 5%);   /* tab hover */
-	--nav-active-bg:    rgb(255 255 255 / 8%);   /* tab active fill */
-	--nav-surface-bg:   rgb(255 255 255 / 6%);   /* Share button surface */
-	--nav-surface-hover-bg: rgb(255 255 255 / 10%);
-	--nav-border-soft:  rgb(255 255 255 / 5%);   /* Share button border */
-	--nav-border-strong: rgb(255 255 255 / 10%); /* hover */
-	--nav-rail-tick-bg: rgb(255 255 255 / 15%); /* sidebar rail decorations */
-	--nav-rail-tick-bg-soft: rgb(255 255 255 / 10%);
-	--nav-rail-particle: rgb(255 255 255 / 40%);
-	--nav-rail-particle-soft: rgb(255 255 255 / 30%);
-	--nav-glow: rgb(99 102 241 / 18%);
+  --nav-bg-from: #0f0f12;
+  --nav-bg-to: #18181b;
+  --nav-border: #27272a;
+  --nav-text-default: #a1a1aa; /* zinc-400 — inactive nav text */
+  --nav-text-strong: #d4d4d8; /* zinc-300 — workspace label */
+  --nav-text-active: #ffffff;
+  --nav-hover-bg: rgb(255 255 255 / 5%); /* tab hover */
+  --nav-active-bg: rgb(255 255 255 / 8%); /* tab active fill */
+  --nav-surface-bg: rgb(255 255 255 / 6%); /* Share button surface */
+  --nav-surface-hover-bg: rgb(255 255 255 / 10%);
+  --nav-border-soft: rgb(255 255 255 / 5%); /* Share button border */
+  --nav-border-strong: rgb(255 255 255 / 10%); /* hover */
+  --nav-rail-tick-bg: rgb(255 255 255 / 15%); /* sidebar rail decorations */
+  --nav-rail-tick-bg-soft: rgb(255 255 255 / 10%);
+  --nav-rail-particle: rgb(255 255 255 / 40%);
+  --nav-rail-particle-soft: rgb(255 255 255 / 30%);
+  --nav-glow: rgb(99 102 241 / 18%);
 
-	/* ── Axel / AI-hero cinematic palette (theme-invariant) ───────────────────
+  /* ── Axel / AI-hero cinematic palette (theme-invariant) ───────────────────
 	 * The discovery cockpit + AI CTAs use a cinematic dark-navy → blue → cyan
 	 * look that stays dark in BOTH themes (a brand contract, like the dark
 	 * navbar above — so these are defined once, with no `.dark` overrides). */
-	--axel-cyan:     #00a6fb;   /* Axel signature glow/accent */
-	--hero-navy-900: #16265a;   /* deep navy (active-nav text, gradient mid) */
-	--hero-navy-800: #1b2a5e;
-	--hero-navy-950: #141f4d;   /* darkest navy gradient stop */
+  --axel-cyan: #00a6fb; /* Axel signature glow/accent */
+  --hero-navy-900: #16265a; /* deep navy (active-nav text, gradient mid) */
+  --hero-navy-800: #1b2a5e;
+  --hero-navy-950: #141f4d; /* darkest navy gradient stop */
 
-	/* Dark navy hero gradient (QuickNav, hero banner, proposal section) */
-	--gradient-hero:
-		linear-gradient(135deg, #0f172a 0%, var(--hero-navy-950) 45%, var(--color-primary-hover) 100%);
-	/* Axel CTA gradient — cyan → blue → violet (3-stop, distinct from --gradient-ai) */
-	--gradient-axel:
-		linear-gradient(90deg, var(--axel-cyan) 0%, #3b82f6 50%, var(--color-ai-hover) 100%);
-	/* Axel icon-badge gradient (cyan → violet, 2-stop) */
-	--gradient-axel-badge:
-		linear-gradient(90deg, var(--axel-cyan) 0%, var(--color-ai-hover) 100%);
+  /* Dark navy hero gradient (QuickNav, hero banner, proposal section) */
+  --gradient-hero: linear-gradient(135deg, #0f172a 0%, var(--hero-navy-950) 45%, var(--color-primary-hover) 100%);
+  /* Axel CTA gradient — cyan → blue → violet (3-stop, distinct from --gradient-ai) */
+  --gradient-axel: linear-gradient(90deg, var(--axel-cyan) 0%, #3b82f6 50%, var(--color-ai-hover) 100%);
+  /* Axel icon-badge gradient (cyan → violet, 2-stop) */
+  --gradient-axel-badge: linear-gradient(90deg, var(--axel-cyan) 0%, var(--color-ai-hover) 100%);
 
-	/* Cyan Axel glow — primary AI CTAs */
-	--shadow-axel-glow:
-		0 0 0 1px rgb(255 255 255 / 30%) inset,
-		0 12px 45px -8px rgb(0 166 251 / 80%);
-	--shadow-axel-glow-hover:
-		0 0 0 1px rgb(255 255 255 / 40%) inset,
-		0 16px 55px -8px rgb(0 166 251 / 100%);
-	/* Deep-navy hero card drop shadow */
-	--shadow-hero:
-		0 28px 70px -28px rgb(22 38 90 / 75%);
+  /* Cyan Axel glow — primary AI CTAs */
+  --shadow-axel-glow: 0 0 0 1px rgb(255 255 255 / 30%) inset, 0 12px 45px -8px rgb(0 166 251 / 80%);
+  --shadow-axel-glow-hover: 0 0 0 1px rgb(255 255 255 / 40%) inset, 0 16px 55px -8px rgb(0 166 251 / 100%);
+  /* Deep-navy hero card drop shadow */
+  --shadow-hero: 0 28px 70px -28px rgb(22 38 90 / 75%);
 
-	/* Dot-grid texture overlay (hero + proposal section backgrounds).
+  /* Dot-grid texture overlay (hero + proposal section backgrounds).
 	 * Pair with a low opacity (~0.15) on a decorative pointer-events-none layer. */
-	--texture-dot-grid: radial-gradient(#ffffff 1px, transparent 1px);
-	--texture-dot-grid-size: 16px 16px;
+  --texture-dot-grid: radial-gradient(#ffffff 1px, transparent 1px);
+  --texture-dot-grid-size: 16px 16px;
 
-	/* ── Hackett brand palette (legacy — kept for compat) ─────────── */
-	--hackett-navy: #1a365d;
-	--hackett-blue: #2b6cb0;
-	--hackett-light-blue: #3182ce;
-	--hackett-accent: #0ea5e9;
-	--hackett-dark-gray: #1a202c;
-	--hackett-gray: #4a5568;
-	--hackett-light-gray: #718096;
-	--hackett-border-gray: #e2e8f0;
-	--hackett-bg-gray: #f7fafc;
-	--hackett-success: #38a169;
-	--hackett-warning: #d69e2e;
-	--hackett-error: #e53e3e;
-	--hackett-info: #3182ce;
+  /* ── Hackett brand palette (legacy — kept for compat) ─────────── */
+  --hackett-navy: #1a365d;
+  --hackett-blue: #2b6cb0;
+  --hackett-light-blue: #3182ce;
+  --hackett-accent: #0ea5e9;
+  --hackett-dark-gray: #1a202c;
+  --hackett-gray: #4a5568;
+  --hackett-light-gray: #718096;
+  --hackett-border-gray: #e2e8f0;
+  --hackett-bg-gray: #f7fafc;
+  --hackett-success: #38a169;
+  --hackett-warning: #d69e2e;
+  --hackett-error: #e53e3e;
+  --hackett-info: #3182ce;
 
-	/* ── Status colors (semantic) ─────────────────────────────────────────── */
-	/* Note: AI Innovation uses Tailwind status colors for badges/icons, but uses
+  /* ── Status colors (semantic) ─────────────────────────────────────────── */
+  /* Note: AI Innovation uses Tailwind status colors for badges/icons, but uses
 	 * stone-* (not slate-*) for primary text on light surfaces. */
-	--color-success: #10b981;
-	--color-success-bg: #d1fae5;
-	--color-success-text: #064e3b;
-	--color-success-border: #6ee7b7;
-	--color-success-hover: #059669;
+  --color-success: #10b981;
+  --color-success-bg: #d1fae5;
+  --color-success-text: #064e3b;
+  --color-success-border: #6ee7b7;
+  --color-success-hover: #059669;
 
-	--color-warning: #f97316;
-	--color-warning-bg: #ffedd5;
-	--color-warning-text: #9a3412;
-	--color-warning-border: #fdba74;
-	--color-warning-hover: #ea580c;
-	--color-amber-soft: #fff7ed; /* deliverables InfoPanel accent */
-	--color-amber-border: #fce4c4;
+  --color-warning: #f97316;
+  --color-warning-bg: #ffedd5;
+  --color-warning-text: #9a3412;
+  --color-warning-border: #fdba74;
+  --color-warning-hover: #ea580c;
+  --color-amber-soft: #fff7ed; /* deliverables InfoPanel accent */
+  --color-amber-border: #fce4c4;
 
-	--color-error: #ef4444;
-	--color-error-bg: #fee2e2;
-	--color-error-text: #7f1d1d;
-	--color-error-border: #fca5a5;
-	--color-error-hover: #dc2626;
+  --color-error: #ef4444;
+  --color-error-bg: #fee2e2;
+  --color-error-text: #7f1d1d;
+  --color-error-border: #fca5a5;
+  --color-error-hover: #dc2626;
 
-	--color-info: var(--color-primary);
-	--color-info-bg: #dbeafe;
-	--color-info-text: #1e3a8a;
-	--color-info-border: #93c5fd;
+  --color-info: var(--color-primary);
+  --color-info-bg: #dbeafe;
+  --color-info-text: #1e3a8a;
+  --color-info-border: #93c5fd;
 
-	/* AI Enhanced — violet/purple */
-	--color-ai: #8b5cf6;
-	--color-ai-hover: #7c3aed;
-	--color-ai-bg: #ede9fe;
-	--color-ai-text: #4c1d95;
-	--color-ai-border: #c4b5fd;
-	--color-ai-accent: #245ce8;
+  /* AI Enhanced — violet/purple */
+  --color-ai: #8b5cf6;
+  --color-ai-hover: #7c3aed;
+  --color-ai-bg: #ede9fe;
+  --color-ai-text: #4c1d95;
+  --color-ai-border: #c4b5fd;
+  --color-ai-accent: #245ce8;
 
-	/* InfoPanel variant accents (AI Innovation dashboard) */
-	--variant-objectives:        #245ce8; /* blue (AI Innovation primary) */
-	--variant-objectives-soft:   #ebf2fe;
-	--variant-objectives-border: #bbcdf9;
-	--variant-objectives-ring:   rgb(36 92 232 / 18%);
-	--variant-objectives-header:
-		linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-	--variant-objectives-title:  #1e3a8a; /* AAA on the pastel header in both modes */
+  /* InfoPanel variant accents (AI Innovation dashboard) */
+  --variant-objectives: #245ce8; /* blue (AI Innovation primary) */
+  --variant-objectives-soft: #ebf2fe;
+  --variant-objectives-border: #bbcdf9;
+  --variant-objectives-ring: rgb(36 92 232 / 18%);
+  --variant-objectives-header: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  --variant-objectives-title: #1e3a8a; /* AAA on the pastel header in both modes */
 
-	--variant-scope:        #0f766e; /* teal */
-	--variant-scope-soft:   #ecfdf5;
-	--variant-scope-border: #cff5ea;
-	--variant-scope-ring:   rgb(15 118 110 / 18%);
-	--variant-scope-header:
-		linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
-	--variant-scope-title:  #134e4a;
+  --variant-scope: #0f766e; /* teal */
+  --variant-scope-soft: #ecfdf5;
+  --variant-scope-border: #cff5ea;
+  --variant-scope-ring: rgb(15 118 110 / 18%);
+  --variant-scope-header: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  --variant-scope-title: #134e4a;
 
-	--variant-deliverables:        #b45309; /* amber/orange */
-	--variant-deliverables-soft:   #fff7ed;
-	--variant-deliverables-border: #fce4c4;
-	--variant-deliverables-ring:   rgb(180 83 9 / 18%);
-	--variant-deliverables-header:
-		linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-	--variant-deliverables-title:  #78350f;
+  --variant-deliverables: #b45309; /* amber/orange */
+  --variant-deliverables-soft: #fff7ed;
+  --variant-deliverables-border: #fce4c4;
+  --variant-deliverables-ring: rgb(180 83 9 / 18%);
+  --variant-deliverables-header: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  --variant-deliverables-title: #78350f;
 
-	--variant-rose:        #be185d; /* fact register, risks */
-	--variant-rose-soft:   #fff1f5;
-	--variant-rose-border: #fbd5e1;
+  --variant-rose: #be185d; /* fact register, risks */
+  --variant-rose-soft: #fff1f5;
+  --variant-rose-border: #fbd5e1;
 
-	--variant-cyan-sky:    #0369a1;
-	--variant-cyan-soft:   #e0f2fe;
+  --variant-cyan-sky: #0369a1;
+  --variant-cyan-soft: #e0f2fe;
 
-	/* CompanyLogo monogram palette — 6 brand-tinted slots, hash-distributed
+  /* CompanyLogo monogram palette — 6 brand-tinted slots, hash-distributed
 	 * by tenant name. Per-tenant identity colors (not theme-aware), but
 	 * defined here so callers can rebrand without forking the component. */
-	--monogram-1-bg: #e0e7ff; --monogram-1-fg: #3730a3; /* indigo  */
-	--monogram-2-bg: #dbeafe; --monogram-2-fg: #1d4ed8; /* blue    */
-	--monogram-3-bg: #ccfbf1; --monogram-3-fg: #0f766e; /* teal    */
-	--monogram-4-bg: #fef3c7; --monogram-4-fg: #b45309; /* amber   */
-	--monogram-5-bg: #ffe4e6; --monogram-5-fg: #be123c; /* rose    */
-	--monogram-6-bg: #f3e8ff; --monogram-6-fg: #7c3aed; /* violet  */
+  --monogram-1-bg: #e0e7ff;
+  --monogram-1-fg: #3730a3; /* indigo  */
+  --monogram-2-bg: #dbeafe;
+  --monogram-2-fg: #1d4ed8; /* blue    */
+  --monogram-3-bg: #ccfbf1;
+  --monogram-3-fg: #0f766e; /* teal    */
+  --monogram-4-bg: #fef3c7;
+  --monogram-4-fg: #b45309; /* amber   */
+  --monogram-5-bg: #ffe4e6;
+  --monogram-5-fg: #be123c; /* rose    */
+  --monogram-6-bg: #f3e8ff;
+  --monogram-6-fg: #7c3aed; /* violet  */
 
-	/* StatCard variant accents (5 slots) */
-	--stat-slate-accent:   #475569;
-	--stat-slate-soft:     #f1f5f9;
-	--stat-blue-accent:    #245ce8;
-	--stat-blue-soft:      #ebf2fe;
-	--stat-blue-border:    #bbcdf9;
-	--stat-teal-accent:    #0f766e;
-	--stat-teal-soft:      #ecfdf5;
-	--stat-amber-accent:   #b45309;
-	--stat-amber-soft:     #fff7ed;
-	--stat-rose-accent:    #be185d;
-	--stat-rose-soft:      #fff1f5;
+  /* StatCard variant accents (5 slots) */
+  --stat-slate-accent: #475569;
+  --stat-slate-soft: #f1f5f9;
+  --stat-blue-accent: #245ce8;
+  --stat-blue-soft: #ebf2fe;
+  --stat-blue-border: #bbcdf9;
+  --stat-teal-accent: #0f766e;
+  --stat-teal-soft: #ecfdf5;
+  --stat-amber-accent: #b45309;
+  --stat-amber-soft: #fff7ed;
+  --stat-rose-accent: #be185d;
+  --stat-rose-soft: #fff1f5;
 
-	/* ── Neutral surface scale ────────────────────────────────────────────
+  /* ── Neutral surface scale ────────────────────────────────────────────
 	 * AI Innovation uses BOTH stone and slate, deliberately:
 	 *   - stone-*  for text on light surfaces (warmer, brand-appropriate)
 	 *   - slate-*  for borders, dividers, surfaces (cooler)
 	 *   - zinc-*   for the dark navbar and dark chrome
 	 */
 
-	/* slate (surfaces, borders) */
-	--surface-white: #ffffff;
-	--surface-slate-50: #f8fafc;
-	--surface-slate-100: #f1f5f9;
-	--surface-slate-200: #e2e8f0;
-	--surface-slate-300: #cbd5e1;
-	--surface-slate-400: #94a3b8;
-	--surface-slate-500: #64748b;
-	--surface-slate-600: #475569;
-	--surface-slate-700: #334155;
-	--surface-slate-800: #1e293b;
-	--surface-slate-900: #0f172a;
+  /* slate (surfaces, borders) */
+  --surface-white: #ffffff;
+  --surface-slate-50: #f8fafc;
+  --surface-slate-100: #f1f5f9;
+  --surface-slate-200: #e2e8f0;
+  --surface-slate-300: #cbd5e1;
+  --surface-slate-400: #94a3b8;
+  --surface-slate-500: #64748b;
+  --surface-slate-600: #475569;
+  --surface-slate-700: #334155;
+  --surface-slate-800: #1e293b;
+  --surface-slate-900: #0f172a;
 
-	/* stone (text on light surfaces) */
-	--text-stone-400: #a8a29e;
-	--text-stone-500: #78716c;
-	--text-stone-600: #57534e;
-	--text-stone-700: #44403c;
-	--text-stone-800: #292524;
-	--text-stone-900: #1c1917;
+  /* stone (text on light surfaces) */
+  --text-stone-400: #a8a29e;
+  --text-stone-500: #78716c;
+  --text-stone-600: #57534e;
+  --text-stone-700: #44403c;
+  --text-stone-800: #292524;
+  --text-stone-900: #1c1917;
 
-	/* zinc (dark chrome) */
-	--zinc-400: #a1a1aa;
-	--zinc-500: #71717a;
-	--zinc-600: #52525b;
-	--zinc-700: #3f3f46;
-	--zinc-800: #27272a;
-	--zinc-900: #18181b;
-	--zinc-950: #09090b;
+  /* zinc (dark chrome) */
+  --zinc-400: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-950: #09090b;
 
-	/* AI Innovation–specific neutrals (used in card borders/shadows) */
-	--neutral-card-border:   #ececee;
-	--neutral-card-divider:  #f1f1f3;
-	--neutral-card-divider-soft: #eaeaec;
-	--neutral-card-divider-medium: #eeeef0;
+  /* AI Innovation–specific neutrals (used in card borders/shadows) */
+  --neutral-card-border: #ececee;
+  --neutral-card-divider: #f1f1f3;
+  --neutral-card-divider-soft: #eaeaec;
+  --neutral-card-divider-medium: #eeeef0;
 
-	/* Standard text colors */
-	--text-default:  #111113;          /* near-black, slightly warm */
-	--text-strong:   #111113;
-	--text-muted:    var(--text-stone-500);
-	--text-subtle:   var(--text-stone-400);
-	--text-on-dark:  #ffffff;
-	--text-on-primary: #ffffff;
+  /* Standard text colors */
+  --text-default: #111113; /* near-black, slightly warm */
+  --text-strong: #111113;
+  --text-muted: var(--text-stone-500);
+  --text-subtle: var(--text-stone-400);
+  --text-on-dark: #ffffff;
+  --text-on-primary: #ffffff;
 
-	/* ── Shadcn-compatible HSL tokens ─────────────────────────────────────── */
-	/* For any component built on top of Radix UI / shadcn templates. */
-	--background: 0 0% 100%;
-	--foreground: 0 0% 3.9%;
-	--card: 0 0% 100%;
-	--card-foreground: 0 0% 3.9%;
-	--popover: 0 0% 100%;
-	--popover-foreground: 0 0% 3.9%;
-	--primary: 219 84% 53%;     /* #245CE8 in HSL */
-	--primary-foreground: 0 0% 98%;
-	--secondary: 0 0% 96.1%;
-	--secondary-foreground: 0 0% 9%;
-	--muted: 0 0% 96.1%;
-	--muted-foreground: 0 0% 45.1%;
-	--accent: 0 0% 96.1%;
-	--accent-foreground: 0 0% 9%;
-	--destructive: 0 84.2% 60.2%;
-	--destructive-foreground: 0 0% 98%;
-	--border: 0 0% 89.8%;
-	--input: 0 0% 89.8%;
-	--input-background: 0 0% 100%;
-	--switch-background: 0 0% 89.8%;
-	--ring: 219 84% 53%;
-	--radius: 0.75rem;          /* AI Innovation default = 12px (rounded-xl) */
+  /* ── Shadcn-compatible HSL tokens ─────────────────────────────────────── */
+  /* For any component built on top of Radix UI / shadcn templates. */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 219 84% 53%; /* #245CE8 in HSL */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --input-background: 0 0% 100%;
+  --switch-background: 0 0% 89.8%;
+  --ring: 219 84% 53%;
+  --radius: 0.75rem; /* AI Innovation default = 12px (rounded-xl) */
 
-	/* ============================================================================
+  /* ============================================================================
 	 * SEMANTIC THEME TOKENS — `--aiinds-*` (AI Innovation Design System)
 	 *
 	 * The theme layer. Components should consume THESE, not raw color values.
@@ -333,88 +324,87 @@
 	 * If you tune a value, RE-RUN THE TEST.
 	 * ============================================================================ */
 
-	/* Canvas / surface ladder */
-	--aiinds-bg:             #ffffff;   /* page background                       */
-	--aiinds-bg-subtle:      #f8fafc;   /* hover surface, sidebar tree           */
-	--aiinds-bg-muted:       #f1f5f9;   /* disabled fills, low-emphasis chips    */
-	--aiinds-bg-sunken:      #ececee;   /* track, scrollbar gutter               */
-	--aiinds-surface:        #ffffff;   /* card, dialog, popover surface         */
-	--aiinds-surface-hover:  #f8fafc;   /* row hover, list item hover            */
-	--aiinds-surface-elevated: #ffffff; /* floating panel + uses bigger shadow   */
+  /* Canvas / surface ladder */
+  --aiinds-bg: #ffffff; /* page background                       */
+  --aiinds-bg-subtle: #f8fafc; /* hover surface, sidebar tree           */
+  --aiinds-bg-muted: #f1f5f9; /* disabled fills, low-emphasis chips    */
+  --aiinds-bg-sunken: #ececee; /* track, scrollbar gutter               */
+  --aiinds-surface: #ffffff; /* card, dialog, popover surface         */
+  --aiinds-surface-hover: #f8fafc; /* row hover, list item hover            */
+  --aiinds-surface-elevated: #ffffff; /* floating panel + uses bigger shadow   */
 
-	/* Foreground ladder (text + icons) */
-	--aiinds-fg:             #111113;   /* primary text          · 18.7:1 on bg  AAA */
-	--aiinds-fg-strong:      #000000;   /* emphasis              · 21:1   on bg  AAA */
-	--aiinds-fg-muted:       #57534e;   /* secondary             ·  7.4:1 on bg  AAA */
-	--aiinds-fg-subtle:      #78716c;   /* helper / caption      ·  4.7:1 on bg  AA  */
-	--aiinds-fg-disabled:    #a8a29e;   /* disabled              ·  2.7:1 on bg  (UI-only) */
-	--aiinds-fg-inverse:     #ffffff;   /* text on dark fills    · 21:1 on fg     */
+  /* Foreground ladder (text + icons) */
+  --aiinds-fg: #111113; /* primary text          · 18.7:1 on bg  AAA */
+  --aiinds-fg-strong: #000000; /* emphasis              · 21:1   on bg  AAA */
+  --aiinds-fg-muted: #57534e; /* secondary             ·  7.4:1 on bg  AAA */
+  --aiinds-fg-subtle: #78716c; /* helper / caption      ·  4.7:1 on bg  AA  */
+  --aiinds-fg-disabled: #a8a29e; /* disabled              ·  2.7:1 on bg  (UI-only) */
+  --aiinds-fg-inverse: #ffffff; /* text on dark fills    · 21:1 on fg     */
 
-	/* Borders */
-	--aiinds-border:         #ececee;   /* default card border                    */
-	--aiinds-border-strong:  #e2e8f0;   /* input border                           */
-	--aiinds-border-subtle:  #f1f1f3;   /* divider, table rule                    */
-	--aiinds-border-focus:   #245ce8;   /* focused input                          */
+  /* Borders */
+  --aiinds-border: #ececee; /* default card border                    */
+  --aiinds-border-strong: #e2e8f0; /* input border                           */
+  --aiinds-border-subtle: #f1f1f3; /* divider, table rule                    */
+  --aiinds-border-focus: #245ce8; /* focused input                          */
 
-	/* Skeleton (loading placeholder) — own token pair so we can tune
+  /* Skeleton (loading placeholder) — own token pair so we can tune
 	 * contrast independently of `--aiinds-bg-muted`. The base sits just
 	 * above the page bg so the placeholder is clearly visible; the
 	 * highlight is the sweep color. Light-mode values match the rest of
 	 * the slate-ish surface ladder. */
-	--aiinds-skeleton-base:      #e2e8f0;   /* slate-200 · ~9% delta vs #fff      */
-	--aiinds-skeleton-highlight: #cbd5e1;   /* slate-300 · sweep band             */
+  --aiinds-skeleton-base: #e2e8f0; /* slate-200 · ~9% delta vs #fff      */
+  --aiinds-skeleton-highlight: #cbd5e1; /* slate-300 · sweep band             */
 
-	/* Brand accent (primary) — used for icons, links, focus rings */
-	--aiinds-accent:         #245ce8;   /* fills · button bg ·  5.2:1 on bg AA UI */
-	--aiinds-accent-hover:   #1d4ed8;
-	--aiinds-accent-active:  #1e40af;
-	--aiinds-accent-fg:      #ffffff;   /* text on accent fill  ·  6.4:1     AA  */
-	--aiinds-accent-text:    #1d4ed8;   /* accent AS text on bg ·  7.4:1     AAA */
-	--aiinds-accent-soft:    #ebf2fe;   /* tinted accent background              */
-	--aiinds-accent-soft-border: #bbcdf9;
+  /* Brand accent (primary) — used for icons, links, focus rings */
+  --aiinds-accent: #245ce8; /* fills · button bg ·  5.2:1 on bg AA UI */
+  --aiinds-accent-hover: #1d4ed8;
+  --aiinds-accent-active: #1e40af;
+  --aiinds-accent-fg: #ffffff; /* text on accent fill  ·  6.4:1     AA  */
+  --aiinds-accent-text: #1d4ed8; /* accent AS text on bg ·  7.4:1     AAA */
+  --aiinds-accent-soft: #ebf2fe; /* tinted accent background              */
+  --aiinds-accent-soft-border: #bbcdf9;
 
-	/* Status text colors — these are the SAFE versions to use AS TEXT on
+  /* Status text colors — these are the SAFE versions to use AS TEXT on
 	 * the canvas. The bright -500/-600 shades commonly used in fills are
 	 * NOT contrast-safe as text (e.g. emerald-500 = 2.5:1 on white).
 	 * Use these tokens instead.                                              */
-	--aiinds-success-text:   #047857;   /* emerald-700  ·  5.5:1 on bg  AA       */
-	--aiinds-warning-text:   #b45309;   /* amber-700    ·  5.6:1 on bg  AA       */
-	--aiinds-danger-text:    #b91c1c;   /* red-700      ·  6.4:1 on bg  AA       */
-	--aiinds-info-text:      #1d4ed8;   /* blue-700     ·  7.4:1 on bg  AAA      */
-	--aiinds-ai-text:        #6d28d9;   /* violet-700   ·  7.0:1 on bg  AAA      */
+  --aiinds-success-text: #047857; /* emerald-700  ·  5.5:1 on bg  AA       */
+  --aiinds-warning-text: #b45309; /* amber-700    ·  5.6:1 on bg  AA       */
+  --aiinds-danger-text: #b91c1c; /* red-700      ·  6.4:1 on bg  AA       */
+  --aiinds-info-text: #1d4ed8; /* blue-700     ·  7.4:1 on bg  AAA      */
+  --aiinds-ai-text: #6d28d9; /* violet-700   ·  7.0:1 on bg  AAA      */
 
-	/* Status "soft" surfaces — the tinted backgrounds for delta pills,
+  /* Status "soft" surfaces — the tinted backgrounds for delta pills,
 	 * status badges, callout cards, and weekly-status tiles. Each is
 	 * paired with its `--aiinds-*-text` token above. Light-mode values are
 	 * the canonical Tailwind -100 shades; dark-mode counterparts (in the
 	 * `.dark` block below) are deep brand-tinted surfaces. Every pair is
 	 * AA-verified by installer/__test__/theming.test.mjs.               */
-	--aiinds-success-soft:   #d1fae5;   /* emerald-100 ·  text 5.4:1 AA          */
-	--aiinds-success-border: #6ee7b7;   /* emerald-300 ·  ring/divider           */
-	--aiinds-warning-soft:   #fef3c7;   /* amber-100   ·  text 5.7:1 AA          */
-	--aiinds-warning-border: #fcd34d;   /* amber-300                             */
-	--aiinds-danger-soft:    #fee2e2;   /* red-100     ·  text 5.7:1 AA          */
-	--aiinds-danger-border:  #fca5a5;   /* red-300                               */
-	--aiinds-info-soft:      #dbeafe;   /* blue-100    ·  text 6.6:1 AAA         */
-	--aiinds-info-border:    #93c5fd;   /* blue-300                              */
-	--aiinds-ai-soft:        #ede9fe;   /* violet-100  ·  text 6.4:1 AA          */
-	--aiinds-ai-border:      #c4b5fd;   /* violet-300                            */
+  --aiinds-success-soft: #d1fae5; /* emerald-100 ·  text 5.4:1 AA          */
+  --aiinds-success-border: #6ee7b7; /* emerald-300 ·  ring/divider           */
+  --aiinds-warning-soft: #fef3c7; /* amber-100   ·  text 5.7:1 AA          */
+  --aiinds-warning-border: #fcd34d; /* amber-300                             */
+  --aiinds-danger-soft: #fee2e2; /* red-100     ·  text 5.7:1 AA          */
+  --aiinds-danger-border: #fca5a5; /* red-300                               */
+  --aiinds-info-soft: #dbeafe; /* blue-100    ·  text 6.6:1 AAA         */
+  --aiinds-info-border: #93c5fd; /* blue-300                              */
+  --aiinds-ai-soft: #ede9fe; /* violet-100  ·  text 6.4:1 AA          */
+  --aiinds-ai-border: #c4b5fd; /* violet-300                            */
 
-	/* Special-purpose semantic icon colors. Theme-aware: dark mode brightens
+  /* Special-purpose semantic icon colors. Theme-aware: dark mode brightens
 	 * to maintain 3:1 minimum against the canvas (WCAG 1.4.11 UI). */
-	--aiinds-star-fg:        #f59e0b;   /* amber-500 — starred items, ratings    */
+  --aiinds-star-fg: #f59e0b; /* amber-500 — starred items, ratings    */
 
-	/* Tab indicator gradient (under-active-tab line on dark navbar).
+  /* Tab indicator gradient (under-active-tab line on dark navbar).
 	 * Stays brand-blue in both modes (the navbar is theme-invariant). */
-	--aiinds-tab-indicator:
-		linear-gradient(90deg, transparent 0%, #60a5fa 50%, transparent 100%);
+  --aiinds-tab-indicator: linear-gradient(90deg, transparent 0%, #60a5fa 50%, transparent 100%);
 
-	/* Focus ring (visible-only — used by primitives that consume the token) */
-	--aiinds-focus-ring:     rgb(37 99 232 / 45%);
-	--aiinds-focus-ring-width: 2px;
-	--aiinds-focus-ring-offset: 2px;
+  /* Focus ring (visible-only — used by primitives that consume the token) */
+  --aiinds-focus-ring: rgb(37 99 232 / 45%);
+  --aiinds-focus-ring-width: 2px;
+  --aiinds-focus-ring-offset: 2px;
 
-	/* ============================================================================
+  /* ============================================================================
 	 * SHADCN-STYLE PAIR TOKENS — `<token>` + `<token>-foreground`
 	 *
 	 * shadcn-ui's 2026 token convention: for every "surface" token there is a
@@ -427,37 +417,37 @@
 	 * a drop-in target for any shadcn-style component.
 	 * ============================================================================ */
 
-	/* Surface · base — both alias to --aiinds-surface so they flip
+  /* Surface · base — both alias to --aiinds-surface so they flip
 	 * with the theme automatically. The pair tokens are kept as
 	 * explicit aliases (rather than just removed) so shadcn-style
 	 * `bg-card` / `bg-popover` utilities resolve cleanly. */
-	--aiinds-card:                   var(--aiinds-surface);
-	--aiinds-card-foreground:        var(--aiinds-fg);
-	--aiinds-popover:                var(--aiinds-surface);
-	--aiinds-popover-foreground:     var(--aiinds-fg);
+  --aiinds-card: var(--aiinds-surface);
+  --aiinds-card-foreground: var(--aiinds-fg);
+  --aiinds-popover: var(--aiinds-surface);
+  --aiinds-popover-foreground: var(--aiinds-fg);
 
-	/* Primary (brand) — `--aiinds-accent` IS the primary surface. */
-	--aiinds-primary:                var(--aiinds-accent);
-	--aiinds-primary-foreground:     var(--aiinds-accent-fg);
+  /* Primary (brand) — `--aiinds-accent` IS the primary surface. */
+  --aiinds-primary: var(--aiinds-accent);
+  --aiinds-primary-foreground: var(--aiinds-accent-fg);
 
-	/* Secondary — lower-emphasis filled action / supporting surface. */
-	--aiinds-secondary:              var(--aiinds-bg-subtle);    /* #f8fafc */
-	--aiinds-secondary-foreground:   var(--aiinds-fg);           /* 18.0:1 AAA */
+  /* Secondary — lower-emphasis filled action / supporting surface. */
+  --aiinds-secondary: var(--aiinds-bg-subtle); /* #f8fafc */
+  --aiinds-secondary-foreground: var(--aiinds-fg); /* 18.0:1 AAA */
 
-	/* Muted — subtle surfaces + lower-emphasis content. */
-	--aiinds-muted:                  var(--aiinds-bg-muted);     /* #f1f5f9 */
-	--aiinds-muted-foreground:       var(--aiinds-fg-muted);     /* 7.0:1 AAA */
+  /* Muted — subtle surfaces + lower-emphasis content. */
+  --aiinds-muted: var(--aiinds-bg-muted); /* #f1f5f9 */
+  --aiinds-muted-foreground: var(--aiinds-fg-muted); /* 7.0:1 AAA */
 
-	/* Accent surface — hover / active states for ghost buttons + menu items.
+  /* Accent surface — hover / active states for ghost buttons + menu items.
 	 * NOT the brand accent (which is `--aiinds-accent`). Naming follows shadcn. */
-	--aiinds-accent-surface:         var(--aiinds-bg-subtle);    /* #f8fafc */
-	--aiinds-accent-surface-foreground: var(--aiinds-fg);        /* 18.0:1 AAA */
+  --aiinds-accent-surface: var(--aiinds-bg-subtle); /* #f8fafc */
+  --aiinds-accent-surface-foreground: var(--aiinds-fg); /* 18.0:1 AAA */
 
-	/* Destructive — error / delete actions. */
-	--aiinds-destructive:            var(--aiinds-danger-text);  /* #b91c1c */
-	--aiinds-destructive-foreground: #ffffff;                  /* 6.4:1 AA */
+  /* Destructive — error / delete actions. */
+  --aiinds-destructive: var(--aiinds-danger-text); /* #b91c1c */
+  --aiinds-destructive-foreground: #ffffff; /* 6.4:1 AA */
 
-	/* ============================================================================
+  /* ============================================================================
 	 * SIDEBAR TOKEN FAMILY
 	 *
 	 * AI Innovation ships a TWO-COLUMN sidebar (animated rail + project tree).
@@ -469,48 +459,48 @@
 	 *   bg-aiinds-sidebar-primary  (active item fill)
 	 *   bg-aiinds-sidebar-accent   (hover state)
 	 * ============================================================================ */
-	--aiinds-sidebar:                       #ffffff;            /* tree column */
-	--aiinds-sidebar-foreground:            var(--aiinds-fg);     /* tree text */
-	--aiinds-sidebar-primary:               var(--aiinds-accent); /* active item fill */
-	--aiinds-sidebar-primary-foreground:    var(--aiinds-accent-fg);
-	--aiinds-sidebar-accent:                var(--aiinds-bg-subtle); /* hover row */
-	--aiinds-sidebar-accent-foreground:     var(--aiinds-fg);
-	--aiinds-sidebar-border:                var(--aiinds-border);
-	--aiinds-sidebar-ring:                  var(--aiinds-focus-ring);
+  --aiinds-sidebar: #ffffff; /* tree column */
+  --aiinds-sidebar-foreground: var(--aiinds-fg); /* tree text */
+  --aiinds-sidebar-primary: var(--aiinds-accent); /* active item fill */
+  --aiinds-sidebar-primary-foreground: var(--aiinds-accent-fg);
+  --aiinds-sidebar-accent: var(--aiinds-bg-subtle); /* hover row */
+  --aiinds-sidebar-accent-foreground: var(--aiinds-fg);
+  --aiinds-sidebar-border: var(--aiinds-border);
+  --aiinds-sidebar-ring: var(--aiinds-focus-ring);
 
-	/* ── Spacing scale (8px grid; matches Tailwind defaults) ─────────────── */
-	--space-0: 0;
-	--space-1: 0.25rem;
-	--space-2: 0.5rem;
-	--space-3: 0.75rem;
-	--space-4: 1rem;
-	--space-5: 1.25rem;
-	--space-6: 1.5rem;
-	--space-8: 2rem;
-	--space-10: 2.5rem;
-	--space-12: 3rem;
-	--space-16: 4rem;
-	--space-20: 5rem;
+  /* ── Spacing scale (8px grid; matches Tailwind defaults) ─────────────── */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
 
-	/* ── Sizing ──────────────────────────────────────────────────────────── */
-	--size-navbar: 3.5rem;       /* h-14 = 56px (AI Innovation navbar too) */
-	--size-sidebar: 20rem;       /* 320px (AI Innovation tree sidebar) */
-	--size-sidebar-rail: 3.5rem; /* 56px (the colored vertical rail) */
-	--size-button-sm: 2rem;
-	--size-button-md: 2.25rem;   /* AI Innovation ActionButton = h-9 (36px) */
-	--size-button-lg: 2.5rem;
-	--size-input: 2.25rem;
-	--size-icon-sm: 0.75rem;
-	--size-icon-md: 0.8125rem;   /* AI Innovation icon = 13px in ActionButton */
-	--size-icon-lg: 1rem;
-	--size-icon-xl: 1.25rem;
-	--size-stat-card-icon: 1.5rem; /* size-6 (24px) icon box in StatCard */
+  /* ── Sizing ──────────────────────────────────────────────────────────── */
+  --size-navbar: 3.5rem; /* h-14 = 56px (AI Innovation navbar too) */
+  --size-sidebar: 20rem; /* 320px (AI Innovation tree sidebar) */
+  --size-sidebar-rail: 3.5rem; /* 56px (the colored vertical rail) */
+  --size-button-sm: 2rem;
+  --size-button-md: 2.25rem; /* AI Innovation ActionButton = h-9 (36px) */
+  --size-button-lg: 2.5rem;
+  --size-input: 2.25rem;
+  --size-icon-sm: 0.75rem;
+  --size-icon-md: 0.8125rem; /* AI Innovation icon = 13px in ActionButton */
+  --size-icon-lg: 1rem;
+  --size-icon-xl: 1.25rem;
+  --size-stat-card-icon: 1.5rem; /* size-6 (24px) icon box in StatCard */
 
-	/* Container widths */
-	--container-page: 80rem;
-	--container-prose: 65ch;
+  /* Container widths */
+  --container-page: 80rem;
+  --container-prose: 65ch;
 
-	/* ── Border radius ─────────────────────────────────────────────────────
+  /* ── Border radius ─────────────────────────────────────────────────────
 	 * Derived from a single source of truth — `--radius` (defined in the
 	 * shadcn-compat block above as 0.75rem = 12px = AI Innovation default).
 	 *
@@ -518,151 +508,120 @@
 	 * entire scale, so a project can re-skin every component's corner
 	 * sharpness with a single override. Multipliers match shadcn's defaults.
 	 */
-	--radius-xs:   calc(var(--radius) * 0.33);  /* 4    pills (legacy) */
-	--radius-sm:   calc(var(--radius) * 0.6);   /* 7.2  menus, dropdowns */
-	--radius-md:   calc(var(--radius) * 0.8);   /* 9.6  inputs, badges, small dialogs */
-	--radius-lg:   var(--radius);               /* 12   DEFAULT  · cards, buttons, panels */
-	--radius-xl:   var(--radius);               /* 12   alias    · explicit "xl" callers */
-	--radius-2xl:  calc(var(--radius) * 1.4);   /* 16.8 large panels, info panels */
-	--radius-3xl:  calc(var(--radius) * 2);     /* 24   hero cards (legacy) */
-	--radius-4xl:  calc(var(--radius) * 2.6);   /* 31.2 oversized hero treatment */
-	--radius-full: 9999px;
+  --radius-xs: calc(var(--radius) * 0.33); /* 4    pills (legacy) */
+  --radius-sm: calc(var(--radius) * 0.6); /* 7.2  menus, dropdowns */
+  --radius-md: calc(var(--radius) * 0.8); /* 9.6  inputs, badges, small dialogs */
+  --radius-lg: var(--radius); /* 12   DEFAULT  · cards, buttons, panels */
+  --radius-xl: var(--radius); /* 12   alias    · explicit "xl" callers */
+  --radius-2xl: calc(var(--radius) * 1.4); /* 16.8 large panels, info panels */
+  --radius-3xl: calc(var(--radius) * 2); /* 24   hero cards (legacy) */
+  --radius-4xl: calc(var(--radius) * 2.6); /* 31.2 oversized hero treatment */
+  --radius-full: 9999px;
 
-	/* ── Elevation / shadows — AI Innovation signature soft micro-shadow ─────── */
-	--shadow-card:
-		0 1px 0 rgb(17 17 17 / 2%),
-		0 1px 2px rgb(17 17 17 / 3%);
-	--shadow-card-hover:
-		0 1px 0 rgb(17 17 17 / 2%),
-		0 4px 12px -4px rgb(17 17 17 / 8%);
-	--shadow-card-elevated:
-		0 1px 0 rgb(17 17 17 / 2%),
-		0 1px 2px rgb(17 17 17 / 4%),
-		0 8px 24px -12px rgb(17 17 17 / 8%);
+  /* ── Elevation / shadows — AI Innovation signature soft micro-shadow ─────── */
+  --shadow-card: 0 1px 0 rgb(17 17 17 / 2%), 0 1px 2px rgb(17 17 17 / 3%);
+  --shadow-card-hover: 0 1px 0 rgb(17 17 17 / 2%), 0 4px 12px -4px rgb(17 17 17 / 8%);
+  --shadow-card-elevated: 0 1px 0 rgb(17 17 17 / 2%), 0 1px 2px rgb(17 17 17 / 4%), 0 8px 24px -12px rgb(17 17 17 / 8%);
 
-	/* Standard ladder (kept for compat with legacy specs) */
-	--shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 5%);
-	--shadow-sm:
-		0 1px 3px 0 rgb(0 0 0 / 10%),
-		0 1px 2px -1px rgb(0 0 0 / 10%);
-	--shadow-md:
-		0 4px 6px -1px rgb(0 0 0 / 10%),
-		0 2px 4px -2px rgb(0 0 0 / 10%);
-	--shadow-lg:
-		0 10px 15px -3px rgb(0 0 0 / 10%),
-		0 4px 6px -4px rgb(0 0 0 / 10%);
-	--shadow-xl:
-		0 20px 25px -5px rgb(0 0 0 / 10%),
-		0 8px 10px -6px rgb(0 0 0 / 10%);
-	--shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 25%);
+  /* Standard ladder (kept for compat with legacy specs) */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 5%);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 25%);
 
-	/* AI Innovation button shadows */
-	--shadow-button-primary:
-		0 1px 0 rgb(255 255 255 / 20%) inset,
-		0 2px 8px -2px rgb(37 99 232 / 55%),
-		0 0 0 1px rgb(255 255 255 / 6%);
-	--shadow-button-primary-hover:
-		0 1px 0 rgb(255 255 255 / 20%) inset,
-		0 4px 12px -2px rgb(37 99 232 / 65%),
-		0 0 0 1px rgb(255 255 255 / 6%);
-	--shadow-button-primary-active:
-		0 1px 0 rgb(255 255 255 / 20%) inset,
-		0 1px 4px -1px rgb(37 99 232 / 50%),
-		0 0 0 1px rgb(255 255 255 / 6%);
+  /* AI Innovation button shadows */
+  --shadow-button-primary:
+    0 1px 0 rgb(255 255 255 / 20%) inset, 0 2px 8px -2px rgb(37 99 232 / 55%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-button-primary-hover:
+    0 1px 0 rgb(255 255 255 / 20%) inset, 0 4px 12px -2px rgb(37 99 232 / 65%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-button-primary-active:
+    0 1px 0 rgb(255 255 255 / 20%) inset, 0 1px 4px -1px rgb(37 99 232 / 50%), 0 0 0 1px rgb(255 255 255 / 6%);
 
-	--shadow-button-secondary:
-		0 1px 0 rgb(17 17 17 / 2%),
-		0 1px 2px rgb(17 17 17 / 4%);
+  --shadow-button-secondary: 0 1px 0 rgb(17 17 17 / 2%), 0 1px 2px rgb(17 17 17 / 4%);
 
-	/* AI assistant button shadow (gradient blue→violet) */
-	--shadow-button-ai:
-		0 1px 0 rgb(255 255 255 / 20%) inset,
-		0 2px 8px -2px rgb(99 102 241 / 55%),
-		0 0 0 1px rgb(255 255 255 / 6%);
-	--shadow-button-ai-active:
-		0 1px 0 rgb(255 255 255 / 20%) inset,
-		0 2px 8px -2px rgb(99 102 241 / 55%),
-		0 0 0 2px rgb(255 255 255 / 15%);
+  /* AI assistant button shadow (gradient blue→violet) */
+  --shadow-button-ai:
+    0 1px 0 rgb(255 255 255 / 20%) inset, 0 2px 8px -2px rgb(99 102 241 / 55%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-button-ai-active:
+    0 1px 0 rgb(255 255 255 / 20%) inset, 0 2px 8px -2px rgb(99 102 241 / 55%), 0 0 0 2px rgb(255 255 255 / 15%);
 
-	/* Dark navbar tab active shadow */
-	--shadow-nav-tab-active:
-		0 1px 0 rgb(255 255 255 / 8%) inset,
-		0 0 0 1px rgb(255 255 255 / 6%);
+  /* Dark navbar tab active shadow */
+  --shadow-nav-tab-active: 0 1px 0 rgb(255 255 255 / 8%) inset, 0 0 0 1px rgb(255 255 255 / 6%);
 
-	/* Floating panels */
-	--shadow-floating:
-		0 25px 50px -12px rgb(0 0 0 / 25%),
-		0 0 0 1px rgb(0 0 0 / 5%);
+  /* Floating panels */
+  --shadow-floating: 0 25px 50px -12px rgb(0 0 0 / 25%), 0 0 0 1px rgb(0 0 0 / 5%);
 
-	/* ── Focus rings ─────────────────────────────────────────── */
-	--ring-primary:        rgb(37 99 232 / 35%);
-	--ring-primary-subtle: rgb(37 99 232 / 18%);
-	--ring-secondary:      rgb(37 99 232 / 18%);
+  /* ── Focus rings ─────────────────────────────────────────── */
+  --ring-primary: rgb(37 99 232 / 35%);
+  --ring-primary-subtle: rgb(37 99 232 / 18%);
+  --ring-secondary: rgb(37 99 232 / 18%);
 
-	/* ── Z-index scale ───────────────────────────────────────────────────── */
-	--z-default: 0;
-	--z-sticky: 10;
-	--z-navbar: 50;
-	--z-overlay: 50;
-	--z-floating: 50;
-	--z-toast: 60;
-	--z-tour: 1000000010;
+  /* ── Z-index scale ───────────────────────────────────────────────────── */
+  --z-default: 0;
+  --z-sticky: 10;
+  --z-navbar: 50;
+  --z-overlay: 50;
+  --z-floating: 50;
+  --z-toast: 60;
+  --z-tour: 1000000010;
 
-	/* ── Motion ──────────────────────────────────────────────────────────── */
-	--duration-instant: 100ms;
-	--duration-fast: 150ms;
-	--duration-normal: 180ms;     /* AI Innovation default — was 200ms */
-	--duration-medium: 300ms;
-	--duration-slow: 500ms;
-	--duration-very-slow: 800ms;
-	--ease-default: ease-out;
-	--ease-in: cubic-bezier(0.4, 0, 1, 1);
-	--ease-out: cubic-bezier(0, 0, 0.2, 1);
-	--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-	--ease-spring: cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 180ms; /* AI Innovation default — was 200ms */
+  --duration-medium: 300ms;
+  --duration-slow: 500ms;
+  --duration-very-slow: 800ms;
+  --ease-default: ease-out;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-	/* AI Innovation animated gradients */
-	--anim-color-shift: colorShift 10s ease infinite;
-	--anim-header-color-shift: headerColorShift 10s ease infinite;
-	--anim-float-up: floatUp 8s linear infinite;
-	--anim-float-right: floatRight 12s linear infinite;
+  /* AI Innovation animated gradients */
+  --anim-color-shift: colorShift 10s ease infinite;
+  --anim-header-color-shift: headerColorShift 10s ease infinite;
+  --anim-float-up: floatUp 8s linear infinite;
+  --anim-float-right: floatRight 12s linear infinite;
 
-	/* ── Chart palette (10 colors, in this exact order) ──────────────────── */
-	--chart-1: #3b82f6;
-	--chart-2: #10b981;
-	--chart-3: #f59e0b;
-	--chart-4: #ef4444;
-	--chart-5: #8b5cf6;
-	--chart-6: #06b6d4;
-	--chart-7: #84cc16;
-	--chart-8: #f97316;
-	--chart-9: #ec4899;
-	--chart-10: #2563eb;
+  /* ── Chart palette (10 colors, in this exact order) ──────────────────── */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --chart-6: #06b6d4;
+  --chart-7: #84cc16;
+  --chart-8: #f97316;
+  --chart-9: #ec4899;
+  --chart-10: #2563eb;
 
-	/* AI Innovation phase palette (project timeline summary) */
-	--phase-1: #0f766e;
-	--phase-1-soft: #d1fae5;
-	--phase-2: #245ce8;
-	--phase-2-soft: #e0e7ff;
-	--phase-3: #7c3aed;
-	--phase-3-soft: #ede9fe;
-	--phase-4: #b45309;
-	--phase-4-soft: #fef3c7;
-	--phase-5: #be185d;
-	--phase-5-soft: #fce7f3;
-	--phase-6: #0369a1;
-	--phase-6-soft: #e0f2fe;
-	--phase-7: #475569;
-	--phase-7-soft: #f1f5f9;
-	--phase-8: #9333ea;
-	--phase-8-soft: #f3e8ff;
+  /* AI Innovation phase palette (project timeline summary) */
+  --phase-1: #0f766e;
+  --phase-1-soft: #d1fae5;
+  --phase-2: #245ce8;
+  --phase-2-soft: #e0e7ff;
+  --phase-3: #7c3aed;
+  --phase-3-soft: #ede9fe;
+  --phase-4: #b45309;
+  --phase-4-soft: #fef3c7;
+  --phase-5: #be185d;
+  --phase-5-soft: #fce7f3;
+  --phase-6: #0369a1;
+  --phase-6-soft: #e0f2fe;
+  --phase-7: #475569;
+  --phase-7-soft: #f1f5f9;
+  --phase-8: #9333ea;
+  --phase-8-soft: #f3e8ff;
 
-	/* OKLCH gradient stops (rainbow buttons, shine effects) */
-	--color-1: oklch(30% 0.2 260deg);
-	--color-2: oklch(50% 0.2 250deg);
-	--color-3: oklch(65% 0.15 245deg);
-	--color-4: oklch(75% 0.12 240deg);
-	--color-5: oklch(85% 0.08 235deg);
+  /* OKLCH gradient stops (rainbow buttons, shine effects) */
+  --color-1: oklch(30% 0.2 260deg);
+  --color-2: oklch(50% 0.2 250deg);
+  --color-3: oklch(65% 0.15 245deg);
+  --color-4: oklch(75% 0.12 240deg);
+  --color-5: oklch(85% 0.08 235deg);
 }
 
 /* ============================================================================
@@ -681,296 +640,350 @@
  * ============================================================================ */
 .dark,
 [data-theme="dark"] {
-	/* ── Shadcn-compatible HSL tokens (refined for AA) ──────────────────── */
-	--background: 240 6% 6%;          /* #0e0e10 — slightly warm to match stone */
-	--foreground: 0 0% 98%;
-	--card: 240 5% 9%;                /* #16161a */
-	--card-foreground: 0 0% 98%;
-	--popover: 240 5% 9%;
-	--popover-foreground: 0 0% 98%;
-	--primary: 218 83% 65%;           /* #5b8def — lighter blue for AA contrast */
-	--primary-foreground: 0 0% 100%;
-	--secondary: 240 4% 14%;          /* #222226 */
-	--secondary-foreground: 0 0% 98%;
-	--muted: 240 4% 14%;
-	--muted-foreground: 240 5% 66%;   /* zinc-400 — 5.4:1 on bg AA */
-	--accent: 240 4% 14%;
-	--accent-foreground: 0 0% 98%;
-	--destructive: 0 84% 70%;         /* red-400-ish · 5.9:1 on bg */
-	--destructive-foreground: 0 0% 100%;
-	--border: 240 4% 16%;             /* #27272a — matches --nav-border */
-	--input: 240 4% 16%;
-	--input-background: 240 5% 9%;
-	--switch-background: 240 4% 22%;
-	--ring: 218 83% 65%;
+  /* ── Shadcn-compatible HSL tokens (refined for AA) ──────────────────── */
+  --background: 240 6% 6%; /* #0e0e10 — slightly warm to match stone */
+  --foreground: 0 0% 98%;
+  --card: 240 5% 9%; /* #16161a */
+  --card-foreground: 0 0% 98%;
+  --popover: 240 5% 9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 218 83% 65%; /* #5b8def — lighter blue for AA contrast */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4% 14%; /* #222226 */
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 4% 14%;
+  --muted-foreground: 240 5% 66%; /* zinc-400 — 5.4:1 on bg AA */
+  --accent: 240 4% 14%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 84% 70%; /* red-400-ish · 5.9:1 on bg */
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 4% 16%; /* #27272a — matches --nav-border */
+  --input: 240 4% 16%;
+  --input-background: 240 5% 9%;
+  --switch-background: 240 4% 22%;
+  --ring: 218 83% 65%;
 
-	/* ── Semantic `--aiinds-*` tokens (the theme layer) ───────────────────── */
-	--aiinds-bg:                 #0e0e10;
-	--aiinds-bg-subtle:          #16161a;
-	--aiinds-bg-muted:           #1c1c20;
-	--aiinds-bg-sunken:          #08080a;
-	--aiinds-surface:            #16161a;   /* card                                  */
-	--aiinds-surface-hover:      #1f1f24;
-	--aiinds-surface-elevated:   #1c1c20;   /* floating panels                       */
+  /* ── Semantic `--aiinds-*` tokens (the theme layer) ───────────────────── */
+  --aiinds-bg: #0e0e10;
+  --aiinds-bg-subtle: #16161a;
+  --aiinds-bg-muted: #1c1c20;
+  --aiinds-bg-sunken: #08080a;
+  --aiinds-surface: #16161a; /* card                                  */
+  --aiinds-surface-hover: #1f1f24;
+  --aiinds-surface-elevated: #1c1c20; /* floating panels                       */
 
-	--aiinds-fg:                 #fafafa;   /* primary text   · 18.5:1 on bg  AAA    */
-	--aiinds-fg-strong:          #ffffff;   /* emphasis       · 19.3:1 on bg  AAA    */
-	--aiinds-fg-muted:           #a1a1aa;   /* secondary      ·  7.5:1 on bg  AAA    */
-	--aiinds-fg-subtle:          #9c9ca3;   /* helper/caption ·  4.6:1 on surface AA */
-	--aiinds-fg-disabled:        #52525b;
-	--aiinds-fg-inverse:         #0e0e10;
+  --aiinds-fg: #fafafa; /* primary text   · 18.5:1 on bg  AAA    */
+  --aiinds-fg-strong: #ffffff; /* emphasis       · 19.3:1 on bg  AAA    */
+  --aiinds-fg-muted: #a1a1aa; /* secondary      ·  7.5:1 on bg  AAA    */
+  --aiinds-fg-subtle: #9c9ca3; /* helper/caption ·  4.6:1 on surface AA */
+  --aiinds-fg-disabled: #52525b;
+  --aiinds-fg-inverse: #0e0e10;
 
-	--aiinds-border:             #27272a;   /* default border                         */
-	--aiinds-border-strong:      #3f3f46;
-	--aiinds-border-subtle:      #1f1f22;
-	--aiinds-border-focus:       #5b8def;
+  --aiinds-border: #27272a; /* default border                         */
+  --aiinds-border-strong: #3f3f46;
+  --aiinds-border-subtle: #1f1f22;
+  --aiinds-border-focus: #5b8def;
 
-	/* Skeleton (dark) — bumped to zinc-800 / zinc-600 so the placeholder
+  /* Skeleton (dark) — bumped to zinc-800 / zinc-600 so the placeholder
 	 * is clearly visible against the near-black page bg (#0e0e10) and
 	 * the shimmer sweep reads as a real "reflection". Using
 	 * `--aiinds-bg-muted` (#1c1c20) here gave only ~3% delta vs the page
 	 * and looked broken in motion. */
-	--aiinds-skeleton-base:      #27272a;   /* zinc-800 · ~9% delta vs #0e0e10    */
-	--aiinds-skeleton-highlight: #52525b;   /* zinc-600 · sweep band              */
+  --aiinds-skeleton-base: #27272a; /* zinc-800 · ~9% delta vs #0e0e10    */
+  --aiinds-skeleton-highlight: #52525b; /* zinc-600 · sweep band              */
 
-	/* In dark mode the SOLID accent fill darkens slightly so white text on
+  /* In dark mode the SOLID accent fill darkens slightly so white text on
 	 * it still clears 4.5:1 (white on #2563eb = 7.4:1 AAA). The TINTED
 	 * link/text variant stays lighter (--aiinds-accent-text) for AAA contrast
 	 * against the canvas. */
-	--aiinds-accent:             #2563eb;   /* button fill · 7.4:1 on white text AAA */
-	--aiinds-accent-hover:       #3b7bee;
-	--aiinds-accent-active:      #1d4ed8;
-	--aiinds-accent-fg:          #ffffff;   /* white on #2563eb · 7.4:1     AAA      */
-	--aiinds-accent-text:        #93b4f7;   /* link text on bg ·  7.2:1     AAA      */
-	--aiinds-accent-soft:        #1a2649;   /* tinted accent surface (dark)          */
-	--aiinds-accent-soft-border: #2d4378;
+  --aiinds-accent: #2563eb; /* button fill · 7.4:1 on white text AAA */
+  --aiinds-accent-hover: #3b7bee;
+  --aiinds-accent-active: #1d4ed8;
+  --aiinds-accent-fg: #ffffff; /* white on #2563eb · 7.4:1     AAA      */
+  --aiinds-accent-text: #93b4f7; /* link text on bg ·  7.2:1     AAA      */
+  --aiinds-accent-soft: #1a2649; /* tinted accent surface (dark)          */
+  --aiinds-accent-soft-border: #2d4378;
 
-	--aiinds-success-text:       #34d399;   /* emerald-400  ·  8.2:1 on bg  AAA      */
-	--aiinds-warning-text:       #fbbf24;   /* amber-400    · 10.3:1 on bg  AAA      */
-	--aiinds-danger-text:        #f87171;   /* red-400      ·  5.9:1 on bg  AA       */
-	--aiinds-info-text:          #60a5fa;   /* blue-400     ·  7.3:1 on bg  AAA      */
-	--aiinds-ai-text:            #c4b5fd;   /* violet-300   · 10.0:1 on bg  AAA      */
+  --aiinds-success-text: #34d399; /* emerald-400  ·  8.2:1 on bg  AAA      */
+  --aiinds-warning-text: #fbbf24; /* amber-400    · 10.3:1 on bg  AAA      */
+  --aiinds-danger-text: #f87171; /* red-400      ·  5.9:1 on bg  AA       */
+  --aiinds-info-text: #60a5fa; /* blue-400     ·  7.3:1 on bg  AAA      */
+  --aiinds-ai-text: #c4b5fd; /* violet-300   · 10.0:1 on bg  AAA      */
 
-	/* Status soft surfaces — deep brand-tinted equivalents of light-mode
+  /* Status soft surfaces — deep brand-tinted equivalents of light-mode
 	 * 100-shades. Each pair clears WCAG AA against its `--aiinds-*-text`
 	 * counterpart on the canvas. */
-	--aiinds-success-soft:       #0e2d29;   /* text 7.5:1 AAA                       */
-	--aiinds-success-border:     #1a4641;
-	--aiinds-warning-soft:       #2b1d0a;   /* text 9.4:1 AAA                       */
-	--aiinds-warning-border:     #4a3216;
-	--aiinds-danger-soft:        #2b1424;   /* text 6.0:1 AA                        */
-	--aiinds-danger-border:      #4a2542;
-	--aiinds-info-soft:          #1a2649;   /* text 7.0:1 AA                        */
-	--aiinds-info-border:        #2d4378;
-	--aiinds-ai-soft:            #1f1a3a;   /* text 9.5:1 AAA                       */
-	--aiinds-ai-border:          #3a2d6a;
+  --aiinds-success-soft: #0e2d29; /* text 7.5:1 AAA                       */
+  --aiinds-success-border: #1a4641;
+  --aiinds-warning-soft: #2b1d0a; /* text 9.4:1 AAA                       */
+  --aiinds-warning-border: #4a3216;
+  --aiinds-danger-soft: #2b1424; /* text 6.0:1 AA                        */
+  --aiinds-danger-border: #4a2542;
+  --aiinds-info-soft: #1a2649; /* text 7.0:1 AA                        */
+  --aiinds-info-border: #2d4378;
+  --aiinds-ai-soft: #1f1a3a; /* text 9.5:1 AAA                       */
+  --aiinds-ai-border: #3a2d6a;
 
-	--aiinds-star-fg:            #fbbf24;   /* amber-400 — brighter for dark canvas */
+  --aiinds-star-fg: #fbbf24; /* amber-400 — brighter for dark canvas */
 
-	/* Tab indicator stays brand-blue in dark mode too (theme-invariant
+  /* Tab indicator stays brand-blue in dark mode too (theme-invariant
 	 * because the navbar itself is theme-invariant). */
 
-	--aiinds-focus-ring:         rgb(91 141 239 / 55%);
+  --aiinds-focus-ring: rgb(91 141 239 / 55%);
 
-	/* ── Pair tokens (dark) — same convention as light ─────────────────── */
-	--aiinds-card:                   var(--aiinds-surface);
-	--aiinds-card-foreground:        var(--aiinds-fg);
-	--aiinds-popover:                var(--aiinds-surface);
-	--aiinds-popover-foreground:     var(--aiinds-fg);
-	--aiinds-primary:                var(--aiinds-accent);
-	--aiinds-primary-foreground:     var(--aiinds-accent-fg);
-	--aiinds-secondary:              var(--aiinds-bg-subtle);    /* #16161a */
-	--aiinds-secondary-foreground:   var(--aiinds-fg);           /* 17.3:1 AAA */
-	--aiinds-muted:                  var(--aiinds-bg-muted);     /* #1c1c20 */
-	--aiinds-muted-foreground:       var(--aiinds-fg-muted);     /* 7.0:1 AAA */
-	--aiinds-accent-surface:         var(--aiinds-bg-subtle);
-	--aiinds-accent-surface-foreground: var(--aiinds-fg);
-	--aiinds-destructive:            #b91c1c;                  /* same hue, darker for AA */
-	--aiinds-destructive-foreground: #ffffff;                  /* 8.6:1 AAA on #b91c1c */
+  /* ── Pair tokens (dark) — same convention as light ─────────────────── */
+  --aiinds-card: var(--aiinds-surface);
+  --aiinds-card-foreground: var(--aiinds-fg);
+  --aiinds-popover: var(--aiinds-surface);
+  --aiinds-popover-foreground: var(--aiinds-fg);
+  --aiinds-primary: var(--aiinds-accent);
+  --aiinds-primary-foreground: var(--aiinds-accent-fg);
+  --aiinds-secondary: var(--aiinds-bg-subtle); /* #16161a */
+  --aiinds-secondary-foreground: var(--aiinds-fg); /* 17.3:1 AAA */
+  --aiinds-muted: var(--aiinds-bg-muted); /* #1c1c20 */
+  --aiinds-muted-foreground: var(--aiinds-fg-muted); /* 7.0:1 AAA */
+  --aiinds-accent-surface: var(--aiinds-bg-subtle);
+  --aiinds-accent-surface-foreground: var(--aiinds-fg);
+  --aiinds-destructive: #b91c1c; /* same hue, darker for AA */
+  --aiinds-destructive-foreground: #ffffff; /* 8.6:1 AAA on #b91c1c */
 
-	/* ── Sidebar (dark) ────────────────────────────────────────────────── */
-	--aiinds-sidebar:                       var(--aiinds-bg);           /* #0e0e10 */
-	--aiinds-sidebar-foreground:            var(--aiinds-fg);
-	--aiinds-sidebar-primary:               var(--aiinds-accent);
-	--aiinds-sidebar-primary-foreground:    var(--aiinds-accent-fg);
-	--aiinds-sidebar-accent:                var(--aiinds-bg-subtle);    /* hover row */
-	--aiinds-sidebar-accent-foreground:     var(--aiinds-fg);
-	--aiinds-sidebar-border:                var(--aiinds-border);
-	--aiinds-sidebar-ring:                  var(--aiinds-focus-ring);
+  /* ── Sidebar (dark) ────────────────────────────────────────────────── */
+  --aiinds-sidebar: var(--aiinds-bg); /* #0e0e10 */
+  --aiinds-sidebar-foreground: var(--aiinds-fg);
+  --aiinds-sidebar-primary: var(--aiinds-accent);
+  --aiinds-sidebar-primary-foreground: var(--aiinds-accent-fg);
+  --aiinds-sidebar-accent: var(--aiinds-bg-subtle); /* hover row */
+  --aiinds-sidebar-accent-foreground: var(--aiinds-fg);
+  --aiinds-sidebar-border: var(--aiinds-border);
+  --aiinds-sidebar-ring: var(--aiinds-focus-ring);
 
-	/* ── AI Innovation surface / border tokens (NEW: now invert too) ────── */
-	--surface-white:           var(--aiinds-surface);
-	--neutral-card-border:     var(--aiinds-border);
-	--neutral-card-divider:    var(--aiinds-border-subtle);
-	--neutral-card-divider-soft:   var(--aiinds-border-subtle);
-	--neutral-card-divider-medium: var(--aiinds-border);
+  /* ── AI Innovation surface / border tokens (NEW: now invert too) ────── */
+  --surface-white: var(--aiinds-surface);
+  --neutral-card-border: var(--aiinds-border);
+  --neutral-card-divider: var(--aiinds-border-subtle);
+  --neutral-card-divider-soft: var(--aiinds-border-subtle);
+  --neutral-card-divider-medium: var(--aiinds-border);
 
-	/* Text token shims (used by legacy components that still consume them) */
-	--text-default:            var(--aiinds-fg);
-	--text-strong:             var(--aiinds-fg-strong);
-	--text-muted:              var(--aiinds-fg-muted);
-	--text-subtle:             var(--aiinds-fg-subtle);
+  /* Text token shims (used by legacy components that still consume them) */
+  --text-default: var(--aiinds-fg);
+  --text-strong: var(--aiinds-fg-strong);
+  --text-muted: var(--aiinds-fg-muted);
+  --text-subtle: var(--aiinds-fg-subtle);
 
-	/* Variant soft backgrounds — flip from tinted-light to tinted-dark.
+  /* Variant soft backgrounds — flip from tinted-light to tinted-dark.
 	 * Border keeps roughly the same hue but tuned down for dark contrast. */
-	--variant-objectives-soft:    #1a2649;
-	--variant-objectives-border:  #2d4378;
-	--variant-objectives-ring:    rgb(91 141 239 / 30%);
+  --variant-objectives-soft: #1a2649;
+  --variant-objectives-border: #2d4378;
+  --variant-objectives-ring: rgb(91 141 239 / 30%);
 
-	--variant-scope-soft:         #0e2d29;
-	--variant-scope-border:       #1a4641;
-	--variant-scope-ring:         rgb(52 211 153 / 30%);
+  --variant-scope-soft: #0e2d29;
+  --variant-scope-border: #1a4641;
+  --variant-scope-ring: rgb(52 211 153 / 30%);
 
-	--variant-deliverables-soft:  #2b1d0a;
-	--variant-deliverables-border:#4a3216;
-	--variant-deliverables-ring:  rgb(251 191 36 / 30%);
+  --variant-deliverables-soft: #2b1d0a;
+  --variant-deliverables-border: #4a3216;
+  --variant-deliverables-ring: rgb(251 191 36 / 30%);
 
-	--variant-rose-soft:          #2b1424;
-	--variant-rose-border:        #4a2542;
+  --variant-rose-soft: #2b1424;
+  --variant-rose-border: #4a2542;
 
-	--variant-cyan-soft:          #0c2538;
+  --variant-cyan-soft: #0c2538;
 
-	/* StatCard soft fills — invert per slot */
-	--stat-slate-soft:            #1c1c20;
-	--stat-blue-soft:             #1a2649;
-	--stat-blue-border:           #2d4378;
-	--stat-teal-soft:             #0e2d29;
-	--stat-amber-soft:            #2b1d0a;
-	--stat-rose-soft:             #2b1424;
+  /* StatCard soft fills — invert per slot */
+  --stat-slate-soft: #1c1c20;
+  --stat-blue-soft: #1a2649;
+  --stat-blue-border: #2d4378;
+  --stat-teal-soft: #0e2d29;
+  --stat-amber-soft: #2b1d0a;
+  --stat-rose-soft: #2b1424;
 
-	/* Status soft backgrounds — flip from 50/100 shades to deep tints */
-	--color-success-bg:           #0e2d29;
-	--color-warning-bg:           #2b1d0a;
-	--color-amber-soft:           #2b1d0a;
-	--color-error-bg:             #2b1424;
-	--color-info-bg:              #1a2649;
-	--color-ai-bg:                #1f1a3a;
+  /* Status soft backgrounds — flip from 50/100 shades to deep tints */
+  --color-success-bg: #0e2d29;
+  --color-warning-bg: #2b1d0a;
+  --color-amber-soft: #2b1d0a;
+  --color-error-bg: #2b1424;
+  --color-info-bg: #1a2649;
+  --color-ai-bg: #1f1a3a;
 
-	/* Card shadows go DARKER on dark — light-mode shadows disappear into bg */
-	--shadow-card:
-		0 1px 0 rgb(0 0 0 / 60%),
-		0 1px 2px rgb(0 0 0 / 50%);
-	--shadow-card-hover:
-		0 1px 0 rgb(0 0 0 / 60%),
-		0 4px 12px -4px rgb(0 0 0 / 70%);
-	--shadow-card-elevated:
-		0 1px 0 rgb(0 0 0 / 60%),
-		0 1px 2px rgb(0 0 0 / 50%),
-		0 8px 24px -12px rgb(0 0 0 / 80%);
+  /* Card shadows go DARKER on dark — light-mode shadows disappear into bg */
+  --shadow-card: 0 1px 0 rgb(0 0 0 / 60%), 0 1px 2px rgb(0 0 0 / 50%);
+  --shadow-card-hover: 0 1px 0 rgb(0 0 0 / 60%), 0 4px 12px -4px rgb(0 0 0 / 70%);
+  --shadow-card-elevated: 0 1px 0 rgb(0 0 0 / 60%), 0 1px 2px rgb(0 0 0 / 50%), 0 8px 24px -12px rgb(0 0 0 / 80%);
 
-	/* Floating panel shadow gets a faint highlight ring */
-	--shadow-floating:
-		0 25px 50px -12px rgb(0 0 0 / 70%),
-		0 0 0 1px rgb(255 255 255 / 6%);
+  /* Floating panel shadow gets a faint highlight ring */
+  --shadow-floating: 0 25px 50px -12px rgb(0 0 0 / 70%), 0 0 0 1px rgb(255 255 255 / 6%);
 
-	/* Primary brand value stays brand-aligned; gradient lightens a touch
+  /* Primary brand value stays brand-aligned; gradient lightens a touch
 	 * so the button reads as "blue" rather than "navy" on dark canvas. */
-	--gradient-primary:
-		linear-gradient(135deg, #3b7bee 0%, #2563eb 100%);
-	--gradient-primary-hover:
-		linear-gradient(135deg, #5b8def 0%, #3b7bee 100%);
+  --gradient-primary: linear-gradient(135deg, #3b7bee 0%, #2563eb 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #5b8def 0%, #3b7bee 100%);
 
-	/* Color-scheme — gives native UA controls (form, scrollbars, dialog)
+  /* Color-scheme — gives native UA controls (form, scrollbars, dialog)
 	 * a dark look without extra CSS. Without this, native widgets stay
 	 * light against our dark canvas. */
-	color-scheme: dark;
+  color-scheme: dark;
 }
 
 /* Native UA controls match the canvas in light mode too. */
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+}
 
 /* ============================================================================
  * Body defaults
  * ============================================================================ */
 
 html {
-	overflow-x: hidden;
-	/* Honor the theme cascade for native UA controls (form widgets, scrollbar
+  overflow-x: hidden;
+  /* Honor the theme cascade for native UA controls (form widgets, scrollbar
 	 * track, dialog backdrop, etc.). Driven by `color-scheme` set on :root
 	 * (light) and overridden by .dark below. */
 }
 
 body {
-	background: var(--aiinds-bg);
-	color: var(--aiinds-fg);
-	font-family: var(--font-family-body);
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	overflow-x: hidden;
-	/* Smooth transition between modes — but ONLY for color/background, never
+  background: var(--aiinds-bg);
+  color: var(--aiinds-fg);
+  font-family: var(--font-family-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  /* Smooth transition between modes — but ONLY for color/background, never
 	 * for transform/layout, to avoid jank on the initial paint. */
-	transition:
-		background-color 200ms var(--ease-out),
-		color 200ms var(--ease-out);
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
 }
 
 /* Focus-visible — every interactive element using `:focus-visible` should
  * pick this up. AI Innovation primary blue ring, 2px, with 2px offset.
  * Defined here so consumers don't have to hand-roll one. */
 :focus-visible {
-	outline: var(--aiinds-focus-ring-width) solid var(--aiinds-focus-ring);
-	outline-offset: var(--aiinds-focus-ring-offset);
-	border-radius: var(--radius-md);
+  outline: var(--aiinds-focus-ring-width) solid var(--aiinds-focus-ring);
+  outline-offset: var(--aiinds-focus-ring-offset);
+  border-radius: var(--radius-md);
 }
 
 /* ============================================================================
  * Global heading cascade (Manrope, weights only — sizes from utilities)
  * ============================================================================ */
 
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6 {
-	font-family: var(--font-family-heading);
-	line-height: 1.3;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-family: var(--font-family-heading);
+  line-height: 1.3;
 }
-h1, .h1 { font-weight: 800; line-height: 1.2; }
-h2, .h2 { font-weight: 700; line-height: 1.25; }
-h3, .h3 { font-weight: 600; line-height: 1.3; }
-h4, .h4 { font-weight: 600; line-height: 1.4; }
-h5, .h5 { font-weight: 600; line-height: 1.5; }
-h6, .h6 { font-weight: 600; line-height: 1.5; text-transform: uppercase; }
+h1,
+.h1 {
+  font-weight: 800;
+  line-height: 1.2;
+}
+h2,
+.h2 {
+  font-weight: 700;
+  line-height: 1.25;
+}
+h3,
+.h3 {
+  font-weight: 600;
+  line-height: 1.3;
+}
+h4,
+.h4 {
+  font-weight: 600;
+  line-height: 1.4;
+}
+h5,
+.h5 {
+  font-weight: 600;
+  line-height: 1.5;
+}
+h6,
+.h6 {
+  font-weight: 600;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
 
 /* ============================================================================
  * Minimalistic scrollbars (Webkit + Firefox)
  * ============================================================================ */
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-	background: rgb(148 163 184 / 40%);
-	border-radius: 3px;
-	transition: background 0.2s ease;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-::-webkit-scrollbar-thumb:hover  { background: rgb(148 163 184 / 70%); }
-::-webkit-scrollbar-thumb:active { background: rgb(100 116 139 / 80%); }
-::-webkit-scrollbar-corner       { background: transparent; }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 40%);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184 / 70%);
+}
+::-webkit-scrollbar-thumb:active {
+  background: rgb(100 116 139 / 80%);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
 
 /* Dark theme — make the scrollbar thumb visible against the dark canvas */
 .dark ::-webkit-scrollbar-thumb,
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-	background: rgb(161 161 170 / 30%);
+  background: rgb(161 161 170 / 30%);
 }
 .dark ::-webkit-scrollbar-thumb:hover,
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-	background: rgb(161 161 170 / 55%);
+  background: rgb(161 161 170 / 55%);
 }
 
 * {
-	scrollbar-width: thin;
-	scrollbar-color: rgb(148 163 184 / 40%) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 40%) transparent;
 }
 .dark *,
 [data-theme="dark"] * {
-	scrollbar-color: rgb(161 161 170 / 30%) transparent;
+  scrollbar-color: rgb(161 161 170 / 30%) transparent;
 }
 
-.scrollbar-minimal               { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-.scrollbar-minimal:hover         { scrollbar-color: rgb(148 163 184 / 40%) transparent; }
-.scrollbar-minimal::-webkit-scrollbar-thumb        { background: transparent; }
-.scrollbar-minimal:hover::-webkit-scrollbar-thumb  { background: rgb(148 163 184 / 40%); }
+.scrollbar-minimal {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scrollbar-minimal:hover {
+  scrollbar-color: rgb(148 163 184 / 40%) transparent;
+}
+.scrollbar-minimal::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.scrollbar-minimal:hover::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 40%);
+}
 
-.scrollbar-thin::-webkit-scrollbar             { width: 4px; height: 4px; }
-.scrollbar-thin::-webkit-scrollbar-thumb       { background: rgb(148 163 184 / 30%); border-radius: 2px; }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184 / 50%); }
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 30%);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184 / 50%);
+}
 
 /* ============================================================================
  * Keyframes (AI Innovation + legacy)
@@ -978,67 +991,219 @@ h6, .h6 { font-weight: 600; line-height: 1.5; text-transform: uppercase; }
 
 /* AI Innovation animated gradient on sidebar rail / chat header */
 @keyframes colorShift {
-	0%   { background-position: 0% 0%; }
-	50%  { background-position: 0% 100%; }
-	100% { background-position: 0% 0%; }
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 @keyframes headerColorShift {
-	0%   { background-position: 0% 50%; }
-	50%  { background-position: 100% 50%; }
-	100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* AI Innovation floating particles */
 @keyframes floatUp {
-	0%   { transform: translateY(0) translateX(0); opacity: 0; }
-	10%  { opacity: 0.4; }
-	90%  { opacity: 0.3; }
-	100% { transform: translateY(-100vh) translateX(10px); opacity: 0; }
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(10px);
+    opacity: 0;
+  }
 }
 
 @keyframes floatRight {
-	0%   { transform: translateX(0);    opacity: 0;   }
-	10%  { opacity: 0.5; }
-	90%  { opacity: 0.3; }
-	100% { transform: translateX(520px); opacity: 0;  }
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(520px);
+    opacity: 0;
+  }
 }
 
 /* Legacy keyframes (loaders, etc.) */
 @keyframes fade-in {
-	from { opacity: 0; transform: translateX(20px); }
-	to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
-.animate-fade-in { animation: fade-in 0.5s ease-out; }
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
 
 @keyframes shimmer {
-	0%   { background-position:  200% 0; }
-	100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
-@keyframes spinner-fade { 0%, 39%, 100% { opacity: 0; } 40% { opacity: 1; } }
-@keyframes thin-pulse   { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.5; } }
-@keyframes pulse-dot    { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.7); opacity: 0.5; } }
-@keyframes bounce-dots  { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-25%); } }
-@keyframes typing       { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25%); } }
-@keyframes wave         { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.5); } }
-@keyframes wave-bars    { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
-@keyframes blink        { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-@keyframes text-blink   { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-@keyframes loading-dots { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
-@keyframes rainbow      { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-@keyframes accordion-down { from { height: 0; } to { height: var(--radix-accordion-content-height); } }
-@keyframes accordion-up   { from { height: var(--radix-accordion-content-height); } to { height: 0; } }
+@keyframes spinner-fade {
+  0%,
+  39%,
+  100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes thin-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.5;
+  }
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+}
+@keyframes bounce-dots {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-25%);
+  }
+}
+@keyframes typing {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-25%);
+  }
+}
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+@keyframes wave-bars {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes text-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes loading-dots {
+  0%,
+  80%,
+  100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
 
 /* Accessibility — respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-	*,
-	*::before,
-	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
-		scroll-behavior: auto !important;
-	}
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ============================================================================
@@ -1090,7 +1255,7 @@ summary,
 [role="radio"]:not([aria-disabled="true"]),
 [role="treeitem"]:not([aria-disabled="true"]),
 [data-pointer]:not([aria-disabled="true"]) {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 /* `<label>` only gets the pointer when it actually wraps / `for`s an
@@ -1103,7 +1268,7 @@ label[for]:not([data-disabled]),
 .aiinds-checkbox-label,
 .aiinds-switch-label,
 .aiinds-radio-label {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 /* Disabled-state cursor — applies to every disabled-or-aria-disabled
@@ -1113,7 +1278,7 @@ button:disabled,
 [aria-disabled="true"],
 [data-disabled],
 [data-state="disabled"] {
-	cursor: not-allowed;
+  cursor: not-allowed;
 }
 
 /* ============================================================================
@@ -1136,47 +1301,47 @@ button:disabled,
 
 /* ── Checkbox ─────────────────────────────────────────────────────── */
 .aiinds-checkbox-root {
-	background-color: var(--aiinds-surface);
-	border-color: var(--aiinds-border);
+  background-color: var(--aiinds-surface);
+  border-color: var(--aiinds-border);
 }
 .aiinds-checkbox-root[data-state="checked"],
 .aiinds-checkbox-root[data-state="indeterminate"] {
-	background-color: var(--aiinds-accent);
-	border-color: var(--aiinds-accent);
+  background-color: var(--aiinds-accent);
+  border-color: var(--aiinds-accent);
 }
 
 /* ── Switch ───────────────────────────────────────────────────────── */
 .aiinds-switch-root {
-	background-color: var(--aiinds-bg-muted);
-	border-color: var(--aiinds-border);
+  background-color: var(--aiinds-bg-muted);
+  border-color: var(--aiinds-border);
 }
 .aiinds-switch-root[data-state="checked"] {
-	background-color: var(--aiinds-accent);
-	border-color: var(--aiinds-accent);
+  background-color: var(--aiinds-accent);
+  border-color: var(--aiinds-accent);
 }
 .aiinds-switch-thumb {
-	background-color: #ffffff;
-	border: 1px solid rgba(0, 0, 0, 0.10);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 .aiinds-switch-root[data-state="unchecked"] .aiinds-switch-thumb {
-	transform: translateX(2px);
+  transform: translateX(2px);
 }
 .aiinds-switch-root[data-state="checked"] .aiinds-switch-thumb {
-	transform: translateX(18px);
-	border-color: transparent;
+  transform: translateX(18px);
+  border-color: transparent;
 }
 
 /* ── Radio item dot ───────────────────────────────────────────────── */
 .aiinds-radio-item {
-	background-color: var(--aiinds-surface);
-	border-color: var(--aiinds-border);
+  background-color: var(--aiinds-surface);
+  border-color: var(--aiinds-border);
 }
 .aiinds-radio-item[data-state="checked"] {
-	border-color: var(--aiinds-accent);
+  border-color: var(--aiinds-accent);
 }
 .aiinds-radio-indicator {
-	background-color: var(--aiinds-accent);
+  background-color: var(--aiinds-accent);
 }
 
 /* ── Floating overlay surfaces (Select / Popover / Dropdown / Menu /
@@ -1186,16 +1351,16 @@ button:disabled,
  * background/border/color via inline styles for belt-and-suspenders
  * coverage; the class here is the canonical override point. */
 .aiinds-floating-surface {
-	background-color: var(--aiinds-surface-elevated);
-	color: var(--aiinds-fg);
-	border-color: var(--aiinds-border);
+  background-color: var(--aiinds-surface-elevated);
+  color: var(--aiinds-fg);
+  border-color: var(--aiinds-border);
 }
 
 /* ── Select item highlight ───────────────────────────────────────── */
 .aiinds-select-item[data-highlighted] {
-	background-color: var(--aiinds-surface-hover);
-	color: var(--aiinds-fg);
-	outline: none;
+  background-color: var(--aiinds-surface-hover);
+  color: var(--aiinds-fg);
+  outline: none;
 }
 
 /* ============================================================================
@@ -1234,10 +1399,10 @@ button:disabled,
  * ============================================================================ */
 
 :root {
-	--aiinds-overlay-duration-in:  200ms;
-	--aiinds-overlay-duration-out: 150ms;
-	--aiinds-overlay-ease-in:      cubic-bezier(0.16, 1, 0.3, 1);
-	--aiinds-overlay-ease-out:     ease-in;
+  --aiinds-overlay-duration-in: 200ms;
+  --aiinds-overlay-duration-out: 150ms;
+  --aiinds-overlay-ease-in: cubic-bezier(0.16, 1, 0.3, 1);
+  --aiinds-overlay-ease-out: ease-in;
 }
 
 /* ── Centered modal (Dialog, AlertDialog) ──────────────────────────
@@ -1270,33 +1435,33 @@ button:disabled,
  *   Consumers MUST NOT add `-translate-x-1/2 -translate-y-1/2` (or
  *   any other transform utility) to elements that carry this class. */
 .aiinds-modal-centered {
-	transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 }
 @keyframes aiinds-modal-in {
-	from {
-		opacity: 0;
-		transform: translate(-50%, calc(-50% + 8px)) scale(0.96);
-	}
-	to {
-		opacity: 1;
-		transform: translate(-50%, -50%) scale(1);
-	}
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 @keyframes aiinds-modal-out {
-	from {
-		opacity: 1;
-		transform: translate(-50%, -50%) scale(1);
-	}
-	to {
-		opacity: 0;
-		transform: translate(-50%, calc(-50% + 8px)) scale(0.96);
-	}
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.96);
+  }
 }
 .aiinds-modal-centered[data-state="open"] {
-	animation: aiinds-modal-in var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+  animation: aiinds-modal-in var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-modal-centered[data-state="closed"] {
-	animation: aiinds-modal-out var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-modal-out var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 
 /* ── Radix-positioned popups (Popover, HoverCard, DropdownMenu,
@@ -1305,43 +1470,99 @@ button:disabled,
  * (matches the side the popup is anchored to). The `transform-origin`
  * is anchored to the trigger-facing edge so the zoom feels correct. */
 @keyframes aiinds-popover-in-bottom {
-	from { opacity: 0; transform: scale(0.95) translateY(-4px); }
-	to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 @keyframes aiinds-popover-out-bottom {
-	from { opacity: 1; transform: scale(1) translateY(0); }
-	to   { opacity: 0; transform: scale(0.95) translateY(-4px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
 }
 @keyframes aiinds-popover-in-top {
-	from { opacity: 0; transform: scale(0.95) translateY(4px); }
-	to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 @keyframes aiinds-popover-out-top {
-	from { opacity: 1; transform: scale(1) translateY(0); }
-	to   { opacity: 0; transform: scale(0.95) translateY(4px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
 }
 @keyframes aiinds-popover-in-right {
-	from { opacity: 0; transform: scale(0.95) translateX(-4px); }
-	to   { opacity: 1; transform: scale(1) translateX(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
 }
 @keyframes aiinds-popover-out-right {
-	from { opacity: 1; transform: scale(1) translateX(0); }
-	to   { opacity: 0; transform: scale(0.95) translateX(-4px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateX(-4px);
+  }
 }
 @keyframes aiinds-popover-in-left {
-	from { opacity: 0; transform: scale(0.95) translateX(4px); }
-	to   { opacity: 1; transform: scale(1) translateX(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
 }
 @keyframes aiinds-popover-out-left {
-	from { opacity: 1; transform: scale(1) translateX(0); }
-	to   { opacity: 0; transform: scale(0.95) translateX(4px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateX(4px);
+  }
 }
 
 /* Anchor the zoom origin to the side facing the trigger. */
-.aiinds-anim-popover[data-side="bottom"] { transform-origin: top center; }
-.aiinds-anim-popover[data-side="top"]    { transform-origin: bottom center; }
-.aiinds-anim-popover[data-side="right"]  { transform-origin: left center; }
-.aiinds-anim-popover[data-side="left"]   { transform-origin: right center; }
+.aiinds-anim-popover[data-side="bottom"] {
+  transform-origin: top center;
+}
+.aiinds-anim-popover[data-side="top"] {
+  transform-origin: bottom center;
+}
+.aiinds-anim-popover[data-side="right"] {
+  transform-origin: left center;
+}
+.aiinds-anim-popover[data-side="left"] {
+  transform-origin: right center;
+}
 
 /* Popover animation — applied via the explicit `aiinds-anim-popover`
  * marker. Radix uses `data-state="open"` for most overlays and
@@ -1349,70 +1570,156 @@ button:disabled,
  * elapses). Both map to the same in-keyframe. */
 .aiinds-anim-popover[data-side="bottom"][data-state="open"],
 .aiinds-anim-popover[data-side="bottom"][data-state="delayed-open"] {
-	animation: aiinds-popover-in-bottom var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+  animation: aiinds-popover-in-bottom var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-anim-popover[data-side="bottom"][data-state="closed"] {
-	animation: aiinds-popover-out-bottom var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-popover-out-bottom var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 .aiinds-anim-popover[data-side="top"][data-state="open"],
 .aiinds-anim-popover[data-side="top"][data-state="delayed-open"] {
-	animation: aiinds-popover-in-top var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+  animation: aiinds-popover-in-top var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-anim-popover[data-side="top"][data-state="closed"] {
-	animation: aiinds-popover-out-top var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-popover-out-top var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 .aiinds-anim-popover[data-side="right"][data-state="open"],
 .aiinds-anim-popover[data-side="right"][data-state="delayed-open"] {
-	animation: aiinds-popover-in-right var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+  animation: aiinds-popover-in-right var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-anim-popover[data-side="right"][data-state="closed"] {
-	animation: aiinds-popover-out-right var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-popover-out-right var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 .aiinds-anim-popover[data-side="left"][data-state="open"],
 .aiinds-anim-popover[data-side="left"][data-state="delayed-open"] {
-	animation: aiinds-popover-in-left var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+  animation: aiinds-popover-in-left var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-anim-popover[data-side="left"][data-state="closed"] {
-	animation: aiinds-popover-out-left var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-popover-out-left var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 /* Fallback for popovers Radix opens without a `data-side` (e.g. Select
  * with `position="item-aligned"`, or a popover that snaps to the
  * trigger origin). Plays the same fade+zoom without the slide. */
 .aiinds-anim-popover:not([data-side])[data-state="open"],
 .aiinds-anim-popover:not([data-side])[data-state="delayed-open"] {
-	animation: aiinds-popover-in-bottom var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+  animation: aiinds-popover-in-bottom var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-anim-popover:not([data-side])[data-state="closed"] {
-	animation: aiinds-popover-out-bottom var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-popover-out-bottom var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 
 /* ── Sheet (drawer) per side ─────────────────────────────────────── */
-@keyframes aiinds-sheet-in-right  { from { transform: translateX(100%);  } to { transform: translateX(0); } }
-@keyframes aiinds-sheet-out-right { from { transform: translateX(0);     } to { transform: translateX(100%); } }
-@keyframes aiinds-sheet-in-left   { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-@keyframes aiinds-sheet-out-left  { from { transform: translateX(0);     } to { transform: translateX(-100%); } }
-@keyframes aiinds-sheet-in-top    { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-@keyframes aiinds-sheet-out-top   { from { transform: translateY(0);     } to { transform: translateY(-100%); } }
-@keyframes aiinds-sheet-in-bottom { from { transform: translateY(100%);  } to { transform: translateY(0); } }
-@keyframes aiinds-sheet-out-bottom{ from { transform: translateY(0);     } to { transform: translateY(100%); } }
+@keyframes aiinds-sheet-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes aiinds-sheet-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes aiinds-sheet-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes aiinds-sheet-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes aiinds-sheet-in-top {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes aiinds-sheet-out-top {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes aiinds-sheet-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes aiinds-sheet-out-bottom {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
 
-.aiinds-sheet-side-right[data-state="open"]  { animation: aiinds-sheet-in-right  var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in); }
-.aiinds-sheet-side-right[data-state="closed"]{ animation: aiinds-sheet-out-right var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards; }
-.aiinds-sheet-side-left[data-state="open"]   { animation: aiinds-sheet-in-left   var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in); }
-.aiinds-sheet-side-left[data-state="closed"] { animation: aiinds-sheet-out-left  var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards; }
-.aiinds-sheet-side-top[data-state="open"]    { animation: aiinds-sheet-in-top    var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in); }
-.aiinds-sheet-side-top[data-state="closed"]  { animation: aiinds-sheet-out-top   var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards; }
-.aiinds-sheet-side-bottom[data-state="open"] { animation: aiinds-sheet-in-bottom var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in); }
-.aiinds-sheet-side-bottom[data-state="closed"]{ animation: aiinds-sheet-out-bottom var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards; }
+.aiinds-sheet-side-right[data-state="open"] {
+  animation: aiinds-sheet-in-right var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+}
+.aiinds-sheet-side-right[data-state="closed"] {
+  animation: aiinds-sheet-out-right var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+}
+.aiinds-sheet-side-left[data-state="open"] {
+  animation: aiinds-sheet-in-left var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+}
+.aiinds-sheet-side-left[data-state="closed"] {
+  animation: aiinds-sheet-out-left var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+}
+.aiinds-sheet-side-top[data-state="open"] {
+  animation: aiinds-sheet-in-top var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+}
+.aiinds-sheet-side-top[data-state="closed"] {
+  animation: aiinds-sheet-out-top var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+}
+.aiinds-sheet-side-bottom[data-state="open"] {
+  animation: aiinds-sheet-in-bottom var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+}
+.aiinds-sheet-side-bottom[data-state="closed"] {
+  animation: aiinds-sheet-out-bottom var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+}
 
 /* ── Backdrop overlays (Dialog, AlertDialog, Sheet) ──────────────── */
-@keyframes aiinds-overlay-in  { from { opacity: 0; } to { opacity: 1; } }
-@keyframes aiinds-overlay-out { from { opacity: 1; } to { opacity: 0; } }
-.aiinds-overlay[data-state="open"]  {
-	animation: aiinds-overlay-in  var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
+@keyframes aiinds-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes aiinds-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.aiinds-overlay[data-state="open"] {
+  animation: aiinds-overlay-in var(--aiinds-overlay-duration-in) var(--aiinds-overlay-ease-in);
 }
 .aiinds-overlay[data-state="closed"] {
-	animation: aiinds-overlay-out var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
+  animation: aiinds-overlay-out var(--aiinds-overlay-duration-out) var(--aiinds-overlay-ease-out) forwards;
 }
 
 /* ── Skeleton (loading placeholder) ──────────────────────────────── */
@@ -1430,25 +1737,29 @@ button:disabled,
  * `--aiinds-bg-muted` directly, which only gave ~3% delta in dark mode
  * and made the shimmer look broken. */
 @keyframes aiinds-skeleton-shimmer {
-	0%   { background-position:  200% 0; }
-	100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .aiinds-skeleton {
-	background-color: var(--aiinds-skeleton-base);
-	background-image: linear-gradient(
-		110deg,
-		var(--aiinds-skeleton-base)      8%,
-		var(--aiinds-skeleton-highlight) 18%,
-		var(--aiinds-skeleton-base)      33%
-	);
-	background-size: 200% 100%;
-	background-repeat: no-repeat;
-	background-position: 200% 0;
-	animation: aiinds-skeleton-shimmer 1.6s linear infinite;
+  background-color: var(--aiinds-skeleton-base);
+  background-image: linear-gradient(
+    110deg,
+    var(--aiinds-skeleton-base) 8%,
+    var(--aiinds-skeleton-highlight) 18%,
+    var(--aiinds-skeleton-base) 33%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  background-position: 200% 0;
+  animation: aiinds-skeleton-shimmer 1.6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-	.aiinds-skeleton {
-		animation: none;
-		background-image: none;
-	}
+  .aiinds-skeleton {
+    animation: none;
+    background-image: none;
+  }
 }

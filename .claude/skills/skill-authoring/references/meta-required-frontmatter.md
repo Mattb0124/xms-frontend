@@ -37,19 +37,18 @@ description: Reviews code for quality issues
 name: code-review
 description: Reviews code for quality issues, security vulnerabilities, and performance problems. Use when reviewing PRs, auditing code, or checking for bugs.
 ---
-
 # Code Review Instructions
-...
 # skills-ref validate ./skills/code-review/
 # Validation passed
+...
 ```
 
 **Field requirements (per skills-ref):**
 
-| Field | Required | Max Length | Format |
-|-------|----------|------------|--------|
-| name | Yes | 64 chars | lowercase, hyphens, digits |
-| description | Yes | 1024 chars | non-empty string |
+| Field       | Required | Max Length | Format                     |
+| ----------- | -------- | ---------- | -------------------------- |
+| name        | Yes      | 64 chars   | lowercase, hyphens, digits |
+| description | Yes      | 1024 chars | non-empty string           |
 
 **Validation command:**
 

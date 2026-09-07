@@ -13,15 +13,15 @@ Cache deeply nested or polymorphic property access before hot loops. **Note:** M
 
 ```typescript
 function processOrders(orders: Order[], config: AppConfig): ProcessedOrder[] {
-  const results: ProcessedOrder[] = []
+  const results: ProcessedOrder[] = [];
 
   for (const order of orders) {
-    const tax = order.total * config.tax.rate  // Nested access each iteration
-    const shipping = config.shipping.rates[order.region]  // Nested access again
-    results.push({ ...order, tax, shipping, final: order.total + tax + shipping })
+    const tax = order.total * config.tax.rate; // Nested access each iteration
+    const shipping = config.shipping.rates[order.region]; // Nested access again
+    results.push({ ...order, tax, shipping, final: order.total + tax + shipping });
   }
 
-  return results
+  return results;
 }
 ```
 
@@ -29,17 +29,17 @@ function processOrders(orders: Order[], config: AppConfig): ProcessedOrder[] {
 
 ```typescript
 function processOrders(orders: Order[], config: AppConfig): ProcessedOrder[] {
-  const results: ProcessedOrder[] = []
-  const taxRate = config.tax.rate
-  const shippingRates = config.shipping.rates
+  const results: ProcessedOrder[] = [];
+  const taxRate = config.tax.rate;
+  const shippingRates = config.shipping.rates;
 
   for (const order of orders) {
-    const tax = order.total * taxRate
-    const shipping = shippingRates[order.region]
-    results.push({ ...order, tax, shipping, final: order.total + tax + shipping })
+    const tax = order.total * taxRate;
+    const shipping = shippingRates[order.region];
+    results.push({ ...order, tax, shipping, final: order.total + tax + shipping });
   }
 
-  return results
+  return results;
 }
 ```
 
@@ -48,15 +48,17 @@ function processOrders(orders: Order[], config: AppConfig): ProcessedOrder[] {
 ```typescript
 // Monomorphic — all objects have same shape, V8 ICs optimize this
 function sumOrders(orders: Order[]): number {
-  let total = 0
-  for (let i = 0; i < orders.length; i++) {  // orders.length is fine
-    total += orders[i].total  // Same shape every time
+  let total = 0;
+  for (let i = 0; i < orders.length; i++) {
+    // orders.length is fine
+    total += orders[i].total; // Same shape every time
   }
-  return total
+  return total;
 }
 ```
 
 **When to skip this optimization:**
+
 - Arrays under 1,000 items
 - Monomorphic objects (same shape/class)
 - Non-hot paths executed infrequently

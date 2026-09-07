@@ -1,5 +1,5 @@
 ---
-name: 'xms-web-data-table'
+name: "xms-web-data-table"
 description: 'Build data tables in frontend with the XMS dense list look fixed by the v2 and v3 wireframes: SortableTable inside a card with a Count badge, removable filter chips with Add filter and Clear all, a blue selection bar for bulk actions, a rows-per-page footer, the state ramp on state pills, 3px type bars, account identity dots, sticky header, no row striping, mono keys and SLA values, row hover then cell hover, 32 to 34px controls, 4px radii, tokenized rules. Use whenever adding or restyling a table in frontend (queue, admin lists, related-info rails, portal lists), when a task says "add a list", "show these in a table", "the table looks wrong", or when you are about to hand-roll table markup. Covers the SortableTable component and the flush recipe for tables inside a Panel or drawer.'
 ---
 
@@ -33,10 +33,10 @@ import { SortableTable, type SortableColumn } from "@/components/xms/sortable-ta
 
 interface Row {
   id: string;
-  key: string;        // sortable primitive on the row for every sortable column
+  key: string; // sortable primitive on the row for every sortable column
   shortDescription: string;
   state: string;
-  raw: Ticket;        // keep the source object for render fns
+  raw: Ticket; // keep the source object for render fns
 }
 
 const COLUMNS: SortableColumn<Row>[] = [

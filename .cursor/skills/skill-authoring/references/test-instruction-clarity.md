@@ -15,6 +15,7 @@ Test your skill at the start of a new conversation, without any prior context. I
 # Code Formatter - SKILL.md
 
 ## Instructions
+
 Format the code using the settings we discussed.
 Apply the rules from the configuration.
 Use the standard approach for this project.
@@ -34,19 +35,23 @@ Use the standard approach for this project.
 # Code Formatter - SKILL.md
 
 ## Instructions
+
 Format code using Prettier with these settings:
+
 - printWidth: 100
 - tabWidth: 2
 - singleQuote: true
 - trailingComma: 'es5'
 
 ## Process
+
 1. Read the target file
 2. Apply Prettier formatting
 3. Write formatted output back
 4. Report changes made
 
 ## Default Behavior
+
 If no specific style requested, use the Prettier defaults above.
 ```
 
@@ -58,6 +63,7 @@ If no specific style requested, use the Prettier defaults above.
 ```
 
 **Testing checklist:**
+
 - [ ] Start new Claude Code session
 - [ ] Trigger skill with simple request
 - [ ] Verify Claude follows instructions without asking clarifying questions

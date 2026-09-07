@@ -15,12 +15,11 @@
    * "Noto Color Emoji" stays AFTER every text font: moving it earlier turns
    * plain numerals into keycap emoji glyphs (verified in AIX). */
   --font-family-body:
-    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Color Emoji", sans-serif;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Color Emoji", sans-serif;
   --font-family-heading: var(--font-family-body);
   --font-family-mono:
-    var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
-    "Liberation Mono", monospace;
+    var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   /* House aliases over the AI Innovation primitives (the "full adopt"). */
   --aix-t1: var(--aiinds-fg);
@@ -43,13 +42,27 @@
   /* Signal trios: SLA, priority and scan state. NEVER re-themed by the
    * solution identity, and never used for ticket states (those use the v3
    * state ramp in xms-scope.css). */
-  --state-needs-input-text: #b45309;  --state-needs-input-bg: #fffbeb;  --state-needs-input-border: #fde68a;
-  --state-ready-text: #1d4ed8;        --state-ready-bg: #eff6ff;        --state-ready-border: #c7d7fe;
-  --state-blocked-text: #64748b;      --state-blocked-bg: #f1f5f9;      --state-blocked-border: #e2e8f0;
-  --state-progress-text: #0e7490;     --state-progress-bg: #ecfeff;     --state-progress-border: #a5f3fc;
-  --state-complete-text: #047857;     --state-complete-bg: #ecfdf5;     --state-complete-border: #a7f3d0;
-  --state-stale-text: #6d28d9;        --state-stale-bg: #f5f3ff;        --state-stale-border: #ddd6fe;
-  --state-overdue-text: #dc2626;      --state-overdue-bg: #fef2f2;      --state-overdue-border: #fecaca;
+  --state-needs-input-text: #b45309;
+  --state-needs-input-bg: #fffbeb;
+  --state-needs-input-border: #fde68a;
+  --state-ready-text: #1d4ed8;
+  --state-ready-bg: #eff6ff;
+  --state-ready-border: #c7d7fe;
+  --state-blocked-text: #64748b;
+  --state-blocked-bg: #f1f5f9;
+  --state-blocked-border: #e2e8f0;
+  --state-progress-text: #0e7490;
+  --state-progress-bg: #ecfeff;
+  --state-progress-border: #a5f3fc;
+  --state-complete-text: #047857;
+  --state-complete-bg: #ecfdf5;
+  --state-complete-border: #a7f3d0;
+  --state-stale-text: #6d28d9;
+  --state-stale-bg: #f5f3ff;
+  --state-stale-border: #ddd6fe;
+  --state-overdue-text: #dc2626;
+  --state-overdue-bg: #fef2f2;
+  --state-overdue-border: #fecaca;
 
   /* Card depth used by the dense list card (from the v2 wireframes). */
   --aix-shadow-card: 0 1px 3px rgba(15, 22, 35, 0.04), 0 0 0 1px rgba(37, 99, 235, 0.04);
@@ -60,13 +73,27 @@
 .dark,
 [data-theme="dark"] {
   color-scheme: dark;
-  --state-needs-input-text: var(--aiinds-warning-text);  --state-needs-input-bg: var(--aiinds-warning-soft);  --state-needs-input-border: var(--aiinds-warning-border);
-  --state-ready-text: var(--aiinds-info-text);           --state-ready-bg: var(--aiinds-info-soft);           --state-ready-border: var(--aiinds-info-border);
-  --state-blocked-text: var(--aiinds-fg-muted);          --state-blocked-bg: var(--aiinds-bg-muted);          --state-blocked-border: var(--aiinds-border);
-  --state-progress-text: #22d3ee;                        --state-progress-bg: #0c2538;                        --state-progress-border: #164e63;
-  --state-complete-text: var(--aiinds-success-text);     --state-complete-bg: var(--aiinds-success-soft);     --state-complete-border: var(--aiinds-success-border);
-  --state-stale-text: var(--aiinds-ai-text);             --state-stale-bg: var(--aiinds-ai-soft);             --state-stale-border: var(--aiinds-ai-border);
-  --state-overdue-text: var(--aiinds-danger-text);       --state-overdue-bg: var(--aiinds-danger-soft);       --state-overdue-border: var(--aiinds-danger-border);
+  --state-needs-input-text: var(--aiinds-warning-text);
+  --state-needs-input-bg: var(--aiinds-warning-soft);
+  --state-needs-input-border: var(--aiinds-warning-border);
+  --state-ready-text: var(--aiinds-info-text);
+  --state-ready-bg: var(--aiinds-info-soft);
+  --state-ready-border: var(--aiinds-info-border);
+  --state-blocked-text: var(--aiinds-fg-muted);
+  --state-blocked-bg: var(--aiinds-bg-muted);
+  --state-blocked-border: var(--aiinds-border);
+  --state-progress-text: #22d3ee;
+  --state-progress-bg: #0c2538;
+  --state-progress-border: #164e63;
+  --state-complete-text: var(--aiinds-success-text);
+  --state-complete-bg: var(--aiinds-success-soft);
+  --state-complete-border: var(--aiinds-success-border);
+  --state-stale-text: var(--aiinds-ai-text);
+  --state-stale-bg: var(--aiinds-ai-soft);
+  --state-stale-border: var(--aiinds-ai-border);
+  --state-overdue-text: var(--aiinds-danger-text);
+  --state-overdue-bg: var(--aiinds-danger-soft);
+  --state-overdue-border: var(--aiinds-danger-border);
   --aix-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
@@ -84,10 +111,34 @@
     font: 500 12px/1 var(--font-family-body);
     white-space: nowrap;
   }
-  .aix-state-pill[data-state="needs-input"] { color: var(--state-needs-input-text); background: var(--state-needs-input-bg); border-color: var(--state-needs-input-border); }
-  .aix-state-pill[data-state="ready"]       { color: var(--state-ready-text);       background: var(--state-ready-bg);       border-color: var(--state-ready-border); }
-  .aix-state-pill[data-state="progress"]    { color: var(--state-progress-text);    background: var(--state-progress-bg);    border-color: var(--state-progress-border); }
-  .aix-state-pill[data-state="complete"]    { color: var(--state-complete-text);    background: var(--state-complete-bg);    border-color: var(--state-complete-border); }
-  .aix-state-pill[data-state="stale"]       { color: var(--state-stale-text);       background: var(--state-stale-bg);       border-color: var(--state-stale-border); }
-  .aix-state-pill[data-state="overdue"]     { color: var(--state-overdue-text);     background: var(--state-overdue-bg);     border-color: var(--state-overdue-border); }
+  .aix-state-pill[data-state="needs-input"] {
+    color: var(--state-needs-input-text);
+    background: var(--state-needs-input-bg);
+    border-color: var(--state-needs-input-border);
+  }
+  .aix-state-pill[data-state="ready"] {
+    color: var(--state-ready-text);
+    background: var(--state-ready-bg);
+    border-color: var(--state-ready-border);
+  }
+  .aix-state-pill[data-state="progress"] {
+    color: var(--state-progress-text);
+    background: var(--state-progress-bg);
+    border-color: var(--state-progress-border);
+  }
+  .aix-state-pill[data-state="complete"] {
+    color: var(--state-complete-text);
+    background: var(--state-complete-bg);
+    border-color: var(--state-complete-border);
+  }
+  .aix-state-pill[data-state="stale"] {
+    color: var(--state-stale-text);
+    background: var(--state-stale-bg);
+    border-color: var(--state-stale-border);
+  }
+  .aix-state-pill[data-state="overdue"] {
+    color: var(--state-overdue-text);
+    background: var(--state-overdue-bg);
+    border-color: var(--state-overdue-border);
+  }
 }

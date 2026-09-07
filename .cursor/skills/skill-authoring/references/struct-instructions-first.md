@@ -15,18 +15,23 @@ Place the most important instructions in the first 500 lines of SKILL.md. Contex
 # Code Generator
 
 ## Introduction
+
 This skill generates code...
 
 ## History
+
 The evolution of code generation...
 
 ## Supported Languages
+
 We support Python, JavaScript, TypeScript...
 
 ## Examples
+
 Here are 50 examples...
 
 ## IMPORTANT: Security Rules
+
 Never generate code that accesses /etc/passwd...
 Never include API keys in generated code...
 ```
@@ -43,17 +48,21 @@ Never include API keys in generated code...
 # Code Generator
 
 ## Security Rules (MUST FOLLOW)
+
 - Never generate code that accesses system files
 - Never include credentials or API keys
 - Always sanitize user inputs in generated code
 
 ## Quick Start
+
 Generate code by describing what you need...
 
 ## Supported Languages
+
 Python, JavaScript, TypeScript...
 
 ## Detailed Examples
+
 [Examples can safely be truncated]
 ```
 

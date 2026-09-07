@@ -22,18 +22,23 @@ description: Helps with development tasks including code review, testing, deploy
 # Developer Tools
 
 ## Code Review
+
 [200 lines]
 
 ## Testing
+
 [200 lines]
 
 ## Deployment
+
 [200 lines]
 
 ## Documentation
+
 [200 lines]
 
 ## Database
+
 [200 lines]
 ```
 

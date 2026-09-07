@@ -14,10 +14,10 @@ Design MCP tools so calling them multiple times with the same input produces the
 ```typescript
 // Tool: increment_counter
 async function incrementCounter(counterId: string): Promise<number> {
-  const counter = await db.get(counterId)
-  counter.value += 1
-  await db.save(counter)
-  return counter.value
+  const counter = await db.get(counterId);
+  counter.value += 1;
+  await db.save(counter);
+  return counter.value;
 }
 ```
 
@@ -33,18 +33,14 @@ async function incrementCounter(counterId: string): Promise<number> {
 
 ```typescript
 // Tool: set_counter
-async function setCounter(
-  counterId: string,
-  value: number,
-  requestId: string
-): Promise<number> {
-  const existing = await db.getByRequestId(requestId)
+async function setCounter(counterId: string, value: number, requestId: string): Promise<number> {
+  const existing = await db.getByRequestId(requestId);
   if (existing) {
-    return existing.value  // Already processed
+    return existing.value; // Already processed
   }
 
-  await db.save({ counterId, value, requestId })
-  return value
+  await db.save({ counterId, value, requestId });
+  return value;
 }
 ```
 
@@ -57,11 +53,12 @@ async function setCounter(
 ```
 
 **Idempotency strategies:**
-| Operation | Strategy |
-|-----------|----------|
-| Create | Use client-provided ID or check existence |
-| Update | Use PUT semantics (replace entire state) |
-| Delete | Return success even if already deleted |
-| Increment | Accept absolute value instead of delta |
+
+| Operation | Strategy                                  |
+| --------- | ----------------------------------------- |
+| Create    | Use client-provided ID or check existence |
+| Update    | Use PUT semantics (replace entire state)  |
+| Delete    | Return success even if already deleted    |
+| Increment | Accept absolute value instead of delta    |
 
 Reference: [MCP Best Practices](https://modelcontextprotocol.info/docs/best-practices/)

@@ -43,7 +43,8 @@ export default function DevSignInPage() {
         }}
       >
         <label htmlFor="dev-token" className="text-xms-label text-[12px]">
-          Bearer token from <code className="xms-mono">pnpm dev:token</code> in the backend
+          Bearer token from <code className="xms-mono">pnpm dev:token --email admin@example.test</code> run in the
+          backend folder (after <code className="xms-mono">pnpm seed:dev</code>)
         </label>
         <textarea
           id="dev-token"

@@ -60,12 +60,13 @@ my-skills-plugin/
 ```
 
 **Plugin benefits:**
-| Feature | Manual | Plugin |
-|---------|--------|--------|
-| Installation | Multi-step | One command |
-| Updates | Manual copy | `/plugin update` |
-| Versioning | None | Automatic |
-| Dependencies | Manual | Declared |
-| Rollback | Manual restore | Version pinning |
+
+| Feature      | Manual         | Plugin           |
+| ------------ | -------------- | ---------------- |
+| Installation | Multi-step     | One command      |
+| Updates      | Manual copy    | `/plugin update` |
+| Versioning   | None           | Automatic        |
+| Dependencies | Manual         | Declared         |
+| Rollback     | Manual restore | Version pinning  |
 
 Reference: [Claude Code Plugins](https://code.claude.com/docs/en/plugins)

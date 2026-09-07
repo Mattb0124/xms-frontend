@@ -66,9 +66,7 @@ my-app/
     "declaration": true,
     "outDir": "dist"
   },
-  "references": [
-    { "path": "../shared" }
-  ],
+  "references": [{ "path": "../shared" }],
   "include": ["src/**/*"]
 }
 ```
@@ -77,11 +75,7 @@ my-app/
 // tsconfig.json (root)
 {
   "files": [],
-  "references": [
-    { "path": "packages/shared" },
-    { "path": "packages/api" },
-    { "path": "packages/web" }
-  ]
+  "references": [{ "path": "packages/shared" }, { "path": "packages/api" }, { "path": "packages/web" }]
 }
 ```
 
@@ -90,6 +84,7 @@ tsc --build  # Builds only changed projects
 ```
 
 **Benefits:**
+
 - Parallel compilation of independent projects
 - Change in `shared/` only rebuilds dependents
 - Declaration files used as API boundaries

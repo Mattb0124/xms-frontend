@@ -37,19 +37,21 @@ skill-name/
 
 **Extension files explained:**
 
-| File | Purpose |
-|------|---------|
+| File            | Purpose                               |
+| --------------- | ------------------------------------- |
 | `metadata.json` | Version, organization, build metadata |
-| `_sections.md` | Category definitions and ordering |
+| `_sections.md`  | Category definitions and ordering     |
 
 ### When Creating Skills for Distribution
 
 If creating a skill for distribution **outside** dot-skills:
+
 - Follow only the standard Anthropic specification
 - Include only `SKILL.md` and essential bundled resources
 - Avoid `README.md`, `AGENTS.md`, and project-specific metadata
 
 If creating a skill **within** dot-skills:
+
 - Follow the extended structure for consistency
 - Use the reference frontmatter schema with impact levels
 - Include `_sections.md` for category organization

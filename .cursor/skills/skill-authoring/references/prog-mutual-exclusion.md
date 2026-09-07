@@ -15,12 +15,15 @@ When a skill supports multiple distinct scenarios that never overlap, put each i
 # Cloud Deployment
 
 ## AWS Deployment
+
 [200 lines of AWS-specific instructions]
 
 ## Azure Deployment
+
 [200 lines of Azure-specific instructions]
 
 ## GCP Deployment
+
 [200 lines of GCP-specific instructions]
 ```
 
@@ -62,11 +65,12 @@ cloud-deployment/
 ```
 
 **Mutual exclusion patterns:**
-| Domain | Mutually Exclusive Options |
-|--------|----------------------------|
-| Languages | Python vs JavaScript vs Go |
-| Clouds | AWS vs Azure vs GCP |
-| Databases | PostgreSQL vs MySQL vs MongoDB |
-| Frameworks | React vs Vue vs Angular |
+
+| Domain     | Mutually Exclusive Options     |
+| ---------- | ------------------------------ |
+| Languages  | Python vs JavaScript vs Go     |
+| Clouds     | AWS vs Azure vs GCP            |
+| Databases  | PostgreSQL vs MySQL vs MongoDB |
+| Frameworks | React vs Vue vs Angular        |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

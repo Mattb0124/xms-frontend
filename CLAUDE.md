@@ -26,8 +26,13 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 ```
 app/layout.tsx          fonts, .xms-scope, Providers
 app/(internal)/         the desk inside the Shell: / My work, /tickets Queue, /tickets/new, /tickets/[key],
-                        /tickets/dispatch, /operations, /knowledge, /time, /accounts, /admin (stubs until their plan item),
+                        /tickets/dispatch, /operations, /knowledge, /time, /accounts (stubs until their plan item),
+                        /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
+                        /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only),
                         /dev/tokens (token check), /dev/sign-in (dev-mode token paste only)
+components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
+                        ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), status pills, buttons
+lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
 app/(portal)/           the client portal (placeholder until P2.16.3)
 components/shell/       FinderBar, FinderOverlay, PinnedSidebar, ContentHeaderBar (HeaderFilters, HeaderAction portals),
                         CommandPalette, Shell, ScreenStub
@@ -39,7 +44,8 @@ lib/auth/               dev-mode switch (throws in production builds) and the To
 lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenViews, useTrack, request-id memory
 lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
-redux/                  api.ts (base API, me endpoint), store.ts, hooks.ts, me.ts (useMe)
+redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types),
+                        store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
 e2e/                    Playwright golden paths
 ```

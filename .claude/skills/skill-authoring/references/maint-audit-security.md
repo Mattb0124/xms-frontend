@@ -28,34 +28,39 @@ Before installing skills from external sources, review their contents for securi
 ## Before Installing: github:org/skill-package
 
 ### 1. Source Review
+
 - [ ] Repository has clear ownership
 - [ ] Maintained by known organization
 - [ ] Has meaningful commit history
 - [ ] Not a fork of suspicious origin
 
 ### 2. Code Review
+
 - [ ] No obfuscated code
 - [ ] No network calls to unknown hosts
 - [ ] No file access outside expected scope
 - [ ] No credential harvesting patterns
 
 ### 3. Permission Review
+
 - [ ] allowed-tools restricts capabilities appropriately
 - [ ] No unnecessary Bash access
 - [ ] No Write access if read-only expected
 
 ### 4. Script Audit
+
 - [ ] scripts/ directory contents reviewed
 - [ ] Dependencies from trusted sources
 - [ ] No eval() or exec() on user input
 ```
 
 **Red flags to watch for:**
-| Risk | Pattern |
-|------|---------|
-| Data exfiltration | curl/fetch to unknown domains |
-| Credential theft | Reading .env, .ssh, credentials |
-| Backdoor | Obfuscated code, encoded strings |
-| Excessive access | allowed-tools: * (all tools) |
+
+| Risk              | Pattern                          |
+| ----------------- | -------------------------------- |
+| Data exfiltration | curl/fetch to unknown domains    |
+| Credential theft  | Reading .env, .ssh, credentials  |
+| Backdoor          | Obfuscated code, encoded strings |
+| Excessive access  | allowed-tools: * (all tools)     |
 
 Reference: [Anthropic Engineering: Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

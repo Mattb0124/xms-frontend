@@ -17,7 +17,6 @@ When multiple skills cover overlapping domains, use distinct trigger terms to en
 name: excel-export
 description: Works with Excel files and data export
 ---
-
 # skills/data-analysis/SKILL.md
 ---
 name: data-analysis
@@ -36,7 +35,6 @@ description: Analyzes data and exports to Excel
 name: excel-export
 description: Exports query results and datasets to Excel spreadsheets with formatting. This skill should be used when the user wants to create Excel reports or download data as .xlsx files.
 ---
-
 # skills/data-analysis/SKILL.md
 ---
 name: data-analysis
@@ -48,6 +46,7 @@ description: Analyzes datasets using statistical methods, generates insights, an
 ```
 
 **Disambiguation strategies:**
+
 - Use different file formats as triggers
 - Reference different workflow stages (create vs. analyze)
 - Mention different output types (spreadsheet vs. visualization)

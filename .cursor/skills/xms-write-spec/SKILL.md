@@ -1,5 +1,5 @@
 ---
-name: 'xms-write-spec'
+name: "xms-write-spec"
 description: 'Author a feature spec pair (FUNCTIONAL-SPEC.md + TECHNICAL-SPEC.md) in the XMS house format under "02-modules/<feature>/". Use when planning a new feature, workspace, module, or cross-repo change before building it, or when a task says "spec this", "write a spec", or "plan X". The functional spec fixes WHAT and WHY (problem, goals, non-goals, user behavior, rollout); the technical spec fixes HOW (architecture verified in code, data model, routes, ordering, testing, risks). Pairs with xms-write-what-was-done, which records the as-built result after the spec is built.'
 ---
 

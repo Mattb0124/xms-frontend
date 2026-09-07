@@ -40,6 +40,7 @@ description: Resolves TypeScript compilation errors and type mismatches. This sk
 ```
 
 **Error pattern strategies:**
+
 - Include exact error message substrings
 - Reference error code prefixes (TS, E, ERRNO)
 - Mention common symptom descriptions

@@ -32,12 +32,14 @@ description: ACME Corp deployment utility functions
 ```
 
 **Priority order (highest wins):**
+
 1. Enterprise managed settings
 2. Personal (~/.claude/skills/)
 3. Project (.claude/skills/)
 4. Plugin-provided skills
 
 **When NOT to use prefixes:**
+
 - Official Anthropic skills that define the standard
 - Project-only skills never distributed externally
 

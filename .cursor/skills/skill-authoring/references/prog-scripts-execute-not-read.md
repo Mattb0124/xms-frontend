@@ -11,7 +11,7 @@ Place executable scripts in `scripts/` directory and have Claude run them rather
 
 **Incorrect (reading script into context):**
 
-```markdown
+````markdown
 # SKILL.md
 
 ## Data Processing
@@ -28,20 +28,22 @@ def process_data(input_file, output_format):
     # ... 180 more lines of processing logic
     return result
 ```
+````
 
 Use this logic to process user's data.
-```
+
+````
 
 ```text
 # 200 lines of code in context
 # ~400 tokens consumed
 # Claude tries to mentally execute code
 # Error-prone and slow
-```
+````
 
 **Correct (execute script, describe interface):**
 
-```markdown
+````markdown
 # SKILL.md
 
 ## Data Processing
@@ -51,28 +53,32 @@ Process data using the bundled script:
 ```bash
 python scripts/process.py --input data.csv --format json
 ```
+````
 
 **Arguments:**
+
 - `--input`: Input CSV file path
 - `--format`: Output format (json, csv, markdown)
 - `--output`: Optional output file (defaults to stdout)
 
 The script handles data validation, transformation, and formatting.
-```
+
+````
 
 ```text
 # ~10 lines describing interface
 # ~20 tokens consumed
 # Script executes with full capability
 # Results returned directly
-```
+````
 
 **When to read vs. execute:**
-| Scenario | Approach |
-|----------|----------|
-| Complex data processing | Execute script |
-| API interactions | Execute script |
-| Simple transformations | Inline instructions |
-| Teaching/explaining | Read into context |
+
+| Scenario                | Approach            |
+| ----------------------- | ------------------- |
+| Complex data processing | Execute script      |
+| API interactions        | Execute script      |
+| Simple transformations  | Inline instructions |
+| Teaching/explaining     | Read into context   |
 
 Reference: [Claude Code Skills Docs](https://code.claude.com/docs/en/skills)

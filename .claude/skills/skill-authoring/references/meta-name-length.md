@@ -34,6 +34,7 @@ description: Synchronizes enterprise CRM data across platforms. Use when importi
 ```
 
 **Naming strategy:**
+
 - Use common abbreviations (CRM, API, DB)
 - Omit redundant words (tool, helper, utility)
 - Focus on the action, not the domain
