@@ -1,0 +1,93 @@
+/* XMS house token layer.
+ *
+ * Seeded from AIXelerator web-ui/app/globals.css (the --aix-* alias layer,
+ * the --state-* signal trios, the dark flips and the state-pill recipe) on
+ * 2026-09-07 and owned by XMS from then on. The vendored --aiinds-* primitives
+ * come from ./aiinnovation-tokens.css, which is never edited (see the
+ * xms-web-design-system skill and 01-architecture/DESIGN-SYSTEM.md).
+ *
+ * Adapted for Tailwind v4: no @tailwind directives here; app/globals.css
+ * imports "tailwindcss" first, then these layers in order.
+ */
+
+:root {
+  /* Fonts bound to the next/font CSS variables set in app/layout.tsx.
+   * "Noto Color Emoji" stays AFTER every text font: moving it earlier turns
+   * plain numerals into keycap emoji glyphs (verified in AIX). */
+  --font-family-body:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Color Emoji", sans-serif;
+  --font-family-heading: var(--font-family-body);
+  --font-family-mono:
+    var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* House aliases over the AI Innovation primitives (the "full adopt"). */
+  --aix-t1: var(--aiinds-fg);
+  --aix-t2: var(--aiinds-fg-muted);
+  --aix-t3: var(--aiinds-fg-subtle);
+  --aix-t4: var(--aiinds-fg-disabled);
+  --aix-surface: var(--aiinds-surface);
+  --aix-border: var(--aiinds-border);
+  --aix-border-soft: var(--aiinds-border-subtle);
+  --aix-blue: var(--aiinds-accent);
+  --aix-blue-dark: var(--aiinds-accent-hover);
+  --aix-blue-tint: var(--aiinds-accent-soft);
+  --aix-green: var(--aiinds-success-text);
+  --aix-green-light: var(--aiinds-success-soft);
+  --aix-amber: var(--aiinds-warning-text);
+  --aix-amber-light: var(--aiinds-warning-soft);
+  --aix-red: var(--aiinds-danger-text);
+  --aix-red-light: var(--aiinds-danger-soft);
+
+  /* Signal trios: SLA, priority and scan state. NEVER re-themed by the
+   * solution identity, and never used for ticket states (those use the v3
+   * state ramp in xms-scope.css). */
+  --state-needs-input-text: #b45309;  --state-needs-input-bg: #fffbeb;  --state-needs-input-border: #fde68a;
+  --state-ready-text: #1d4ed8;        --state-ready-bg: #eff6ff;        --state-ready-border: #c7d7fe;
+  --state-blocked-text: #64748b;      --state-blocked-bg: #f1f5f9;      --state-blocked-border: #e2e8f0;
+  --state-progress-text: #0e7490;     --state-progress-bg: #ecfeff;     --state-progress-border: #a5f3fc;
+  --state-complete-text: #047857;     --state-complete-bg: #ecfdf5;     --state-complete-border: #a7f3d0;
+  --state-stale-text: #6d28d9;        --state-stale-bg: #f5f3ff;        --state-stale-border: #ddd6fe;
+  --state-overdue-text: #dc2626;      --state-overdue-bg: #fef2f2;      --state-overdue-border: #fecaca;
+
+  /* Card depth used by the dense list card (from the v2 wireframes). */
+  --aix-shadow-card: 0 1px 3px rgba(15, 22, 35, 0.04), 0 0 0 1px rgba(37, 99, 235, 0.04);
+}
+
+/* Theme-aware flips. Declared after the light :root so Chrome's native
+ * controls follow the theme (color-scheme must come after the light rule). */
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --state-needs-input-text: var(--aiinds-warning-text);  --state-needs-input-bg: var(--aiinds-warning-soft);  --state-needs-input-border: var(--aiinds-warning-border);
+  --state-ready-text: var(--aiinds-info-text);           --state-ready-bg: var(--aiinds-info-soft);           --state-ready-border: var(--aiinds-info-border);
+  --state-blocked-text: var(--aiinds-fg-muted);          --state-blocked-bg: var(--aiinds-bg-muted);          --state-blocked-border: var(--aiinds-border);
+  --state-progress-text: #22d3ee;                        --state-progress-bg: #0c2538;                        --state-progress-border: #164e63;
+  --state-complete-text: var(--aiinds-success-text);     --state-complete-bg: var(--aiinds-success-soft);     --state-complete-border: var(--aiinds-success-border);
+  --state-stale-text: var(--aiinds-ai-text);             --state-stale-bg: var(--aiinds-ai-soft);             --state-stale-border: var(--aiinds-ai-border);
+  --state-overdue-text: var(--aiinds-danger-text);       --state-overdue-bg: var(--aiinds-danger-soft);       --state-overdue-border: var(--aiinds-danger-border);
+  --aix-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+@layer components {
+  /* Signal pill: <span class="aix-state-pill" data-state="overdue">Breached</span> */
+  .aix-state-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    border: 1px solid var(--state-blocked-border);
+    background: var(--state-blocked-bg);
+    color: var(--state-blocked-text);
+    padding: 3px 9px;
+    font: 500 12px/1 var(--font-family-body);
+    white-space: nowrap;
+  }
+  .aix-state-pill[data-state="needs-input"] { color: var(--state-needs-input-text); background: var(--state-needs-input-bg); border-color: var(--state-needs-input-border); }
+  .aix-state-pill[data-state="ready"]       { color: var(--state-ready-text);       background: var(--state-ready-bg);       border-color: var(--state-ready-border); }
+  .aix-state-pill[data-state="progress"]    { color: var(--state-progress-text);    background: var(--state-progress-bg);    border-color: var(--state-progress-border); }
+  .aix-state-pill[data-state="complete"]    { color: var(--state-complete-text);    background: var(--state-complete-bg);    border-color: var(--state-complete-border); }
+  .aix-state-pill[data-state="stale"]       { color: var(--state-stale-text);       background: var(--state-stale-bg);       border-color: var(--state-stale-border); }
+  .aix-state-pill[data-state="overdue"]     { color: var(--state-overdue-text);     background: var(--state-overdue-bg);     border-color: var(--state-overdue-border); }
+}

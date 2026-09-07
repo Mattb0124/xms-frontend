@@ -1,0 +1,236 @@
+/* XMS solution identity: the .xms-scope token layer.
+ *
+ * Values come from the v2 and v3 wireframes (01-architecture/WIREFRAMES.md
+ * sections 4 and 8; 01-architecture/DESIGN-SYSTEM.md section 8). The whole
+ * application renders inside .xms-scope (applied on <html> in app/layout.tsx),
+ * so every --xms-* token is available in every component. There is no zebra
+ * token on purpose: dense lists have no row striping.
+ */
+
+.xms-scope {
+  /* Text, four levels and nothing else */
+  --xms-ink: #0f1623;
+  --xms-body: #3d4a5c;
+  --xms-label: #5a6784;
+  --xms-muted: #7b8ca0;
+  --xms-placeholder: #9aa3b2;
+
+  /* Actions and selection */
+  --xms-accent: #2563eb;
+  --xms-accent-hover: #1d4ed8;
+  --xms-accent-tint: #eff4ff;
+  --xms-accent-tint-strong: #d8e3fa;
+  --xms-accent-border: #c7d6f7;
+
+  /* Shell */
+  --xms-navy: #10193a;
+  --xms-navy-overlay: #1a2450;
+  --xms-navy-line: #232f60;
+  --xms-bar: #f0f3fa;
+  --xms-bg: #f4f5f7;
+  --xms-card: #ffffff;
+  --xms-tint: #eff4ff;
+  --xms-line: #e4e8f5;
+  --xms-line-strong: #c9d2e6;
+  --xms-row-hover: #f7f8fa;
+  --xms-cell-hover: #eff4ff;
+  --xms-selected-bar: #2563eb;
+
+  /* AI-origin content only (summaries, suggestions, drafts, synthesis). Never status. */
+  --xms-ai-bg: #edf1ff;
+  --xms-ai-border: #c7d6f7;
+  --xms-ai-accent: #7c9ae8;
+
+  /* SLA and priority signals reuse the --state-* trios from house.css.
+   * These two are the wireframe's clock colours for the mono SLA value. */
+  --xms-sla-breach: #dc2626;
+  --xms-sla-warn: #e8c766;
+  --xms-sla-paused: #9aa3b2;
+
+  /* v3 state ramp: ticket state pills only */
+  --xms-state-new-fg: #334155;               --xms-state-new-bg: #f1f5f9;               --xms-state-new-br: #d7dee8;
+  --xms-state-in-progress-fg: #1d4ed8;       --xms-state-in-progress-bg: #eff4ff;       --xms-state-in-progress-br: #cbdcfa;
+  --xms-state-awaiting-client-fg: #9a5b06;   --xms-state-awaiting-client-bg: #fef6e7;   --xms-state-awaiting-client-br: #f4ddb4;
+  --xms-state-awaiting-approval-fg: #0e7490; --xms-state-awaiting-approval-bg: #ecfafe; --xms-state-awaiting-approval-br: #bfe6f0;
+  --xms-state-resolved-fg: #0f7a50;          --xms-state-resolved-bg: #edfaf3;          --xms-state-resolved-br: #bee6d3;
+  --xms-state-closed-fg: #64748b;            --xms-state-closed-bg: #ffffff;            --xms-state-closed-br: #dde2ea;
+
+  /* v3 type bars (3px, beside the type label only) */
+  --xms-type-incident: #dc2626;
+  --xms-type-request: #0e7490;
+  --xms-type-change: #7a5af8;
+  --xms-type-problem: #b45309;
+  --xms-type-project-task: #be185d;
+
+  /* v3 account identity dots (8px, before the account name; hue assigned per account) */
+  --xms-account-1: #2563eb;
+  --xms-account-2: #0e7490;
+  --xms-account-3: #b45309;
+  --xms-account-4: #0f7a50;
+  --xms-account-5: #7a5af8;
+  --xms-account-6: #be185d;
+  --xms-account-none: #64748b;
+
+  /* Type */
+  --xms-font: var(--font-family-body);
+  --xms-mono: var(--font-family-mono);
+
+  /* Geometry */
+  --xms-radius-control: 4px;
+  --xms-radius-card: 6px;
+  --xms-finder-bar-h: 56px;
+  --xms-header-bar-h: 44px;
+  --xms-sidebar-w: 238px;
+  --xms-axel-panel-w: 340px;
+  --xms-control-h: 34px;
+  --xms-shadow-card: var(--aix-shadow-card);
+
+  color: var(--xms-body);
+  background: var(--xms-bg);
+  font-family: var(--xms-font);
+}
+
+/* Dark: a faithful inversion built from the same hues. The finder bar is
+ * already navy in light mode, so it barely changes. */
+.dark .xms-scope,
+[data-theme="dark"] .xms-scope {
+  --xms-ink: #eaf0f8;
+  --xms-body: #d5dce8;
+  --xms-label: #a9b4c6;
+  --xms-muted: #8a97ad;
+  --xms-placeholder: #6f7c92;
+  --xms-accent: #7ea0ff;
+  --xms-accent-hover: #9ab5ff;
+  --xms-accent-tint: #1a2740;
+  --xms-accent-tint-strong: #22325a;
+  --xms-accent-border: #2f4478;
+  --xms-navy: #0b1226;
+  --xms-navy-overlay: #121b33;
+  --xms-navy-line: #1e2a4f;
+  --xms-bar: #121b2e;
+  --xms-bg: #0c1626;
+  --xms-card: #141f31;
+  --xms-tint: #1a2740;
+  --xms-line: #243349;
+  --xms-line-strong: #2f4160;
+  --xms-row-hover: #182338;
+  --xms-cell-hover: #1a2740;
+  --xms-ai-bg: #182140;
+  --xms-ai-border: #2d3f74;
+  --xms-ai-accent: #9ab5ff;
+  --xms-state-new-fg: #cbd5e1;               --xms-state-new-bg: #1e293b;               --xms-state-new-br: #334155;
+  --xms-state-in-progress-fg: #93b4f5;       --xms-state-in-progress-bg: #172554;       --xms-state-in-progress-br: #1e3a8a;
+  --xms-state-awaiting-client-fg: #f2c66d;   --xms-state-awaiting-client-bg: #3b2a0a;   --xms-state-awaiting-client-br: #6b4a10;
+  --xms-state-awaiting-approval-fg: #67e8f9; --xms-state-awaiting-approval-bg: #0c2538; --xms-state-awaiting-approval-br: #164e63;
+  --xms-state-resolved-fg: #6ee7b7;          --xms-state-resolved-bg: #052e1c;          --xms-state-resolved-br: #065f46;
+  --xms-state-closed-fg: #94a3b8;            --xms-state-closed-bg: #0f172a;            --xms-state-closed-br: #334155;
+}
+
+@layer components {
+  /* Card shell for the dense list card, rail cards and panels */
+  .xms-card {
+    background: var(--xms-card);
+    border: 1px solid var(--xms-line);
+    border-radius: var(--xms-radius-card);
+    box-shadow: var(--xms-shadow-card);
+  }
+
+  /* 11px uppercase mono caption: PINNED, PROPERTIES, SERVICE LEVELS ... */
+  .xms-caption {
+    font: 600 11px/1.35 var(--xms-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--xms-label);
+  }
+
+  /* Mono value: ticket keys, SLA values, counts */
+  .xms-mono {
+    font-family: var(--xms-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Ticket state pill on the v3 ramp: <span class="xms-state" data-state="awaiting-client"> */
+  .xms-state {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font: 500 12px/1 var(--xms-font);
+    white-space: nowrap;
+    color: var(--xms-state-closed-fg);
+    background: var(--xms-state-closed-bg);
+    border: 1px solid var(--xms-state-closed-br);
+  }
+  .xms-state[data-state="new"]               { color: var(--xms-state-new-fg);               background: var(--xms-state-new-bg);               border-color: var(--xms-state-new-br); }
+  .xms-state[data-state="in-progress"]       { color: var(--xms-state-in-progress-fg);       background: var(--xms-state-in-progress-bg);       border-color: var(--xms-state-in-progress-br); }
+  .xms-state[data-state="awaiting-client"]   { color: var(--xms-state-awaiting-client-fg);   background: var(--xms-state-awaiting-client-bg);   border-color: var(--xms-state-awaiting-client-br); }
+  .xms-state[data-state="awaiting-approval"] { color: var(--xms-state-awaiting-approval-fg); background: var(--xms-state-awaiting-approval-bg); border-color: var(--xms-state-awaiting-approval-br); }
+  .xms-state[data-state="resolved"]          { color: var(--xms-state-resolved-fg);          background: var(--xms-state-resolved-bg);          border-color: var(--xms-state-resolved-br); }
+
+  /* Type bar: <span class="xms-type" data-type="incident">Incident</span> */
+  .xms-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--xms-body);
+  }
+  .xms-type::before {
+    content: "";
+    width: 3px;
+    height: 14px;
+    border-radius: 1px;
+    background: var(--xms-account-none);
+  }
+  .xms-type[data-type="incident"]::before     { background: var(--xms-type-incident); }
+  .xms-type[data-type="request"]::before      { background: var(--xms-type-request); }
+  .xms-type[data-type="change"]::before       { background: var(--xms-type-change); }
+  .xms-type[data-type="problem"]::before      { background: var(--xms-type-problem); }
+  .xms-type[data-type="project-task"]::before { background: var(--xms-type-project-task); }
+
+  /* Account dot: <span class="xms-account" data-hue="1">Brookfield UK</span> */
+  .xms-account {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--xms-body);
+  }
+  .xms-account::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--xms-account-none);
+  }
+  .xms-account[data-hue="1"]::before { background: var(--xms-account-1); }
+  .xms-account[data-hue="2"]::before { background: var(--xms-account-2); }
+  .xms-account[data-hue="3"]::before { background: var(--xms-account-3); }
+  .xms-account[data-hue="4"]::before { background: var(--xms-account-4); }
+  .xms-account[data-hue="5"]::before { background: var(--xms-account-5); }
+  .xms-account[data-hue="6"]::before { background: var(--xms-account-6); }
+
+  /* AI-origin block: summaries, suggestion cards, the synthesis line */
+  .xms-ai {
+    background: var(--xms-ai-bg);
+    border: 1px solid var(--xms-ai-border);
+    border-radius: var(--xms-radius-card);
+  }
+
+  /* Dense list rows: hairline plus hover, no striping */
+  .xms-rows > * + * {
+    border-top: 1px solid var(--xms-line);
+  }
+  .xms-rows > *:hover {
+    background: var(--xms-row-hover);
+  }
+}
+
+/* Control geometry inside the scope (wins over utilities on purpose) */
+.xms-scope button,
+.xms-scope select,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.xms-scope textarea {
+  border-radius: var(--xms-radius-control);
+}
+.xms-scope ::placeholder {
+  color: var(--xms-placeholder);
+}

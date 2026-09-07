@@ -1,0 +1,56 @@
+/* Tailwind v4 theme bridge.
+ *
+ * Exposes the XMS tokens as Tailwind utilities (bg-xms-card, text-xms-ink,
+ * border-xms-line, font-mono ...). Tailwind v4 has no tailwind.config.js;
+ * this @theme block is the equivalent of the AIX tailwind-preset. Values
+ * reference the CSS variables so dark mode flips automatically.
+ *
+ * Note: var() breaks Tailwind opacity modifiers (bg-xms-accent/25 will not
+ * work); use the *-tint tokens instead of opacity for washes.
+ */
+
+@theme inline {
+  --color-xms-ink: var(--xms-ink);
+  --color-xms-body: var(--xms-body);
+  --color-xms-label: var(--xms-label);
+  --color-xms-muted: var(--xms-muted);
+  --color-xms-placeholder: var(--xms-placeholder);
+  --color-xms-accent: var(--xms-accent);
+  --color-xms-accent-hover: var(--xms-accent-hover);
+  --color-xms-accent-tint: var(--xms-accent-tint);
+  --color-xms-accent-tint-strong: var(--xms-accent-tint-strong);
+  --color-xms-accent-border: var(--xms-accent-border);
+  --color-xms-navy: var(--xms-navy);
+  --color-xms-navy-overlay: var(--xms-navy-overlay);
+  --color-xms-navy-line: var(--xms-navy-line);
+  --color-xms-bar: var(--xms-bar);
+  --color-xms-bg: var(--xms-bg);
+  --color-xms-card: var(--xms-card);
+  --color-xms-tint: var(--xms-tint);
+  --color-xms-line: var(--xms-line);
+  --color-xms-line-strong: var(--xms-line-strong);
+  --color-xms-row-hover: var(--xms-row-hover);
+  --color-xms-cell-hover: var(--xms-cell-hover);
+  --color-xms-ai-bg: var(--xms-ai-bg);
+  --color-xms-ai-border: var(--xms-ai-border);
+  --color-xms-ai-accent: var(--xms-ai-accent);
+  --color-xms-sla-breach: var(--xms-sla-breach);
+  --color-xms-sla-warn: var(--xms-sla-warn);
+  --color-xms-sla-paused: var(--xms-sla-paused);
+
+  --color-aiinds-fg: var(--aiinds-fg);
+  --color-aiinds-fg-muted: var(--aiinds-fg-muted);
+  --color-aiinds-bg: var(--aiinds-bg);
+  --color-aiinds-surface: var(--aiinds-surface);
+  --color-aiinds-border: var(--aiinds-border);
+  --color-aiinds-accent: var(--aiinds-accent);
+
+  --font-sans: var(--font-family-body);
+  --font-mono: var(--font-family-mono);
+
+  --radius-control: var(--xms-radius-control);
+  --radius-card: var(--xms-radius-card);
+  --shadow-card: var(--xms-shadow-card);
+}
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
