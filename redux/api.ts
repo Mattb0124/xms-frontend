@@ -72,6 +72,11 @@ export const xmsApi = createApi({
     "Aliases",
     "Dashboards",
     "Reports",
+    "Suggestions",
+    "AiThreads",
+    "AiSettings",
+    "AiAccuracy",
+    "AiDefaults",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
