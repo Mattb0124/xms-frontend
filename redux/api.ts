@@ -96,6 +96,11 @@ export const xmsApi = createApi({
     "MigrationRecords",
     "Reconciliation",
     "AccountConfig",
+    "Pto",
+    "Capacity",
+    "Allocations",
+    "BillingPeriods",
+    "BillingExports",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({

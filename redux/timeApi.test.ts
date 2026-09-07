@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
 import {
+  billingExportPath,
   budgetEntriesParams,
   timeApi,
   type AccountBudget,
+  type BillingExport,
+  type BillingPeriod,
   type BudgetContractCard,
   type BudgetEntries,
   type BudgetForecast,
@@ -239,6 +242,80 @@ export function aRateCard(overrides: Partial<RateCard> = {}): RateCard {
     created_by: "u1",
     created_at: "2026-01-01T09:00:00Z",
     entries: [{ role: "consultant", bill_rate: 150, overage_rate: 200 }],
+    ...overrides,
+  };
+}
+
+/** An open September billing period with nothing summarised yet. */
+export function aBillingPeriod(overrides: Partial<BillingPeriod> = {}): BillingPeriod {
+  return {
+    id: "bp-1",
+    account_id: "acct-1",
+    starts_on: "2026-09-01",
+    ends_on: "2026-09-30",
+    status: "open",
+    submitted_at: null,
+    submitted_by: null,
+    approved_at: null,
+    approved_by: null,
+    locked_at: null,
+    locked_by: null,
+    auto_lock_at: null,
+    summary: null,
+    checksum: null,
+    version: 1,
+    created_at: "2026-09-01T00:00:00Z",
+    updated_at: "2026-09-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+/** A locked August period with the summary the export must match: 3 entries, 2.25 h, 225.00, 30 min unrated. */
+export function aLockedPeriod(overrides: Partial<BillingPeriod> = {}): BillingPeriod {
+  return aBillingPeriod({
+    id: "bp-0",
+    starts_on: "2026-08-01",
+    ends_on: "2026-08-31",
+    status: "locked",
+    submitted_at: "2026-09-01T09:00:00Z",
+    submitted_by: "u1",
+    approved_at: "2026-09-02T09:00:00Z",
+    approved_by: "u2",
+    locked_at: "2026-09-03T09:00:00Z",
+    locked_by: "u2",
+    auto_lock_at: "2026-09-07T09:00:00Z",
+    summary: {
+      entries: 3,
+      adjustments: 0,
+      minutes: 135,
+      amount: 225,
+      unrated_minutes: 30,
+      by_class: {
+        billable: { minutes: 105, amount: 175 },
+        absorbed: { minutes: 30, amount: 50 },
+      },
+      by_contract: { CT10001: { minutes: 135, amount: 225 } },
+    },
+    checksum: "3f2a9c8e1b7d4f6a5c3e2d1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a19",
+    version: 4,
+    ...overrides,
+  });
+}
+
+export function aBillingExport(overrides: Partial<BillingExport> = {}): BillingExport {
+  return {
+    id: "bx-1",
+    account_id: "acct-1",
+    billing_period_id: "bp-0",
+    format: "xlsx",
+    template_version: "thg-finance-1",
+    object_key: "accounts/acct-1/billing/bp-0/finance-2026-09-03-09-05-00.xlsx",
+    checksum: "3f2a9c8e1b7d4f6a5c3e2d1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a19",
+    row_count: 3,
+    produced_by: "u2",
+    produced_at: "2026-09-03T09:05:00Z",
+    delivered_at: null,
+    delivery_ref: null,
     ...overrides,
   };
 }
@@ -585,6 +662,99 @@ describe("timeApi budget", () => {
     await expect(create()).rejects.toMatchObject({ status: 409, data: { code: "rate_card_exists" } });
     await expect(create()).rejects.toMatchObject({ status: 400, data: { code: "duplicate_role" } });
     expect(reads).toBe(1);
+    subscription.unsubscribe();
+  });
+});
+
+/** The billing periods (functional 5.7, TB-14): the list, a new period, the four transitions with the version, the export records. */
+describe("timeApi billing", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads the periods and the export records, and builds the export path with the format", async () => {
+    const calls = stubFetch({
+      "GET /v1/accounts/acct-1/billing-periods": () => json([aBillingPeriod(), aLockedPeriod()]),
+      "GET /v1/accounts/acct-1/billing-periods/bp-0/exports": () => json([aBillingExport()]),
+    });
+    const store = makeStore();
+    const periods = await store.dispatch(timeApi.endpoints.billingPeriods.initiate("acct-1")).unwrap();
+    expect(periods.map((period) => period.status)).toEqual(["open", "locked"]);
+    const exports = await store
+      .dispatch(timeApi.endpoints.billingExports.initiate({ accountId: "acct-1", periodId: "bp-0" }))
+      .unwrap();
+    expect(exports[0].row_count).toBe(3);
+    expect(calls.map((call) => call.key)).toEqual([
+      "GET /v1/accounts/acct-1/billing-periods",
+      "GET /v1/accounts/acct-1/billing-periods/bp-0/exports",
+    ]);
+    expect(billingExportPath("acct-1", "bp-0", "csv")).toBe("/v1/accounts/acct-1/billing-periods/bp-0/export?format=csv");
+    expect(billingExportPath("acct-1", "bp-0", "xlsx")).toBe(
+      "/v1/accounts/acct-1/billing-periods/bp-0/export?format=xlsx",
+    );
+  });
+
+  it("creates a period and sends each transition to its own route with the version", async () => {
+    const calls = stubFetch({
+      "POST /v1/accounts/acct-1/billing-periods": () => json(aBillingPeriod(), 201),
+      "POST /v1/accounts/acct-1/billing-periods/bp-1/submit": () =>
+        json(aBillingPeriod({ status: "submitted", version: 2 }), 201),
+      "POST /v1/accounts/acct-1/billing-periods/bp-1/reopen": () => json(aBillingPeriod({ version: 3 }), 201),
+      "POST /v1/accounts/acct-1/billing-periods/bp-1/approve": () =>
+        json(aBillingPeriod({ status: "approved", version: 4 }), 201),
+      "POST /v1/accounts/acct-1/billing-periods/bp-1/lock": () =>
+        json(aBillingPeriod({ status: "locked", version: 5 }), 201),
+    });
+    const store = makeStore();
+    await store
+      .dispatch(
+        timeApi.endpoints.createBillingPeriod.initiate({
+          accountId: "acct-1",
+          body: { starts_on: "2026-09-01", ends_on: "2026-09-30" },
+        }),
+      )
+      .unwrap();
+    const step = (action: "submit" | "reopen" | "approve" | "lock", version: number) =>
+      store
+        .dispatch(timeApi.endpoints.transitionBillingPeriod.initiate({ accountId: "acct-1", periodId: "bp-1", action, version }))
+        .unwrap();
+    expect((await step("submit", 1)).status).toBe("submitted");
+    await step("reopen", 2);
+    await step("approve", 3);
+    expect((await step("lock", 4)).status).toBe("locked");
+    expect(calls.map((call) => [call.key, call.body])).toEqual([
+      ["POST /v1/accounts/acct-1/billing-periods", { starts_on: "2026-09-01", ends_on: "2026-09-30" }],
+      ["POST /v1/accounts/acct-1/billing-periods/bp-1/submit", { version: 1 }],
+      ["POST /v1/accounts/acct-1/billing-periods/bp-1/reopen", { version: 2 }],
+      ["POST /v1/accounts/acct-1/billing-periods/bp-1/approve", { version: 3 }],
+      ["POST /v1/accounts/acct-1/billing-periods/bp-1/lock", { version: 4 }],
+    ]);
+  });
+
+  it("reloads the list after a transition, including one refused as invalid_transition", async () => {
+    let reads = 0;
+    stubFetch({
+      "GET /v1/accounts/acct-1/billing-periods": () => {
+        reads += 1;
+        return json([aBillingPeriod()]);
+      },
+      "POST /v1/accounts/acct-1/billing-periods/bp-1/approve": () =>
+        json({ code: "invalid_transition", status: "open", allowed: ["submit", "lock"] }, 409),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.billingPeriods.initiate("acct-1"));
+    await subscription.unwrap();
+    await expect(
+      store
+        .dispatch(
+          timeApi.endpoints.transitionBillingPeriod.initiate({
+            accountId: "acct-1",
+            periodId: "bp-1",
+            action: "approve",
+            version: 1,
+          }),
+        )
+        .unwrap(),
+    ).rejects.toMatchObject({ status: 409, data: { code: "invalid_transition", allowed: ["submit", "lock"] } });
+    await vi.waitFor(() => expect(reads).toBe(2));
     subscription.unsubscribe();
   });
 });

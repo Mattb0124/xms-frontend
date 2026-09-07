@@ -5,8 +5,9 @@ import type { AfterHoursHandling, OverageRule, RolloverRule } from "@/redux/tick
  * Time, Contracts & Budget endpoints (technical spec section 4, day-30
  * cut): entries on tickets and buckets, adjustments, the timesheet, the
  * contract position the server computes, the comp-time report (TB-13), the
- * account's budget view with its drill-through (TB-07 to TB-09) and the
- * rate card versions (TB-05).
+ * account's budget view with its drill-through (TB-07 to TB-09), the
+ * rate card versions (TB-05) and the billing periods with their finance
+ * exports (functional 5.7, TB-14).
  */
 
 /** The after-hours class the account calendar derives for an entry (TB-13). */
@@ -270,8 +271,83 @@ export interface CreateRateCardBody {
   entries: { role: string; bill_rate: number; overage_rate?: number }[];
 }
 
+/** The billing period's state (functional 5.7): open, submitted, approved, locked, exported. */
+export type BillingStatus = "open" | "submitted" | "approved" | "locked" | "exported";
+
+/** The moves the desk can make; `mark_exported` belongs to the finance connector. */
+export type BillingAction = "submit" | "reopen" | "approve" | "lock";
+
+/** The figures kept on the period at submit and lock; the finance file matches them to the cent (TB-14). */
+export interface BillingSummary {
+  entries: number;
+  adjustments: number;
+  minutes: number;
+  amount: number;
+  unrated_minutes: number;
+  by_class: Record<string, { minutes: number; amount: number }>;
+  by_contract: Record<string, { minutes: number; amount: number }>;
+}
+
+export interface BillingPeriod {
+  id: string;
+  account_id: string;
+  starts_on: string;
+  ends_on: string;
+  status: BillingStatus;
+  submitted_at: string | null;
+  submitted_by: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
+  locked_at: string | null;
+  locked_by: string | null;
+  /** Set on approve: the lock the server applies on its own after N days. */
+  auto_lock_at: string | null;
+  summary: BillingSummary | null;
+  /** SHA-256 of the last finance file produced; null before any export. */
+  checksum: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BillingExportFormat = "xlsx" | "csv";
+
+/** One finance file produced for a period, append-only. */
+export interface BillingExport {
+  id: string;
+  account_id: string;
+  billing_period_id: string;
+  format: BillingExportFormat;
+  template_version: string;
+  object_key: string;
+  checksum: string;
+  row_count: number;
+  produced_by: string;
+  produced_at: string;
+  delivered_at: string | null;
+  delivery_ref: string | null;
+}
+
+export interface CreateBillingPeriodBody {
+  starts_on: string;
+  ends_on: string;
+}
+
+/** The path the finance file streams from; fetched with the bearer through lib/exports/download. */
+export function billingExportPath(accountId: string, periodId: string, format: BillingExportFormat): string {
+  return `/v1/accounts/${accountId}/billing-periods/${periodId}/export?format=${format}`;
+}
+
 function timeTag(ticketKey: string) {
   return { type: "Time" as const, id: ticketKey };
+}
+
+function billingTag(accountId: string) {
+  return { type: "BillingPeriods" as const, id: accountId };
+}
+
+function billingExportsTag(periodId: string) {
+  return { type: "BillingExports" as const, id: periodId };
 }
 
 const COMP_TIME = timeTag("comp-time");
@@ -368,9 +444,38 @@ export const timeApi = xmsApi.injectEndpoints({
       // A refused version (rate_card_exists, duplicate_role) changes nothing, so nothing reloads.
       invalidatesTags: (_result, error, { accountId }) => (error ? [] : [rateCardsTag(accountId)]),
     }),
+    billingPeriods: build.query<BillingPeriod[], string>({
+      query: (accountId) => `/v1/accounts/${accountId}/billing-periods`,
+      providesTags: (_result, _error, accountId) => [billingTag(accountId)],
+    }),
+    createBillingPeriod: build.mutation<BillingPeriod, { accountId: string; body: CreateBillingPeriodBody }>({
+      query: ({ accountId, body }) => ({ url: `/v1/accounts/${accountId}/billing-periods`, method: "POST", body }),
+      invalidatesTags: (_result, error, { accountId }) => (error ? [] : [billingTag(accountId)]),
+    }),
+    transitionBillingPeriod: build.mutation<
+      BillingPeriod,
+      { accountId: string; periodId: string; action: BillingAction; version: number }
+    >({
+      query: ({ accountId, periodId, action, version }) => ({
+        url: `/v1/accounts/${accountId}/billing-periods/${periodId}/${action}`,
+        method: "POST",
+        body: { version },
+      }),
+      // A stale_version or invalid_transition refusal means the list is behind: reload it either way.
+      invalidatesTags: (_result, _error, { accountId }) => [billingTag(accountId)],
+    }),
+    billingExports: build.query<BillingExport[], { accountId: string; periodId: string }>({
+      query: ({ accountId, periodId }) => `/v1/accounts/${accountId}/billing-periods/${periodId}/exports`,
+      providesTags: (_result, _error, { periodId }) => [billingExportsTag(periodId)],
+    }),
   }),
   overrideExisting: false,
 });
+
+/** The tags a produced finance file makes stale: the period's checksum and its export records. */
+export function billingExportTags(accountId: string, periodId: string) {
+  return [billingTag(accountId), billingExportsTag(periodId)];
+}
 
 export const {
   useTicketTimeQuery,
@@ -387,4 +492,8 @@ export const {
   useBudgetEntriesQuery,
   useRateCardsQuery,
   useCreateRateCardMutation,
+  useBillingPeriodsQuery,
+  useCreateBillingPeriodMutation,
+  useTransitionBillingPeriodMutation,
+  useBillingExportsQuery,
 } = timeApi;
