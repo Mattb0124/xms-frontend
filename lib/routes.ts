@@ -231,6 +231,18 @@ export const SCREENS: Screen[] = [
   },
 ];
 
+/**
+ * The client portal registry: screen ids for telemetry only. The portal has
+ * no sidebar and no permission-gated links; the API decides everything.
+ */
+export const PORTAL_SCREENS: Screen[] = [
+  { path: "/portal", screen: "portal.home", label: "Home", section: "Home", permission: null },
+  { path: "/portal/sign-in", screen: "portal.sign-in", label: "Sign in", section: "Home", permission: null },
+  { path: "/portal/requests", screen: "portal.requests", label: "My requests", section: "Tickets", permission: null },
+  { path: "/portal/requests/new", screen: "portal.new", label: "New request", section: "Tickets", permission: null },
+  { path: "/portal/requests/[key]", screen: "portal.request", label: "Request", section: "Tickets", permission: null },
+];
+
 export const SECTIONS: Section[] = ["Home", "Tickets", "Knowledge", "Time", "Accounts", "Capacity", "Reports", "Admin"];
 
 /**
@@ -254,7 +266,8 @@ function toPattern(path: string): RegExp {
 
 /** Finds the registry entry for a concrete pathname (`/tickets/CS0001204` matches `/tickets/[key]`). */
 export function matchScreen(pathname: string): Screen | undefined {
-  const exact = SCREENS.find((screen) => screen.path === pathname);
+  const all = [...SCREENS, ...PORTAL_SCREENS];
+  const exact = all.find((screen) => screen.path === pathname);
   if (exact) return exact;
-  return SCREENS.filter((screen) => screen.path.includes("[")).find((screen) => toPattern(screen.path).test(pathname));
+  return all.filter((screen) => screen.path.includes("[")).find((screen) => toPattern(screen.path).test(pathname));
 }

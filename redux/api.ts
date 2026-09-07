@@ -56,6 +56,10 @@ export const xmsApi = createApi({
     "Tickets",
     "Ticket",
     "Notifications",
+    "PortalMe",
+    "PortalTickets",
+    "PortalTicket",
+    "PortalTimeline",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({

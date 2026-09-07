@@ -41,12 +41,23 @@ lib/tickets/            vocab, priority preview matrix, sla helpers (tighter clo
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
                         ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), status pills, buttons
 lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
-app/(portal)/           the client portal (placeholder until P2.16.3)
+app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome (never the internal shell):
+                        / search-first home (own requests plus the knowledge placeholder), /sign-in (dev token paste,
+                        Clerk SignIn when configured), /requests (Open or All, org-wide toggle with
+                        portal:view-org-tickets), /requests/new (default form per type, inline validation),
+                        /requests/[key] (public thread, composer, cancel, confirm closure, reopen)
+components/portal/      PortalChrome (account name and accent, nav, user menu, 401 redirect), SearchHome, RequestList,
+                        RequestForm (validateRequest), RequestThread and CommentComposer, RequestDetail, primitives
+                        (ClientStatusPill, PortalCard, buttons and inputs). Renders portal view models only; nothing
+                        from components/tickets or app/(internal) is imported here
+lib/portal/             client-language (the seven client statuses, type and level copy, priority words, relative time)
+test-kit/portal.tsx     constructed portal fixtures, the fetch stub and renderPortal for the portal tests
 components/shell/       FinderBar, FinderOverlay, PinnedSidebar, ContentHeaderBar (HeaderFilters, HeaderAction portals),
                         CommandPalette, NotificationsMenu (bell dropdown, 60 s unread poll), Shell, ScreenStub
 components/xms/         the house composition components (P1.4.2), one file each, import by path, no barrel
 components/providers.tsx  Redux store, Clerk (when configured), theme, toasts, telemetry
-lib/routes.ts           the route registry: path, screen id, section, permission; visibleScreens fails closed
+lib/routes.ts           the route registry: path, screen id, section, permission; visibleScreens fails closed;
+                        PORTAL_SCREENS carries the portal screen ids for telemetry only
 lib/conditions.ts       the condition-set grammar (serialise, parse, describe)
 lib/auth/               dev-mode switch (throws in production builds) and the TokenProvider registry
 lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenViews, useTrack, request-id memory
@@ -54,7 +65,8 @@ lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
 redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types),
                         ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
-                        links, watchers, notifications, directory lookups),
+                        links, watchers, notifications, directory lookups), portalApi.ts (the /v1/portal mirror and the
+                        searchArticles placeholder),
                         store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)
