@@ -56,3 +56,22 @@ describe("roster and calendar routes", () => {
     expect(matchScreen("/admin/holiday-calendars")?.screen).toBe("admin.holiday_calendars");
   });
 });
+
+describe("migration routes", () => {
+  it("shows the migration console only to admin:migration", () => {
+    const screens = visibleScreens(new Set(["admin:migration"])).map((s) => s.screen);
+    expect(screens).toEqual(
+      expect.arrayContaining(["admin.migration", "admin.migration.new", "admin.migration.batch"]),
+    );
+    expect(screens).not.toContain("admin");
+    const admin = visibleScreens(new Set(["admin:accounts", "admin:config", "admin:connectors"])).map((s) => s.screen);
+    expect(admin).not.toContain("admin.migration");
+    expect(SCREENS.find((s) => s.screen === "admin.migration")?.section).toBe("Admin");
+  });
+
+  it("matches the console paths, with the new-batch route ahead of the record", () => {
+    expect(matchScreen("/admin/migration")?.screen).toBe("admin.migration");
+    expect(matchScreen("/admin/migration/new")?.screen).toBe("admin.migration.new");
+    expect(matchScreen("/admin/migration/88888888-8888-4888-8888-888888888888")?.screen).toBe("admin.migration.batch");
+  });
+});

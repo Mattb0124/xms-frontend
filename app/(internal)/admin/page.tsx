@@ -19,6 +19,10 @@ const CARDS = [
     screen: "admin.connectors",
     detail: "Every ServiceNow instance: health, mode, kill switch, maps, runs, dead letters with replay and discard.",
   },
+  {
+    screen: "admin.migration",
+    detail: "Batches with dry runs and re-runs, per-record results, reconciliation with explanations and sign-off.",
+  },
   { screen: "admin.audit", detail: "One search over audit, security and usage events, with the request pivot." },
   { screen: "admin.security", detail: "Sign-in failures, denials, isolation probes, admin changes." },
   { screen: "admin.usage", detail: "Active users, top actions and screens, searches with no result, API errors." },
@@ -35,7 +39,7 @@ export default function AdminPage() {
     return (
       <EmptyBanner
         title="Not permitted"
-        detail="Administration needs the admin:accounts, admin:users, admin:config, admin:connectors, capacity:view, audit:read or analytics:read permission."
+        detail="Administration needs the admin:accounts, admin:users, admin:config, admin:connectors, admin:migration, capacity:view, audit:read or analytics:read permission."
       />
     );
   }
