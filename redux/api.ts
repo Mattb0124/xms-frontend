@@ -82,6 +82,13 @@ export const xmsApi = createApi({
     "ConnectorRuns",
     "ConnectorDeadLetters",
     "TicketSync",
+    "Roster",
+    "Person",
+    "Skills",
+    "Certifications",
+    "Calendars",
+    "Calendar",
+    "HolidayCalendars",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
