@@ -80,7 +80,7 @@ export function BatchProperties({ batch, accountName }: { batch: BatchDetail; ac
         </span>
       ),
     },
-    { label: "Run by", value: batch.run_by ? batch.run_by.slice(0, 8) : "", mono: true },
+    { label: "Run by", value: batch.run_by_name ?? "" },
     { label: "Started", value: formatDate(batch.started_at), mono: true },
     { label: "Finished", value: formatDate(batch.finished_at), mono: true },
     {

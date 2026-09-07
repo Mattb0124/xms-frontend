@@ -117,9 +117,8 @@ export function BatchList({ rows, accountNames, loading, emptyState }: BatchList
     {
       key: "run_by",
       title: "Run by",
-      mono: true,
-      sortValue: (row) => row.run_by ?? "",
-      render: (row) => (row.run_by ? row.run_by.slice(0, 8) : ""),
+      sortValue: (row) => row.run_by_name ?? "",
+      render: (row) => row.run_by_name ?? "",
     },
   ];
   return (

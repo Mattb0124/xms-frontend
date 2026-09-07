@@ -15,6 +15,20 @@ const OPEN_LINE = aLine({
   status: "delta_open",
 });
 
+describe("signOffBlockedReason", () => {
+  it("words the server's sign_blocker and stays silent when the reader may sign", () => {
+    expect(signOffBlockedReason(aReport())).toBeNull();
+    expect(signOffBlockedReason(aReport({ can_sign: false, sign_blocker: "report_signed" }))).toBe("Already signed");
+    expect(signOffBlockedReason(aReport({ can_sign: false, sign_blocker: "signer_ran_batch" }))).toBe(
+      "You ran this batch; a second person must sign",
+    );
+    expect(signOffBlockedReason(aReport({ can_sign: false, sign_blocker: "delta_open" }))).toBe(
+      "A delta is still open",
+    );
+    expect(signOffBlockedReason(aReport({ can_sign: false, sign_blocker: null }))).toBe("Sign off is not available");
+  });
+});
+
 describe("ReconciliationTab", () => {
   afterEach(() => vi.unstubAllGlobals());
 
@@ -25,10 +39,20 @@ describe("ReconciliationTab", () => {
         json([
           explained
             ? aReport({
-                lines: [...aReport().lines, { ...OPEN_LINE, status: "delta_explained", explanation: "out of scope" }],
+                lines: [
+                  ...aReport().lines,
+                  {
+                    ...OPEN_LINE,
+                    status: "delta_explained",
+                    explanation: "out of scope",
+                    explained_by: "user-2",
+                    explained_by_name: "Dev Patel",
+                    explained_at: "2026-09-07T10:00:00Z",
+                  },
+                ],
                 version: 2,
               })
-            : aReport({ lines: [...aReport().lines, OPEN_LINE] }),
+            : aReport({ lines: [...aReport().lines, OPEN_LINE], can_sign: false, sign_blocker: "delta_open" }),
         ]),
       [`POST /v1/migration/reconciliation/${REPORT_ID}/lines/3/explain`]: () => {
         explained = true;
@@ -43,7 +67,7 @@ describe("ReconciliationTab", () => {
     expect(screen.getAllByText("Matched")).toHaveLength(3);
     const signOff = screen.getByRole("button", { name: "Sign off" });
     expect(signOff).toBeDisabled();
-    expect(screen.getByText(/Every line must be matched or explained/)).toBeInTheDocument();
+    expect(screen.getByText("A delta is still open")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Explain" }));
     const dialog = screen.getByRole("dialog", { name: "Explain the delta on attachments" });
@@ -59,11 +83,25 @@ describe("ReconciliationTab", () => {
       }),
     );
     await screen.findByText("Delta explained");
+    // The explainer is named, never shown as an id prefix.
+    expect(document.querySelector("[data-explained-by]")).toHaveTextContent("Dev Patel");
+    expect(document.querySelector("[data-explained-by]")).not.toHaveTextContent("user-2");
     await waitFor(() => expect(screen.getByRole("button", { name: "Sign off" })).toBeEnabled());
+    expect(screen.queryByText("A delta is still open")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Explain" })).not.toBeInTheDocument();
   });
 
-  it("surfaces signer_ran_batch and delta_open in the server's words when sign-off is refused", async () => {
+  it("disables Sign off for the person who ran the batch, with the reason", async () => {
+    stubFetch({
+      "GET /v1/migration/reconciliation": () => json([aReport({ can_sign: false, sign_blocker: "signer_ran_batch" })]),
+    });
+    renderDesk(<ReconciliationTab accountId={ACCOUNT_ID} />);
+    await screen.findByText("Batch report");
+    expect(screen.getByRole("button", { name: "Sign off" })).toBeDisabled();
+    expect(screen.getByText("You ran this batch; a second person must sign")).toBeInTheDocument();
+  });
+
+  it("surfaces signer_ran_batch and delta_open in the server's words when a stale view is refused on sign-off", async () => {
     let attempt = 0;
     const calls = stubFetch({
       "GET /v1/migration/reconciliation": () => json([aReport()]),
@@ -92,18 +130,23 @@ describe("ReconciliationTab", () => {
     ]);
   });
 
-  it("signs off with the report version, then shows the frozen report without actions", async () => {
+  it("signs off with the report version, then shows the frozen report with the signer's name and no actions", async () => {
     let signed = false;
+    const frozen = () =>
+      aReport({
+        status: "signed_off",
+        signed_by: "user-2",
+        signed_by_name: "Dev Patel",
+        signed_at: "2026-09-07T11:00:00Z",
+        can_sign: false,
+        sign_blocker: "report_signed",
+        version: 2,
+      });
     stubFetch({
-      "GET /v1/migration/reconciliation": () =>
-        json([
-          signed
-            ? aReport({ status: "signed_off", signed_by: "user-2", signed_at: "2026-09-07T11:00:00Z", version: 2 })
-            : aReport(),
-        ]),
+      "GET /v1/migration/reconciliation": () => json([signed ? frozen() : aReport()]),
       [`POST /v1/migration/reconciliation/${REPORT_ID}/sign-off`]: () => {
         signed = true;
-        return json(aReport({ status: "signed_off", signed_by: "user-2", version: 2 }), 201);
+        return json(frozen(), 201);
       },
     });
     renderDesk(<ReconciliationTab accountId={ACCOUNT_ID} />);
@@ -111,8 +154,10 @@ describe("ReconciliationTab", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign off" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm sign off" }));
     await screen.findByText("Signed off", { selector: "[data-state]" });
-    await screen.findByText(/Signed by user-2/);
+    await screen.findByText(/Signed by Dev Patel/);
+    expect(screen.queryByText(/user-2/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign off" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Already signed")).not.toBeInTheDocument();
     expect(screen.getByText("The report is frozen and its snapshot stored.")).toBeInTheDocument();
   });
 
@@ -122,7 +167,5 @@ describe("ReconciliationTab", () => {
     await screen.findByText(/No reconciliation report on this account yet/);
     fireEvent.change(screen.getByLabelText("Scope"), { target: { value: "delta" } });
     await waitFor(() => expect(calls.at(-1)?.search).toBe(`?account_id=${ACCOUNT_ID}&scope=delta`));
-    expect(signOffBlockedReason(aReport({ status: "signed_off" }))).toBe("Signed off.");
-    expect(signOffBlockedReason(aReport())).toBeNull();
   });
 });

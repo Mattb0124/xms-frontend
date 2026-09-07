@@ -56,11 +56,16 @@ describe("BatchList", () => {
             counts: { extracted: 3, loaded: 2, updated: 0, skipped: 0, unmatched: 1, errors: 2 },
             started_at: "2026-09-07T10:00:00Z",
             finished_at: "2026-09-07T10:05:00Z",
+            run_by: "user-2",
+            run_by_name: null,
           }),
         ]}
       />,
     );
     expect(screen.getByText("Brookfield")).toBeInTheDocument();
+    // The runner is named, never shown as an id prefix; an unresolved name leaves the cell empty.
+    expect(screen.getByText("Cara Lee")).toBeInTheDocument();
+    expect(screen.queryByText(/user-/)).not.toBeInTheDocument();
     expect(screen.getByText("other")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "88888888" })).toHaveAttribute(
       "href",
@@ -116,6 +121,7 @@ describe("batch summary", () => {
       "/admin/migration/cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     );
     expect(screen.getByText("field map-1, state map-2")).toBeInTheDocument();
+    expect(screen.getByText("Run by").nextElementSibling).toHaveTextContent("Cara Lee");
     expect(screen.getByRole("alert")).toHaveTextContent("instance unreachable");
     expect(screen.getByText("extracted 3 cases from Brookfield CSM")).toBeInTheDocument();
     expect(screen.getByText("Failed: instance unreachable")).toBeInTheDocument();

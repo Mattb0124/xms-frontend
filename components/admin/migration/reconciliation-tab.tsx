@@ -18,18 +18,27 @@ import {
   useSignOffReportMutation,
   type ReconciliationReport,
   type ReportLine,
+  type SignBlocker,
 } from "@/redux/migrationApi";
 
 interface IndexedLine extends ReportLine {
   index: number;
 }
 
-/** Why the Sign off button is off, in the spec's words; null when the report may be signed. */
-export function signOffBlockedReason(report: ReconciliationReport): string | null {
-  if (report.status === "signed_off") return "Signed off.";
-  if (report.lines.some((line) => line.status === "delta_open"))
-    return "Every line must be matched or explained before the report can be signed.";
-  return null;
+const SIGN_BLOCKER_REASON: Record<SignBlocker, string> = {
+  report_signed: "Already signed",
+  signer_ran_batch: "You ran this batch; a second person must sign",
+  delta_open: "A delta is still open",
+};
+
+/**
+ * Why the Sign off button is off, from the server's `sign_blocker` (four
+ * eyes, an open delta, or already signed); null when the reader may sign.
+ * The server still enforces every rule on the request itself.
+ */
+export function signOffBlockedReason(report: Pick<ReconciliationReport, "can_sign" | "sign_blocker">): string | null {
+  if (report.can_sign) return null;
+  return report.sign_blocker ? SIGN_BLOCKER_REASON[report.sign_blocker] : "Sign off is not available";
 }
 
 function ReportPanel({ report, current }: { report: ReconciliationReport; current: boolean }) {
@@ -78,9 +87,9 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
         row.explanation ? (
           <span className="block max-w-[360px] truncate" title={row.explanation}>
             {row.explanation}
-            {row.explained_by ? (
-              <span className="xms-mono text-xms-label ml-2 text-[11px]">
-                {row.explained_by.slice(0, 8)} {formatDate(row.explained_at)}
+            {row.explained_by_name || row.explained_at ? (
+              <span className="text-xms-label ml-2 text-[11px]" data-explained-by>
+                {row.explained_by_name ?? "Unknown"} <span className="xms-mono">{formatDate(row.explained_at)}</span>
               </span>
             ) : null}
           </span>
@@ -132,7 +141,7 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
   const scopeLabel = REPORT_SCOPES.find((scope) => scope.value === report.scope)?.label ?? report.scope;
   const caption =
     report.status === "signed_off"
-      ? `Signed by ${report.signed_by?.slice(0, 8) ?? "unknown"} ${formatDate(report.signed_at)}`
+      ? `Signed by ${report.signed_by_name ?? "an unknown user"} ${formatDate(report.signed_at)}`
       : `Created ${formatDate(report.created_at)}, version ${report.version}`;
   return (
     <section aria-label={`${scopeLabel} report`} data-report={report.id} data-current={current ? "true" : undefined}>

@@ -69,6 +69,8 @@ export interface MigrationBatch {
   started_at: string | null;
   finished_at: string | null;
   run_by: string | null;
+  /** The runner's display name, resolved by the server; null when unknown. */
+  run_by_name: string | null;
   error: string | null;
   log: BatchLogEntry[];
   version: number;
@@ -85,8 +87,17 @@ export interface ReportLine {
   status: LineStatus;
   explanation?: string | null;
   explained_by?: string | null;
+  /** The explainer's display name, resolved by the server; null when unknown. */
+  explained_by_name?: string | null;
   explained_at?: string | null;
 }
+
+/**
+ * Why the reader cannot sign this report, decided by the server up front:
+ * it is signed already, the reader ran the batch (four eyes), or a delta is
+ * still open. Null when the reader may sign.
+ */
+export type SignBlocker = "report_signed" | "signer_ran_batch" | "delta_open";
 
 export interface ReconciliationReport {
   id: string;
@@ -96,8 +107,12 @@ export interface ReconciliationReport {
   status: ReportStatus;
   snapshot_key: string | null;
   signed_by: string | null;
+  /** The signer's display name, resolved by the server; null when unsigned or unknown. */
+  signed_by_name: string | null;
   signed_at: string | null;
   lines: ReportLine[];
+  can_sign: boolean;
+  sign_blocker: SignBlocker | null;
   version: number;
   created_at: string;
   updated_at: string;
