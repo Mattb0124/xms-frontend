@@ -73,14 +73,9 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
             Open the queue
           </Link>
           {me.hasPermission("admin:accounts") ? (
-            <>
-              <Link href={`/admin/accounts/${accountId}`} className="text-xms-accent hover:underline">
-                Account record
-              </Link>
-              <Link href={`/admin/accounts/${accountId}?tab=budget`} className="text-xms-accent hover:underline">
-                Budget
-              </Link>
-            </>
+            <Link href={`/admin/accounts/${accountId}`} className="text-xms-accent hover:underline">
+              Account record
+            </Link>
           ) : null}
           <button
             type="button"
