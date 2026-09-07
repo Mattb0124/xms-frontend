@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AccountSettingsTab } from "@/components/admin/account-settings-tab";
+import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
 import {
@@ -45,6 +46,7 @@ const TABS = [
   { key: "settings", label: "Settings" },
   { key: "access", label: "Access" },
   { key: "intake", label: "Intake" },
+  { key: "connectors", label: "Connectors" },
 ];
 
 function OverviewTab({ id }: { id: string }) {
@@ -293,6 +295,7 @@ export default function AdminAccountRecordPage() {
       {tab === "settings" ? <AccountSettingsTab accountId={id} /> : null}
       {tab === "access" ? <AccessTab id={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
+      {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
     </AdminGate>
   );
 }

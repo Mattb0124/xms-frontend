@@ -255,6 +255,22 @@ export const SCREENS: Screen[] = [
     purpose: "State machines, priority matrix, SLA policy, catalogs.",
   },
   {
+    path: "/admin/connectors",
+    screen: "admin.connectors",
+    label: "Connectors",
+    section: "Admin",
+    permission: "admin:connectors",
+    purpose: "Every connector instance: health, mode, backlog, dead letters.",
+  },
+  {
+    path: "/admin/connectors/[id]",
+    screen: "admin.connector",
+    label: "Connector record",
+    section: "Admin",
+    permission: "admin:connectors",
+    purpose: "One instance: settings, field and state maps, runs, dead letters.",
+  },
+  {
     path: "/admin/audit",
     screen: "admin.audit",
     label: "Audit search",
