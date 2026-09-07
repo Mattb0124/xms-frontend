@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountDashboard } from "@/components/reporting/account-dashboard";
+import { aCompTimeReport } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 import { aClientDashboard, anAccountDashboard, aReportRun } from "@/test-kit/reporting";
 
@@ -35,10 +36,12 @@ describe("AccountDashboard", () => {
         return json(last.search.includes("as_client=true") ? aClientDashboard() : anAccountDashboard());
       },
       "GET /v1/accounts/acct-1/reports": () => json([aReportRun()]),
+      "GET /v1/accounts/acct-1/time/comp-time": () => json(aCompTimeReport()),
     });
     renderDesk(<AccountDashboard accountId="acct-1" />);
     await waitFor(() => expect(screen.getByTestId("notable-list")).toBeInTheDocument());
     expect(screen.getByTestId("synthesis")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("comp-time-total")).toHaveTextContent("3h"));
     expect(screen.getByRole("link", { name: "Open the queue" })).toHaveAttribute("href", "/tickets?account_id=acct-1");
     expect(screen.getByRole("link", { name: "Account record" })).toHaveAttribute("href", "/admin/accounts/acct-1");
     expect(screen.getByText("Ready for review")).toBeInTheDocument();
@@ -49,6 +52,7 @@ describe("AccountDashboard", () => {
     await waitFor(() => expect(screen.queryByTestId("notable-list")).not.toBeInTheDocument());
     expect(screen.queryByTestId("synthesis")).not.toBeInTheDocument();
     expect(screen.queryByText("Reports")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("comp-time-total")).not.toBeInTheDocument();
     expect(
       calls.some(
         (call) => call.key === "GET /v1/dashboards/accounts/acct-1" && call.search === "?days=7&as_client=true",

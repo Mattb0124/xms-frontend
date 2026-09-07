@@ -17,6 +17,7 @@ import {
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
 import { ReportsCard } from "@/components/reporting/reports-card";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
+import { CompTimePanel } from "@/components/time/comp-time-panel";
 import { AccountDot } from "@/components/xms/account-dot";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -138,6 +139,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
       ) : null}
 
       {!asClient ? <ReportsCard accountId={accountId} /> : null}
+      {!asClient ? <CompTimePanel accountId={accountId} /> : null}
     </div>
   );
 }
