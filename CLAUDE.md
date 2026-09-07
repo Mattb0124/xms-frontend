@@ -21,7 +21,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-07, capacity and billing cut included, per ADR-14)
+## Layout (as built 2026-09-07, capacity and billing cut with the skills matrix and forward demand, per ADR-14)
 
 ```
 app/layout.tsx          fonts, .xms-scope, Providers
@@ -42,9 +42,24 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         account present with the planned hours editable inline under capacity:manage and saved as one PUT
                         /v1/allocations with the version each cell was read at and its note kept, 0 clearing the cell,
                         stale_version worded as Reloaded with the drafts dropped, Add account over the granted accounts; the
-                        account and group directories need tickets:view, else columns carry the short id) and
-                        /capacity/variance (CAP-05: month, account and person in the URL, planned, actual, variance in signed hours
-                        and whole percent, largest first, totals; Export disabled until the API has a route); the assignee
+                        account and group directories need tickets:view, else columns carry the short id; the totals row
+                        carries the server's remaining total; beneath the grid the demand overlay (CAP-08): allocated,
+                        weighted pipeline and project demand stacked against the available hours with the figures, the
+                        verdict against the remaining hours and the subjects, or a link to enter demand when the month has
+                        none), /capacity/variance (CAP-05: month, account and person in the URL, planned, actual, variance in
+                        signed hours and whole percent, largest first, totals with the signed variance total; Export disabled
+                        until the API has a route), /capacity/skills (CAP-07, functional 5.8; capacity:view, fails closed: the
+                        lens and its filter in the URL, the people lens a heat map of people against the active skills grouped
+                        by kind with the level 1 to 4 on the accent ramp and a role filter, the account lens one card per
+                        account with each required technology, its status pill Covered, Single point of failure or Gap and
+                        the qualified people, an account filter sent to the API, names from the skills catalog with the code
+                        standing in) and /capacity/demand (CAP-08, functional 5.7; capacity:view, fails closed: from and to
+                        months in the URL (the current month to three months ahead by default) and an account, the lines
+                        with source pill, subject, month, hours, probability for pipeline, weighted hours, role and note, the
+                        server's totals, Remove behind a confirm under capacity:manage, the Add demand form with the
+                        probability only for pipeline and subject_required worded, the Import CSV panel taking pasted text or
+                        a file read as text with the template columns listed, invalid_import per line and unknown_account
+                        keys worded); the assignee
                         picker under tickets:work asks GET /v1/capacity/check once per open picker (at most 50 roster ids) and
                         shows "76.8 h left", "Over by 13.3 h" or "No calendar" with a warning marker for warning and over (CAP-06);
                         /knowledge Solutions list (chips, search, New article), /knowledge/new, /knowledge/[key] (record bar,
@@ -61,7 +76,9 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         with runs and "Generate weekly report", Comp time panel over /v1/accounts/:id/time/comp-time by date
                         range with per-person minutes and entries; tickets:view, left out of the client view) as the Dashboard
                         tab, and a Budget tab (`?tab=budget`, the target of the threshold notifications, so a reader with
-                        tickets:view and no admin:accounts reaches the same AccountBudgetView) (TB-13),
+                        tickets:view and no admin:accounts reaches the same AccountBudgetView) (TB-13), with the skills
+                        coverage chips above the tabs under capacity:view ("Single point of failure: OneStream", "Gap: SAP"
+                        from the account lens; hidden when nothing is flagged) (CAP-07),
                         /reports/packs/[id] (frozen numbers, narrative, PPTX link),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
                         values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
@@ -69,12 +86,15 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         view and chips (P2.11.4),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
-                        account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
+                        account record carries the same skills coverage chips under the record bar (capacity:view; CAP-07)
+                        and has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
                         with the default marked, New calendar), a Contracts tab (key, name, model, status, after-hours
                         handling and the budget rules under tickets:view; under contracts:manage an inline rules editor per
                         row: handling with its multiplier, overage rule with the multiplier only under allow_rate, rollover
-                        rule with the cap only under cap, thresholds as a comma list, notify client, forecast window, saved
-                        as one set through PATCH with the version; multiplier_required, cap_required and stale_version
+                        rule with the cap only under cap, thresholds as a comma list, notify client, forecast window, the
+                        required technology codes as a comma list (lower-cased, deduplicated, the server's code pattern, up
+                        to fifty; listed by name in a Technologies column), saved as one set through PATCH with the
+                        version; multiplier_required, cap_required and stale_version
                         worded; a Rate cards panel beneath with a disclosure per contract listing its versions and an
                         Account default section, New version form under contracts:manage over PUT /v1/accounts/:id/rate-cards
                         with rate_card_exists and duplicate_role worded) (TB-05, TB-09, TB-11, TB-13), a Budget tab
@@ -85,7 +105,8 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         of the entries filtered by person, activity and billable class over the period with total minutes and
                         amount; Export disabled until an export route exists) (TB-07 to TB-09), a Billing tab (functional 5.7,
                         TB-14; tickets:view, fails closed: one period per calendar month with the status pill Open, Submitted,
-                        Approved, Locked, Exported, the summary the server kept (hours, amount, entries and adjustments, by
+                        Approved, Locked, Exported, who submitted, approved and locked it by name with the day (System for
+                        the automatic lock), the summary the server kept (hours, amount, entries and adjustments, by
                         class, unrated hours) and the checksum prefix; New period from a month picker under time:lock-period;
                         Submit and Reopen under contracts:manage, Approve and Lock under time:lock-period behind a confirm, each
                         posting { version } to its own route; invalid_transition worded with the allowed moves and stale_version
@@ -150,9 +171,10 @@ lib/time/after-hours    class and handling labels, describeHandling ("Premium 1.
 lib/time/budget         formatHours ("1.5 h"), formatMoney and formatAmount, budgetTone (good, warn, breach), consumedPercent,
                         forecastSentence and forecastBasis, thresholdMarkers and thresholdLabel, unratedNote, the overage and
                         rollover vocab (OVERAGE_RULES, ROLLOVER_RULES, describeOverage, describeRollover), overageBlockedMessage
-components/admin/contracts/  account-contracts-tab (DenseTable of contracts with handlingCell and rulesCell,
-                        ContractRulesEditor over patchContract with draftFromContract, parseThresholds, validateRules and
-                        rulesBody; multiplier_required, cap_required and stale_version worded), rate-cards (RateCardsPanel with
+components/admin/contracts/  account-contracts-tab (DenseTable of contracts with handlingCell, rulesCell and the Technologies
+                        column, ContractRulesEditor over patchContract with draftFromContract, parseThresholds,
+                        parseTechnologyCodes, validateRules and rulesBody (technology_codes with the rule set);
+                        multiplier_required, cap_required and stale_version worded), rate-cards (RateCardsPanel with
                         a disclosure per contract and the Account default section, NewRateCardForm with validateRateCard and
                         toRateCardBody, describeRateCardError for rate_card_exists and duplicate_role)
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
@@ -175,13 +197,28 @@ components/roster/      people-list (PeopleList, SkillChip, GroupChip), new-pers
 lib/roster/             vocab (ROLE_OPTIONS, roleLabel, SKILL_LEVELS, ISO_WEEKDAYS, expiryState, formatPercent), filters (the
                         list URL grammar), errors (typed person_exists, day_end_before_start, skill_exists, duplicate_skill ...)
 components/capacity/    capacity-grid (CapacityGrid: presentAccounts, changedCells with versions and notes, StatusPill, inline
-                        cells, Save allocations, Add account), capacity-tabs (the Capacity and Planned versus actual link pair)
+                        cells, Save allocations, Add account, the remaining total), capacity-tabs (the four link-tabs:
+                        Capacity, Planned versus actual, Skills matrix, Demand), skills-heat-map (SkillsHeatMap, heatMapRows;
+                        columns grouped by kind, cells on levelCellClass), account-coverage (AccountCoverageCards,
+                        CoveragePill, useSkillName over the skills catalog with the code as the fallback), coverage-chips
+                        (AccountCoverageChips: the account lens for one account under capacity:view, nothing when nothing is
+                        flagged), demand-overlay (DemandOverlay, overlayWidths: the stacked bar, the figures, the verdict,
+                        the subjects), demand-table (DemandTable, SourcePill, totals, Remove behind a confirm), demand-form
+                        (AddDemandForm, emptyDemandDraft, validateDemand, demandBody: probability only for pipeline as a
+                        fraction, the subject once), demand-import (ImportDemandPanel: textarea or file read as text, the
+                        template columns, invalid_import problems per line)
 lib/capacity/           vocab (PTO kinds and fractionLabel, CAPACITY_STATUS labels and tones, formatSignedHours,
                         formatVariancePercent, remainingLabel, month helpers currentMonth, monthStart, monthEnd, monthLabel,
-                        isMonth, the cell text conversions), filters (the two screens' URL grammar; the month written only
-                        when it is not the current one), errors (typed invalid_range, bad_month, person_ids_required,
-                        stale_version with current, forbidden with account_id, not_found by entity)
-components/admin/billing/  billing-periods-tab (BillingPeriodsTab, BillingStatusPill, BillingExportsList)
+                        addMonths, isMonth, the cell text conversions; COVERAGE_STATUS and coverageChipLabel, levelCellClass
+                        and groupSkillsByKind for the heat map; DEMAND_SOURCE, weightedMinutes (the server's rule),
+                        formatProbability, demandSubject, DEMAND_TEMPLATE_COLUMNS and DEMAND_TEMPLATE_EXAMPLE), filters (the
+                        four screens' URL grammar: the month written only when it is not the current one, the skills lens
+                        written only for account with each lens keeping its own filter, the demand range written only where
+                        it leaves the current month plus three), errors (typed invalid_range, bad_month, person_ids_required,
+                        stale_version with current, forbidden with account_id, not_found by entity, bad_lens,
+                        subject_required, invalid_import with problems, unknown_account with keys)
+components/admin/billing/  billing-periods-tab (BillingPeriodsTab, BillingStatusPill, BillingExportsList, PeriodPeople with
+                        the submitted, approved and locked names)
 lib/time/billing        BILLING_STATUS, BILLING_TRANSITIONS with the permission per move, allowedActions, canExport,
                         billingPeriodBody, periodLabel, checksumPrefix, billingError and describeBillingError
                         (invalid_transition with status and allowed, stale_version, period_not_locked)
@@ -241,8 +278,9 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
                         links, watchers, notifications, directory lookups, account contracts with after_hours_handling,
                         after_hours_multiplier and the budget rules (threshold_percents, threshold_notify_client, overage_rule,
-                        overage_multiplier, rollover_rule, rollover_cap_hours, forecast_window_days), patchContract with the
-                        version over the whole rule set), portalApi.ts (the /v1/portal mirror and the
+                        overage_multiplier, rollover_rule, rollover_cap_hours, forecast_window_days) and technology_codes,
+                        patchContract with the version over the whole rule set, invalidating SkillsMatrix), portalApi.ts (the
+                        /v1/portal mirror and the
                         searchArticles placeholder), knowledgeApi.ts (articles, drafts, publish, retire, generalize,
                         visibility, feedback, search, the Solutions rail, candidates, catalogs), timeApi.ts (ticket time,
                         my timesheet, adjustments, contract position, buckets; entries carry performed_start,
@@ -250,19 +288,25 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         performed_start, compTime reads the account's comp-time report by range and refreshes when time is
                         logged; accountBudget and budgetEntries (the API's contract, person, activity, class, from and to
                         parameters) on the Budget tag, refreshed when time is logged or adjusted; rateCards per contract or
-                        the account defaults and createRateCard on the RateCards tag; billingPeriods, createBillingPeriod,
+                        the account defaults and createRateCard on the RateCards tag; billingPeriods (with submitted_by_name,
+                        approved_by_name and locked_by_name), createBillingPeriod,
                         transitionBillingPeriod (submit, reopen, approve, lock with { version }, the list reloaded even when
                         refused), billingExports and billingExportPath on the BillingPeriods and BillingExports tags),
                         capacityApi.ts (listPto, addPto, removePto on the Pto tag and the Capacity tag; capacityView with month,
-                        group, role, account; capacityCheck with person_ids capped at 50 and month; capacityVariance with
-                        month, account, person; listAllocations; putAllocations invalidating Capacity and Allocations stale or
+                        group, role, account, carrying the demand overlay and the remaining total; capacityCheck with
+                        person_ids capped at 50 and month; capacityVariance with month, account, person and the variance
+                        total; skillsMatrixPeople (lens=people) and skillsMatrixAccount (lens=account, account) on the
+                        SkillsMatrix tag, invalidated by the roster skills save and the contract patch; listDemand with from,
+                        to, account, addDemand, removeDemand and importDemand ({ content }) on the Demand tag, each also
+                        reloading Capacity; listAllocations; putAllocations invalidating Capacity and Allocations stale or
                         not), attachmentsApi.ts (list, presign, confirm, download,
                         delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
                         and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
                         connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
                         ticket sync; useConnectorInstance selects the record out of the health list),
                         rosterApi.ts (people list with filters, create, import, record, patch, calendar, skills catalog and
-                        per-person whole-set skills, certifications), calendarsApi.ts (account calendars, one calendar, create,
+                        per-person whole-set skills (invalidating SkillsMatrix), certifications), calendarsApi.ts (account
+                        calendars, one calendar, create,
                         patch, preview, holiday libraries), timeApi.ts also myWeek and myUnlogged (P2.18.3),
                         store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
