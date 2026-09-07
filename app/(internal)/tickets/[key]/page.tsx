@@ -14,6 +14,7 @@ import { PropertiesPanel } from "@/components/tickets/properties-panel";
 import { ResolutionTab } from "@/components/tickets/resolution-tab";
 import { RequesterCard, ServiceLevels, WatchCard } from "@/components/tickets/sla-rail";
 import { SolutionsRail } from "@/components/tickets/solutions-rail";
+import { SyncCard } from "@/components/tickets/sync-card";
 import { TimeTab } from "@/components/tickets/time-tab";
 import { TransitionMenu } from "@/components/tickets/transition-menu";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -131,6 +132,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
+          <SyncCard ticketId={ticket.id} />
           <RequesterCard ticket={ticket} />
           <WatchCard ticketKey={ticket.key} watching={ticket.watching ?? true} />
         </div>
