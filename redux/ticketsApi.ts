@@ -227,6 +227,8 @@ export interface Contract {
   rollover_cap_hours: string | null;
   /** Business days of run rate behind the forecast (default 10). */
   forecast_window_days: number;
+  /** Skill codes the contract requires (CAP-07): the account lens of the skills matrix reads them. */
+  technology_codes: string[];
   version: number;
 }
 
@@ -242,6 +244,8 @@ export interface PatchContractBody {
   rollover_rule?: RolloverRule;
   rollover_cap_hours?: number | null;
   forecast_window_days?: number;
+  /** Lower-case codes matching ^[a-z0-9][a-z0-9_.-]{0,59}$, up to 50; the server deduplicates. */
+  technology_codes?: string[];
 }
 
 function ticketTag(key: string) {
@@ -386,6 +390,8 @@ export const ticketsApi = xmsApi.injectEndpoints({
               { type: "Account", id: `${accountId}:contracts` },
               { type: "Position", id: contractId },
               { type: "Budget", id: accountId },
+              // The required technologies feed the account lens of the skills matrix.
+              "SkillsMatrix",
             ],
     }),
   }),

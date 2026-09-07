@@ -300,6 +300,10 @@ export interface BillingPeriod {
   approved_by: string | null;
   locked_at: string | null;
   locked_by: string | null;
+  /** The people behind the ids, resolved by the server; "System" for the automatic lock. */
+  submitted_by_name: string | null;
+  approved_by_name: string | null;
+  locked_by_name: string | null;
   /** Set on approve: the lock the server applies on its own after N days. */
   auto_lock_at: string | null;
   summary: BillingSummary | null;

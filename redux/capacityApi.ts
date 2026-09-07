@@ -1,10 +1,11 @@
 import { xmsApi } from "@/redux/api";
 
 /**
- * Capacity (Capacity & Allocation functional 5.3 to 5.6 and 5.9, technical
- * 2.4 to 2.9; CAP-02 to CAP-06): PTO per person, the month view per person,
- * the assignment-time check, planned versus actual and the allocation grid
- * cells. Every minute figure is the server's; the browser formats hours and
+ * Capacity (Capacity & Allocation functional 5.3 to 5.9, technical 2.4 to
+ * 2.9; CAP-02 to CAP-08): PTO per person, the month view per person with
+ * the demand overlay, the assignment-time check, planned versus actual, the
+ * allocation grid cells, the skills matrix in both lenses and forward
+ * demand (list, add, remove, import). Every minute figure is the server's; the browser formats hours and
  * never recomputes a month. PTO is readable and writable by the person
  * themselves or under `capacity:manage` (the route needs `time:log`); the
  * view, the variance and the allocation list need `capacity:view`; the
@@ -77,12 +78,29 @@ export interface CapacityTotals {
   available_minutes: number;
   allocated_minutes: number;
   actual_minutes: number;
+  remaining_minutes: number;
+}
+
+/** One demand line as the month view overlays it (5.7): an account or a prospect with its hours and probability. */
+export interface CapacityDemandSubject {
+  account_id: string | null;
+  account_key: string | null;
+  prospect_name: string | null;
+  source: DemandSource;
+  hours: number;
+  probability: number;
+}
+
+export interface CapacityDemand extends DemandTotals {
+  by_subject: CapacityDemandSubject[];
 }
 
 export interface CapacityView {
   /** "YYYY-MM-01" as the server names the month. */
   month: string;
   people: CapacityPerson[];
+  /** The month's forward demand, weighted by the server (CAP-08). */
+  demand: CapacityDemand;
   totals: CapacityTotals;
 }
 
@@ -121,7 +139,7 @@ export interface VarianceLine {
 export interface VarianceReport {
   month: string;
   lines: VarianceLine[];
-  totals: { planned_minutes: number; actual_minutes: number };
+  totals: { planned_minutes: number; actual_minutes: number; variance_minutes: number };
 }
 
 export interface VarianceFilter {
@@ -177,6 +195,125 @@ export interface PutAllocationsResult {
   cells: (Allocation | RemovedCell)[];
 }
 
+// Skills matrix (functional 5.8, CAP-07) ---------------------------------------
+
+export type SkillsLens = "people" | "account";
+
+export interface MatrixSkill {
+  id: string;
+  code: string;
+  name: string;
+  /** technology, account or process; the heat map groups columns by it. */
+  kind: string;
+}
+
+export interface MatrixPerson {
+  id: string;
+  display_name: string;
+  role: string;
+  /** Level 1 to 4 per skill code; a code absent means no level. */
+  levels: Record<string, number>;
+}
+
+/** The people lens: people as rows, active skills as columns, the level per cell. */
+export interface SkillsMatrixPeople {
+  lens: "people";
+  skills: MatrixSkill[];
+  people: MatrixPerson[];
+}
+
+/** ok: two or more at the required level; spof: exactly one; gap: nobody. */
+export type CoverageStatus = "ok" | "spof" | "gap";
+
+export interface TechnologyCoverage {
+  code: string;
+  status: CoverageStatus;
+  qualified: { person_id: string; display_name: string }[];
+}
+
+export interface AccountCoverage {
+  account_id: string;
+  key: string;
+  name: string;
+  /** The union of the technology codes on the account's active contracts, sorted. */
+  technologies: TechnologyCoverage[];
+  single_points_of_failure: string[];
+  gaps: string[];
+}
+
+/** The account lens: per granted account (or the one asked for), the required technologies and who qualifies. */
+export interface SkillsMatrixAccount {
+  lens: "account";
+  /** The level a person needs to count (3). */
+  required_level: number;
+  accounts: AccountCoverage[];
+}
+
+// Forward demand (functional 5.7, CAP-08) ----------------------------------------
+
+export type DemandSource = "pipeline" | "project" | "import";
+
+export interface DemandRow {
+  id: string;
+  source: DemandSource;
+  account_id: string | null;
+  /** The account key when the row names an account; null for a prospect. */
+  account_key: string | null;
+  prospect_name: string | null;
+  /** "YYYY-MM-01". */
+  period_month: string;
+  hours: number;
+  /** 1 for project demand. */
+  probability: number;
+  role: string | null;
+  note: string;
+  entered_by: string;
+  created_at: string;
+}
+
+export interface DemandTotals {
+  /** Pipeline hours times probability, in minutes. */
+  pipeline_minutes_weighted: number;
+  project_minutes: number;
+  total_minutes: number;
+}
+
+export interface DemandList {
+  /** "YYYY-MM-01" as the server names the months. */
+  from: string;
+  to: string;
+  account?: string;
+  rows: DemandRow[];
+  totals: DemandTotals;
+}
+
+/** The list filter; the query parameter names are the API's. `to` defaults to `from` on the server. */
+export interface DemandFilter {
+  /** "YYYY-MM". */
+  from?: string;
+  to?: string;
+  account?: string;
+}
+
+/** One line entered by hand: an account or a prospect (subject_required otherwise); probability only counts for pipeline. */
+export interface CreateDemandBody {
+  source: "pipeline" | "project";
+  account_id?: string;
+  prospect_name?: string;
+  /** "YYYY-MM". */
+  month: string;
+  hours: number;
+  /** 0.01 to 1; ignored for project demand. */
+  probability?: number;
+  role?: string;
+  note?: string;
+}
+
+export interface ImportDemandResult {
+  imported: number;
+  rows: DemandRow[];
+}
+
 function cleanParams(filter: Record<string, string | undefined>): Record<string, string> {
   return Object.fromEntries(
     Object.entries(filter).filter((entry): entry is [string, string] => entry[1] !== undefined && entry[1] !== ""),
@@ -217,6 +354,34 @@ export const capacityApi = xmsApi.injectEndpoints({
       query: (filter) => ({ url: "/v1/capacity/variance", params: cleanParams({ ...(filter ?? {}) }) }),
       providesTags: ["Capacity"],
     }),
+    skillsMatrixPeople: build.query<SkillsMatrixPeople, void>({
+      query: () => ({ url: "/v1/capacity/skills-matrix", params: { lens: "people" } }),
+      providesTags: ["SkillsMatrix"],
+    }),
+    skillsMatrixAccount: build.query<SkillsMatrixAccount, { account?: string } | void>({
+      query: (filter) => ({
+        url: "/v1/capacity/skills-matrix",
+        params: cleanParams({ lens: "account", account: filter?.account }),
+      }),
+      providesTags: ["SkillsMatrix"],
+    }),
+    listDemand: build.query<DemandList, DemandFilter | void>({
+      query: (filter) => ({ url: "/v1/demand", params: cleanParams({ ...(filter ?? {}) }) }),
+      providesTags: ["Demand"],
+    }),
+    addDemand: build.mutation<DemandRow, CreateDemandBody>({
+      query: (body) => ({ url: "/v1/demand", method: "POST", body }),
+      // The month view overlays demand, so it reloads with the list.
+      invalidatesTags: (_result, error) => (error ? [] : ["Demand", "Capacity"]),
+    }),
+    removeDemand: build.mutation<{ removed: string }, string>({
+      query: (id) => ({ url: `/v1/demand/${id}`, method: "DELETE" }),
+      invalidatesTags: (_result, error) => (error ? [] : ["Demand", "Capacity"]),
+    }),
+    importDemand: build.mutation<ImportDemandResult, { content: string }>({
+      query: (body) => ({ url: "/v1/demand/import", method: "POST", body }),
+      invalidatesTags: (_result, error) => (error ? [] : ["Demand", "Capacity"]),
+    }),
     listAllocations: build.query<Allocation[], AllocationsFilter | void>({
       query: (filter) => ({ url: "/v1/allocations", params: cleanParams({ ...(filter ?? {}) }) }),
       providesTags: ["Allocations"],
@@ -237,6 +402,12 @@ export const {
   useCapacityViewQuery,
   useCapacityCheckQuery,
   useCapacityVarianceQuery,
+  useSkillsMatrixPeopleQuery,
+  useSkillsMatrixAccountQuery,
+  useListDemandQuery,
+  useAddDemandMutation,
+  useRemoveDemandMutation,
+  useImportDemandMutation,
   useListAllocationsQuery,
   usePutAllocationsMutation,
 } = capacityApi;

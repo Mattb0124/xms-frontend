@@ -24,6 +24,7 @@ export function aContract(overrides: Partial<Contract> = {}): Contract {
     rollover_rule: "none",
     rollover_cap_hours: null,
     forecast_window_days: 10,
+    technology_codes: [],
     version: 1,
     ...overrides,
   };
@@ -55,14 +56,15 @@ describe("ticketsApi contracts", () => {
     ]);
   });
 
-  it("patches the handling with the version and refreshes the list", async () => {
+  it("patches the handling and the required technologies with the version and refreshes the list", async () => {
     let reads = 0;
     const calls = stubFetch({
       [`GET /v1/accounts/${ACCOUNT_ID}/contracts`]: () => {
         reads += 1;
-        return json([reads > 1 ? aPremiumContract({ version: 2 }) : aContract()]);
+        return json([reads > 1 ? aPremiumContract({ version: 2, technology_codes: ["onestream"] }) : aContract()]);
       },
-      [`PATCH /v1/accounts/${ACCOUNT_ID}/contracts/${CONTRACT_ID}`]: () => json(aPremiumContract({ version: 2 })),
+      [`PATCH /v1/accounts/${ACCOUNT_ID}/contracts/${CONTRACT_ID}`]: () =>
+        json(aPremiumContract({ version: 2, technology_codes: ["onestream"] })),
     });
     const store = makeStore();
     const subscription = store.dispatch(ticketsApi.endpoints.listAccountContracts.initiate(ACCOUNT_ID));
@@ -72,7 +74,12 @@ describe("ticketsApi contracts", () => {
         ticketsApi.endpoints.patchContract.initiate({
           accountId: ACCOUNT_ID,
           contractId: CONTRACT_ID,
-          body: { version: 1, after_hours_handling: "premium_rate", after_hours_multiplier: 1.5 },
+          body: {
+            version: 1,
+            after_hours_handling: "premium_rate",
+            after_hours_multiplier: 1.5,
+            technology_codes: ["onestream"],
+          },
         }),
       )
       .unwrap();
@@ -80,8 +87,11 @@ describe("ticketsApi contracts", () => {
       version: 1,
       after_hours_handling: "premium_rate",
       after_hours_multiplier: 1.5,
+      technology_codes: ["onestream"],
     });
     expect(updated.version).toBe(2);
+    expect(updated.technology_codes).toEqual(["onestream"]);
+
     await vi.waitFor(() => expect(reads).toBe(2));
     subscription.unsubscribe();
   });

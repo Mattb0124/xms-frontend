@@ -194,6 +194,7 @@ export const rosterApi = xmsApi.injectEndpoints({
         { type: "Person", id },
         { type: "Person", id: `${id}:skills` },
         "Roster",
+        "SkillsMatrix",
       ],
     }),
     listCertifications: build.query<Certification[], string>({
