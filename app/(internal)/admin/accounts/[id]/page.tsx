@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AccountSettingsTab } from "@/components/admin/account-settings-tab";
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
+import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
@@ -49,6 +50,7 @@ const TABS = [
   { key: "calendars", label: "Calendars" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
+  { key: "configuration", label: "Configuration" },
 ];
 
 function OverviewTab({ id }: { id: string }) {
@@ -299,6 +301,7 @@ export default function AdminAccountRecordPage() {
       {tab === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
       {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
+      {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
     </AdminGate>
   );
 }

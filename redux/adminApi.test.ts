@@ -35,9 +35,9 @@ export function anOverride(overrides: Partial<ConfigVersion> = {}): ConfigVersio
   });
 }
 
-/** The account view with the default in force. */
+/** The account view with the default in force (the effective body is the given default's). */
 export function anAccountConfig(overrides: Partial<AccountConfigView> = {}): AccountConfigView {
-  const row = aConfigVersion();
+  const row = overrides.default ?? aConfigVersion();
   return {
     effective: { source: "default", version: row.version, versionId: row.id, body: row.body },
     default: row,
