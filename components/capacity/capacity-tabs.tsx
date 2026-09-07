@@ -3,17 +3,20 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+export type CapacityTab = "capacity" | "variance" | "skills";
+
 export interface CapacityTabsProps {
-  active: "capacity" | "variance";
-  /** The query string carried across, so the month survives the switch. */
+  active: CapacityTab;
+  /** The query string carried across the month screens, so the month survives the switch. */
   search?: string;
 }
 
-/** The two capacity screens as record-style tabs that are links: Capacity and Planned versus actual. */
+/** The capacity screens as record-style tabs that are links: Capacity, Planned versus actual and the Skills matrix. */
 export function CapacityTabs({ active, search = "" }: CapacityTabsProps) {
-  const tabs = [
-    { key: "capacity" as const, label: "Capacity", href: `/capacity${search}` },
-    { key: "variance" as const, label: "Planned versus actual", href: `/capacity/variance${search}` },
+  const tabs: { key: CapacityTab; label: string; href: string }[] = [
+    { key: "capacity", label: "Capacity", href: `/capacity${search}` },
+    { key: "variance", label: "Planned versus actual", href: `/capacity/variance${search}` },
+    { key: "skills", label: "Skills matrix", href: "/capacity/skills" },
   ];
   return (
     <nav aria-label="Capacity screens" className="border-xms-line mb-4 flex items-end gap-1 border-b">

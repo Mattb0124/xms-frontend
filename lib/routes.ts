@@ -174,6 +174,14 @@ export const SCREENS: Screen[] = [
     purpose: "Planned against logged hours per person and account for a month.",
   },
   {
+    path: "/capacity/skills",
+    screen: "capacity.skills",
+    label: "Skills matrix",
+    section: "Capacity",
+    permission: "capacity:view",
+    purpose: "People against skills as a heat map; per account, the required technologies with single points of failure and gaps.",
+  },
+  {
     path: "/operations",
     screen: "operations",
     label: "Operations",

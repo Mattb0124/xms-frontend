@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   capacityFilterFromSearch,
   capacityFilterToSearch,
+  skillsFilterFromSearch,
+  skillsFilterToSearch,
   varianceFilterFromSearch,
   varianceFilterToSearch,
 } from "@/lib/capacity/filters";
@@ -41,5 +43,24 @@ describe("capacity filters", () => {
     });
     expect(varianceFilterToSearch({ month: "2026-08", person: "p-1" }, "2026-09")).toBe("?month=2026-08&person=p-1");
     expect(varianceFilterToSearch({ month: "2026-09" }, "2026-09")).toBe("");
+  });
+
+  it("reads the skills lens with its own filter only, and writes the account lens but not the people one", () => {
+    expect(skillsFilterFromSearch(new URLSearchParams(""))).toEqual({ lens: "people", role: undefined, account: undefined });
+    expect(skillsFilterFromSearch(new URLSearchParams("role=consultant&account=a-1"))).toEqual({
+      lens: "people",
+      role: "consultant",
+      account: undefined,
+    });
+    expect(skillsFilterFromSearch(new URLSearchParams("lens=account&account=a-1&role=consultant"))).toEqual({
+      lens: "account",
+      role: undefined,
+      account: "a-1",
+    });
+    expect(skillsFilterFromSearch(new URLSearchParams("lens=teams")).lens).toBe("people");
+    expect(skillsFilterToSearch({ lens: "people" })).toBe("");
+    expect(skillsFilterToSearch({ lens: "people", role: "architect" })).toBe("?role=architect");
+    expect(skillsFilterToSearch({ lens: "account" })).toBe("?lens=account");
+    expect(skillsFilterToSearch({ lens: "account", account: "a-1", role: "architect" })).toBe("?lens=account&account=a-1");
   });
 });

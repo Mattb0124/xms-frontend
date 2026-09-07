@@ -1,4 +1,5 @@
 import { currentMonth, isMonth } from "@/lib/capacity/vocab";
+import type { SkillsLens } from "@/redux/capacityApi";
 
 /**
  * The capacity screens' URL grammar (User Experience 2.1: a link is a
@@ -18,6 +19,13 @@ export interface VariancePageFilter {
   month: string;
   account?: string;
   person?: string;
+}
+
+/** The skills matrix: the lens, a role under the people lens, an account under the account lens. */
+export interface SkillsPageFilter {
+  lens: SkillsLens;
+  role?: string;
+  account?: string;
 }
 
 function monthFrom(search: URLSearchParams, fallback: string): string {
@@ -62,6 +70,25 @@ export function varianceFilterToSearch(filter: VariancePageFilter, fallbackMonth
   if (filter.month !== fallbackMonth) params.set("month", filter.month);
   if (filter.account) params.set("account", filter.account);
   if (filter.person) params.set("person", filter.person);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+}
+
+/** The people lens is the bare link; the account lens is written, and each lens keeps only its own filter. */
+export function skillsFilterFromSearch(search: URLSearchParams): SkillsPageFilter {
+  const lens: SkillsLens = search.get("lens") === "account" ? "account" : "people";
+  return {
+    lens,
+    role: lens === "people" ? value(search, "role") : undefined,
+    account: lens === "account" ? value(search, "account") : undefined,
+  };
+}
+
+export function skillsFilterToSearch(filter: SkillsPageFilter): string {
+  const params = new URLSearchParams();
+  if (filter.lens === "account") params.set("lens", "account");
+  if (filter.lens === "people" && filter.role) params.set("role", filter.role);
+  if (filter.lens === "account" && filter.account) params.set("account", filter.account);
   const text = params.toString();
   return text ? `?${text}` : "";
 }

@@ -1,21 +1,49 @@
 import { describe, expect, it } from "vitest";
 import { capacityError, describeCapacityError } from "@/lib/capacity/errors";
 import {
+  COVERAGE_STATUS,
+  coverageChipLabel,
   currentMonth,
   formatSignedHours,
   formatVariancePercent,
   fractionLabel,
+  groupSkillsByKind,
   hoursTextToMinutes,
   isMonth,
+  levelCellClass,
   minutesToHoursText,
   monthEnd,
   monthLabel,
   monthStart,
   remainingLabel,
 } from "@/lib/capacity/vocab";
-import { aCapacityCheck } from "@/redux/capacityApi.test";
+import { aCapacityCheck, aSkillsMatrixPeople } from "@/redux/capacityApi.test";
 
 describe("capacity vocab", () => {
+  it("words the coverage statuses and the account record chips, and ramps the heat map by level", () => {
+    expect(COVERAGE_STATUS.ok).toEqual({ label: "Covered", tone: "complete" });
+    expect(COVERAGE_STATUS.spof).toEqual({ label: "Single point of failure", tone: "needs-input" });
+    expect(COVERAGE_STATUS.gap).toEqual({ label: "Gap", tone: "overdue" });
+    expect(coverageChipLabel("spof", "OneStream")).toBe("Single point of failure: OneStream");
+    expect(coverageChipLabel("gap", "SAP")).toBe("Gap: SAP");
+    expect(levelCellClass(undefined)).toBe("");
+    expect(levelCellClass(1)).toContain("bg-xms-tint");
+    expect(levelCellClass(4)).toContain("bg-xms-accent ");
+    expect(new Set([1, 2, 3, 4].map(levelCellClass)).size).toBe(4);
+  });
+
+  it("groups the heat map columns by kind in the fixed order, names ascending inside a kind", () => {
+    const groups = groupSkillsByKind([
+      ...aSkillsMatrixPeople().skills,
+      { id: "s-brk", code: "acct_brk", name: "Brookfield", kind: "account" },
+    ]);
+    expect(groups.map((group) => [group.label, group.skills.map((skill) => skill.code)])).toEqual([
+      ["Technology", ["anaplan", "onestream"]],
+      ["Account familiarity", ["acct_brk"]],
+      ["Process", ["close"]],
+    ]);
+  });
+
   it("words the PTO fraction", () => {
     expect(fractionLabel("1.00")).toBe("Full days");
     expect(fractionLabel("0.50")).toBe("Half days");

@@ -1,6 +1,7 @@
 import type { SignalTone } from "@/components/xms/signal-pill";
 import { formatHours } from "@/lib/time/budget";
-import type { CapacityCheck, CapacityStatus, PtoKind } from "@/redux/capacityApi";
+import { SKILL_KIND_LABEL } from "@/lib/roster/vocab";
+import type { CapacityCheck, CapacityStatus, CoverageStatus, MatrixSkill, PtoKind } from "@/redux/capacityApi";
 
 /**
  * The capacity vocabulary (Capacity & Allocation functional 5.1, 5.3 to
@@ -33,6 +34,63 @@ export const CAPACITY_STATUS: Record<CapacityStatus, { label: string; tone: Sign
   over: { label: "Over", tone: "overdue" },
   no_calendar: { label: "No calendar", tone: "blocked" },
 };
+
+/** The account lens statuses (5.8): covered, a single point of failure, a gap. */
+export const COVERAGE_STATUS: Record<CoverageStatus, { label: string; tone: SignalTone }> = {
+  ok: { label: "Covered", tone: "complete" },
+  spof: { label: "Single point of failure", tone: "needs-input" },
+  gap: { label: "Gap", tone: "overdue" },
+};
+
+/** "Single point of failure: OneStream", "Gap: SAP": the account record's chips. */
+export function coverageChipLabel(status: "spof" | "gap", name: string): string {
+  return `${COVERAGE_STATUS[status].label}: ${name}`;
+}
+
+/** The heat map ramp: the accent deepening from level 1 to 4, on the scope tokens; empty for no level. */
+export function levelCellClass(level: number | undefined): string {
+  switch (level) {
+    case 1:
+      return "bg-xms-tint text-xms-ink";
+    case 2:
+      return "bg-xms-accent-tint-strong text-xms-ink";
+    case 3:
+      return "bg-xms-accent-border text-xms-ink";
+    case 4:
+      return "bg-xms-accent text-white";
+    default:
+      return "";
+  }
+}
+
+const SKILL_KIND_ORDER = ["technology", "account", "process"];
+
+export interface SkillGroup {
+  kind: string;
+  label: string;
+  skills: MatrixSkill[];
+}
+
+/** The heat map columns grouped by kind (technology, account familiarity, process, then anything else), names ascending. */
+export function groupSkillsByKind(skills: MatrixSkill[]): SkillGroup[] {
+  const groups = new Map<string, MatrixSkill[]>();
+  for (const skill of skills) {
+    const list = groups.get(skill.kind) ?? [];
+    list.push(skill);
+    groups.set(skill.kind, list);
+  }
+  const rank = (kind: string) => {
+    const index = SKILL_KIND_ORDER.indexOf(kind);
+    return index === -1 ? SKILL_KIND_ORDER.length : index;
+  };
+  return [...groups.entries()]
+    .sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0]))
+    .map(([kind, list]) => ({
+      kind,
+      label: SKILL_KIND_LABEL[kind] ?? kind,
+      skills: [...list].sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+}
 
 /** "+22 h", "-1.5 h", "0 h": a variance in hours with its sign. */
 export function formatSignedHours(minutes: number): string {

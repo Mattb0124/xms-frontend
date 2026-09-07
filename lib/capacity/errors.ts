@@ -11,7 +11,8 @@ export type CapacityErrorCode =
   | "person_ids_required"
   | "stale_version"
   | "forbidden"
-  | "not_found";
+  | "not_found"
+  | "bad_lens";
 
 export interface CapacityError extends ApiError {
   /** stale_version carries the version the server holds. */
@@ -50,7 +51,10 @@ export function describeCapacityError(error: CapacityError): string {
     case "not_found":
       if (error.entity === "pto") return "That time off has already been removed.";
       if (error.entity === "person") return "This person is not on the roster.";
+      if (error.entity === "account") return "That account is not granted to you.";
       return "Not found.";
+    case "bad_lens":
+      return "The lens must be people or account.";
     default:
       return describeError(error);
   }
