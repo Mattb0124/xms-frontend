@@ -1,0 +1,45 @@
+import { describe, expect, it } from "vitest";
+import {
+  capacityFilterFromSearch,
+  capacityFilterToSearch,
+  varianceFilterFromSearch,
+  varianceFilterToSearch,
+} from "@/lib/capacity/filters";
+
+describe("capacity filters", () => {
+  it("reads the month and the filters from the URL and falls back to the current month", () => {
+    expect(capacityFilterFromSearch(new URLSearchParams(""), "2026-09")).toEqual({
+      month: "2026-09",
+      role: undefined,
+      group: undefined,
+      account: undefined,
+    });
+    expect(capacityFilterFromSearch(new URLSearchParams("month=2026-11&role=consultant&group=g-1&account=a-1"), "2026-09")).toEqual({
+      month: "2026-11",
+      role: "consultant",
+      group: "g-1",
+      account: "a-1",
+    });
+    expect(capacityFilterFromSearch(new URLSearchParams("month=2026-13"), "2026-09").month).toBe("2026-09");
+    expect(capacityFilterFromSearch(new URLSearchParams("month=nope"), "2026-09").month).toBe("2026-09");
+  });
+
+  it("writes only the filters set and the month only when it is not the current one", () => {
+    expect(capacityFilterToSearch({ month: "2026-09" }, "2026-09")).toBe("");
+    expect(capacityFilterToSearch({ month: "2026-10" }, "2026-09")).toBe("?month=2026-10");
+    expect(capacityFilterToSearch({ month: "2026-09", role: "consultant", account: "a-1" }, "2026-09")).toBe(
+      "?role=consultant&account=a-1",
+    );
+    expect(capacityFilterToSearch({ month: "2026-10", group: "g-1" }, "2026-09")).toBe("?month=2026-10&group=g-1");
+  });
+
+  it("does the same for the variance screen with account and person", () => {
+    expect(varianceFilterFromSearch(new URLSearchParams("account=a-1&person=p-1"), "2026-09")).toEqual({
+      month: "2026-09",
+      account: "a-1",
+      person: "p-1",
+    });
+    expect(varianceFilterToSearch({ month: "2026-08", person: "p-1" }, "2026-09")).toBe("?month=2026-08&person=p-1");
+    expect(varianceFilterToSearch({ month: "2026-09" }, "2026-09")).toBe("");
+  });
+});

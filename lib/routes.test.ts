@@ -75,3 +75,18 @@ describe("migration routes", () => {
     expect(matchScreen("/admin/migration/88888888-8888-4888-8888-888888888888")?.screen).toBe("admin.migration.batch");
   });
 });
+
+describe("capacity routes", () => {
+  it("shows Capacity and Planned vs actual to capacity:view only, in the Capacity section", () => {
+    const screens = visibleScreens(new Set(["capacity:view"])).map((s) => s.screen);
+    expect(screens).toEqual(expect.arrayContaining(["capacity", "capacity.variance"]));
+    expect(visibleScreens(new Set(["tickets:view", "tickets:work"])).map((s) => s.screen)).not.toContain("capacity");
+    expect(SCREENS.find((s) => s.screen === "capacity")?.section).toBe("Capacity");
+    expect(SCREENS.find((s) => s.screen === "capacity.variance")?.section).toBe("Capacity");
+  });
+
+  it("matches the capacity paths", () => {
+    expect(matchScreen("/capacity")?.screen).toBe("capacity");
+    expect(matchScreen("/capacity/variance")?.screen).toBe("capacity.variance");
+  });
+});
