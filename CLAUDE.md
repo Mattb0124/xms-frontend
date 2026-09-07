@@ -51,7 +51,18 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
                         account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
                         with the default marked, New calendar) and a Connectors
-                        tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4);
+                        tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4) and a Configuration
+                        tab (admin:config, fails closed: the six catalogs with the effective source Default or Override and
+                        its version, a JSON body editor per kind with client-side parse, Save as override sending { body },
+                        the server's invalid_config problems listed, Remove override with the version history and the
+                        operator default underneath, a ticket-type scope selector for the state machine) (P2.9.2);
+                        /admin/migration (P2.22.2, admin:migration: Batches list with account, object kind and status as URL
+                        filters, a Reconciliation tab over the filtered account, New batch), /admin/migration/new (full-screen
+                        form: account, object kind, source kind, instance from the account's connectors, range, dry run on by
+                        default; prefills from ?account_id&instance_id&opened_from&opened_to&supersedes), /admin/migration/[id]
+                        (counts, properties, run progress polling every 10 s while moving, Run with confirm and the reason when
+                        it is off, Records with status filter, search and the record drawer with the source payload, Log,
+                        Reconciliation with Explain on delta_open lines and Sign off surfacing signer_ran_batch and delta_open);
                         /admin/accounts/[id]/calendars/new and /admin/calendars/[id] (P3.26.1, TM-06: CalendarEditor with the week
                         grid, holiday library, make default, retire; PreviewPanel), /admin/holiday-calendars (libraries list and create);
                         /admin/connectors (health overview across granted accounts, admin:connectors) and /admin/connectors/[id]
@@ -106,6 +117,17 @@ components/admin/connectors/  pills (health, mode, map state, outcome, link stat
                         TestConnectionButton), settings-tab (SettingsForm, WatermarkPanel), map-lifecycle (useMapLifecycle:
                         select, draft, save, validate, activate), map-versions, field-map-editor, field-map-tab,
                         state-map-editor, state-map-tab, pairs-editor, runs-tab, dead-letters-tab, reason-dialog
+components/admin/migration/  pills (batch, record, line, report status and dry run on the signal trios), batch-list,
+                        new-batch-form, batch-summary (CountsStrip, RunProgress, BatchProperties, LogTab), records-tab
+                        (RecordDrawer), reconciliation-tab (ReportPanel per report, signOffBlockedReason, Explain through
+                        ReasonDialog with fieldLabel), migration-pages.test (the three pages: gating, URL filters, Run states)
+lib/migration/          vocab (statuses, tones, RUNNING and RUNNABLE sets, runBlockedReason, object and source kinds, range
+                        and source copy, formatDelta), errors (typed bad_range, no_active_field_map, batch_not_runnable,
+                        report_signed, signer_ran_batch, delta_open, not_found by entity), filters (the list URL grammar)
+components/admin/config/  account-config-tab (KindRow per catalog with its effective pill), override-editor
+                        (EffectiveSourcePill, BodyEditor keyed on the effective version id, VersionHistory)
+lib/admin/config-catalog  the six kinds, their scopes (state machine per ticket type), formatBody and parseBody
+lib/admin/config-errors  typed invalid_config with the server's problems, unknown_config_kind, config_missing, not_found
 components/tickets/sync-card  the rail's Sync card (external record link, link state, mode notice, conflict fields, last runs)
 lib/connectors/         vocab (XMS field table, tone maps, externalRecordUrl), errors (typed 409 and 400 bodies),
                         use-connector-errors
@@ -135,7 +157,11 @@ lib/auth/               dev-mode switch (throws in production builds) and the To
 lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenViews, useTrack, request-id memory
 lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
-redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types),
+redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types, plus
+                        getAccountConfig, setAccountOverride and removeAccountOverride on the AccountConfig tag),
+                        migrationApi.ts (batches with filters, create, one batch with its report, run, records with status
+                        and search, one record with its payload, reconciliation reports, explain, sign-off; tags
+                        MigrationBatches, MigrationBatch, MigrationRecords, Reconciliation),
                         ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
                         links, watchers, notifications, directory lookups), portalApi.ts (the /v1/portal mirror and the
                         searchArticles placeholder), knowledgeApi.ts (articles, drafts, publish, retire, generalize,

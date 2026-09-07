@@ -26,7 +26,7 @@ pnpm test:e2e   # Playwright golden paths against a running API with the seed (E
 - Knowledge: Solutions list and record, section editor, visibility, history, feedback, generalization with the findings sheet.
 - Time: My timesheet and the Time tab; contract card from the contract position.
 - Reporting: Operations and Account dashboards with "View as client", report packs, audit search, security and usage dashboards, exports.
-- Admin: accounts (settings, intake aliases, AI section), users, roles, groups, configuration (read only).
+- Admin: accounts (settings, intake aliases, AI section, calendars, connectors, configuration overrides per catalog with the effective source and version history), users, roles, groups, configuration (operator defaults, read only), holiday libraries, connectors (health, maps, runs, dead letters), migration console (batches with dry runs, records and the source payload, log, reconciliation with explanations and four-eyes sign-off).
 - Portal: search-first home, requests list, new request, request detail with the public thread, files and closure confirmation, dashboard strip; its own light chrome.
 - AI: the `redux/aiApi.ts` slice, the SSE parser and the `useAxelTurn` hook. The Axel panel and the AI admin screens are held (foundation first).
 
