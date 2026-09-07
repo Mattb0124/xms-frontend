@@ -46,7 +46,8 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
                         the same panels, "View as client" re-fetches as_client=true and shows only what came back, Reports card
                         with runs and "Generate weekly report", Comp time panel over /v1/accounts/:id/time/comp-time by date
-                        range with per-person minutes and entries; tickets:view, left out of the client view) (TB-13),
+                        range with per-person minutes and entries; tickets:view, left out of the client view; a Budget link to
+                        the account record's Budget tab under admin:accounts) (TB-13),
                         /reports/packs/[id] (frozen numbers, narrative, PPTX link),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
                         values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
@@ -55,10 +56,20 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
                         account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
-                        with the default marked, New calendar), a Contracts tab (key, name, model, status and after-hours
-                        handling under tickets:view; under contracts:manage an inline editor per row: None, Premium rate with
-                        the multiplier, Comp time, saved through PATCH with the version, multiplier_required and stale_version
-                        worded) (TB-13), a Connectors
+                        with the default marked, New calendar), a Contracts tab (key, name, model, status, after-hours
+                        handling and the budget rules under tickets:view; under contracts:manage an inline rules editor per
+                        row: handling with its multiplier, overage rule with the multiplier only under allow_rate, rollover
+                        rule with the cap only under cap, thresholds as a comma list, notify client, forecast window, saved
+                        as one set through PATCH with the version; multiplier_required, cap_required and stale_version
+                        worded; a Rate cards panel beneath with a disclosure per contract listing its versions and an
+                        Account default section, New version form under contracts:manage over PUT /v1/accounts/:id/rate-cards
+                        with rate_card_exists and duplicate_role worded) (TB-05, TB-09, TB-11, TB-13), a Budget tab
+                        (`?tab=budget` opens it, the target of the threshold notifications; tickets:view, fails closed: one
+                        card per active contract from /v1/accounts/:id/budget with consumed against available, the burn bar
+                        amber from the first fired threshold and red once over, a tick per threshold with the fired ones
+                        marked and the next named, the fixed forecast sentence, the unrated-minutes note, and a drill-through
+                        of the entries filtered by person, activity and billable class over the period with total minutes and
+                        amount; Export disabled until an export route exists) (TB-07 to TB-09), a Connectors
                         tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4) and a Configuration
                         tab (admin:config, fails closed: the six catalogs with the effective source Default or Override and
                         its version, or "Nothing active" when effective is null with the editor still usable from an empty
@@ -83,8 +94,9 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
 components/tickets/     ticket-columns (the Queue column set), transition-menu (state pill menu, pause, resolve, confirm sheets),
                         resolve-form (close discipline mirror over the catalog codes), solution-picker (search over published
                         articles), solutions-rail (matching articles with Use this, similar tickets, resolution records, propose
-                        an article), time-tab (entries with adjustments and the AfterHoursBadge with the contract's rule from
-                        the account's contracts, LogTimeForm with Start time), contract-card (burn from the position),
+                        an article), time-tab (entries with adjustments, the AfterHoursBadge with the contract's rule from the
+                        account's contracts, the EntryAmount and the Over budget pill; LogTimeForm with Start time and the
+                        overage_blocked refusal worded), contract-card (burn from the position),
                         resolution-tab, conversation-tab (Composer with Reply / Work note), activity-tab, links-tab,
                         properties-panel, sla-rail (meters with countdown, requester, watch from the record), assignee-picker,
                         attachments (DropZone, useUploads, UploadList, ScanAcknowledgement, AttachmentRow, AttachmentsCard; the
@@ -106,11 +118,20 @@ components/time/        Timesheet (the week from /v1/timesheets/me: day rows wit
                         time and the after-hours badge, header totals), TimeTodayCard (My work: today from
                         /v1/timesheets/me/unlogged, hidden without time:log), AfterHoursBadge (class pill, the handling in
                         words when the contract is known, the multiplier when not 1), CompTimePanel (per-person comp time by
-                        range; tickets:view), weekOf and groupByDay helpers
+                        range; tickets:view), weekOf and groupByDay helpers; entry-amount (EntryAmount: amount and the frozen
+                        rate, nothing when unrated; OverBudgetPill), budget-view (AccountBudgetView fails closed on
+                        tickets:view, ContractBudgetCard, BurnBar with threshold ticks and legend), budget-entries
+                        (BudgetEntriesList: person, activity, class and range filters sent to the API, totals, disabled Export)
 lib/time/after-hours    class and handling labels, describeHandling ("Premium 1.5x per contract", "Comp time"),
                         formatMultiplier, hasPremium, startTimeLabel, isStartTime (HH:MM 24-hour)
-components/admin/contracts/  account-contracts-tab (DenseTable of contracts with handlingCell, HandlingEditor over
-                        patchContract with validateHandling; multiplier_required and stale_version worded)
+lib/time/budget         formatHours ("1.5 h"), formatMoney and formatAmount, budgetTone (good, warn, breach), consumedPercent,
+                        forecastSentence and forecastBasis, thresholdMarkers and thresholdLabel, unratedNote, the overage and
+                        rollover vocab (OVERAGE_RULES, ROLLOVER_RULES, describeOverage, describeRollover), overageBlockedMessage
+components/admin/contracts/  account-contracts-tab (DenseTable of contracts with handlingCell and rulesCell,
+                        ContractRulesEditor over patchContract with draftFromContract, parseThresholds, validateRules and
+                        rulesBody; multiplier_required, cap_required and stale_version worded), rate-cards (RateCardsPanel with
+                        a disclosure per contract and the Account default section, NewRateCardForm with validateRateCard and
+                        toRateCardBody, describeRateCardError for rate_card_exists and duplicate_role)
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
                         queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
@@ -183,13 +204,18 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         explained_by_name, can_sign and sign_blocker, explain, sign-off; tags MigrationBatches,
                         MigrationBatch, MigrationRecords, Reconciliation),
                         ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
-                        links, watchers, notifications, directory lookups, account contracts with after_hours_handling and
-                        after_hours_multiplier, patchContract with the version), portalApi.ts (the /v1/portal mirror and the
+                        links, watchers, notifications, directory lookups, account contracts with after_hours_handling,
+                        after_hours_multiplier and the budget rules (threshold_percents, threshold_notify_client, overage_rule,
+                        overage_multiplier, rollover_rule, rollover_cap_hours, forecast_window_days), patchContract with the
+                        version over the whole rule set), portalApi.ts (the /v1/portal mirror and the
                         searchArticles placeholder), knowledgeApi.ts (articles, drafts, publish, retire, generalize,
                         visibility, feedback, search, the Solutions rail, candidates, catalogs), timeApi.ts (ticket time,
                         my timesheet, adjustments, contract position, buckets; entries carry performed_start,
-                        after_hours_class and rate_multiplier, LogTimeBody takes performed_start, compTime reads the
-                        account's comp-time report by range and refreshes when time is logged), attachmentsApi.ts (list, presign, confirm, download,
+                        after_hours_class, rate_multiplier, rate_snapshot, amount and over_budget, LogTimeBody takes
+                        performed_start, compTime reads the account's comp-time report by range and refreshes when time is
+                        logged; accountBudget and budgetEntries (the API's contract, person, activity, class, from and to
+                        parameters) on the Budget tag, refreshed when time is logged or adjusted; rateCards per contract or
+                        the account defaults and createRateCard on the RateCards tag), attachmentsApi.ts (list, presign, confirm, download,
                         delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
                         and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
                         connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
