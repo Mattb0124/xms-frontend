@@ -21,7 +21,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-07, per ADR-14)
+## Layout (as built 2026-09-07, capacity and billing cut included, per ADR-14)
 
 ```
 app/layout.tsx          fonts, .xms-scope, Providers
@@ -32,8 +32,21 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         Watching), /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics), /tickets/quarantine
                         (held email: reason, stripped body, decide with confirm on the destructive ones; P1.6.5);
                         /roster (P2.12.1, CAP-01: Count-card list with role, FTE, zone, group and skill chips, URL filters, Import from
-                        directory, New person; capacity:view) and /roster/[id] (Details with changed-fields PATCH, Calendar, Skills
-                        whole-set save, Certifications with expiry tone);
+                        directory, New person; capacity:view) and /roster/[id] (Details with changed-fields PATCH, Calendar, PTO
+                        (CAP-02: list with kind, full or half days and note, add form sending fraction 0.5 only for half days,
+                        Remove with confirm; shown to the person themselves (me.userId equals user_id) or under capacity:manage,
+                        the API not asked otherwise; invalid_range worded), Skills whole-set save, Certifications with expiry tone);
+                        /capacity (CAP-03, CAP-04; capacity:view, fails closed: month, role, group and account in the URL and sent
+                        as the API names them, one row per person with the server's available, allocated, actual and remaining
+                        hours and the status pill Available, Near capacity, Over, No calendar, the totals row, one column per
+                        account present with the planned hours editable inline under capacity:manage and saved as one PUT
+                        /v1/allocations with the version each cell was read at and its note kept, 0 clearing the cell,
+                        stale_version worded as Reloaded with the drafts dropped, Add account over the granted accounts; the
+                        account and group directories need tickets:view, else columns carry the short id) and
+                        /capacity/variance (CAP-05: month, account and person in the URL, planned, actual, variance in signed hours
+                        and whole percent, largest first, totals; Export disabled until the API has a route); the assignee
+                        picker under tickets:work asks GET /v1/capacity/check once per open picker (at most 50 roster ids) and
+                        shows "76.8 h left", "Over by 13.3 h" or "No calendar" with a warning marker for warning and over (CAP-06);
                         /knowledge Solutions list (chips, search, New article), /knowledge/new, /knowledge/[key] (record bar,
                         section editor, Visibility, History, Feedback, Submit, Publish, Retire, Generalize with the findings
                         sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker over /v1/timesheets/me, expected against logged per
@@ -46,8 +59,9 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
                         the same panels, "View as client" re-fetches as_client=true and shows only what came back, Reports card
                         with runs and "Generate weekly report", Comp time panel over /v1/accounts/:id/time/comp-time by date
-                        range with per-person minutes and entries; tickets:view, left out of the client view; a Budget link to
-                        the account record's Budget tab under admin:accounts) (TB-13),
+                        range with per-person minutes and entries; tickets:view, left out of the client view) as the Dashboard
+                        tab, and a Budget tab (`?tab=budget`, the target of the threshold notifications, so a reader with
+                        tickets:view and no admin:accounts reaches the same AccountBudgetView) (TB-13),
                         /reports/packs/[id] (frozen numbers, narrative, PPTX link),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
                         values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
@@ -69,7 +83,16 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         amber from the first fired threshold and red once over, a tick per threshold with the fired ones
                         marked and the next named, the fixed forecast sentence, the unrated-minutes note, and a drill-through
                         of the entries filtered by person, activity and billable class over the period with total minutes and
-                        amount; Export disabled until an export route exists) (TB-07 to TB-09), a Connectors
+                        amount; Export disabled until an export route exists) (TB-07 to TB-09), a Billing tab (functional 5.7,
+                        TB-14; tickets:view, fails closed: one period per calendar month with the status pill Open, Submitted,
+                        Approved, Locked, Exported, the summary the server kept (hours, amount, entries and adjustments, by
+                        class, unrated hours) and the checksum prefix; New period from a month picker under time:lock-period;
+                        Submit and Reopen under contracts:manage, Approve and Lock under time:lock-period behind a confirm, each
+                        posting { version } to its own route; invalid_transition worded with the allowed moves and stale_version
+                        as Reloaded, the list read again either way; CSV and Excel for a locked or exported period under
+                        time:lock-period fetched with the bearer through lib/exports/download, period_not_locked worded, the
+                        period and its export records read again after a file; an Exports disclosure listing each finance file
+                        with rows, checksum prefix and delivery state), a Connectors
                         tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4) and a Configuration
                         tab (admin:config, fails closed: the six catalogs with the effective source Default or Override and
                         its version, or "Nothing active" when effective is null with the editor still usable from an empty
@@ -147,9 +170,21 @@ components/admin/calendars/  account-calendars-tab, calendar-editor (calendarPat
 lib/calendars/          errors (typed invalid_time_zone, invalid_hours with problems, bad_start), hours (the week grid grammar:
                         parseHHMM, gridToHours with the server-worded checks, hoursToGrid, formatInZone, viewerTimeZone)
 components/roster/      people-list (PeopleList, SkillChip, GroupChip), new-person-form, import-button, details-tab (changedFields),
-                        calendar-tab, skills-tab (LevelControl, whole-set save), certifications-tab (ExpiryPill)
+                        calendar-tab, pto-tab (canWritePto, ptoBody, rangeLabel; the list and form only for self or
+                        capacity:manage), skills-tab (LevelControl, whole-set save), certifications-tab (ExpiryPill)
 lib/roster/             vocab (ROLE_OPTIONS, roleLabel, SKILL_LEVELS, ISO_WEEKDAYS, expiryState, formatPercent), filters (the
                         list URL grammar), errors (typed person_exists, day_end_before_start, skill_exists, duplicate_skill ...)
+components/capacity/    capacity-grid (CapacityGrid: presentAccounts, changedCells with versions and notes, StatusPill, inline
+                        cells, Save allocations, Add account), capacity-tabs (the Capacity and Planned versus actual link pair)
+lib/capacity/           vocab (PTO kinds and fractionLabel, CAPACITY_STATUS labels and tones, formatSignedHours,
+                        formatVariancePercent, remainingLabel, month helpers currentMonth, monthStart, monthEnd, monthLabel,
+                        isMonth, the cell text conversions), filters (the two screens' URL grammar; the month written only
+                        when it is not the current one), errors (typed invalid_range, bad_month, person_ids_required,
+                        stale_version with current, forbidden with account_id, not_found by entity)
+components/admin/billing/  billing-periods-tab (BillingPeriodsTab, BillingStatusPill, BillingExportsList)
+lib/time/billing        BILLING_STATUS, BILLING_TRANSITIONS with the permission per move, allowedActions, canExport,
+                        billingPeriodBody, periodLabel, checksumPrefix, billingError and describeBillingError
+                        (invalid_transition with status and allowed, stale_version, period_not_locked)
 components/xms/signal-pill  SignalPill on the --state-* trios for non-ticket signals (expiry, active, default)
 components/admin/connectors/  pills (health, mode, map state, outcome, link state on the signal trios), health-list,
                         add-servicenow-form, account-connectors-tab, instance-header (ModeSwitch, KillSwitchControl,
@@ -215,7 +250,13 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         performed_start, compTime reads the account's comp-time report by range and refreshes when time is
                         logged; accountBudget and budgetEntries (the API's contract, person, activity, class, from and to
                         parameters) on the Budget tag, refreshed when time is logged or adjusted; rateCards per contract or
-                        the account defaults and createRateCard on the RateCards tag), attachmentsApi.ts (list, presign, confirm, download,
+                        the account defaults and createRateCard on the RateCards tag; billingPeriods, createBillingPeriod,
+                        transitionBillingPeriod (submit, reopen, approve, lock with { version }, the list reloaded even when
+                        refused), billingExports and billingExportPath on the BillingPeriods and BillingExports tags),
+                        capacityApi.ts (listPto, addPto, removePto on the Pto tag and the Capacity tag; capacityView with month,
+                        group, role, account; capacityCheck with person_ids capped at 50 and month; capacityVariance with
+                        month, account, person; listAllocations; putAllocations invalidating Capacity and Allocations stale or
+                        not), attachmentsApi.ts (list, presign, confirm, download,
                         delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
                         and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
                         connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
