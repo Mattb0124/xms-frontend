@@ -11,7 +11,7 @@ import { useToast } from "@/components/xms/toast";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
 import { useLazyListTicketsQuery } from "@/redux/ticketsApi";
-import { useLogTicketTimeMutation, useMyTimeQuery } from "@/redux/timeApi";
+import { useLogTicketTimeMutation, useMyWeekQuery } from "@/redux/timeApi";
 
 /** Quick "Log time" on a ticket picked by key (User Experience 3.8). */
 function QuickLog() {
@@ -94,7 +94,7 @@ function QuickLog() {
 function MyTime() {
   const [anchor, setAnchor] = useState(() => new Date());
   const week = weekOf(anchor);
-  const { data, isLoading } = useMyTimeQuery({ from: week.from, to: week.to });
+  const { data, isLoading } = useMyWeekQuery({ week: week.from });
   const catalogs = useCatalogs();
   return (
     <div className="flex flex-col gap-4">
@@ -118,15 +118,19 @@ function MyTime() {
       {isLoading && !data ? (
         <Skeleton lines={8} />
       ) : (
-        <Timesheet entries={data ?? []} days={week.days} catalogs={catalogs} />
+        <Timesheet
+          week={data ?? { from: week.from, to: week.to, days: [], total_minutes: 0, unlogged_minutes: 0 }}
+          catalogs={catalogs}
+        />
       )}
     </div>
   );
 }
 
+/** Registered as `time`; the week and the unlogged numbers need time:log on the API. */
 export default function TimePage() {
   return (
-    <AdminGate permission="tickets:view">
+    <AdminGate permission="time:log">
       <MyTime />
     </AdminGate>
   );

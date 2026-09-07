@@ -107,3 +107,57 @@ describe("timeApi", () => {
     ]);
   });
 });
+
+/** The week and unlogged routes (P2.18.3) carry the week or the date range as query parameters. */
+describe("timeApi timesheets", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads my week by week key or date and the unlogged summary by range", async () => {
+    const week = {
+      from: "2026-09-07",
+      to: "2026-09-13",
+      days: [],
+      total_minutes: 0,
+      unlogged_minutes: 0,
+    };
+    const calls = stubFetch({
+      "GET /v1/timesheets/me": () => json(week),
+      "GET /v1/timesheets/me/unlogged": () => json({ from: "2026-09-07", to: "2026-09-07", days: [], unlogged_minutes: 0 }),
+    });
+    const store = makeStore();
+    await store.dispatch(timeApi.endpoints.myWeek.initiate()).unwrap();
+    await store.dispatch(timeApi.endpoints.myWeek.initiate({ week: "2026-W37" })).unwrap();
+    await store.dispatch(timeApi.endpoints.myWeek.initiate({ week: "2026-09-10" })).unwrap();
+    await store.dispatch(timeApi.endpoints.myUnlogged.initiate({ from: "2026-09-07", to: "2026-09-07" })).unwrap();
+    expect(calls.map((call) => `${call.key}${call.search}`)).toEqual([
+      "GET /v1/timesheets/me",
+      "GET /v1/timesheets/me?week=2026-W37",
+      "GET /v1/timesheets/me?week=2026-09-10",
+      "GET /v1/timesheets/me/unlogged?from=2026-09-07&to=2026-09-07",
+    ]);
+  });
+
+  it("refreshes the week after time is logged", async () => {
+    let weeks = 0;
+    stubFetch({
+      "GET /v1/timesheets/me": () => {
+        weeks += 1;
+        return json({ from: "2026-09-07", to: "2026-09-13", days: [], total_minutes: 0, unlogged_minutes: 0 });
+      },
+      "POST /v1/tickets/CS0001001/time": () => json(anEntry(), 201),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.myWeek.initiate({ week: "2026-09-07" }));
+    await subscription.unwrap();
+    await store
+      .dispatch(
+        timeApi.endpoints.logTicketTime.initiate({
+          ticketKey: "CS0001001",
+          body: { performed_on: "2026-09-07", minutes: 30, activity_type: "analysis" },
+        }),
+      )
+      .unwrap();
+    await vi.waitFor(() => expect(weeks).toBe(2));
+    subscription.unsubscribe();
+  });
+});

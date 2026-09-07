@@ -114,7 +114,7 @@ export const SCREENS: Screen[] = [
     screen: "time",
     label: "My timesheet",
     section: "Time",
-    permission: "tickets:view",
+    permission: "time:log",
     purpose: "Your entries for the week.",
   },
   {

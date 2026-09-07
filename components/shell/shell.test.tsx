@@ -53,7 +53,7 @@ describe("FinderOverlay", () => {
         onClose={() => {}}
       />,
     );
-    expect(screen.getByRole("dialog", { name: /All screens · 15/ })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /All screens · 14/ })).toBeInTheDocument();
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
     expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "oper" } });

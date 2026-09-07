@@ -1,0 +1,87 @@
+import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { dayStatus, dayTone, Timesheet, weekOf } from "@/components/time/timesheet";
+import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
+import { anEntry } from "@/redux/timeApi.test";
+import type { TimesheetWeek, TimesheetWeekDay } from "@/redux/timeApi";
+
+/** A constructed week: Monday to Sunday of 2026-09-07 with the calendar's 8-hour days. */
+export function aWeekDay(overrides: Partial<TimesheetWeekDay> = {}): TimesheetWeekDay {
+  return {
+    date: "2026-09-07",
+    weekday: 1,
+    expected_minutes: 480,
+    logged_minutes: 0,
+    unlogged_minutes: 480,
+    holiday: false,
+    entries: [],
+    ...overrides,
+  };
+}
+
+export function aWeek(overrides: Partial<TimesheetWeek> = {}): TimesheetWeek {
+  const days: TimesheetWeekDay[] = [
+    aWeekDay({ date: "2026-09-07", weekday: 1, logged_minutes: 480, unlogged_minutes: 0, entries: [anEntry({ ticket_number: "1000001", minutes: 480, adjusted_minutes: 480 })] }),
+    aWeekDay({ date: "2026-09-08", weekday: 2, logged_minutes: 300, unlogged_minutes: 180, entries: [anEntry({ id: "e-2", performed_on: "2026-09-08", minutes: 300, adjusted_minutes: 300, bucket_label: "Internal" })] }),
+    aWeekDay({ date: "2026-09-09", weekday: 3, expected_minutes: 0, unlogged_minutes: 0, holiday: true }),
+    aWeekDay({ date: "2026-09-10", weekday: 4 }),
+    aWeekDay({ date: "2026-09-11", weekday: 5 }),
+    aWeekDay({ date: "2026-09-12", weekday: 6, expected_minutes: 0, unlogged_minutes: 0 }),
+    aWeekDay({ date: "2026-09-13", weekday: 7, expected_minutes: 0, unlogged_minutes: 0 }),
+  ];
+  return {
+    from: "2026-09-07",
+    to: "2026-09-13",
+    days,
+    total_minutes: 780,
+    unlogged_minutes: 180 + 480 + 480,
+    ...overrides,
+  };
+}
+
+const catalogs = {
+  activityTypes: [{ key: "analysis", label: "Analysis" }],
+  billableClasses: [],
+  resolutionCodes: [],
+} as unknown as DeskCatalogs;
+
+describe("day highlight rules", () => {
+  it("is amber on a working day with unlogged minutes, muted when nothing is expected, plain when fully logged", () => {
+    expect(dayTone({ expected_minutes: 480, unlogged_minutes: 120 })).toBe("unlogged");
+    expect(dayTone({ expected_minutes: 480, unlogged_minutes: 0 })).toBe("complete");
+    expect(dayTone({ expected_minutes: 0, unlogged_minutes: 0 })).toBe("off");
+  });
+
+  it("describes the day from the server's numbers", () => {
+    expect(dayStatus(aWeekDay({ logged_minutes: 360, unlogged_minutes: 120 }))).toBe("6h of 8h, 2h unlogged");
+    expect(dayStatus(aWeekDay({ logged_minutes: 480, unlogged_minutes: 0 }))).toBe("8h of 8h, all logged");
+    expect(dayStatus(aWeekDay({ expected_minutes: 0, unlogged_minutes: 0, holiday: true }))).toBe("Holiday");
+    expect(dayStatus(aWeekDay({ expected_minutes: 0, unlogged_minutes: 0 }))).toBe("Not a working day");
+  });
+
+  it("still computes the Monday to Sunday week for the picker", () => {
+    expect(weekOf(new Date("2026-09-10T12:00:00Z"))).toMatchObject({ from: "2026-09-07", to: "2026-09-13" });
+  });
+});
+
+describe("Timesheet", () => {
+  it("renders the week with per-day tones, expected against logged, and the totals in the header", () => {
+    render(<Timesheet week={aWeek()} catalogs={catalogs} />);
+    expect(screen.getByTestId("week-total")).toHaveTextContent("13h");
+    expect(screen.getByTestId("week-unlogged")).toHaveTextContent("19h");
+    const monday = document.querySelector('[data-day="2026-09-07"]')!;
+    expect(monday).toHaveAttribute("data-tone", "complete");
+    expect(within(monday as HTMLElement).getByText("8h of 8h, all logged")).toBeInTheDocument();
+    const tuesday = document.querySelector('[data-day="2026-09-08"]')!;
+    expect(tuesday).toHaveAttribute("data-tone", "unlogged");
+    expect(within(tuesday as HTMLElement).getByText("5h of 8h, 3h unlogged")).toBeInTheDocument();
+    const wednesday = document.querySelector('[data-day="2026-09-09"]')!;
+    expect(wednesday).toHaveAttribute("data-tone", "off");
+    expect(within(wednesday as HTMLElement).getByText("Holiday")).toBeInTheDocument();
+    expect(document.querySelector('[data-day="2026-09-12"]')).toHaveAttribute("data-tone", "off");
+    expect(screen.getByRole("link", { name: "CS1000001" })).toBeInTheDocument();
+    expect(screen.getByText("Internal")).toBeInTheDocument();
+    expect(screen.getAllByText("Analysis")).toHaveLength(2);
+    expect(document.querySelectorAll("[data-entry]")).toHaveLength(2);
+  });
+});

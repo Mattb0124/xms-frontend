@@ -41,7 +41,7 @@ describe("PinnedSidebar", () => {
     const queue = screen.getByRole("link", { name: /Queue/ });
     expect(queue).toHaveAttribute("aria-current", "page");
     expect(queue).toHaveTextContent("42");
-    expect(screen.getByText(/Browse all screens · 13/)).toBeEnabled();
+    expect(screen.getByText(/Browse all screens · 12/)).toBeEnabled();
   });
 
   it("never shows a pin the user is not permitted to see", () => {

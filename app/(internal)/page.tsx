@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { ticketColumns } from "@/components/tickets/ticket-columns";
+import { TimeTodayCard } from "@/components/time/time-today-card";
 import { BriefLine } from "@/components/xms/brief-line";
 import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -77,6 +78,7 @@ export default function MyWorkPage() {
               : `${mine.length} open on your desk, ${atRisk} at risk.`
         }
       />
+      <TimeTodayCard />
       {isLoading && !data ? (
         <Skeleton lines={6} />
       ) : (

@@ -64,6 +64,36 @@ export interface ContractPosition {
   by_activity: Record<string, number>;
 }
 
+/** One day of my week (P2.18.3): what the working calendar expects against what was logged; the server computes both. */
+export interface TimesheetDay {
+  date: string;
+  /** ISO weekday, 1 Monday to 7 Sunday. */
+  weekday: number;
+  expected_minutes: number;
+  logged_minutes: number;
+  unlogged_minutes: number;
+  holiday: boolean;
+}
+
+export interface TimesheetWeekDay extends TimesheetDay {
+  entries: TimeEntry[];
+}
+
+export interface TimesheetWeek {
+  from: string;
+  to: string;
+  days: TimesheetWeekDay[];
+  total_minutes: number;
+  unlogged_minutes: number;
+}
+
+export interface UnloggedSummary {
+  from: string;
+  to: string;
+  days: TimesheetDay[];
+  unlogged_minutes: number;
+}
+
 export interface Bucket {
   id: string;
   key: string;
@@ -88,6 +118,14 @@ export const timeApi = xmsApi.injectEndpoints({
     }),
     myTime: build.query<TimeEntry[], { from: string; to: string }>({
       query: ({ from, to }) => ({ url: "/v1/time/mine", params: { from, to } }),
+      providesTags: [timeTag("mine")],
+    }),
+    myWeek: build.query<TimesheetWeek, { week?: string } | void>({
+      query: (options) => ({ url: "/v1/timesheets/me", params: options?.week ? { week: options.week } : undefined }),
+      providesTags: [timeTag("mine")],
+    }),
+    myUnlogged: build.query<UnloggedSummary, { from: string; to: string }>({
+      query: ({ from, to }) => ({ url: "/v1/timesheets/me/unlogged", params: { from, to } }),
       providesTags: [timeTag("mine")],
     }),
     adjustTime: build.mutation<unknown, AdjustTimeBody>({
@@ -117,6 +155,8 @@ export const {
   useTicketTimeQuery,
   useLogTicketTimeMutation,
   useMyTimeQuery,
+  useMyWeekQuery,
+  useMyUnloggedQuery,
   useAdjustTimeMutation,
   useContractPositionQuery,
   useListBucketsQuery,

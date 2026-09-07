@@ -31,9 +31,13 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         Activity, Time, Links, Resolution, Email, rail with Service levels, Attachments, Solutions, Contract, Requester,
                         Watching), /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics), /tickets/quarantine
                         (held email: reason, stripped body, decide with confirm on the destructive ones; P1.6.5);
+                        /roster (P2.12.1, CAP-01: Count-card list with role, FTE, zone, group and skill chips, URL filters, Import from
+                        directory, New person; capacity:view) and /roster/[id] (Details with changed-fields PATCH, Calendar, Skills
+                        whole-set save, Certifications with expiry tone);
                         /knowledge Solutions list (chips, search, New article), /knowledge/new, /knowledge/[key] (record bar,
                         section editor, Visibility, History, Feedback, Submit, Publish, Retire, Generalize with the findings
-                        sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker, day groups, quick Log time) (P2.12.x);
+                        sheet) (P2.15.1, P2.15.2); /time My timesheet (week picker over /v1/timesheets/me, expected against logged per
+                        day with the unlogged highlight, week and unlogged totals, quick Log time; time:log) (P2.12.x, P2.18.3);
                         /operations (P2.19.3: period switcher, synthesis line, six tiles, SLA meters, outcomes, backlog by age,
                         open by priority and type, notable tickets, per-account strip; needs reports:view-portfolio),
                         /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
@@ -45,8 +49,11 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         view and chips (P2.11.4),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only); the
-                        account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5) and a Connectors
+                        account record has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
+                        with the default marked, New calendar) and a Connectors
                         tab (instances, Add ServiceNow instance with the credential shown once) (P2.21.4);
+                        /admin/accounts/[id]/calendars/new and /admin/calendars/[id] (P3.26.1, TM-06: CalendarEditor with the week
+                        grid, holiday library, make default, retire; PreviewPanel), /admin/holiday-calendars (libraries list and create);
                         /admin/connectors (health overview across granted accounts, admin:connectors) and /admin/connectors/[id]
                         (header with mode switch, kill switch, Test connection; tabs Settings with the watermark rewind, Field map,
                         State map, Runs, Dead letters with replay and discard) (P2.21.4, SN-07 to SN-09),
@@ -72,7 +79,9 @@ components/admin/audit-search, security-dashboard (CountList), usage-dashboard
 components/portal/dashboard-strip  the client's own numbers on the portal home from /v1/portal/dashboard, client language
 components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
                         publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
-components/time/        Timesheet (week grouped by day, totals), weekOf and groupByDay helpers
+components/time/        Timesheet (the week from /v1/timesheets/me: day rows with dayTone and dayStatus, entries, header totals),
+                        TimeTodayCard (My work: today from /v1/timesheets/me/unlogged, hidden without time:log), weekOf and
+                        groupByDay helpers
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
                         queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
@@ -82,6 +91,16 @@ lib/attachments/        uploadAttachment (presign, PUT or POST form, confirm; st
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
                         ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), IntakeTab (aliases with state
                         pills and the loop guard reason), status pills, buttons
+components/admin/time-zone-field  searchable IANA zone input over a datalist, plain text where the list is unavailable
+components/admin/calendars/  account-calendars-tab, calendar-editor (calendarPatch diff), hours-grid, preview-panel
+                        (PreviewResultView), holiday-libraries (list, create form, parseHolidayLines)
+lib/calendars/          errors (typed invalid_time_zone, invalid_hours with problems, bad_start), hours (the week grid grammar:
+                        parseHHMM, gridToHours with the server-worded checks, hoursToGrid, formatInZone, viewerTimeZone)
+components/roster/      people-list (PeopleList, SkillChip, GroupChip), new-person-form, import-button, details-tab (changedFields),
+                        calendar-tab, skills-tab (LevelControl, whole-set save), certifications-tab (ExpiryPill)
+lib/roster/             vocab (ROLE_OPTIONS, roleLabel, SKILL_LEVELS, ISO_WEEKDAYS, expiryState, formatPercent), filters (the
+                        list URL grammar), errors (typed person_exists, day_end_before_start, skill_exists, duplicate_skill ...)
+components/xms/signal-pill  SignalPill on the --state-* trios for non-ticket signals (expiry, active, default)
 components/admin/connectors/  pills (health, mode, map state, outcome, link state on the signal trios), health-list,
                         add-servicenow-form, account-connectors-tab, instance-header (ModeSwitch, KillSwitchControl,
                         TestConnectionButton), settings-tab (SettingsForm, WatermarkPanel), map-lifecycle (useMapLifecycle:
@@ -126,6 +145,9 @@ redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & 
                         and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
                         connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
                         ticket sync; useConnectorInstance selects the record out of the health list),
+                        rosterApi.ts (people list with filters, create, import, record, patch, calendar, skills catalog and
+                        per-person whole-set skills, certifications), calendarsApi.ts (account calendars, one calendar, create,
+                        patch, preview, holiday libraries), timeApi.ts also myWeek and myUnlogged (P2.18.3),
                         store.ts, hooks.ts, me.ts (useMe)
 styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)

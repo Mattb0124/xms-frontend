@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
 import { formatMinutes } from "@/components/tickets/time-tab";
 import { KeyLink } from "@/components/xms/key-link";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
-import type { TimeEntry } from "@/redux/timeApi";
+import { cn } from "@/lib/utils";
+import type { TimeEntry, TimesheetDay, TimesheetWeek, TimesheetWeekDay } from "@/redux/timeApi";
 
 export function ticketKeyOf(number: string | null | undefined): string | null {
   if (!number) return null;
@@ -40,14 +40,69 @@ export function groupByDay(entries: TimeEntry[], days: string[]): DayGroup[] {
   });
 }
 
+export type DayTone = "unlogged" | "complete" | "off";
+
+/**
+ * The day highlight rule (P2.18.3): amber while a working day still has
+ * unlogged minutes, muted for holidays and non-working days (nothing
+ * expected), plain once the day is fully logged. The server owns the
+ * numbers; this only picks the tone.
+ */
+export function dayTone(day: Pick<TimesheetDay, "expected_minutes" | "unlogged_minutes">): DayTone {
+  if (day.expected_minutes === 0) return "off";
+  return day.unlogged_minutes > 0 ? "unlogged" : "complete";
+}
+
+/** "6h of 8h" with the unlogged remainder, or the reason nothing is expected. */
+export function dayStatus(day: TimesheetDay): string {
+  if (day.holiday) return "Holiday";
+  if (day.expected_minutes === 0) return "Not a working day";
+  const base = `${formatMinutes(day.logged_minutes)} of ${formatMinutes(day.expected_minutes)}`;
+  return day.unlogged_minutes > 0 ? `${base}, ${formatMinutes(day.unlogged_minutes)} unlogged` : `${base}, all logged`;
+}
+
 const WEEKDAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-/** The personal timesheet (Time & Budget 5.8): the week grouped by day with day and week totals. */
-export function Timesheet({ entries, days, catalogs }: { entries: TimeEntry[]; days: string[]; catalogs: DeskCatalogs }) {
-  const groups = useMemo(() => groupByDay(entries, days), [entries, days]);
-  const total = groups.reduce((sum, group) => sum + group.minutes, 0);
+const TONE_ROW: Record<DayTone, string> = {
+  unlogged: "bg-[color:var(--state-needs-input-bg)]",
+  complete: "bg-xms-tint",
+  off: "bg-xms-tint opacity-70",
+};
+
+const TONE_TEXT: Record<DayTone, string> = {
+  unlogged: "text-[color:var(--state-needs-input-text)]",
+  complete: "text-xms-label",
+  off: "text-xms-muted",
+};
+
+/**
+ * The personal timesheet (Time & Budget 5.8; P2.18.3): the week from
+ * /v1/timesheets/me grouped by day with expected against logged per day,
+ * the unlogged highlight, and the week total and unlogged in the header.
+ */
+export function Timesheet({ week, catalogs }: { week: TimesheetWeek; catalogs: DeskCatalogs }) {
   return (
     <div className="xms-card overflow-auto" data-testid="timesheet">
+      <header className="border-xms-line flex h-[48px] items-center gap-3 border-b px-4">
+        <span className="text-xms-ink text-[15px] font-semibold">Timesheet</span>
+        <span className="xms-mono text-xms-label text-[12px]">
+          {week.from} to {week.to}
+        </span>
+        <span className="ml-auto flex items-center gap-4 text-[12px]">
+          <span className="text-xms-label">
+            Week total{" "}
+            <span className="xms-mono text-xms-ink font-semibold" data-testid="week-total">
+              {formatMinutes(week.total_minutes)}
+            </span>
+          </span>
+          <span className={week.unlogged_minutes > 0 ? TONE_TEXT.unlogged : TONE_TEXT.complete}>
+            Unlogged{" "}
+            <span className="xms-mono font-semibold" data-testid="week-unlogged">
+              {formatMinutes(week.unlogged_minutes)}
+            </span>
+          </span>
+        </span>
+      </header>
       <table className="w-full border-collapse text-[13px]" aria-label="Timesheet">
         <thead className="bg-xms-card sticky top-0">
           <tr className="border-xms-line text-xms-ink border-b text-left text-[12px] font-semibold">
@@ -59,39 +114,31 @@ export function Timesheet({ entries, days, catalogs }: { entries: TimeEntry[]; d
           </tr>
         </thead>
         <tbody>
-          {groups.map((group, index) => (
-            <GroupRows key={group.day} group={group} label={WEEKDAY[index]} catalogs={catalogs} />
+          {week.days.map((day) => (
+            <DayRows key={day.date} day={day} label={WEEKDAY[(day.weekday + 6) % 7]} catalogs={catalogs} />
           ))}
         </tbody>
-        <tfoot>
-          <tr className="text-xms-ink text-[12px] font-semibold">
-            <td colSpan={3} className="px-3 py-2">
-              Week total
-            </td>
-            <td className="xms-mono px-3 py-2 text-right" data-testid="week-total">
-              {formatMinutes(total)}
-            </td>
-            <td />
-          </tr>
-        </tfoot>
       </table>
     </div>
   );
 }
 
-function GroupRows({ group, label, catalogs }: { group: DayGroup; label: string; catalogs: DeskCatalogs }) {
+function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: string; catalogs: DeskCatalogs }) {
+  const tone = dayTone(day);
   return (
     <>
-      <tr className="border-xms-line bg-xms-tint border-b" data-day={group.day}>
+      <tr className={cn("border-xms-line border-b", TONE_ROW[tone])} data-day={day.date} data-tone={tone}>
         <td className="text-xms-ink px-3 py-1.5 text-[12px] font-semibold" colSpan={3}>
-          {label} <span className="xms-mono text-xms-label font-normal">{group.day}</span>
+          {label} <span className="xms-mono text-xms-label font-normal">{day.date}</span>
         </td>
         <td className="xms-mono text-xms-ink px-3 py-1.5 text-right text-[12px] font-semibold" data-day-total>
-          {group.minutes > 0 ? formatMinutes(group.minutes) : ""}
+          {day.logged_minutes > 0 ? formatMinutes(day.logged_minutes) : ""}
         </td>
-        <td className="text-xms-label px-3 text-[12px]">{group.minutes === 0 ? "Nothing logged" : ""}</td>
+        <td className={cn("px-3 text-[12px]", TONE_TEXT[tone])} data-day-status>
+          {dayStatus(day)}
+        </td>
       </tr>
-      {group.entries.map((entry) => {
+      {day.entries.map((entry) => {
         const key = ticketKeyOf(entry.ticket_number);
         const activity = catalogs.activityTypes.find((item) => item.key === entry.activity_type)?.label ?? entry.activity_type;
         return (
