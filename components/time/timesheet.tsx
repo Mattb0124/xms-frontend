@@ -1,8 +1,10 @@
 "use client";
 
 import { formatMinutes } from "@/components/tickets/time-tab";
+import { AfterHoursBadge } from "@/components/time/after-hours-badge";
 import { KeyLink } from "@/components/xms/key-link";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
+import { startTimeLabel } from "@/lib/time/after-hours";
 import { cn } from "@/lib/utils";
 import type { TimeEntry, TimesheetDay, TimesheetWeek, TimesheetWeekDay } from "@/redux/timeApi";
 
@@ -36,7 +38,11 @@ export interface DayGroup {
 export function groupByDay(entries: TimeEntry[], days: string[]): DayGroup[] {
   return days.map((day) => {
     const rows = entries.filter((entry) => entry.performed_on === day);
-    return { day, entries: rows, minutes: rows.reduce((sum, entry) => sum + (entry.adjusted_minutes ?? entry.minutes), 0) };
+    return {
+      day,
+      entries: rows,
+      minutes: rows.reduce((sum, entry) => sum + (entry.adjusted_minutes ?? entry.minutes), 0),
+    };
   });
 }
 
@@ -140,14 +146,29 @@ function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: strin
       </tr>
       {day.entries.map((entry) => {
         const key = ticketKeyOf(entry.ticket_number);
-        const activity = catalogs.activityTypes.find((item) => item.key === entry.activity_type)?.label ?? entry.activity_type;
+        const activity =
+          catalogs.activityTypes.find((item) => item.key === entry.activity_type)?.label ?? entry.activity_type;
+        const start = startTimeLabel(entry.performed_start);
         return (
           <tr key={entry.id} className="border-xms-line hover:bg-xms-row-hover h-[38px] border-b" data-entry={entry.id}>
-            <td />
-            <td className="px-3">{key ? <KeyLink ticketKey={key} /> : <span className="text-xms-ink">{entry.bucket_label ?? "Bucket"}</span>}</td>
+            <td className="xms-mono text-xms-label px-3 text-right text-[11px]" data-start>
+              {start ?? ""}
+            </td>
+            <td className="px-3">
+              {key ? (
+                <KeyLink ticketKey={key} />
+              ) : (
+                <span className="text-xms-ink">{entry.bucket_label ?? "Bucket"}</span>
+              )}
+            </td>
             <td className="text-xms-ink px-3">{activity}</td>
-            <td className="xms-mono text-xms-ink px-3 text-right">{formatMinutes(entry.adjusted_minutes ?? entry.minutes)}</td>
-            <td className="text-xms-body max-w-[320px] truncate px-3">{entry.description}</td>
+            <td className="xms-mono text-xms-ink px-3 text-right">
+              {formatMinutes(entry.adjusted_minutes ?? entry.minutes)}
+            </td>
+            <td className="text-xms-body max-w-[320px] truncate px-3">
+              <AfterHoursBadge entry={entry} className="mr-2 inline-flex items-center gap-1.5" />
+              {entry.description}
+            </td>
           </tr>
         );
       })}

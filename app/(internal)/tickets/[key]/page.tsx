@@ -122,7 +122,15 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             ) : null}
             {tab === "activity" ? <ActivityTab ticketKey={ticket.key} /> : null}
             {tab === "email" ? <EmailPanel ticketKey={ticket.key} /> : null}
-            {tab === "time" ? <TimeTab ticketKey={ticket.key} catalogs={catalogs} readOnly={readOnly} /> : null}
+            {tab === "time" ? (
+              <TimeTab
+                ticketKey={ticket.key}
+                catalogs={catalogs}
+                readOnly={readOnly}
+                accountId={ticket.account_id}
+                contractId={ticket.contract_id}
+              />
+            ) : null}
             {tab === "links" ? <LinksTab ticketKey={ticket.key} readOnly={readOnly} /> : null}
             {tab === "resolution" ? <ResolutionTab ticket={ticket} catalogs={catalogs} /> : null}
           </div>

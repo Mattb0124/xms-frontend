@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { dayStatus, dayTone, Timesheet, weekOf } from "@/components/time/timesheet";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
-import { anEntry } from "@/redux/timeApi.test";
+import { anAfterHoursEntry, anEntry } from "@/redux/timeApi.test";
 import type { TimesheetWeek, TimesheetWeekDay } from "@/redux/timeApi";
 
 /** A constructed week: Monday to Sunday of 2026-09-07 with the calendar's 8-hour days. */
@@ -21,8 +21,28 @@ export function aWeekDay(overrides: Partial<TimesheetWeekDay> = {}): TimesheetWe
 
 export function aWeek(overrides: Partial<TimesheetWeek> = {}): TimesheetWeek {
   const days: TimesheetWeekDay[] = [
-    aWeekDay({ date: "2026-09-07", weekday: 1, logged_minutes: 480, unlogged_minutes: 0, entries: [anEntry({ ticket_number: "1000001", minutes: 480, adjusted_minutes: 480 })] }),
-    aWeekDay({ date: "2026-09-08", weekday: 2, logged_minutes: 300, unlogged_minutes: 180, entries: [anEntry({ id: "e-2", performed_on: "2026-09-08", minutes: 300, adjusted_minutes: 300, bucket_label: "Internal" })] }),
+    aWeekDay({
+      date: "2026-09-07",
+      weekday: 1,
+      logged_minutes: 480,
+      unlogged_minutes: 0,
+      entries: [anEntry({ ticket_number: "1000001", minutes: 480, adjusted_minutes: 480 })],
+    }),
+    aWeekDay({
+      date: "2026-09-08",
+      weekday: 2,
+      logged_minutes: 300,
+      unlogged_minutes: 180,
+      entries: [
+        anEntry({
+          id: "e-2",
+          performed_on: "2026-09-08",
+          minutes: 300,
+          adjusted_minutes: 300,
+          bucket_label: "Internal",
+        }),
+      ],
+    }),
     aWeekDay({ date: "2026-09-09", weekday: 3, expected_minutes: 0, unlogged_minutes: 0, holiday: true }),
     aWeekDay({ date: "2026-09-10", weekday: 4 }),
     aWeekDay({ date: "2026-09-11", weekday: 5 }),
@@ -83,5 +103,41 @@ describe("Timesheet", () => {
     expect(screen.getByText("Internal")).toBeInTheDocument();
     expect(screen.getAllByText("Analysis")).toHaveLength(2);
     expect(document.querySelectorAll("[data-entry]")).toHaveLength(2);
+  });
+
+  it("badges non-standard entries with their class and start time, and the multiplier only when it is not 1", () => {
+    const week = aWeek({
+      days: [
+        aWeekDay({
+          date: "2026-09-12",
+          weekday: 6,
+          expected_minutes: 0,
+          unlogged_minutes: 0,
+          logged_minutes: 120,
+          entries: [
+            anAfterHoursEntry({ id: "e-w", performed_on: "2026-09-12", after_hours_class: "weekend", minutes: 90 }),
+            anAfterHoursEntry({
+              id: "e-h",
+              performed_on: "2026-09-12",
+              after_hours_class: "holiday",
+              rate_multiplier: "1.000",
+              performed_start: null,
+              minutes: 30,
+            }),
+          ],
+        }),
+      ],
+    });
+    render(<Timesheet week={week} catalogs={catalogs} />);
+    const weekend = document.querySelector('[data-entry="e-w"]') as HTMLElement;
+    expect(within(weekend).getByText("Weekend")).toBeInTheDocument();
+    expect(within(weekend).getByText("1.5x")).toBeInTheDocument();
+    expect(weekend.querySelector("[data-start]")).toHaveTextContent("19:30");
+    const holiday = document.querySelector('[data-entry="e-h"]') as HTMLElement;
+    expect(within(holiday).getByText("Holiday")).toBeInTheDocument();
+    expect(holiday.querySelector("[data-rate]")).toBeNull();
+    expect(holiday.querySelector("[data-start]")).toHaveTextContent("");
+    // Without the contract the timesheet cannot explain the handling rule.
+    expect(document.querySelector("[data-handling]")).toBeNull();
   });
 });
