@@ -134,6 +134,14 @@ export const SCREENS: Screen[] = [
     purpose: "Granted accounts and their contracts.",
   },
   {
+    path: "/accounts/[id]",
+    screen: "account",
+    label: "Account dashboard",
+    section: "Accounts",
+    permission: "tickets:view",
+    purpose: "One account: tiles, SLA, notable tickets, View as client, report runs.",
+  },
+  {
     path: "/capacity",
     screen: "roster",
     label: "Roster",
@@ -146,7 +154,7 @@ export const SCREENS: Screen[] = [
     screen: "operations",
     label: "Operations",
     section: "Reports",
-    permission: "tickets:view",
+    permission: "reports:view-portfolio",
     pinned: true,
     purpose: "Six tiles, four panels, one synthesis line.",
   },
@@ -157,6 +165,14 @@ export const SCREENS: Screen[] = [
     section: "Reports",
     permission: "reports:view-portfolio",
     purpose: "WSR and QBR runs.",
+  },
+  {
+    path: "/reports/packs/[id]",
+    screen: "report_pack",
+    label: "Report pack",
+    section: "Reports",
+    permission: "tickets:view",
+    purpose: "One pack: frozen numbers, narrative, download.",
   },
   {
     path: "/admin",
@@ -240,11 +256,27 @@ export const SCREENS: Screen[] = [
   },
   {
     path: "/admin/audit",
-    screen: "admin_audit",
+    screen: "admin.audit",
     label: "Audit search",
     section: "Admin",
     permission: "audit:read",
     purpose: "Every event of every request, one search.",
+  },
+  {
+    path: "/admin/security",
+    screen: "admin.security",
+    label: "Security",
+    section: "Admin",
+    permission: "audit:read",
+    purpose: "Sign-in failures, denials, isolation probes, admin changes.",
+  },
+  {
+    path: "/admin/usage",
+    screen: "admin.usage",
+    label: "Usage",
+    section: "Admin",
+    permission: "analytics:read",
+    purpose: "Active users, actions, screens, searches with no result, API errors.",
   },
 ];
 

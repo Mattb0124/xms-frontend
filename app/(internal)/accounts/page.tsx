@@ -1,6 +1,11 @@
-import { ScreenStub } from "@/components/shell/screen-stub";
+import { AdminGate } from "@/components/admin/primitives";
+import { AccountsList } from "@/components/reporting/accounts-list";
 
-/** Registered as `accounts`; built in P1.4.3. */
+/** Registered as `accounts`: the granted accounts with their open counts. */
 export default function AccountsPage() {
-  return <ScreenStub screen="accounts" item="P1.4.3" />;
+  return (
+    <AdminGate permission="tickets:view">
+      <AccountsList />
+    </AdminGate>
+  );
 }

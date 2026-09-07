@@ -45,7 +45,7 @@ describe("FinderOverlay", () => {
     render(
       <FinderOverlay
         kind="all"
-        screens={visibleScreens(new Set(["tickets:view", "admin:accounts"]))}
+        screens={visibleScreens(new Set(["tickets:view", "admin:accounts", "reports:view-portfolio"]))}
         pinned={new Set(["/tickets"])}
         onTogglePin={onTogglePin}
         favourites={[]}
@@ -53,7 +53,7 @@ describe("FinderOverlay", () => {
         onClose={() => {}}
       />,
     );
-    expect(screen.getByRole("dialog", { name: /All screens · 12/ })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /All screens · 15/ })).toBeInTheDocument();
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
     expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "oper" } });
@@ -85,7 +85,12 @@ describe("CommandPalette", () => {
   it("navigates to a filtered screen on Enter and jumps to a ticket key", () => {
     push.mockClear();
     const onClose = vi.fn();
-    render(<CommandPalette screens={visibleScreens(new Set(["tickets:view"]))} onClose={onClose} />);
+    render(
+      <CommandPalette
+        screens={visibleScreens(new Set(["tickets:view", "reports:view-portfolio"]))}
+        onClose={onClose}
+      />,
+    );
     const input = screen.getByLabelText("Command");
     fireEvent.change(input, { target: { value: "oper" } });
     fireEvent.keyDown(input, { key: "Enter" });

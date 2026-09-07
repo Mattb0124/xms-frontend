@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
+import { ExportMenu } from "@/components/tickets/export-menu";
 import { ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -76,6 +77,8 @@ function QueueScreen() {
     [view, parsed, cursor],
   );
   const { data, isLoading, isError, refetch } = useListTicketsQuery(params, { pollingInterval: 60_000 });
+  // The export carries the view and chips, never the page cursor or size.
+  const exportParams = useMemo(() => viewToParams(view, parsed.chips, { q: parsed.q || undefined }), [view, parsed]);
   const { data: accounts } = useListGrantedAccountsQuery();
   const [patch] = usePatchTicketMutation();
   const [watch] = useWatchTicketMutation();
@@ -218,11 +221,14 @@ function QueueScreen() {
         </div>
       </HeaderFilters>
       <HeaderAction>
-        {me.hasPermission("tickets:create") ? (
-          <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center")}>
-            + New ticket
-          </Link>
-        ) : null}
+        <span className="inline-flex items-center gap-2">
+          <ExportMenu params={exportParams} />
+          {me.hasPermission("tickets:create") ? (
+            <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center")}>
+              + New ticket
+            </Link>
+          ) : null}
+        </span>
       </HeaderAction>
 
       {stats ? (

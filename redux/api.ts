@@ -70,6 +70,8 @@ export const xmsApi = createApi({
     "Email",
     "Quarantine",
     "Aliases",
+    "Dashboards",
+    "Reports",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
