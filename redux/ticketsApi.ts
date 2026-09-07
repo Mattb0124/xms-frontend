@@ -353,10 +353,14 @@ export const ticketsApi = xmsApi.injectEndpoints({
         method: "PATCH",
         body,
       }),
-      invalidatesTags: (_result, _error, { accountId, contractId }) => [
-        { type: "Account", id: `${accountId}:contracts` },
-        { type: "Position", id: contractId },
-      ],
+      // Only a saved change refreshes the list; a refused one leaves the screen to reload on stale_version.
+      invalidatesTags: (_result, error, { accountId, contractId }) =>
+        error
+          ? []
+          : [
+              { type: "Account", id: `${accountId}:contracts` },
+              { type: "Position", id: contractId },
+            ],
     }),
   }),
   overrideExisting: false,

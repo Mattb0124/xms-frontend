@@ -6,6 +6,7 @@ import { AccountSettingsTab } from "@/components/admin/account-settings-tab";
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
+import { AccountContractsTab } from "@/components/admin/contracts/account-contracts-tab";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
 import {
@@ -48,6 +49,7 @@ const TABS = [
   { key: "settings", label: "Settings" },
   { key: "access", label: "Access" },
   { key: "calendars", label: "Calendars" },
+  { key: "contracts", label: "Contracts" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
   { key: "configuration", label: "Configuration" },
@@ -299,6 +301,7 @@ export default function AdminAccountRecordPage() {
       {tab === "settings" ? <AccountSettingsTab accountId={id} /> : null}
       {tab === "access" ? <AccessTab id={id} /> : null}
       {tab === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
+      {tab === "contracts" ? <AccountContractsTab accountId={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
       {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
       {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
