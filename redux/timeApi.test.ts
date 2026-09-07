@@ -1,6 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
-import { timeApi, type CompTimeReport, type ContractPosition, type TimeEntry } from "@/redux/timeApi";
+import {
+  budgetEntriesParams,
+  timeApi,
+  type AccountBudget,
+  type BudgetContractCard,
+  type BudgetEntries,
+  type BudgetForecast,
+  type BudgetThresholds,
+  type CompTimeReport,
+  type ContractPosition,
+  type RateCard,
+  type ThresholdEvent,
+  type TimeEntry,
+} from "@/redux/timeApi";
 import { json, stubFetch } from "@/test-kit/portal";
 
 export function anEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
@@ -18,9 +31,17 @@ export function anEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
     after_hours: false,
     after_hours_class: "standard",
     rate_multiplier: "1.000",
+    rate_snapshot: null,
+    amount: null,
+    over_budget: false,
     created_at: "2026-09-07T10:00:00Z",
     ...overrides,
   };
+}
+
+/** An entry logged under a rate card: the rate and the amount frozen on the row (TB-05). */
+export function aRatedEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
+  return anEntry({ id: "e-rated", minutes: 90, adjusted_minutes: 90, rate_snapshot: "150.00", amount: "225.00", ...overrides });
 }
 
 /** An entry the calendar classed after hours with the contract's premium applied (TB-13). */
@@ -82,6 +103,135 @@ export function aPosition(overrides: Partial<ContractPosition> = {}): ContractPo
     status: "on_track",
     by_class: { billable: 600 },
     by_activity: { analysis: 600 },
+    ...overrides,
+  };
+}
+
+/** The forecast behind aPosition: 2 h per business day over the last 5, 17 business days left, so 110 percent at period end. */
+export function aForecast(overrides: Partial<BudgetForecast> = {}): BudgetForecast {
+  return {
+    business_days_total: 22,
+    business_days_elapsed: 5,
+    window_days: 5,
+    run_rate_minutes: 120,
+    forecast_minutes: 2640,
+    forecast_percent: 110,
+    business_days_to_exhaustion: 15,
+    ...overrides,
+  };
+}
+
+export function aThresholdEvent(overrides: Partial<ThresholdEvent> = {}): ThresholdEvent {
+  return {
+    id: "te-1",
+    contract_period_id: "p-1",
+    percent: 50,
+    consumed_minutes_at_fire: 1230,
+    available_minutes: 2400,
+    fired_at: "2026-09-04T15:00:00Z",
+    ...overrides,
+  };
+}
+
+/** The default thresholds with nothing fired yet: 50 percent is next, at 20 h of the 40 h. */
+export function aThresholds(overrides: Partial<BudgetThresholds> = {}): BudgetThresholds {
+  return {
+    percents: [50, 75, 90, 100],
+    fired: [],
+    next_percent: 50,
+    next_at_minutes: 1200,
+    events: [],
+    ...overrides,
+  };
+}
+
+/** One contract on the budget view: aPosition's numbers, aForecast, the default thresholds, nothing unrated. */
+export function aBudgetCard(overrides: Partial<BudgetContractCard> = {}): BudgetContractCard {
+  const { contract: _contract, ...position } = aPosition();
+  void _contract;
+  return {
+    contract: {
+      id: "c-1",
+      key: "CT10001",
+      name: "Support retainer",
+      model: "retainer",
+      currency: "USD",
+      overage_rule: "allow_flag",
+      rollover_rule: "none",
+      after_hours_handling: "none",
+    },
+    period: { id: "p-1", starts_on: "2026-09-01", ends_on: "2026-09-30", locked: false },
+    position,
+    forecast: aForecast(),
+    thresholds: aThresholds(),
+    unrated_minutes: 0,
+    ...overrides,
+  };
+}
+
+export function aBudget(overrides: Partial<AccountBudget> = {}): AccountBudget {
+  return {
+    account_id: "acct-1",
+    as_of: "2026-09-07",
+    calendar_id: "cal-1",
+    contracts: [aBudgetCard()],
+    ...overrides,
+  };
+}
+
+/** The drill-through behind the card: two rated entries and one without a rate. */
+export function aBudgetEntries(overrides: Partial<BudgetEntries> = {}): BudgetEntries {
+  return {
+    contractId: "c-1",
+    from: "2026-09-01",
+    to: "2026-09-30",
+    entries: [
+      {
+        ...aRatedEntry({ id: "be-1", person_id: "p-1", performed_on: "2026-09-03" }),
+        ticket_number: "1000001",
+        bucket_label: null,
+        contract_key: "CT10001",
+      },
+      {
+        ...aRatedEntry({
+          id: "be-2",
+          person_id: "p-2",
+          person_name: "Dev Patel",
+          performed_on: "2026-09-04",
+          minutes: 60,
+          adjusted_minutes: 60,
+          activity_type: "development",
+          amount: "150.00",
+        }),
+        ticket_number: null,
+        bucket_label: "Internal",
+        contract_key: "CT10001",
+      },
+      {
+        ...anEntry({ id: "be-3", person_id: "p-1", performed_on: "2026-09-05", minutes: 30, adjusted_minutes: 30 }),
+        ticket_number: "1000002",
+        bucket_label: null,
+        contract_key: "CT10001",
+      },
+    ],
+    total_minutes: 180,
+    total_amount: 375,
+    ...overrides,
+  };
+}
+
+/** An account-default rate card version (contract_id null) with one consultant line. */
+export function aRateCard(overrides: Partial<RateCard> = {}): RateCard {
+  return {
+    id: "rc-1",
+    account_id: "acct-1",
+    contract_id: null,
+    effective_from: "2026-01-01",
+    currency: "USD",
+    note: "",
+    created_by: "u1",
+    created_at: "2026-01-01T09:00:00Z",
+    entries: [{ role: "consultant", bill_rate: 150, overage_rate: 200 }],
     ...overrides,
   };
 }
@@ -275,5 +425,155 @@ describe("timeApi after hours", () => {
     expect(`${calls[0].key}${calls[0].search}`).toBe(
       "GET /v1/accounts/acct-1/time/comp-time?from=2026-08-08&to=2026-09-07",
     );
+  });
+});
+
+/** The budget cut (TB-05, TB-07 to TB-09): the account view, its drill-through and the rate card versions. */
+describe("timeApi budget", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("names the drill-through parameters as the API does and leaves absent filters off", () => {
+    expect(budgetEntriesParams({ accountId: "acct-1", from: "2026-09-01", to: "2026-09-30" })).toEqual({
+      from: "2026-09-01",
+      to: "2026-09-30",
+    });
+    expect(
+      budgetEntriesParams({
+        accountId: "acct-1",
+        contract: "c-1",
+        person: "p-1",
+        activity: "analysis",
+        class: "billable",
+        from: "2026-09-01",
+        to: "2026-09-30",
+      }),
+    ).toEqual({
+      from: "2026-09-01",
+      to: "2026-09-30",
+      contract: "c-1",
+      person: "p-1",
+      activity: "analysis",
+      class: "billable",
+    });
+  });
+
+  it("reads the budget view and the filtered entries, then refreshes the view after time is logged", async () => {
+    let reads = 0;
+    const calls = stubFetch({
+      "GET /v1/accounts/acct-1/budget": () => {
+        reads += 1;
+        return json(aBudget());
+      },
+      "GET /v1/accounts/acct-1/budget/entries": () => json(aBudgetEntries()),
+      "POST /v1/tickets/CS0001001/time": () => json(aRatedEntry(), 201),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.accountBudget.initiate("acct-1"));
+    const budget = await subscription.unwrap();
+    expect(budget.contracts[0].position?.available_minutes).toBe(2400);
+    expect(budget.contracts[0].thresholds?.next_percent).toBe(50);
+    const entries = await store
+      .dispatch(
+        timeApi.endpoints.budgetEntries.initiate({
+          accountId: "acct-1",
+          contract: "c-1",
+          person: "p-1",
+          class: "billable",
+          from: "2026-09-01",
+          to: "2026-09-30",
+        }),
+      )
+      .unwrap();
+    expect(entries.total_amount).toBe(375);
+    expect(calls[1].search).toBe("?from=2026-09-01&to=2026-09-30&contract=c-1&person=p-1&class=billable");
+    const logged = await store
+      .dispatch(
+        timeApi.endpoints.logTicketTime.initiate({
+          ticketKey: "CS0001001",
+          body: { performed_on: "2026-09-07", minutes: 90, activity_type: "analysis" },
+        }),
+      )
+      .unwrap();
+    expect([logged.rate_snapshot, logged.amount, logged.over_budget]).toEqual(["150.00", "225.00", false]);
+    await vi.waitFor(() => expect(reads).toBe(2));
+    subscription.unsubscribe();
+  });
+
+  it("lists rate cards per contract or the account defaults and creates a version through PUT", async () => {
+    let reads = 0;
+    const calls = stubFetch({
+      "GET /v1/accounts/acct-1/rate-cards": () => {
+        reads += 1;
+        return json([aRateCard()]);
+      },
+      "PUT /v1/accounts/acct-1/rate-cards": () =>
+        json(aRateCard({ id: "rc-2", contract_id: "c-1", effective_from: "2026-10-01" })),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.rateCards.initiate({ accountId: "acct-1" }));
+    await subscription.unwrap();
+    await store
+      .dispatch(timeApi.endpoints.rateCards.initiate({ accountId: "acct-1", contractId: "c-1" }))
+      .unwrap();
+    const created = await store
+      .dispatch(
+        timeApi.endpoints.createRateCard.initiate({
+          accountId: "acct-1",
+          body: {
+            contract_id: "c-1",
+            effective_from: "2026-10-01",
+            currency: "USD",
+            entries: [{ role: "consultant", bill_rate: 160, overage_rate: 210 }, { role: "architect", bill_rate: 220 }],
+          },
+        }),
+      )
+      .unwrap();
+    expect(created.contract_id).toBe("c-1");
+    expect(calls.slice(0, 2).map((call) => `${call.key}${call.search}`)).toEqual([
+      "GET /v1/accounts/acct-1/rate-cards",
+      "GET /v1/accounts/acct-1/rate-cards?contract_id=c-1",
+    ]);
+    expect(calls.find((call) => call.key.startsWith("PUT "))?.body).toEqual({
+      contract_id: "c-1",
+      effective_from: "2026-10-01",
+      currency: "USD",
+      entries: [{ role: "consultant", bill_rate: 160, overage_rate: 210 }, { role: "architect", bill_rate: 220 }],
+    });
+    // The saved version reloads the lists the screen holds (both the defaults and the contract's).
+    await vi.waitFor(() => expect(reads).toBeGreaterThanOrEqual(3));
+    subscription.unsubscribe();
+  });
+
+  it("surfaces rate_card_exists and duplicate_role as typed errors without reloading the list", async () => {
+    let attempt = 0;
+    let reads = 0;
+    stubFetch({
+      "GET /v1/accounts/acct-1/rate-cards": () => {
+        reads += 1;
+        return json([aRateCard()]);
+      },
+      "PUT /v1/accounts/acct-1/rate-cards": () => {
+        attempt += 1;
+        return attempt === 1
+          ? json({ code: "rate_card_exists", effective_from: "2026-01-01" }, 409)
+          : json({ code: "duplicate_role" }, 400);
+      },
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.rateCards.initiate({ accountId: "acct-1" }));
+    await subscription.unwrap();
+    const create = () =>
+      store
+        .dispatch(
+          timeApi.endpoints.createRateCard.initiate({
+            accountId: "acct-1",
+            body: { effective_from: "2026-01-01", entries: [{ role: "consultant", bill_rate: 1 }] },
+          }),
+        )
+        .unwrap();
+    await expect(create()).rejects.toMatchObject({ status: 409, data: { code: "rate_card_exists" } });
+    await expect(create()).rejects.toMatchObject({ status: 400, data: { code: "duplicate_role" } });
+    expect(reads).toBe(1);
+    subscription.unsubscribe();
   });
 });

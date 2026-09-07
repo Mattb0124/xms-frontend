@@ -200,23 +200,48 @@ export interface DirectoryGroup {
 /** How a contract handles a non-standard after-hours class (TB-13): a premium multiplier, comp time, or nothing. */
 export type AfterHoursHandling = "premium_rate" | "comp_time" | "none";
 
+/** What happens when an entry would take the period past its budget (Time & Budget 5.4, TB-11). */
+export type OverageRule = "block" | "allow_flag" | "allow_rate";
+
+/** What happens to unused hours at period end (Time & Budget 5.4). */
+export type RolloverRule = "none" | "carry_month" | "carry_term" | "cap";
+
 export interface Contract {
   id: string;
   key: string;
   name: string;
   model: string;
   status: string;
+  currency: string;
   after_hours_handling: AfterHoursHandling;
   /** Numeric as a string ("1.500") under premium_rate; null otherwise. */
   after_hours_multiplier: string | null;
+  /** Budget rules (Time & Budget 5.4 to 5.6): thresholds in percent, overage, rollover and the forecast window. */
+  threshold_percents: number[];
+  threshold_notify_client: boolean;
+  overage_rule: OverageRule;
+  /** Numeric as a string under allow_rate; null otherwise. */
+  overage_multiplier: string | null;
+  rollover_rule: RolloverRule;
+  /** Numeric as a string under cap; null otherwise. */
+  rollover_cap_hours: string | null;
+  /** Business days of run rate behind the forecast (default 10). */
+  forecast_window_days: number;
   version: number;
 }
 
-/** PATCH body: the version the screen holds plus the handling fields to change (contracts:manage). */
+/** PATCH body: the version the screen holds plus the rule fields to change (contracts:manage). */
 export interface PatchContractBody {
   version: number;
   after_hours_handling?: AfterHoursHandling;
   after_hours_multiplier?: number | null;
+  threshold_percents?: number[];
+  threshold_notify_client?: boolean;
+  overage_rule?: OverageRule;
+  overage_multiplier?: number | null;
+  rollover_rule?: RolloverRule;
+  rollover_cap_hours?: number | null;
+  forecast_window_days?: number;
 }
 
 function ticketTag(key: string) {
@@ -360,6 +385,7 @@ export const ticketsApi = xmsApi.injectEndpoints({
           : [
               { type: "Account", id: `${accountId}:contracts` },
               { type: "Position", id: contractId },
+              { type: "Budget", id: accountId },
             ],
     }),
   }),

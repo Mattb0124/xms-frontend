@@ -6,7 +6,7 @@ import { json, stubFetch } from "@/test-kit/portal";
 export const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
 export const CONTRACT_ID = "c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1";
 
-/** A constructed contract row: a retainer with no after-hours handling (the column default). */
+/** A constructed contract row: a retainer with no after-hours handling and the column-default budget rules. */
 export function aContract(overrides: Partial<Contract> = {}): Contract {
   return {
     id: CONTRACT_ID,
@@ -14,8 +14,16 @@ export function aContract(overrides: Partial<Contract> = {}): Contract {
     name: "Support retainer",
     model: "retainer",
     status: "active",
+    currency: "USD",
     after_hours_handling: "none",
     after_hours_multiplier: null,
+    threshold_percents: [50, 75, 90, 100],
+    threshold_notify_client: false,
+    overage_rule: "allow_flag",
+    overage_multiplier: null,
+    rollover_rule: "none",
+    rollover_cap_hours: null,
+    forecast_window_days: 10,
     version: 1,
     ...overrides,
   };
