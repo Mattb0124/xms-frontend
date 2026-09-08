@@ -100,10 +100,14 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             second coloured mark here competed with the state pill. */}
         <PriorityPill priority={ticket.priority} className="h-[32px] rounded-[999px] px-[14px] text-[13px]" />
         {tight ? (
+          // The chip the lists carry, in the record bar: the dot takes the
+          // signal so a breached clock is red here as it is in a row, and
+          // the value says what it is counting ("3h 12m left", render 02)
+          // rather than standing as a bare number beside a blue dot that
+          // never changed.
           <span className="border-xms-line bg-xms-card inline-flex h-[32px] items-center gap-2 rounded-[999px] border px-[14px] text-[13px]">
-            <span aria-hidden data-clock-dot className="bg-xms-accent h-[7px] w-[7px] shrink-0 rounded-[999px]" />
             <span className="text-xms-body">{tight.kind === "response" ? "Response" : "Resolution"}</span>
-            <SlaValue snapshot={clockSnapshot(tight)} />
+            <SlaValue snapshot={clockSnapshot(tight)} dot verbose />
           </span>
         ) : null}
         {readOnly ? (
@@ -183,7 +187,12 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           </div>
         </section>
         <div className="flex flex-col gap-5">
-          <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} pausedReason={ticket.state_label} />
+          <ServiceLevels
+            sla={ticket.sla}
+            fetchedAt={fetchedAt}
+            pausedReason={ticket.state_label}
+            metAt={{ response: ticket.first_response_at, resolution: ticket.resolved_at }}
+          />
           <ScopeCard ticket={ticket} />
           <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />

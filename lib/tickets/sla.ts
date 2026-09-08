@@ -63,28 +63,29 @@ export function meterPercent(clock: ClockView, fetchedAt: Date, now: Date = new 
   return Math.max(0, Math.min(100, (elapsed / clock.targetMinutes) * 100));
 }
 
-/** "3h 12m of 24h left" for the rail; "met 15:36" once met; "breached by 40m" once latched. */
-export function meterCaption(clock: ClockView, fetchedAt: Date, now: Date = new Date()): string {
+/**
+ * The one line render 02 draws over each meter: "Response · met 15:36",
+ * "Resolution · 3h 12m of 24h left". The middot separates the clock from
+ * what it is doing, and the met clock says when it was met rather than only
+ * that it was, because "met" alone answers nothing a reader asks.
+ *
+ * `metAt` is the instant the clock stopped, which the ticket carries as
+ * first_response_at and resolved_at; without it a met clock says just "met".
+ */
+export function meterCaption(clock: ClockView, fetchedAt: Date, now: Date = new Date(), metAt?: string | null): string {
   const label = clock.kind === "response" ? "Response" : "Resolution";
-  if (clock.met) return `${label} met`;
+  if (clock.met) return `${label} · met${metAt ? ` ${clockTime(metAt)}` : ""}`;
   const remaining = localRemainingMinutes(clock, fetchedAt, now);
-  if (clock.breached || remaining < 0) return `${label} breached by ${formatMinutes(Math.abs(remaining))}`;
+  if (clock.breached || remaining < 0) return `${label} · breached by ${formatMinutes(Math.abs(remaining))}`;
   const suffix = clock.paused ? " (paused)" : "";
-  return `${label} ${formatMinutes(remaining)} of ${formatMinutes(clock.targetMinutes)} left${suffix}`;
+  return `${label} · ${formatMinutes(remaining)} of ${formatMinutes(clock.targetMinutes)} left${suffix}`;
 }
 
-/**
- * The meter's second line: target, elapsed and remaining, which the
- * wireframe (section 3.2, callout TM-05) asks every service level meter to
- * show and the built rail did not (frontend review finding 21).
- */
-export function meterDetail(clock: ClockView, fetchedAt: Date, now: Date = new Date()): string {
-  const target = `Target ${formatMinutes(clock.targetMinutes)}`;
-  const remaining = localRemainingMinutes(clock, fetchedAt, now);
-  if (clock.breached || remaining < 0) return `${target}, breached by ${formatMinutes(Math.abs(remaining))}`;
-  if (clock.met) return `${target}, met with ${formatMinutes(remaining)} to spare`;
-  const elapsed = Math.max(0, clock.targetMinutes - remaining);
-  return `${target}, elapsed ${formatMinutes(elapsed)}, ${formatMinutes(remaining)} left`;
+/** "15:36": the wall time an instant lands on, in the reader's own zone. */
+export function clockTime(iso: string): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  return `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
 }
 
 /**

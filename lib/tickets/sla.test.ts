@@ -3,8 +3,8 @@ import {
   clockDisplay,
   formatMinutes,
   localRemainingMinutes,
+  clockTime,
   meterCaption,
-  meterDetail,
   meterPercent,
   pauseCaption,
   tighterClock,
@@ -77,25 +77,28 @@ describe("local countdown", () => {
   it("reports the elapsed share for the meter and a caption in words", () => {
     expect(meterPercent(clock({}), now, now)).toBe(75);
     expect(meterPercent(clock({ remainingMinutes: -30 }), now, now)).toBe(100);
-    expect(meterCaption(clock({}), now, now)).toBe("Resolution 2h 00m of 8h 00m left");
-    expect(meterCaption(clock({ paused: true }), now, now)).toBe("Resolution 2h 00m of 8h 00m left (paused)");
-    expect(meterCaption(clock({ remainingMinutes: -40, breached: true }), now, now)).toBe("Resolution breached by 40m");
-    expect(meterCaption(clock({ kind: "response", met: true }), now, now)).toBe("Response met");
+    // Render 02 puts a middot between the clock and what it is doing.
+    expect(meterCaption(clock({}), now, now)).toBe("Resolution · 2h 00m of 8h 00m left");
+    expect(meterCaption(clock({ paused: true }), now, now)).toBe("Resolution · 2h 00m of 8h 00m left (paused)");
+    expect(meterCaption(clock({ remainingMinutes: -40, breached: true }), now, now)).toBe(
+      "Resolution · breached by 40m",
+    );
+    expect(meterCaption(clock({ kind: "response", met: true }), now, now)).toBe("Response · met");
   });
 
   /**
-   * Review finding 21: the meters showed only "met" and "breached by", not
-   * the target, elapsed and remaining time the wireframe asks for, and the
-   * grey pause segment carried no reason.
+   * "Response · met 15:36", render 02: a met clock says when it stopped. The
+   * caption used to say only that it was met, which answers nothing a reader
+   * asks, and a second line under it repeated the target, the elapsed and the
+   * remaining time the caption had just given.
    */
-  it("names the target, the elapsed and the remaining time on every meter", () => {
-    expect(meterDetail(clock({}), now, now)).toBe("Target 8h 00m, elapsed 6h 00m, 2h 00m left");
-    expect(meterDetail(clock({ met: true, remainingMinutes: 300 }), now, now)).toBe(
-      "Target 8h 00m, met with 5h 00m to spare",
+  it("names the time a met clock stopped", () => {
+    const at = new Date(now);
+    at.setHours(15, 36, 0, 0);
+    expect(meterCaption(clock({ kind: "response", met: true }), now, now, at.toISOString())).toBe(
+      "Response · met 15:36",
     );
-    expect(meterDetail(clock({ remainingMinutes: -40, breached: true }), now, now)).toBe(
-      "Target 8h 00m, breached by 40m",
-    );
+    expect(clockTime("not a date")).toBe("");
   });
 
   it("gives the grey segment its reason only while the clock is actually paused", () => {

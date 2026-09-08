@@ -49,7 +49,10 @@ export function MeterBar({ percent, pauses = [], breached, met, paused, label, c
         data-breached={breached ? "true" : undefined}
         data-met={met && !breached ? "true" : undefined}
         data-paused={paused ? "true" : undefined}
-        className="bg-xms-tint relative h-2 w-full overflow-hidden rounded-[999px]"
+        // The track is the row hairline grey, which is what the prototype
+        // draws behind every meter; on the blue tint a blue fill barely read
+        // as a fill at all.
+        className="bg-xms-line-row relative h-2 w-full overflow-hidden rounded-[999px]"
       >
         <div
           className="absolute inset-y-0 left-0 rounded-[999px]"

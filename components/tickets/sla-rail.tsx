@@ -5,14 +5,7 @@ import { MeterBar } from "@/components/xms/meter-bar";
 import { RailCard } from "@/components/xms/rail-card";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import {
-  meterCaption,
-  meterDetail,
-  meterPercent,
-  pauseCaption,
-  type ClockView,
-  type TicketSla,
-} from "@/lib/tickets/sla";
+import { meterCaption, meterPercent, pauseCaption, type ClockView, type TicketSla } from "@/lib/tickets/sla";
 import { useWatchTicketMutation, type TicketView } from "@/redux/ticketsApi";
 
 function Meter({
@@ -20,18 +13,20 @@ function Meter({
   fetchedAt,
   now,
   pausedReason,
+  metAt,
 }: {
   clock: ClockView;
   fetchedAt: Date;
   now: Date;
   pausedReason?: string;
+  metAt?: string | null;
 }) {
   const percent = meterPercent(clock, fetchedAt, now);
   const pauseShare = clock.targetMinutes > 0 ? (clock.pausedTotalMinutes / clock.targetMinutes) * 100 : 0;
   const pause = pauseCaption(clock, pausedReason);
   return (
     <div className="flex flex-col gap-1" data-clock={clock.kind}>
-      <span className="text-xms-ink text-[13px]">{meterCaption(clock, fetchedAt, now)}</span>
+      <span className="text-xms-body text-[13px] leading-[1.4]">{meterCaption(clock, fetchedAt, now, metAt)}</span>
       <MeterBar
         percent={clock.met ? 100 : percent}
         met={clock.met}
@@ -39,9 +34,6 @@ function Meter({
         paused={clock.paused}
         pauses={pauseShare > 0 ? [{ startPct: Math.max(0, percent - pauseShare), endPct: percent }] : []}
       />
-      <span className="text-xms-label text-[12px]" data-meter-detail>
-        {meterDetail(clock, fetchedAt, now)}
-      </span>
       {pause ? (
         <span className="text-xms-label text-[12px]" data-pause-caption>
           {pause}
@@ -61,10 +53,13 @@ export function ServiceLevels({
   sla,
   fetchedAt,
   pausedReason,
+  metAt,
 }: {
   sla: TicketSla;
   fetchedAt?: Date;
   pausedReason?: string;
+  /** When each clock stopped: the ticket's first_response_at and resolved_at. */
+  metAt?: { response?: string | null; resolution?: string | null };
 }) {
   const [now, setNow] = useState(() => new Date());
   const base = fetchedAt ?? now;
@@ -80,7 +75,14 @@ export function ServiceLevels({
       ) : (
         <div className="flex flex-col gap-3">
           {clocks.map((clock) => (
-            <Meter key={clock.kind} clock={clock} fetchedAt={base} now={now} pausedReason={pausedReason} />
+            <Meter
+              key={clock.kind}
+              clock={clock}
+              fetchedAt={base}
+              now={now}
+              pausedReason={pausedReason}
+              metAt={metAt?.[clock.kind]}
+            />
           ))}
         </div>
       )}

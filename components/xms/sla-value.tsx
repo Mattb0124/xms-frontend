@@ -83,11 +83,18 @@ export interface SlaValueProps {
    * In a table cell the value carries the colour itself.
    */
   dot?: boolean;
+  /**
+   * Say what the number is counting. Render 02 reads "Resolution 3h 12m
+   * left" in the record bar, where there is room for the word and only one
+   * clock to read; a list column stays bare, because the header names it and
+   * the word would repeat down every row.
+   */
+  verbose?: boolean;
   className?: string;
 }
 
 /** Mono SLA value that counts down between polls; tone follows the signal trios. */
-export function SlaValue({ snapshot, tickMs = 30_000, now, dot, className }: SlaValueProps) {
+export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, className }: SlaValueProps) {
   const [clock, setClock] = useState<Date>(() => now ?? new Date());
   useEffect(() => {
     if (!tickMs || now) return;
@@ -95,6 +102,7 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, className }: Sla
     return () => window.clearInterval(id);
   }, [tickMs, now]);
   const display = formatSla(snapshot, now ?? clock);
+  const word = !verbose ? "" : display.tone === "ok" || display.tone === "warn" ? " left" : "";
   return (
     <span
       className={cn(
@@ -105,7 +113,7 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, className }: Sla
       data-tone={display.tone}
     >
       {dot ? <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-[999px]", TONE_DOT[display.tone])} /> : null}
-      {display.label}
+      {`${display.label}${word}`}
     </span>
   );
 }
