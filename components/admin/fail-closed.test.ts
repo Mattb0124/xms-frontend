@@ -449,6 +449,10 @@ const ANALYTICS_READS = [
   },
   { hook: "useRunAuditSavedQueryMutation", slice: "redux/reportingApi.ts", route: "/v1/audit/saved-queries/${id}/run" },
   { hook: "useSecurityDashboardQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/security" },
+  // The integrity panel's own route (backend cecce62), answered to audit:read
+  // like the dashboard beside it: it names the digest chain, what is in cold
+  // storage and how far back this reader's events go.
+  { hook: "useSecurityIntegrityQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/security/integrity" },
   { hook: "useUsageDashboardQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/usage" },
 ];
 
@@ -457,6 +461,7 @@ const ANALYTICS_SURFACES: { file: string; permission?: string; mountedIn?: strin
   { file: "components/admin/saved-queries.tsx", mountedIn: "app/(internal)/admin/audit/page.tsx" },
   { file: "app/(internal)/admin/audit/page.tsx", permission: "audit:read" },
   { file: "components/admin/security-dashboard.tsx", mountedIn: "app/(internal)/admin/security/page.tsx" },
+  { file: "components/admin/integrity-panel.tsx", mountedIn: "app/(internal)/admin/security/page.tsx" },
   { file: "app/(internal)/admin/security/page.tsx", permission: "audit:read" },
   { file: "components/admin/usage-dashboard.tsx", mountedIn: "app/(internal)/admin/usage/page.tsx" },
   { file: "app/(internal)/admin/usage/page.tsx", permission: "analytics:read" },

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { IntegrityPanel } from "@/components/admin/integrity-panel";
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -328,11 +329,12 @@ export function SecurityDashboard() {
                 <CountList rows={deadLetterRows} empty="No open dead letters." />
               </Panel>
             ) : null}
-            <Panel title="Integrity" caption="Daily digest and verification">
-              <p className="text-xms-label text-[13px]">
-                The digest job is not scheduled yet. Last digest and last verification will appear here once it runs.
-              </p>
-            </Panel>
+            {/* The digest chain, the archive, the streams and the retention
+                policy, from their own route (backend cecce62). The panel
+                draws nothing at all where the API does not answer it, since
+                an empty integrity panel would read as nothing protecting
+                these events. */}
+            <IntegrityPanel />
           </div>
           <Panel title="All security events" caption="By type and outcome">
             <CountList

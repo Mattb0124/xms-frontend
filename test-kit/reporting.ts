@@ -18,6 +18,7 @@ import type {
   SavedQueryPage,
   ScheduleRun,
   SecurityDashboard as SecurityData,
+  SecurityIntegrity,
   UsageAccountRow,
   UsageDashboard as UsageData,
 } from "@/redux/reportingApi";
@@ -408,6 +409,67 @@ export function anAuditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
     entity_id: "t-1",
     outcome: "success",
     attrs: { old: { state: "new" }, new: { state: "assigned" } },
+    ...overrides,
+  };
+}
+
+/**
+ * The integrity panel as the API answers it: one digested and verified day
+ * per stream, an archive that has only ever exported the security stream,
+ * the spans this reader can see, and the retention policy with the detach
+ * job still unbuilt, which is the state the platform is actually in.
+ */
+export function anIntegrityPanel(overrides: Partial<SecurityIntegrity> = {}): SecurityIntegrity {
+  return {
+    chain: {
+      streams: [
+        {
+          stream: "audit",
+          last_day: "2026-09-06",
+          row_count: 412,
+          digest: "9f2c1d4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d",
+          written_at: "2026-09-07T01:00:00.000Z",
+          last_verified_at: "2026-09-07T01:05:00.000Z",
+          last_verification_matched: true,
+        },
+        {
+          stream: "security",
+          last_day: "2026-09-06",
+          row_count: 88,
+          digest: "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+          written_at: "2026-09-07T01:00:00.000Z",
+          last_verified_at: null,
+          last_verification_matched: null,
+        },
+      ],
+      last_digest_at: "2026-09-07T01:00:00.000Z",
+      last_verification_at: "2026-09-07T01:05:00.000Z",
+      last_mismatch_at: null,
+    },
+    archive: {
+      streams: [
+        {
+          stream: "security",
+          last_day: "2026-09-06",
+          last_run_at: "2026-09-07T02:00:00.000Z",
+          days: 3,
+          rows: 264,
+          bytes: 48_128,
+        },
+      ],
+    },
+    streams: [
+      { stream: "audit", n: 1_204, oldest: "2026-06-01T00:00:00.000Z", newest: "2026-09-07T12:00:00.000Z" },
+      { stream: "security", n: 96, oldest: "2026-08-01T00:00:00.000Z", newest: "2026-09-07T11:00:00.000Z" },
+      { stream: "usage", n: 0, oldest: null, newest: null },
+    ],
+    retention: {
+      security_months: 24,
+      usage_months: 13,
+      audit: "life of the account plus contractual retention",
+      source: "Audit & Analytics section 6",
+      detach_job_built: false,
+    },
     ...overrides,
   };
 }

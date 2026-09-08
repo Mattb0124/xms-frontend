@@ -136,6 +136,73 @@ export interface OpenDeadLetter {
   instance_name: string | null;
 }
 
+/**
+ * The integrity panel of the Security screen (Audit & Analytics 7.1 and
+ * section 6, backend cecce62). Four things, each from a record that exists:
+ *
+ * - `chain` from the digest and verification tables: the last digested day
+ *   per stream with its row count and hash, the last verification of that
+ *   stream with its verdict, and the last mismatch across all of them.
+ * - `archive` from the export table: the last day in cold storage per stream,
+ *   when it was written, and the days, rows and bytes it holds.
+ * - `streams` counted through the event view under the same grant clause the
+ *   audit search applies, so the figures are what this reader could open.
+ * - `retention` is the declared policy, not a measurement. The partition
+ *   detach job that would enforce it is not built, and `detach_job_built`
+ *   says so, which the panel repeats rather than presenting a promise as a
+ *   fact.
+ *
+ * Every block is optional because an API older than the route does not send
+ * it, and the screen leaves out what it did not read.
+ */
+export interface ChainStream {
+  stream: string;
+  last_day: string | null;
+  row_count: number;
+  digest: string;
+  written_at: string | null;
+  last_verified_at: string | null;
+  /** True, false, or null where that stream has never been verified. */
+  last_verification_matched: boolean | null;
+}
+
+export interface ArchiveStream {
+  stream: string;
+  last_day: string | null;
+  last_run_at: string | null;
+  days: number;
+  rows: number;
+  bytes: number;
+}
+
+export interface StreamSpan {
+  stream: string;
+  n: number;
+  oldest: string | null;
+  newest: string | null;
+}
+
+export interface HotRetention {
+  security_months: number;
+  usage_months: number;
+  audit: string;
+  source: string;
+  /** False while the partition detach job named in the specification is unbuilt. */
+  detach_job_built: boolean;
+}
+
+export interface SecurityIntegrity {
+  chain?: {
+    streams: ChainStream[];
+    last_digest_at: string | null;
+    last_verification_at: string | null;
+    last_mismatch_at: string | null;
+  };
+  archive?: { streams: ArchiveStream[] };
+  streams?: StreamSpan[];
+  retention?: HotRetention;
+}
+
 export interface UsageCount {
   key: string;
   n: number;
@@ -652,6 +719,16 @@ export const reportingApi = xmsApi.injectEndpoints({
       query: ({ days }) => ({ url: "/v1/dashboards/security", params: { days } }),
       providesTags: [{ type: "Dashboards", id: "security" }],
     }),
+    /**
+     * The integrity panel beside the Security dashboard. Its own route and its
+     * own cache entry, because it reads the present (the digest chain, the
+     * archive and the retention policy) rather than the window the dashboard
+     * counts, and it is answered to `audit:read` like the dashboard itself.
+     */
+    securityIntegrity: build.query<SecurityIntegrity, void>({
+      query: () => "/v1/dashboards/security/integrity",
+      providesTags: [{ type: "Dashboards", id: "integrity" }],
+    }),
     usageDashboard: build.query<UsageDashboard, { days: number }>({
       query: ({ days }) => ({ url: "/v1/dashboards/usage", params: { days } }),
       providesTags: [{ type: "Dashboards", id: "usage" }],
@@ -794,6 +871,7 @@ export const {
   useOperationsDashboardQuery,
   useAccountDashboardQuery,
   useSecurityDashboardQuery,
+  useSecurityIntegrityQuery,
   useUsageDashboardQuery,
   useAuditSearchQuery,
   useLazyAuditSearchQuery,
