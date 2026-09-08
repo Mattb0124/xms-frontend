@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AdminGate, fullName } from "@/components/admin/primitives";
+import { HeaderFilters, HeaderSearch, HeaderSearchField } from "@/components/shell/content-header-bar";
 import { accountHue } from "@/components/tickets/ticket-columns";
-import { DispatchCard } from "@/components/xms/dispatch-card";
+import { DispatchRow } from "@/components/xms/dispatch-card";
 import { EmptyBanner } from "@/components/xms/empty-banner";
+import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { useTrack } from "@/lib/telemetry/provider";
-import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
 import { useListAssignableUsersQuery } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
 import {
@@ -17,16 +18,51 @@ import {
   useListGrantedAccountsQuery,
   useListTicketsQuery,
   usePatchTicketMutation,
-  type TicketView,
 } from "@/redux/ticketsApi";
 
-/** Dispatch (User Experience 3.5): unassigned open tickets grouped by account, oldest first, one card each. */
+/**
+ * How long a request has waited, the way render 09 reads it: "26m", "3h",
+ * "yesterday", then days. It is an age, not a countdown, so it carries no
+ * "ago": the row it stands on says that already. An age stays an age however
+ * old it gets, because a date would stop answering the question the column
+ * asks, which is "how long has this been waiting".
+ */
+export function ageLabel(iso: string, now: Date = new Date()): string {
+  const minutes = Math.max(0, Math.floor((now.getTime() - new Date(iso).getTime()) / 60_000));
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  if (hours < 48) return "yesterday";
+  const days = Math.floor(hours / 24);
+  return days < 365 ? `${days}d` : `${Math.floor(days / 365)}y`;
+}
+
+/**
+ * Dispatch (render 09, User Experience 3.5): every unrouted open request in
+ * one card, oldest first, a row each.
+ *
+ * The rows are not grouped by account. The built screen put an account
+ * heading and a count over a stack of separate cards, and the render carries
+ * one card of hairline-separated rows with the account on the row itself,
+ * which is what lets a dispatcher read fifteen requests without scrolling
+ * past six headings.
+ */
 function DispatchScreen() {
   const me = useMe();
   const { push } = useToast();
   const track = useTrack("dispatch.assign");
+  const [account, setAccount] = useState("");
+  const [query, setQuery] = useState("");
   const { data, isLoading } = useListTicketsQuery(
-    { unassigned: true, open: true, sort: "created_desc", limit: 100 },
+    {
+      unassigned: true,
+      open: true,
+      sort: "created_desc",
+      limit: 100,
+      ...(account ? { account_id: [account] } : {}),
+      ...(query ? { q: query } : {}),
+    },
     { pollingInterval: 60_000 },
   );
   const { data: accounts } = useListGrantedAccountsQuery();
@@ -34,43 +70,60 @@ function DispatchScreen() {
   const { data: users } = useListAssignableUsersQuery();
   const [patch] = usePatchTicketMutation();
 
-  const byAccount = useMemo(() => {
-    const map = new Map<string, TicketView[]>();
-    for (const ticket of [...(data?.items ?? [])].reverse()) {
-      map.set(ticket.account_id, [...(map.get(ticket.account_id) ?? []), ticket]);
-    }
-    return map;
-  }, [data]);
-  const groupOptions = useMemo(
-    () => [{ id: "", label: "No group" }, ...(groups ?? []).map((group) => ({ id: group.id, label: group.name }))],
-    [groups],
-  );
+  // Oldest first: the request that has waited longest is the one to route.
+  const rows = useMemo(() => [...(data?.items ?? [])].reverse(), [data]);
+  const accountsById = useMemo(() => new Map((accounts ?? []).map((row) => [row.id, row])), [accounts]);
+  const groupOptions = useMemo(() => (groups ?? []).map((group) => ({ id: group.id, label: group.name })), [groups]);
   const assigneeOptions = useMemo(() => (users ?? []).map((user) => ({ id: user.id, label: fullName(user) })), [users]);
 
-  if (isLoading && !data) return <Skeleton lines={6} />;
-  if (byAccount.size === 0) return <EmptyBanner title="Nothing waiting for triage." />;
+  const toolbar = (
+    <>
+      <HeaderFilters>
+        <div className="flex items-center gap-2">
+          {/* The count is the list the screen is showing, which is the same
+              figure the sidebar's Dispatch badge reads. */}
+          <StripSelect
+            primary
+            label="Show"
+            value="unrouted"
+            display={`unrouted (${data?.stats.unassigned ?? rows.length})`}
+            onChange={() => undefined}
+          >
+            <option value="unrouted">Show: unrouted</option>
+          </StripSelect>
+          <FilterSelect
+            label="Account"
+            value={account}
+            options={(accounts ?? []).map((row) => ({ value: row.id, label: row.name }))}
+            onChange={setAccount}
+          />
+        </div>
+      </HeaderFilters>
+      <HeaderSearch>
+        <HeaderSearchField value={query} onChange={setQuery} label="Search the unrouted" />
+      </HeaderSearch>
+    </>
+  );
 
   return (
-    <div className="flex flex-col gap-6">
-      {[...byAccount.entries()].map(([accountId, tickets]) => {
-        const account = accounts?.find((row) => row.id === accountId);
-        return (
-          <section key={accountId} className="flex flex-col gap-3" aria-label={account?.name ?? accountId}>
-            <h2 className="text-xms-ink flex items-center gap-2 text-[15px] font-semibold">
-              {account?.name ?? "Account"}
-              <span className="xms-mono bg-xms-tint text-xms-accent rounded-[999px] px-2 py-[2px] text-[11px]">
-                {tickets.length}
-              </span>
-            </h2>
-            {tickets.map((ticket) => (
-              <DispatchCard
+    <div className="flex flex-col gap-4">
+      <h1 className="sr-only">Dispatch</h1>
+      {toolbar}
+      {isLoading && !data ? (
+        <Skeleton lines={6} />
+      ) : rows.length === 0 ? (
+        <EmptyBanner title="Nothing waiting for triage." />
+      ) : (
+        <section className="xms-card overflow-hidden" aria-label="Unrouted requests">
+          {rows.map((ticket) => {
+            const owner = accountsById.get(ticket.account_id);
+            return (
+              <DispatchRow
                 key={ticket.id}
                 ticketKey={ticket.key}
                 shortDescription={ticket.short_description}
-                account={{ name: account?.name ?? "Account", hue: accountHue(account?.key) }}
-                type={ticket.type}
-                priority={ticket.priority}
-                sla={clockSnapshot(tighterClock(ticket.sla))}
+                account={{ name: owner?.name ?? "Account", hue: accountHue(owner?.key) }}
+                age={ageLabel(ticket.created_at)}
                 groups={groupOptions}
                 assignees={assigneeOptions}
                 groupId={ticket.group_id ?? ""}
@@ -90,10 +143,10 @@ function DispatchScreen() {
                     )
                 }
               />
-            ))}
-          </section>
-        );
-      })}
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 }
