@@ -70,6 +70,10 @@ export function checkCandidates(users: AssignableUser[], byUserId: Map<string, P
  * tickets:work as well, the current month's remaining hours and a warning
  * marker for anyone near or over capacity come from one capacity check
  * per open picker (CAP-06). The notice never blocks.
+ *
+ * The directories load on first open, not on mount: a ticket record does not
+ * need the whole user list or the roster to say who the assignee is, which
+ * the record itself names (review finding 24).
  */
 export function AssigneePicker({
   value,
@@ -80,17 +84,21 @@ export function AssigneePicker({
   id,
   className,
 }: AssigneePickerProps) {
-  const { data: users = [] } = useListAssignableUsersQuery();
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  // Sticky: once the reader has opened the picker the lists stay loaded, so
+  // closing and reopening does not ask again.
+  const [wanted, setWanted] = useState(false);
+  const { data: users = [] } = useListAssignableUsersQuery(undefined, { skip: !wanted });
   const me = useMe();
   const rosterReadable = me.hasPermission("capacity:view");
   const canCheck = rosterReadable && me.hasPermission("tickets:work");
-  const { data: people } = useListPeopleQuery({ active: "true" }, { skip: !rosterReadable });
+  const { data: people } = useListPeopleQuery({ active: "true" }, { skip: !wanted || !rosterReadable });
   const byUserId = useMemo(
-    () => new Map((people ?? []).filter((person) => person.user_id).map((person) => [person.user_id as string, person])),
+    () =>
+      new Map((people ?? []).filter((person) => person.user_id).map((person) => [person.user_id as string, person])),
     [people],
   );
-  const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
   const candidates = useMemo(() => checkCandidates(users, byUserId), [users, byUserId]);
   const month = useMemo(() => currentMonth(), []);
   const { data: checks } = useCapacityCheckQuery(
@@ -99,7 +107,11 @@ export function AssigneePicker({
   );
   const checkByPerson = useMemo(() => new Map((checks ?? []).map((check) => [check.person_id, check])), [checks]);
   const selected = users.find((user) => user.id === value);
-  const current = assigneeLabel(selected ? fullName(selected) : valueLabel, Boolean(value) && value === currentUserId);
+  const isMe = Boolean(value) && value === currentUserId;
+  // The directory, then the record, then the reader's own name for a ticket
+  // they just took: the control is never blank when someone holds the ticket.
+  const named = selected ? fullName(selected) : (valueLabel ?? (isMe ? me.principal?.displayName : null));
+  const current = assigneeLabel(named, isMe);
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const list = needle
@@ -128,11 +140,13 @@ export function AssigneePicker({
           disabled={disabled}
           onFocus={() => {
             setQuery("");
+            setWanted(true);
             setOpen(true);
           }}
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onChange={(event) => {
             setQuery(event.target.value);
+            setWanted(true);
             setOpen(true);
           }}
           className={INPUT}
@@ -145,6 +159,7 @@ export function AssigneePicker({
               const self = users.find((user) => user.id === currentUserId);
               onChange(self ?? { id: currentUserId, email: "", first_name: "Me", last_name: "" });
               setQuery("");
+              setWanted(true);
             }}
             className="border-xms-line text-xms-body hover:bg-xms-tint h-[34px] shrink-0 rounded-[4px] border px-2 text-[12px]"
           >

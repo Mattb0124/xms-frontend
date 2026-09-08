@@ -68,8 +68,13 @@ export function toDeskCatalogs(data: Catalogs | undefined): DeskCatalogs {
   };
 }
 
-/** The desk catalogs resolved for one account; the seed vocabulary stands in while loading. */
-export function useCatalogs(accountId?: string): DeskCatalogs {
-  const { data } = useCatalogsQuery(accountId);
+/**
+ * The desk catalogs resolved for one account; the seed vocabulary stands in
+ * while loading. Pass `skip` while the account is still unknown: without it
+ * a record asked for the bare catalogs on its first render and for the
+ * account's on the next, two calls where one will do (review finding 24).
+ */
+export function useCatalogs(accountId?: string, options?: { skip?: boolean }): DeskCatalogs {
+  const { data } = useCatalogsQuery(accountId, { skip: options?.skip });
   return useMemo(() => toDeskCatalogs(data), [data]);
 }

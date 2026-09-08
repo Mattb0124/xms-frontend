@@ -226,7 +226,7 @@ export function AccountBudgetView({ accountId }: { accountId: string }) {
   const me = useMe();
   const allowed = me.hasPermission("tickets:view");
   const { data, isLoading, isError, refetch } = useAccountBudgetQuery(accountId, { skip: !allowed });
-  const catalogs = useCatalogs(allowed ? accountId : undefined);
+  const catalogs = useCatalogs(accountId, { skip: !allowed });
 
   if (!allowed) {
     return (

@@ -45,7 +45,9 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   const [patch] = usePatchTicketMutation();
   const { push } = useToast();
   const [tab, setTab] = useState("conversation");
-  const catalogs = useCatalogs(ticket?.account_id);
+  // One catalogs call, once the account is known: asking before the ticket
+  // arrives fetched the bare catalogs and then the account's (finding 24).
+  const catalogs = useCatalogs(ticket?.account_id, { skip: !ticket });
   const fetchedAt = useMemo(
     () => (fulfilledTimeStamp ? new Date(fulfilledTimeStamp) : undefined),
     [fulfilledTimeStamp],
