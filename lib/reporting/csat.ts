@@ -1,12 +1,13 @@
 import type { SignalTone } from "@/components/xms/signal-pill";
-import { scoreLabel } from "@/lib/portal/csat";
-import type { CsatResponse, CsatScore, CsatSummary } from "@/redux/reportingApi";
+import { keyLabel, periodLabel, scoreLabel } from "@/lib/portal/csat";
+import type { CsatQuarterly, CsatResponse, CsatScore, CsatSummary } from "@/redux/reportingApi";
 
 /**
  * The operator's view of CSAT (Client Portal functional 5.7, results per
  * account): the range the API defaults to, the figures as words, the
- * distribution as five rows for the bars, and the respondent line. Every
- * number comes from the server's summary; nothing is recomputed here.
+ * distribution as five rows for the bars, the respondent line, and the
+ * quarterly relationship survey as its own block. Every number comes from
+ * the server's summary; nothing is recomputed here.
  */
 export const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -58,4 +59,59 @@ export function respondentLabel(response: Pick<CsatResponse, "contact_name" | "c
 /** Low scores read as overdue, neutral as needs input, the rest as complete. */
 export function scoreTone(score: number): SignalTone {
   return score <= 2 ? "overdue" : score === 3 ? "needs-input" : "complete";
+}
+
+// The quarterly relationship survey -------------------------------------------
+
+/**
+ * Whether the API answered with a quarterly block that has something in it.
+ * An older API sends none, and an account that has never answered one sends
+ * a block with no period; neither is drawn as a panel full of dashes.
+ */
+export function hasQuarterly(quarterly: CsatQuarterly | undefined): quarterly is CsatQuarterly {
+  return Boolean(quarterly && (quarterly.latest_period !== null || quarterly.trend.length > 0));
+}
+
+export interface QuarterlyQuestionRow {
+  key: string;
+  label: string;
+  average: number | null;
+}
+
+/**
+ * One row per question in the latest period, in the order the survey asks
+ * them where the server named its questions, and otherwise in the order the
+ * averages arrived. The label is the question key in words: the question
+ * text itself is a sentence, too long for a column.
+ */
+export function quarterlyQuestionRows(quarterly: CsatQuarterly): QuarterlyQuestionRow[] {
+  const keys = quarterly.questions?.length
+    ? quarterly.questions.map((question) => question.key)
+    : Object.keys(quarterly.averages);
+  return keys.map((key) => ({ key, label: keyLabel(key), average: quarterly.averages[key] ?? null }));
+}
+
+export interface QuarterlyTrendRow {
+  period: string;
+  label: string;
+  responses: number;
+  average: number | null;
+  /** Of five, so the bars share one scale rather than one per column. */
+  percent: number;
+}
+
+/** The trend oldest first, each period's mean as a share of the five-point scale. */
+export function quarterlyTrendRows(quarterly: CsatQuarterly): QuarterlyTrendRow[] {
+  return quarterly.trend.map((row) => ({
+    period: row.period,
+    label: periodLabel(row.period) ?? row.period,
+    responses: row.responses,
+    average: row.average,
+    percent: row.average === null ? 0 : Math.round((row.average / 5) * 100),
+  }));
+}
+
+/** "2026 Q2", or the words when the account has answered no quarterly survey. */
+export function latestPeriodLabel(quarterly: CsatQuarterly): string {
+  return periodLabel(quarterly.latest_period) ?? "No period answered yet";
 }

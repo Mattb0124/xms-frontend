@@ -213,11 +213,40 @@ export interface CsatResponse {
   created_at: string;
 }
 
+/**
+ * The quarterly relationship survey per account (functional 5.7). It asks a
+ * different question from the ticket-close survey, so the server keeps it
+ * as its own block rather than averaging it into the same number: the
+ * latest period answered, the mean per question in that period, and the
+ * trend over the last four periods, oldest first so it reads left to right.
+ *
+ * The block is optional because an API older than the quarterly survey does
+ * not send it; the Satisfaction tab renders it only when it arrives.
+ */
+export interface CsatPeriodSummary {
+  period: string;
+  responses: number;
+  /** The mean of the five questions in that period; null with no answer. */
+  average: number | null;
+}
+
+export interface CsatQuarterly {
+  latest_period: string | null;
+  responses: number;
+  /** The mean per question in the latest period, keyed as the answers are. */
+  averages: Record<string, number | null>;
+  average: number | null;
+  trend: CsatPeriodSummary[];
+  /** The five questions, so the columns are named as the survey asked them. */
+  questions?: { key: string; text: string }[];
+}
+
 export interface AccountCsat {
   account_id: string;
   from: string;
   to: string;
   summary: CsatSummary;
+  quarterly?: CsatQuarterly;
   surveys: { sent: number; answered: number; suppressed: number };
   responses: CsatResponse[];
 }

@@ -10,13 +10,17 @@ import {
   defaultCsatRange,
   distributionRows,
   formatAverage,
+  hasQuarterly,
   isDay,
+  latestPeriodLabel,
+  quarterlyQuestionRows,
+  quarterlyTrendRows,
   respondentLabel,
   scoreTone,
 } from "@/lib/reporting/csat";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
-import { useAccountCsatQuery, type AccountCsat } from "@/redux/reportingApi";
+import { useAccountCsatQuery, type AccountCsat, type CsatQuarterly } from "@/redux/reportingApi";
 
 const HEAD = "text-xms-ink px-3 py-2 text-left text-[12px] font-semibold whitespace-nowrap";
 const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
@@ -56,6 +60,82 @@ export function DistributionBars({ summary }: { summary: AccountCsat["summary"] 
         </li>
       ))}
     </ol>
+  );
+}
+
+/**
+ * The quarterly relationship survey (functional 5.7): the latest period,
+ * the mean per question in it, and the trend over the last four periods.
+ * It answers a different question from the ticket-close survey, so it sits
+ * beside that summary rather than being averaged into it, and it is drawn
+ * only when the API sends the block.
+ */
+export function QuarterlyPanel({ quarterly }: { quarterly: CsatQuarterly }) {
+  const questions = quarterlyQuestionRows(quarterly);
+  const trend = quarterlyTrendRows(quarterly);
+  return (
+    <Panel
+      title="Relationship survey"
+      caption="Quarterly"
+      subtitle="Five questions to account admins and executive sponsors after each quarter end."
+    >
+      <div className="flex flex-col gap-4" data-testid="account-csat-quarterly">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Figure label="Latest period" value={latestPeriodLabel(quarterly)} />
+          <Figure label="Average this period" value={formatAverage(quarterly.average)} />
+          <Figure label="Responses in the period" value={String(quarterly.responses)} />
+        </div>
+        <ol className="flex flex-col gap-2" aria-label="Averages by question">
+          {questions.map((row) => (
+            <li
+              key={row.key}
+              className="grid grid-cols-[150px_1fr_70px] items-center gap-3 text-[13px]"
+              data-question={row.key}
+            >
+              <span className="text-xms-body">{row.label}</span>
+              <span className="bg-xms-tint block h-2 rounded-[2px]" aria-hidden="true">
+                <span
+                  className="bg-xms-accent block h-2 rounded-[2px]"
+                  style={{ width: `${row.average === null ? 0 : Math.round((row.average / 5) * 100)}%` }}
+                />
+              </span>
+              <span className="xms-mono text-xms-ink text-right">
+                {row.average === null ? "None" : row.average.toFixed(1)}
+              </span>
+            </li>
+          ))}
+          {questions.length === 0 ? (
+            <li className="text-xms-label text-[13px]">No question has been answered yet.</li>
+          ) : null}
+        </ol>
+        <div>
+          <h3 className="text-xms-label mb-2 text-[12px] font-semibold tracking-wide uppercase">Trend</h3>
+          <ol className="flex flex-col gap-2" aria-label="Quarterly trend">
+            {trend.map((row) => (
+              <li
+                key={row.period}
+                className="grid grid-cols-[110px_1fr_70px_90px] items-center gap-3 text-[13px]"
+                data-period={row.period}
+              >
+                <span className="xms-mono text-xms-ink">{row.label}</span>
+                <span className="bg-xms-tint block h-2 rounded-[2px]" aria-hidden="true">
+                  <span className="bg-xms-accent block h-2 rounded-[2px]" style={{ width: `${row.percent}%` }} />
+                </span>
+                <span className="xms-mono text-xms-ink text-right">
+                  {row.average === null ? "None" : row.average.toFixed(1)}
+                </span>
+                <span className="text-xms-label text-right">
+                  {row.responses === 1 ? "1 response" : `${row.responses} responses`}
+                </span>
+              </li>
+            ))}
+            {trend.length === 0 ? (
+              <li className="text-xms-label text-[13px]">No quarter has been answered yet.</li>
+            ) : null}
+          </ol>
+        </div>
+      </div>
+    </Panel>
   );
 }
 
@@ -140,7 +220,10 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
           </div>
         ) : null}
       </Panel>
-      <Panel title="Responses" caption="Newest first" flush>
+      {/* Only when the API answers with one: an older API sends no block, and
+          an account with no quarterly answer is not drawn as empty bars. */}
+      {data && hasQuarterly(data.quarterly) ? <QuarterlyPanel quarterly={data.quarterly} /> : null}
+      <Panel title="Responses" caption="Newest first, on ticket close" flush>
         {data ? (
           <table className="w-full border-collapse" aria-label="Survey responses">
             <thead className="bg-xms-card">

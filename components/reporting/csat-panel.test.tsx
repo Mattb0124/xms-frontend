@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountCsatView } from "@/components/reporting/csat-panel";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
-import { aCsatSummary } from "@/test-kit/reporting";
+import { aCsatQuarterly, aCsatSummary } from "@/test-kit/reporting";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/accounts/acct-1" }));
 
@@ -80,5 +80,49 @@ describe("AccountCsatView", () => {
     expect(screen.getByLabelText("Surveys")).toHaveTextContent("0 sent, 0 answered");
     expect(screen.getByLabelText("Surveys")).not.toHaveTextContent("suppressed");
     expect(screen.getByText("No responses in this range.")).toBeInTheDocument();
+  });
+
+  it("draws the quarterly block beside the ticket-close summary when the API sends one", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["tickets:view"]),
+      [CSAT]: () => json(aCsatSummary({ quarterly: aCsatQuarterly() })),
+    });
+    renderDesk(<AccountCsatView accountId="acct-1" />);
+    const block = await screen.findByTestId("account-csat-quarterly");
+    // The ticket-close summary keeps its own average; the two are not mixed
+    // into one number, because they answer different questions.
+    expect(screen.getByLabelText("Average score")).toHaveTextContent("3.5 of 5");
+    expect(within(block).getByLabelText("Latest period")).toHaveTextContent("2026 Q2");
+    expect(within(block).getByLabelText("Average this period")).toHaveTextContent("4.0 of 5");
+    expect(within(block).getByLabelText("Responses in the period")).toHaveTextContent("3");
+
+    const questions = within(within(block).getByRole("list", { name: "Averages by question" })).getAllByRole(
+      "listitem",
+    );
+    expect(questions.map((row) => row.getAttribute("data-question"))).toEqual([
+      "responsiveness",
+      "quality",
+      "communication",
+      "value",
+      "recommend",
+    ]);
+    expect(questions[0]).toHaveTextContent("Responsiveness");
+    expect(questions[0]).toHaveTextContent("4.3");
+    expect(questions[3]).toHaveTextContent("3.0");
+
+    const trend = within(within(block).getByRole("list", { name: "Quarterly trend" })).getAllByRole("listitem");
+    expect(trend.map((row) => row.getAttribute("data-period"))).toEqual(["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"]);
+    expect(trend[0]).toHaveTextContent("2025 Q3");
+    expect(trend[0]).toHaveTextContent("2 responses");
+    expect(trend[3]).toHaveTextContent("4.0");
+  });
+
+  it("draws no quarterly block when the API answers without one", async () => {
+    stubFetch({ "GET /v1/admin/me": me(["tickets:view"]), [CSAT]: () => json(aCsatSummary()) });
+    renderDesk(<AccountCsatView accountId="acct-1" />);
+    await screen.findByTestId("account-csat");
+    await waitFor(() => expect(screen.getByLabelText("Average score")).toHaveTextContent("3.5 of 5"));
+    expect(screen.queryByTestId("account-csat-quarterly")).not.toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Quarterly trend" })).not.toBeInTheDocument();
   });
 });

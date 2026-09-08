@@ -2,6 +2,7 @@ import type {
   AccountCsat,
   AccountDashboard,
   AuditEvent,
+  CsatQuarterly,
   CsatResponse,
   DeliveryOutcome,
   Measures,
@@ -46,6 +47,34 @@ export function aCsatSummary(overrides: Partial<AccountCsat> = {}): AccountCsat 
     summary: { responses: 2, average: 3.5, distribution: { "1": 0, "2": 1, "3": 0, "4": 0, "5": 1 }, low: 1 },
     surveys: { sent: 4, answered: 2, suppressed: 1 },
     responses,
+    ...overrides,
+  };
+}
+
+/**
+ * The quarterly relationship block the API sends beside that summary: the
+ * latest period, the mean per question in it, and four periods of trend,
+ * oldest first as the server orders them.
+ */
+export function aCsatQuarterly(overrides: Partial<CsatQuarterly> = {}): CsatQuarterly {
+  return {
+    latest_period: "2026-Q2",
+    responses: 3,
+    averages: { responsiveness: 4.33, quality: 4.67, communication: 3.67, value: 3, recommend: 4.33 },
+    average: 4,
+    trend: [
+      { period: "2025-Q3", responses: 2, average: 3.4 },
+      { period: "2025-Q4", responses: 2, average: 3.8 },
+      { period: "2026-Q1", responses: 4, average: 3.9 },
+      { period: "2026-Q2", responses: 3, average: 4 },
+    ],
+    questions: [
+      { key: "responsiveness", text: "How responsive were we this quarter?" },
+      { key: "quality", text: "How would you rate the quality of the work delivered?" },
+      { key: "communication", text: "How clear and timely was our communication?" },
+      { key: "value", text: "How well does the service represent value for money?" },
+      { key: "recommend", text: "How likely are you to recommend us to a colleague?" },
+    ],
     ...overrides,
   };
 }
