@@ -10,7 +10,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
@@ -53,7 +53,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half)
 
 ```
 middleware.ts           the per-request CSP nonce: sets it on the request headers and the response policy
@@ -222,9 +222,18 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         run_by_name, signed_by_name and explained_by_name, never id prefixes);
                         /admin/accounts/[id]/calendars/new and /admin/calendars/[id] (P3.26.1, TM-06: CalendarEditor with the week
                         grid, holiday library, make default, retire; PreviewPanel), /admin/holiday-calendars (libraries list and create);
-                        /admin/connectors (health overview across granted accounts, admin:connectors) and /admin/connectors/[id]
-                        (header with mode switch, kill switch, Test connection; tabs Settings with the watermark rewind, Field map,
-                        State map, Runs, Dead letters with replay and discard) (P2.21.4, SN-07 to SN-09),
+                        /admin/connectors (health overview across granted accounts, admin:connectors; the outbound pending and
+                        dead-lettered columns appear only where the health route answers them, never as a zero it did not read)
+                        and /admin/connectors/[id]
+                        (the gate holds a child, so nothing is asked before admin:connectors is decided; header with mode switch,
+                        kill switch, Test connection; the mode switch offers bidirectional, says what the promotion still needs
+                        before the click (field map, state map, credential) and leaves the server's own refusal
+                        (no_active_field_map, no_active_state_map, credential_not_valid) beside it; tabs Settings with the
+                        watermark rewind, Field map, State map, Runs, Dead letters with replay and discard, and Outbound (the
+                        instance's queue: event, ticket key, status pill, attempts, next attempt while pending, last error, and
+                        the conflict outcome with its kept and dropped fields, each drop naming its policy and reason, on expand;
+                        Retry on a failed or dead-lettered row, worded as requeued or already queued). The tab and the queue's
+                        status filter are in the URL (`?tab=outbound&status=failed`)) (P2.21.4, SN-03 to SN-05, SN-07 to SN-09),
                         /dev/tokens (token check), /dev/sign-in (dev-mode token paste only)
 components/tickets/     ticket-columns (the Queue column set and QUEUE_DEFAULT_SORT), work-area-tabs (the record's tab
                         order), transition-menu (state pill menu, pause, resolve, confirm sheets),
@@ -358,11 +367,13 @@ lib/time/billing        BILLING_STATUS, BILLING_TRANSITIONS with the permission 
                         billingPeriodBody, periodLabel, checksumPrefix, billingError and describeBillingError
                         (invalid_transition with status and allowed, stale_version, period_not_locked)
 components/xms/signal-pill  SignalPill on the --state-* trios for non-ticket signals (expiry, active, default)
-components/admin/connectors/  pills (health, mode, map state, outcome, link state on the signal trios), health-list,
+components/admin/connectors/  pills (health, mode, map state, outcome, link state, outbound status on the signal trios), health-list,
                         add-servicenow-form, account-connectors-tab, instance-header (ModeSwitch, KillSwitchControl,
                         TestConnectionButton), settings-tab (SettingsForm, WatermarkPanel), map-lifecycle (useMapLifecycle:
                         select, draft, save, validate, activate), map-versions, field-map-editor, field-map-tab,
-                        state-map-editor, state-map-tab, pairs-editor, runs-tab, dead-letters-tab, reason-dialog
+                        state-map-editor, state-map-tab, pairs-editor, runs-tab, dead-letters-tab, reason-dialog,
+                        outbound-tab (OutboundTab, ConflictCell, statusFromSearch: the queue, the status filter written to the
+                        URL and Retry per settled row)
 components/admin/migration/  pills (batch, record, line, report status and dry run on the signal trios), batch-list,
                         new-batch-form, batch-summary (CountsStrip, RunProgress, BatchProperties, LogTab), records-tab
                         (RecordDrawer), reconciliation-tab (ReportPanel per report, signOffBlockedReason, Explain through
@@ -374,9 +385,15 @@ components/admin/config/  account-config-tab (KindRow per catalog with its effec
                         (EffectiveSourcePill, BodyEditor keyed on the effective version id, VersionHistory)
 lib/admin/config-catalog  the six kinds, their scopes (state machine per ticket type), formatBody and parseBody
 lib/admin/config-errors  typed invalid_config with the server's problems, unknown_config_kind, config_missing, not_found
-components/tickets/sync-card  the rail's Sync card (external record link, link state, mode notice, conflict fields, last runs)
-lib/connectors/         vocab (XMS field table, tone maps, externalRecordUrl), errors (typed 409 and 400 bodies),
-                        use-connector-errors
+components/tickets/sync-card  the rail's Sync card (external record link, link state, mode notice, the outbound state (last
+                        pushed, what is waiting with the failed count, the last send error; kept where an instance dropped back
+                        to ingest only, since the queue stays), the conflict note worded from the side that lost the contest
+                        (inbound: ServiceNow changed a field XMS owns; outbound: the last push left those fields behind), last
+                        runs)
+lib/connectors/         vocab (XMS field table, tone maps, externalRecordUrl, bidirectionalBlocker: what the promotion still
+                        needs, in the order the API checks it), outbound (OUTBOUND_STATUSES and their tones, the event labels,
+                        isRetryable, the ConflictOutcome readers keptFields, droppedFields, dropReasonLabel and conflictSummary,
+                        SyncCardOutbound and pendingLabel), errors (typed 409 and 400 bodies), use-connector-errors
 lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
 app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome (never the internal shell):
                         / search-first home (own requests plus the knowledge placeholder), /sign-in (dev token paste,
@@ -486,7 +503,9 @@ redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/w
                         delete for the desk and the portal mirror), emailApi.ts (ticket email, raw inbound, quarantine list
                         and decide, account aliases), connectorsApi.ts (instances, health, create ServiceNow, patch, test
                         connection, samples, field and state map lifecycle, kill switch, watermark, runs, dead letters,
-                        ticket sync; useConnectorInstance selects the record out of the health list),
+                        listOutbound with its status and retryOutbound on the ConnectorOutbound tag (a retry also reloads the
+                        runs and the instance), ticket sync with the outbound half per link; useConnectorInstance selects the
+                        record out of the health list),
                         rosterApi.ts (people list with filters, create, import, record, patch, calendar, skills catalog and
                         per-person whole-set skills (invalidating SkillsMatrix), certifications), calendarsApi.ts (account
                         calendars, one calendar, create,
