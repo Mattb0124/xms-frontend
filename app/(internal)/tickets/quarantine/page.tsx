@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AdminGate, ConfirmButton, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { formatStamp } from "@/components/tickets/conversation-tab";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
-import { EmptyBanner } from "@/components/xms/empty-banner";
+import { StripSelect } from "@/components/xms/filter-select";
 import { Panel } from "@/components/xms/panel";
 import { StatePill } from "@/components/xms/state-pill";
 import { useToast } from "@/components/xms/toast";
@@ -186,32 +186,46 @@ function QuarantineScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xms-ink text-[18px] font-semibold">Quarantine</h1>
-        <p className="text-xms-label text-[12px]">Email from senders we do not know yet, and files the scan blocked.</p>
-        <label className="text-xms-label ml-auto flex items-center gap-2 text-[12px]">
-          <input type="checkbox" checked={showDecided} onChange={(event) => setShowDecided(event.target.checked)} />
-          Show decided
-        </label>
-        <Link href="/tickets" className="text-xms-label hover:text-xms-ink text-[12px]">
-          Queue →
-        </Link>
-      </div>
-      {!isLoading && rows.length === 0 ? (
-        <EmptyBanner
-          title={showDecided ? "Nothing decided yet" : "Quarantine is empty"}
-          detail={showDecided ? "Decisions will be listed here." : "Every inbound email matched a known contact."}
-        />
-      ) : null}
+      <h1 className="sr-only">Quarantine</h1>
+      {/* The screen's one dimension, on the strip, where every other screen
+          keeps its own. It was a checkbox and a "Queue ->" link on a page
+          title row under the toolbar, so the screen was named twice, the
+          shell's own row of controls stood empty, and the one control that
+          changes what the list holds was a tick box no other screen has. */}
+      <HeaderFilters>
+        <StripSelect
+          primary
+          label="Show"
+          value={showDecided ? "decided" : "open"}
+          display={showDecided ? "decided" : `awaiting review (${rows.length})`}
+          onChange={(value) => {
+            setShowDecided(value === "decided");
+            setSelectedId(null);
+          }}
+        >
+          <option value="open">Show: awaiting review</option>
+          <option value="decided">Show: decided</option>
+        </StripSelect>
+      </HeaderFilters>
       <div className={cn("grid gap-4", selected && "xl:grid-cols-[1fr_420px]")}>
         <DenseTable
           title={showDecided ? "Decided" : "Awaiting review"}
+          subtitle={
+            showDecided
+              ? "what was decided, and what each decision created"
+              : "email from senders we do not know yet, and files the scan blocked"
+          }
           columns={showDecided ? DECIDED_COLUMNS : COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}
           loading={isLoading}
           onRowClick={(row) => setSelectedId(row.id)}
-          emptyState="Nothing to review."
+          // One empty statement, in the card, where the rows would be. It
+          // used to have two: an ink banner above the card saying the same
+          // thing in different words, and this line inside it.
+          emptyState={
+            showDecided ? "Nothing decided yet." : "Nothing to review: every inbound email matched a known contact."
+          }
         />
         {selected ? (
           <QuarantineDecisionPanel
