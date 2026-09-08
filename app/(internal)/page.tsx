@@ -15,15 +15,7 @@ import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
 import { ScoreTile } from "@/components/xms/score-tile";
 import { Skeleton } from "@/components/xms/skeleton";
-import {
-  attentionOrder,
-  isAtRisk,
-  isBreached,
-  needsAttention,
-  TILES,
-  underLens,
-  type TileKey,
-} from "@/lib/my-work/attention";
+import { attentionOrder, isAtRisk, isBreached, TILES, underLens, type TileKey } from "@/lib/my-work/attention";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useListGrantedAccountsQuery, useListTicketsQuery, type TicketView } from "@/redux/ticketsApi";
@@ -61,10 +53,11 @@ export default function MyWorkPage() {
   // The pressed scorecard, if any: the lens over the list rather than a place
   // to go (render 08, note 1).
   const [lens, setLens] = useState<TileKey | null>(null);
-  const attention = useMemo(
-    () => underLens(attentionOrder(needsAttention(mine), group), lens).slice(0, 8),
-    [mine, group, lens],
-  );
+  // The same tickets the tiles count, in the render's order. The list had a
+  // "breached or long stale" filter over it, so "7 assigned across 2
+  // accounts" stood above a single row; render 08 draws every open ticket the
+  // first tile counts and lets the tiles do the narrowing.
+  const attention = useMemo(() => underLens(attentionOrder(mine, group), lens).slice(0, 8), [mine, group, lens]);
   const breached = mine.filter(isBreached).length;
   const atRisk = mine.filter(isAtRisk).length;
   const awaiting = mine.filter((ticket) => ticket.state.startsWith("awaiting")).length;

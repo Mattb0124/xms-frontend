@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { attentionOrder, isAtRisk, isBreached, needsAttention, TILES, underLens } from "@/lib/my-work/attention";
+import { attentionOrder, isAtRisk, isBreached, TILES, underLens } from "@/lib/my-work/attention";
 import { aTicketView } from "@/test-kit/tickets";
 import type { TicketView } from "@/redux/ticketsApi";
-
-const NOW = new Date("2026-09-08T12:00:00Z");
 
 function clock(overrides: Partial<{ remainingMinutes: number; breached: boolean; met: boolean }> = {}) {
   return {
@@ -35,10 +33,16 @@ const freshAwaiting = aTicketView({
   sla: {},
 });
 
-describe("what needs attention", () => {
-  it("takes a breached ticket, and one the client has sat on for over two days", () => {
-    const rows = needsAttention([breached, easy, staleAwaiting, freshAwaiting], NOW);
-    expect(rows.map((row) => row.key)).toEqual(["CS0000001", "CS0000004"]);
+describe("what the list holds", () => {
+  it("holds every ticket the first scorecard counts, and not a narrower set", () => {
+    // Render 08 draws eleven assigned over a list carrying New, In progress
+    // and Awaiting client, so the list and the tile are one desk. The list
+    // used to be filtered to the breached and the long-stale, which is how
+    // "7 assigned" came to stand over one row.
+    const mine = [breached, atRisk, easy, staleAwaiting, freshAwaiting];
+    const rows = attentionOrder(mine, []);
+    expect(rows).toHaveLength(TILES[0].value({ mine, breached: 1, atRisk: 1, awaiting: 2 }));
+    expect(new Set(rows.map((row) => row.key))).toEqual(new Set(mine.map((row) => row.key)));
   });
 
   it("reads the clock the same way the scorecards do", () => {

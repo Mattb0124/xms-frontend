@@ -9,8 +9,6 @@
 import { tighterClock } from "@/lib/tickets/sla";
 import type { TicketView } from "@/redux/ticketsApi";
 
-const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
-
 /** True where the ticket's tighter clock has breached. */
 export function isBreached(ticket: TicketView): boolean {
   return Boolean(ticket.sla.response?.breached || ticket.sla.resolution?.breached);
@@ -20,15 +18,6 @@ export function isBreached(ticket: TicketView): boolean {
 export function isAtRisk(ticket: TicketView): boolean {
   const clock = ticket.sla.resolution ?? ticket.sla.response;
   return Boolean(clock && !clock.met && !clock.breached && clock.remainingMinutes < clock.targetMinutes * 0.25);
-}
-
-/** Breached, or awaiting the client for more than two days: what needs a nudge today. */
-export function needsAttention(items: TicketView[], now: Date = new Date()): TicketView[] {
-  return items.filter((ticket) => {
-    const stale =
-      ticket.state === "awaiting_client" && now.getTime() - new Date(ticket.updated_at).getTime() > TWO_DAYS;
-    return isBreached(ticket) || stale;
-  });
 }
 
 /** Tightest clock first, and a ticket with no clock last: the order the list is read in. */
@@ -42,6 +31,14 @@ function byClock(a: TicketView, b: TicketView): number {
  * "Mine first, then group unassigned", which is what render 08's own subtitle
  * says the list is: everything assigned to me on the tightest clock, then the
  * unassigned work in my groups on the same order, with nothing counted twice.
+ *
+ * The list is the tiles' own set, not a narrower one. It used to be filtered
+ * first to the breached and the long-stale, so the screen could say "7
+ * assigned across 2 accounts" over a list of one row: two numbers for the
+ * same desk that never agreed. Render 08 draws eleven assigned over six rows
+ * carrying New, In progress and Awaiting client, so the list is every open
+ * ticket the "Assigned to me" tile counts, on the tightest clock, and the
+ * scorecards are what narrow it (note 1).
  */
 export function attentionOrder(mine: TicketView[], group: TicketView[]): TicketView[] {
   const seen = new Set(mine.map((ticket) => ticket.key));
