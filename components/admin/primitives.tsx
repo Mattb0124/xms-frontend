@@ -8,10 +8,17 @@ import { StatePill } from "@/components/xms/state-pill";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 
+/**
+ * The content header bar's primary action (Design System section 4). Worn by
+ * both a button and a Link, so it states its own foreground and hover
+ * foreground: the element link rule in app/globals.css would otherwise colour
+ * a link-styled action accent on accent. `hover:no-underline` keeps it from
+ * underlining like body copy.
+ */
 export const PRIMARY_BUTTON =
-  "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[13px] font-medium text-white disabled:opacity-50";
+  "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[13px] font-medium text-white hover:text-white hover:no-underline disabled:opacity-50";
 export const SECONDARY_BUTTON =
-  "border-xms-line text-xms-body hover:bg-xms-tint h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
+  "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-tint hover:no-underline h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
 export const DANGER_BUTTON =
   "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
 export const INPUT =

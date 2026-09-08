@@ -9,6 +9,41 @@ import { describe, expect, it } from "vitest";
 const tokensDir = join(process.cwd(), "styles", "tokens");
 const scope = readFileSync(join(tokensDir, "xms-scope.css"), "utf8");
 const house = readFileSync(join(tokensDir, "house.css"), "utf8");
+const globals = readFileSync(join(process.cwd(), "app", "globals.css"), "utf8");
+
+/** Every top-level rule in a stylesheet, paired with the `@layer` it sits in ("" when unlayered). */
+function topLevelRules(css: string): Array<{ selector: string; layer: string }> {
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules: Array<{ selector: string; layer: string }> = [];
+  const walk = (source: string, layer: string) => {
+    let depth = 0;
+    let start = 0;
+    let head = "";
+    for (let i = 0; i < source.length; i += 1) {
+      const character = source[i];
+      if (character === "{") {
+        if (depth === 0) {
+          head = source.slice(start, i).trim();
+          start = i + 1;
+        }
+        depth += 1;
+      } else if (character === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          const body = source.slice(start, i);
+          const at = /^@layer\s+([\w-]+)$/.exec(head);
+          if (at) walk(body, at[1]);
+          else for (const selector of head.split(",")) rules.push({ selector: selector.trim(), layer });
+          start = i + 1;
+        }
+      } else if (depth === 0 && character === ";") {
+        start = i + 1;
+      }
+    }
+  };
+  walk(stripped, "");
+  return rules;
+}
 
 const REQUIRED_SCOPE_TOKENS = [
   "--xms-ink",
@@ -61,6 +96,30 @@ describe("xms token contract", () => {
     expect(scope).toContain("--xms-navy: #10193a");
     expect(scope).toContain("--xms-accent: #2563eb");
     expect(scope).toContain("--xms-bg: #f4f5f7");
+  });
+
+  // Tailwind v4 emits every utility inside the `utilities` cascade layer, and an
+  // unlayered rule beats a layered one whatever its specificity. An unlayered
+  // `a { color: var(--xms-accent) }` therefore beat `text-white` on every
+  // link-styled primary action and painted it accent on accent, a 1:1 contrast
+  // ratio with no visible label (frontend review finding 4).
+  it("keeps the element link rule inside @layer base so a colour utility wins", () => {
+    const anchors = topLevelRules(globals).filter((rule) => /^a(:|$)/.test(rule.selector));
+    expect(anchors.length).toBeGreaterThan(0);
+    for (const rule of anchors) {
+      expect(rule.layer, `${rule.selector} must be layered, not unlayered`).toBe("base");
+    }
+  });
+
+  it("leaves no unlayered element rule in the global stylesheet that could beat a utility", () => {
+    const unlayered = topLevelRules(globals)
+      .filter((rule) => rule.layer === "")
+      .map((rule) => rule.selector);
+    // html, body and the scrollbar pseudo-elements carry no utility equivalent.
+    const allowed = new Set(["html", "body", "::-webkit-scrollbar", "::-webkit-scrollbar-thumb"]);
+    for (const selector of unlayered) {
+      expect(allowed.has(selector), `${selector} is unlayered and would beat a Tailwind utility`).toBe(true);
+    }
   });
 
   it("provides a dark inversion for every light token", () => {

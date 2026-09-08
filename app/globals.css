@@ -18,13 +18,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: var(--xms-accent);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--xms-accent-hover);
-  text-decoration: underline;
+/* The default link look MUST stay inside @layer base. Tailwind v4 emits every
+ * utility inside the `utilities` cascade layer, and an unlayered rule beats a
+ * layered one whatever its specificity, so a bare `a { color: ... }` out here
+ * would win over `text-white` on a link. That is what painted every primary
+ * action accent-on-accent, a 1:1 contrast ratio with no visible label
+ * (frontend review finding 4). Layered, the utility wins as it should.
+ * styles/tokens/tokens.test.ts pins this. */
+@layer base {
+  a {
+    color: var(--xms-accent);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--xms-accent-hover);
+    text-decoration: underline;
+  }
 }
 
 ::-webkit-scrollbar {
