@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { safeHref } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
 import {
   useListNotificationsQuery,
@@ -22,7 +23,17 @@ export interface NotificationsMenuProps {
   onClose: () => void;
 }
 
-/** The bell dropdown: the latest 20 rows; a click marks read and follows the link; Mark all read. */
+/**
+ * The bell dropdown: the latest 20 rows; a click marks read and follows the
+ * link; Mark all read.
+ *
+ * The link is written by the API: `report.review.requested` and
+ * `report.review.overdue` send `/reports/runs/{id}`, the review screen, and
+ * `report.pack.ready` sends `/reports/packs/{id}`. It is therefore server data
+ * reaching a navigation, and it goes through `safeHref` first, like every
+ * other untrusted URL here (security review findings 26 and 38): a row whose
+ * link is not an ordinary address opens nothing rather than going somewhere.
+ */
 export function NotificationsMenu({ onClose }: NotificationsMenuProps) {
   const router = useRouter();
   const { data, isLoading } = useListNotificationsQuery({ limit: 20 });
@@ -31,7 +42,8 @@ export function NotificationsMenu({ onClose }: NotificationsMenuProps) {
   const open = (row: NotificationRow) => {
     if (!row.read_at) void markRead(row.id);
     onClose();
-    if (row.link) router.push(row.link);
+    const href = safeHref(row.link);
+    if (href) router.push(href);
   };
   return (
     <div

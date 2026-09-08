@@ -153,3 +153,35 @@ describe("waitingHref", () => {
     expect(waitingHref(aWaitingItem())).toBe("/tickets?view=mine");
   });
 });
+
+/**
+ * Review before send gave the desk a screen for a single held run
+ * (`/reports/runs/[id]`, `reports:manage`). The rail's own row still opens
+ * the account's Report packs tab, which is where the API points it and where
+ * every waiting run is listed, but the registry now serves the run's own
+ * address too, so an API that names it needs no change on this side.
+ */
+describe("the report review row", () => {
+  const runLink = "/reports/runs/55555555-5555-4555-8555-555555555555";
+  const reviewRow = (link: string) =>
+    aWaitingItem({ key: "report_reviews", label: "Report packs to review", count: 1, link });
+
+  it("still opens the Report packs tab the API names, one click from the review", () => {
+    expect(waitingHref(itemFor(aWaiting(), "report_reviews"), ALL_SCREENS)).toBe(
+      `/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`,
+    );
+  });
+
+  it("would follow the run's own address, and only for a reader who may open it", () => {
+    expect(matchScreen(runLink)?.screen).toBe("report_run");
+    const reviewer = visibleScreens(["reports:manage", "tickets:view"]);
+    expect(serverHref(runLink, reviewer)).toBe(runLink);
+    expect(waitingHref(reviewRow(runLink), reviewer)).toBe(runLink);
+    // Without reports:manage the address is dropped rather than offered as a
+    // refusal, and the key's own target cannot stand in either, since the
+    // report packs screen needs a permission this reader has not got.
+    const consultant = visibleScreens(["tickets:view"]);
+    expect(serverHref(runLink, consultant)).toBeNull();
+    expect(waitingHref(reviewRow(runLink), consultant)).toBeNull();
+  });
+});

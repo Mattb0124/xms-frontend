@@ -43,7 +43,11 @@ export const WAITING_TARGETS: Record<string, WaitingTarget> = {
   scope_approvals: { screen: "queue" },
   articles_in_review: { screen: "knowledge", search: "?status=in_review" },
   // With a run waiting the API names the account's Report packs tab, an
-  // address no key can express; with none waiting it sends /reports.
+  // address no key can express; with none waiting it sends /reports. That tab
+  // links each held run on to /reports/runs/[id], the review screen, so the
+  // rail lands one click from the decision. A newer API that names the run
+  // itself needs no change here either: that address is a registered screen,
+  // so `serverHref` accepts it for a viewer who holds reports:manage.
   report_reviews: { screen: "report_packs" },
   // The timesheet opens on the current week, which is the week the count is
   // about; it takes no week parameter, so none is invented here.
