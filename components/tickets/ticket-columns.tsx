@@ -38,7 +38,15 @@ export interface ColumnOptions {
   hideAccount?: boolean;
 }
 
-/** The Queue column set (Wireframes v3 section 8): key, type, description, account, state, priority, assignee, SLA, updated. */
+/** The Queue's default sort: the tightest clock first (Wireframes section 3.1). */
+export const QUEUE_DEFAULT_SORT = { key: "sla", direction: "asc" } as const;
+
+/**
+ * The Queue column set in the prototype's order (Wireframes section 3.1):
+ * Key, Short description, Account, Type, Priority, State, Assignee, SLA,
+ * Updated. The built order put Type second and State before Priority, which
+ * is not the prototype's reading order (frontend review finding 20).
+ */
 export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseColumn<TicketView>[] {
   const columns: DenseColumn<TicketView>[] = [
     {
@@ -47,13 +55,6 @@ export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseCo
       width: "120px",
       sortValue: (row) => row.key,
       render: (row) => <KeyLink ticketKey={row.key} />,
-    },
-    {
-      key: "type",
-      title: "Type",
-      width: "120px",
-      sortValue: (row) => row.type,
-      render: (row) => <TypeBar type={row.type} />,
     },
     {
       key: "short_description",
@@ -76,11 +77,11 @@ export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseCo
       },
     },
     {
-      key: "state",
-      title: "State",
-      width: "150px",
-      sortValue: (row) => row.state,
-      render: (row) => <StatePill state={row.state} label={row.state_label} />,
+      key: "type",
+      title: "Type",
+      width: "120px",
+      sortValue: (row) => row.type,
+      render: (row) => <TypeBar type={row.type} />,
     },
     {
       key: "priority",
@@ -88,6 +89,13 @@ export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseCo
       width: "90px",
       sortValue: (row) => row.priority,
       render: (row) => <PriorityPill priority={row.priority} />,
+    },
+    {
+      key: "state",
+      title: "State",
+      width: "150px",
+      sortValue: (row) => row.state,
+      render: (row) => <StatePill state={row.state} label={row.state_label} />,
     },
     {
       key: "assignee",

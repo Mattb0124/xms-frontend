@@ -6,7 +6,7 @@ import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { ExportMenu } from "@/components/tickets/export-menu";
-import { ticketColumns } from "@/components/tickets/ticket-columns";
+import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
@@ -305,6 +305,7 @@ function QueueScreen() {
           columns={columns}
           rows={rows}
           rowKey={(row) => row.key}
+          defaultSort={QUEUE_DEFAULT_SORT}
           selectable
           selected={selected}
           onSelectionChange={setSelected}

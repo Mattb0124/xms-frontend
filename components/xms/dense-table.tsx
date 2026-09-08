@@ -29,6 +29,11 @@ export interface DenseTableProps<Row> {
   rowKey: (row: Row) => string;
   /** Controlled sort; when omitted the table sorts locally with sortValue. */
   sort?: SortState;
+  /**
+   * The order a locally sorted list opens in: the Queue opens on SLA,
+   * tightest clock first (Wireframes section 3.1, review finding 20).
+   */
+  defaultSort?: SortState;
   onSortChange?: (sort: SortState) => void;
   selectable?: boolean;
   selected?: ReadonlySet<string>;
@@ -59,7 +64,7 @@ function compare(a: string | number | null | undefined, b: string | number | nul
  */
 export function DenseTable<Row>(props: DenseTableProps<Row>) {
   const { columns, rows, rowKey, selectable, onRowClick } = props;
-  const [localSort, setLocalSort] = useState<SortState | undefined>();
+  const [localSort, setLocalSort] = useState<SortState | undefined>(props.defaultSort);
   const sort = props.sort ?? localSort;
   const selected = props.selected ?? new Set<string>();
 
