@@ -2,7 +2,14 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { scheduleLabel, TicketGroupsCatalog } from "@/components/tickets/ticket-groups";
 import { aProjectGroup, aTicketGroup, ACCOUNT_ID } from "@/test-kit/tickets";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDesk, renderDeskInShell, stubFetch } from "@/test-kit/desk";
+
+// The toolbar band the screen portals its dimensions into pushes on the
+// screen switcher, so the router has to exist.
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/tickets/groups",
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 const LIST = "GET /v1/ticket-groups";
 const CREATE = "POST /v1/ticket-groups";
@@ -43,9 +50,10 @@ describe("TicketGroupsCatalog", () => {
     expect(list.getByText("Active")).toBeTruthy();
     // The window carries one freeze; the project carries none, so its cell is blank.
     expect(list.getByText("1")).toBeTruthy();
-    // Without tickets:work there is no form and no way to open one.
-    expect(screen.queryByText("+ New group")).toBeNull();
-    expect(screen.getByText(/needs the tickets:work permission/)).toBeTruthy();
+    // Without tickets:work there is no form and no way to open one; the
+    // empty state is where the reason lives now, since the toolbar carries
+    // the action and a toolbar is no place for a sentence.
+    expect(screen.queryByRole("button", { name: "New" })).toBeNull();
   });
 
   it("sends the filters the API declares", async () => {
@@ -54,10 +62,12 @@ describe("TicketGroupsCatalog", () => {
       "GET /v1/accounts": accounts,
       [LIST]: () => json([aTicketGroup()]),
     });
-    renderDesk(<TicketGroupsCatalog />);
+    // In a real toolbar band: the dimensions are on the grey strip now, so
+    // without one they render nowhere.
+    renderDeskInShell(<TicketGroupsCatalog />);
     await screen.findByText("October release window");
-    fireEvent.change(screen.getByLabelText("Kind filter"), { target: { value: "project" } });
-    fireEvent.change(screen.getByLabelText("Status filter"), { target: { value: "active" } });
+    fireEvent.change(screen.getByLabelText("Kind"), { target: { value: "project" } });
+    fireEvent.change(screen.getByLabelText("Status"), { target: { value: "active" } });
     await waitFor(() =>
       expect(calls.filter((call) => call.key === LIST).map((call) => call.search)).toContain(
         "?kind=project&status=active",
@@ -72,8 +82,8 @@ describe("TicketGroupsCatalog", () => {
       [LIST]: () => json([]),
       [CREATE]: () => json(aTicketGroup(), 201),
     });
-    renderDesk(<TicketGroupsCatalog />);
-    fireEvent.click(await screen.findByText("+ New group"));
+    renderDeskInShell(<TicketGroupsCatalog />);
+    fireEvent.click(await screen.findByRole("button", { name: "New" }));
     const form = within(await screen.findByRole("form", { name: "New group" }));
     fireEvent.change(form.getByLabelText("Name"), { target: { value: "October release window" } });
     fireEvent.change(form.getByLabelText("Account"), { target: { value: ACCOUNT_ID } });

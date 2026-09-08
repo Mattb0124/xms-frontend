@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { formatDate, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
-import { EmptyBanner } from "@/components/xms/empty-banner";
+import { FilterSelect } from "@/components/xms/filter-select";
+import { ICON, PlusIcon } from "@/components/xms/icons";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill, type SignalTone } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -405,69 +407,37 @@ export function TicketGroupsCatalog() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Panel
-        title="Filters"
-        caption="GROUPS"
-        subtitle="Projects and change windows across the accounts granted to you."
-      >
-        <div className="flex flex-wrap items-end gap-3 text-[12px]">
-          <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Account</span>
-            <select
-              aria-label="Account filter"
-              value={accountId}
-              onChange={(event) => setAccountId(event.target.value)}
-              className={cn(INPUT, "w-[220px]")}
-            >
-              <option value="">Every account</option>
-              {(accounts ?? []).map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Kind</span>
-            <select
-              aria-label="Kind filter"
-              value={kind}
-              onChange={(event) => setKind(event.target.value as TicketGroupKind | "")}
-              className={cn(INPUT, "w-[180px]")}
-            >
-              <option value="">Both kinds</option>
-              {TICKET_GROUP_KINDS.map((entry) => (
-                <option key={entry} value={entry}>
-                  {ticketGroupKindLabel(entry)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Status</span>
-            <select
-              aria-label="Status filter"
-              value={status}
-              onChange={(event) => setStatus(event.target.value as TicketGroupStatus | "")}
-              className={cn(INPUT, "w-[160px]")}
-            >
-              <option value="">Every status</option>
-              {TICKET_GROUP_STATUSES.map((entry) => (
-                <option key={entry} value={entry}>
-                  {ticketGroupStatusLabel(entry)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {canWrite ? (
-            <button type="button" onClick={openNew} className={PRIMARY_BUTTON}>
-              + New group
-            </button>
-          ) : (
-            <p className="text-xms-label pb-2">Creating and editing a group needs the tickets:work permission.</p>
-          )}
-        </div>
-      </Panel>
+      {/* The dimensions stand on the grey strip, as they do on every other
+          list screen, rather than in a "Filters" card of their own holding
+          three native selects and the primary action beside them. */}
+      <HeaderFilters>
+        <FilterSelect
+          label="Account"
+          value={accountId}
+          options={(accounts ?? []).map((account) => ({ value: account.id, label: account.name }))}
+          onChange={setAccountId}
+        />
+        <FilterSelect
+          label="Kind"
+          value={kind}
+          options={TICKET_GROUP_KINDS.map((entry) => ({ value: entry, label: ticketGroupKindLabel(entry) }))}
+          onChange={(value) => setKind(value as TicketGroupKind | "")}
+        />
+        <FilterSelect
+          label="Status"
+          value={status}
+          options={TICKET_GROUP_STATUSES.map((entry) => ({ value: entry, label: ticketGroupStatusLabel(entry) }))}
+          onChange={(value) => setStatus(value as TicketGroupStatus | "")}
+        />
+      </HeaderFilters>
+      {canWrite ? (
+        <HeaderAction>
+          <button type="button" onClick={openNew} className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
+            <PlusIcon size={ICON.action} />
+            New
+          </button>
+        </HeaderAction>
+      ) : null}
 
       {draft ? (
         <Panel title={editing ? `Edit ${editing.name}` : "New group"} caption="GROUP">
@@ -491,21 +461,21 @@ export function TicketGroupsCatalog() {
         <Skeleton lines={6} />
       ) : (
         <DenseTable<TicketGroup>
-          title="Count"
+          // The card was titled "Count", which is the word the Queue's own
+          // header lost in pass two. It is named for what it holds, with the
+          // sentence that explains the screen beside it.
+          title="Groups"
+          subtitle="projects and change windows across the accounts granted to you"
           columns={columns}
           rows={rows}
           rowKey={(row) => row.id}
           defaultSort={{ key: "schedule", direction: "desc" }}
           onRowClick={canWrite ? openEdit : undefined}
+          // A line where the rows would be, not a card inside the card.
           emptyState={
-            <EmptyBanner
-              title="No groups here"
-              detail={
-                canWrite
-                  ? "Create a change window to schedule changes against it."
-                  : "A change window is created by someone holding tickets:work."
-              }
-            />
+            canWrite
+              ? "No groups here. Create a change window to schedule changes against it."
+              : "No groups here. A change window is created by someone holding tickets:work."
           }
         />
       )}
