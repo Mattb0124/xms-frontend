@@ -343,11 +343,18 @@ export function anAuditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
   };
 }
 
+/** The connector instance the tripped row and the dead-letter row both name. */
+export const PAUSED_INSTANCE_ID = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa";
+export const PAUSED_SUBSCRIPTION_ID = "bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb";
+export const SECURITY_ACCOUNT_ID = "cccccccc-3333-4333-8333-cccccccccccc";
+
 /**
  * The Security dashboard as the API answers it over a seven day window: a
  * denial and a failed sign-in in the stream, two clients the limiter turned
- * away, a paused subscription and a tripped instance, one quarantined file
- * and one open dead letter queue.
+ * away, a paused subscription and a tripped instance each naming its own
+ * record, one quarantined file, and two dead-letter queues, one of them a
+ * connector queue that names its instance and one a platform queue that
+ * names none.
  */
 export function aSecurityDashboard(overrides: Partial<SecurityData> = {}): SecurityData {
   return {
@@ -370,11 +377,50 @@ export function aSecurityDashboard(overrides: Partial<SecurityData> = {}): Secur
       { actor_id: "client-b", principal_kind: "api_client", n: 1 },
     ],
     paused_integrations: [
-      { kind: "webhook", reason: "continuous_failure", n: 1 },
-      { kind: "connector", reason: "error ratio", n: 1 },
+      {
+        kind: "webhook_subscription",
+        id: PAUSED_SUBSCRIPTION_ID,
+        account_id: SECURITY_ACCOUNT_ID,
+        account_key: "brookfield",
+        name: "https://hooks.brookfield.example/xms",
+        reason: "continuous_failure",
+      },
+      {
+        kind: "connector_instance",
+        id: PAUSED_INSTANCE_ID,
+        account_id: SECURITY_ACCOUNT_ID,
+        account_key: "brookfield",
+        name: "Brookfield ServiceNow",
+        reason: "error ratio",
+      },
+    ],
+    paused_integrations_by_reason: [
+      { kind: "webhook_subscription", reason: "continuous_failure", n: 1 },
+      { kind: "connector_instance", reason: "error ratio", n: 1 },
     ],
     quarantined_attachments: [{ origin: "email", n: 1 }],
-    open_dead_letters: [{ queue: "outbox", n: 5, oldest: "2026-09-01T04:00:00Z" }],
+    open_dead_letters: [
+      {
+        queue: "outbound",
+        n: 4,
+        oldest: "2026-09-01T04:00:00Z",
+        account_id: SECURITY_ACCOUNT_ID,
+        instance_id: PAUSED_INSTANCE_ID,
+        instance_name: "Brookfield ServiceNow",
+      },
+      {
+        queue: "mail",
+        n: 1,
+        oldest: "2026-09-03T06:00:00Z",
+        account_id: null,
+        instance_id: null,
+        instance_name: null,
+      },
+    ],
+    open_dead_letters_by_queue: [
+      { queue: "outbound", n: 5, oldest: "2026-09-01T04:00:00Z" },
+      { queue: "mail", n: 1, oldest: "2026-09-03T06:00:00Z" },
+    ],
     ...overrides,
   };
 }

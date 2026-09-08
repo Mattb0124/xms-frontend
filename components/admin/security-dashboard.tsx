@@ -9,12 +9,18 @@ import { Panel } from "@/components/xms/panel";
 import { ScoreTile } from "@/components/xms/score-tile";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useMe } from "@/redux/me";
-import { useSecurityDashboardQuery, type SecurityDashboard as SecurityData } from "@/redux/reportingApi";
+import {
+  useSecurityDashboardQuery,
+  type OpenDeadLetter,
+  type PausedIntegration,
+  type SecurityDashboard as SecurityData,
+} from "@/redux/reportingApi";
 
 interface Count {
   label: string;
   detail?: string;
-  n: number;
+  /** A row that names a record rather than counting one carries no number. */
+  n?: number;
   /** The screen this row is answered on, where this application serves one. */
   href?: string;
 }
@@ -37,7 +43,7 @@ export function CountList({ rows, empty }: { rows: Count[]; empty: string }) {
             <span className="xms-mono text-xms-ink truncate">{row.label}</span>
           )}
           {row.detail ? <span className="xms-mono text-xms-muted text-[11px]">{row.detail}</span> : null}
-          <span className="xms-mono text-xms-ink ml-auto font-semibold">{row.n}</span>
+          {row.n === undefined ? null : <span className="xms-mono text-xms-ink ml-auto font-semibold">{row.n}</span>}
         </li>
       ))}
     </ul>
@@ -53,13 +59,27 @@ function total(rows: { n: number }[] | undefined): number {
 }
 
 const PAUSED_KIND: Record<string, string> = {
-  webhook: "Webhook subscription",
-  connector: "Connector instance",
+  webhook_subscription: "Webhook subscription",
+  connector_instance: "Connector instance",
 };
 
-/** The pause reason as the server keeps it; "unstated" is the server's own word for a pause with no reason. */
-function pausedLabel(kind: string): string {
-  return PAUSED_KIND[kind] ?? kind;
+export function pausedKindLabel(kind: string): string {
+  return PAUSED_KIND[kind] ?? kind.replace(/_/g, " ");
+}
+
+/**
+ * What a paused row says beside its name: the kind, the account it is under
+ * and the reason the server recorded. "unstated" is the server's own word
+ * for a pause with no reason, and is left as it wrote it.
+ */
+export function pausedDetail(row: PausedIntegration): string {
+  return [pausedKindLabel(row.kind), row.account_key, row.reason].filter(Boolean).join(", ");
+}
+
+/** The oldest failure and, for a connector queue, the instance it belongs to. */
+export function deadLetterDetail(row: OpenDeadLetter): string {
+  const oldest = `oldest ${row.oldest.slice(0, 10)}`;
+  return row.instance_name ? `${row.instance_name}, ${oldest}` : oldest;
 }
 
 /**
@@ -83,11 +103,15 @@ export function SecurityDashboard() {
   // refused is worse than none, so each is offered only with its permission
   // in hand; the browser decides nothing else here.
   const apiClientsHref = me.hasPermission("admin:api-clients") ? "/admin/api-clients" : undefined;
-  // The connector list rather than one record: the API counts tripped
-  // instances and open dead letters by reason and by queue, not by instance,
-  // so there is no id to address. The list carries the Tripped pill and each
-  // record its own Dead letters tab.
-  const connectorsHref = me.hasPermission("admin:connectors") ? "/admin/connectors" : undefined;
+  // The API names the record behind each paused integration and each open
+  // dead letter now (backend 77745ef), so a row opens the record rather than
+  // a list to go looking in: a tripped instance opens its own connector page,
+  // a dead-letter queue opens that instance's Dead letters tab, and a paused
+  // webhook subscription opens the account it belongs to, this application
+  // serving no screen for a subscription the client registers itself.
+  const connectors = me.hasPermission("admin:connectors");
+  const accounts = me.hasPermission("admin:accounts");
+  const connectorsHref = connectors ? "/admin/connectors" : undefined;
 
   const tiles = useMemo(() => {
     if (!data) return null;
@@ -106,9 +130,13 @@ export function SecurityDashboard() {
         ? total(data.abuse_by_kind)
         : sumWhere(data, (row) => row.event_type.startsWith("abuse.")),
       rateLimited: total(data.rate_limited_clients),
-      paused: total(data.paused_integrations),
+      // The tiles read the roll-ups the API sends beside the lists: the
+      // paused count is by reason, and the dead-letter depth is the
+      // operator-wide one per queue, which is deliberately wider than the
+      // rows a reader bound to some accounts is shown.
+      paused: total(data.paused_integrations_by_reason),
       quarantined: total(data.quarantined_attachments),
-      deadLetters: total(data.open_dead_letters),
+      deadLetters: total(data.open_dead_letters_by_queue),
     };
   }, [data]);
 
@@ -125,25 +153,34 @@ export function SecurityDashboard() {
   const pausedRows = useMemo(
     () =>
       (data?.paused_integrations ?? []).map((row) => ({
-        label: pausedLabel(row.kind),
-        detail: row.reason,
-        n: row.n,
-        // Webhook subscriptions are registered by the client itself through
-        // the API with its key, so this application serves no screen for
-        // them and the row carries no link.
-        href: row.kind === "connector" ? connectorsHref : undefined,
+        label: row.name || pausedKindLabel(row.kind),
+        detail: pausedDetail(row),
+        // One row is one paused thing, so there is nothing to count here.
+        // A row that names no record carries no link: an address built from a
+        // missing id opens nothing and says the row was addressable.
+        href:
+          row.kind === "connector_instance"
+            ? connectors && row.id
+              ? `/admin/connectors/${row.id}`
+              : undefined
+            : accounts && row.account_id
+              ? `/admin/accounts/${row.account_id}`
+              : undefined,
       })),
-    [data, connectorsHref],
+    [data, connectors, accounts],
   );
   const deadLetterRows = useMemo(
     () =>
       (data?.open_dead_letters ?? []).map((row) => ({
         label: row.queue,
-        detail: `oldest ${row.oldest.slice(0, 10)}`,
+        detail: deadLetterDetail(row),
         n: row.n,
-        href: connectorsHref,
+        // The instance's own Dead letters tab, which is where the work is
+        // replayed or discarded. A platform queue names no instance, and
+        // there is no screen that replays it, so the row carries no link.
+        href: row.instance_id && connectors ? `/admin/connectors/${row.instance_id}?tab=dead-letters` : undefined,
       })),
-    [data, connectorsHref],
+    [data, connectors],
   );
 
   const denialRows = useMemo(
@@ -197,7 +234,7 @@ export function SecurityDashboard() {
                 href={apiClientsHref}
               />
             ) : null}
-            {data.paused_integrations ? (
+            {data.paused_integrations_by_reason ? (
               <ScoreTile
                 label="Paused integrations"
                 detail="Right now, not over the window"
@@ -212,7 +249,7 @@ export function SecurityDashboard() {
                 tone={tiles.quarantined > 0 ? "breach" : "good"}
               />
             ) : null}
-            {data.open_dead_letters ? (
+            {data.open_dead_letters_by_queue ? (
               <ScoreTile
                 label="Open dead letters"
                 detail="Right now, not over the window"
@@ -269,7 +306,7 @@ export function SecurityDashboard() {
               <Panel
                 title="Paused integrations"
                 caption="Paused subscriptions and tripped instances"
-                subtitle="What is paused right now, by reason, not what paused during the window."
+                subtitle="What is paused right now, one row per record, not what paused during the window. A tripped instance opens its own page and a paused subscription the account it belongs to."
               >
                 <CountList rows={pausedRows} empty="Nothing is paused." />
               </Panel>
@@ -286,7 +323,7 @@ export function SecurityDashboard() {
               <Panel
                 title="Open dead letters"
                 caption="Queues with work nobody claimed back"
-                subtitle="The backlog as it stands, with the oldest failure in each queue."
+                subtitle="The backlog as it stands, with the oldest failure in each queue. A connector queue opens that instance's Dead letters tab; the tile counts every account, these rows only the ones granted to you."
               >
                 <CountList rows={deadLetterRows} empty="No open dead letters." />
               </Panel>

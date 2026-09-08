@@ -91,12 +91,49 @@ export interface SecurityDashboard {
   abuse_by_kind?: Array<{ event_type: string; n: number }>;
   /** Who the rate limiter turned away, most often first. */
   rate_limited_clients?: Array<{ actor_id: string; principal_kind: string | null; n: number }>;
-  /** What is paused right now: webhook subscriptions and tripped connector instances, by reason. */
-  paused_integrations?: Array<{ kind: string; reason: string; n: number }>;
+  /**
+   * What is paused right now, one row per paused thing (backend 77745ef):
+   * the `kind` says which screen opens it, the `id` says which record, and
+   * the account says under which client. The counts the tiles read stay in
+   * `paused_integrations_by_reason`.
+   */
+  paused_integrations?: PausedIntegration[];
+  /** The same two tables counted by kind and reason: the figure on the tile. */
+  paused_integrations_by_reason?: Array<{ kind: string; reason: string; n: number }>;
   /** Files the scanner held back in the window, by where they came from. */
   quarantined_attachments?: Array<{ origin: string; n: number }>;
-  /** Queues with work nobody has claimed back, and the oldest failure in each. */
-  open_dead_letters?: Array<{ queue: string; n: number; oldest: string }>;
+  /**
+   * Open dead letters split by queue, account and, where the queue is a
+   * connector queue, the instance its payload names. Bound to the reader's
+   * grants, since `sys.dead_letters` carries no policy of its own.
+   */
+  open_dead_letters?: OpenDeadLetter[];
+  /** The portfolio depth per queue, operator wide: the figure on the tile. */
+  open_dead_letters_by_queue?: Array<{ queue: string; n: number; oldest: string }>;
+}
+
+export type PausedKind = "webhook_subscription" | "connector_instance";
+
+export interface PausedIntegration {
+  kind: PausedKind;
+  /** The subscription's or the instance's own id, which is the record to open. */
+  id: string;
+  account_id: string;
+  account_key: string;
+  /** The endpoint URL of a subscription, or the name of an instance. */
+  name: string;
+  /** The server's own word for a pause with no reason recorded is "unstated". */
+  reason: string;
+}
+
+export interface OpenDeadLetter {
+  queue: string;
+  n: number;
+  oldest: string;
+  account_id: string | null;
+  /** The connector instance the payload names, where the queue has one. */
+  instance_id: string | null;
+  instance_name: string | null;
 }
 
 export interface UsageCount {
