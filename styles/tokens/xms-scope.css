@@ -63,6 +63,12 @@
   /* The quietest drawn line: the dashed Add filter edge and the idle sort
    * glyph on a column header. */
   --xms-quiet-line: #b4bdcc;
+  /* The quietest ground in the product: the prototype hovers a card on it and
+   * stands the Axel panel body on it. */
+  --xms-quiet-bg: #fafafb;
+  /* The edge between two regions of the shell, one step darker than a card
+   * hairline: the Axel panel's own left edge. */
+  --xms-line-region: #d8dde5;
   --xms-row-hover: #f0f3fa;
   --xms-cell-hover: #eff4ff;
   --xms-selected-bar: #2563eb;
@@ -176,6 +182,8 @@
   --xms-tint: #1a2740;
   --xms-line: #243349;
   --xms-line-strong: #2f4160;
+  --xms-quiet-bg: #101a2b;
+  --xms-line-region: #2a3752;
   --xms-row-hover: #182338;
   --xms-cell-hover: #1a2740;
   --xms-ai-bg: #182140;

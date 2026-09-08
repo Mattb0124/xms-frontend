@@ -36,6 +36,8 @@
   --color-xms-tint: var(--xms-tint);
   --color-xms-line: var(--xms-line);
   --color-xms-line-strong: var(--xms-line-strong);
+  --color-xms-quiet-bg: var(--xms-quiet-bg);
+  --color-xms-line-region: var(--xms-line-region);
   --color-xms-row-hover: var(--xms-row-hover);
   --color-xms-cell-hover: var(--xms-cell-hover);
   --color-xms-note-bg: var(--xms-note-bg);

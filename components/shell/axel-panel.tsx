@@ -24,44 +24,51 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
     <aside
       aria-label={`Axel, ${context}`}
       data-testid="axel-panel"
-      className="bg-xms-card border-xms-line sticky flex shrink-0 flex-col border-l"
+      className="bg-xms-card border-xms-line-region sticky flex shrink-0 flex-col border-l"
       style={{
         width: "var(--xms-axel-panel-w)",
         top: "var(--xms-finder-bar-h)",
         height: "calc(100vh - var(--xms-finder-bar-h))",
       }}
     >
-      <header className="border-xms-line flex h-[44px] shrink-0 items-center gap-2 border-b px-4">
-        <SparkleIcon size={ICON.field} className="text-xms-ai-accent" />
-        <span className="text-xms-ink text-[15px] font-semibold">Axel</span>
-        <span className="text-xms-muted text-[13px]">{context}</span>
+      {/* 56px, the finder bar's own height, so the panel's title sits on the
+          same line as the toolbar's. It was 44px, which put the name a
+          half-line above every other heading on the screen. */}
+      <header className="border-xms-line flex h-[var(--xms-finder-bar-h)] shrink-0 items-center gap-[10px] border-b px-4">
+        <SparkleIcon size={ICON.row} className="text-xms-label" />
+        <span className="text-xms-ink text-[15px] leading-none font-semibold">Axel</span>
+        <span className="xms-mono text-xms-muted text-[12px] leading-none">{context}</span>
         <button
           type="button"
           aria-label="Close Axel"
           onClick={onClose}
-          className="text-xms-muted hover:text-xms-ink ml-auto"
+          className="text-xms-label hover:text-xms-ink ml-auto"
         >
-          <CloseIcon size={ICON.field} />
+          <CloseIcon size={ICON.tool} />
         </button>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+      {/* The body stands on the quietest ground in the product, so a white
+          suggestion card reads as a card rather than as part of the panel. */}
+      <div className="bg-xms-quiet-bg flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {children ?? (
-          <p className="text-xms-muted text-[13px]">
+          <p className="text-xms-body text-[14px] leading-[1.55]">
             Suggestions and tool calls appear here while Axel is working on this screen.
           </p>
         )}
       </div>
-      <div className="border-xms-line shrink-0 border-t p-3">
+      <div className="border-xms-line shrink-0 border-t p-4">
         <label className="sr-only" htmlFor="axel-ask">
           Ask about this screen
         </label>
+        {/* 64px on the control edge, at the render's own 14px and 12px of
+            padding. The radius is the system's 4px control radius rather than
+            the prototype's one-off 5px, which appears nowhere else. */}
         <textarea
           id="axel-ask"
-          rows={2}
           placeholder="Ask about this ticket..."
-          className="border-xms-line bg-xms-card text-xms-ink w-full resize-none rounded-[6px] border px-3 py-2 text-[13px] outline-none"
+          className="border-xms-line-strong bg-xms-card text-xms-ink placeholder:text-xms-muted h-16 w-full resize-none rounded-[var(--xms-radius-control)] border p-3 text-[14px] outline-none"
         />
-        <p className="text-xms-muted mt-2 text-[12px]">
+        <p className="text-xms-muted mt-[9px] text-[12px] leading-[1.5]">
           Nothing applies without a click. Every accept, edit and reject lands in Activity.
         </p>
       </div>
