@@ -12,6 +12,10 @@ const CARDS = [
   { screen: "admin.users", detail: "Invite internal users, assign roles, reconcile account grants." },
   { screen: "admin.roles", detail: "Operator and portal role catalogs with their implications." },
   { screen: "admin.groups", detail: "Assignment groups, leads and members." },
+  {
+    screen: "admin.api_clients",
+    detail: "Machine identities: name, scopes, granted accounts, expiry, the key shown once, revoke.",
+  },
   { screen: "admin.config", detail: "State machines, priority matrix, SLA policy and the catalogs." },
   { screen: "admin.holiday_calendars", detail: "Country holiday sets shared by account and person calendars." },
   { screen: "roster", detail: "People, roles, FTE, time zones, working calendars, skills and certifications." },
@@ -39,7 +43,7 @@ export default function AdminPage() {
     return (
       <EmptyBanner
         title="Not permitted"
-        detail="Administration needs the admin:accounts, admin:users, admin:config, admin:connectors, admin:migration, capacity:view, audit:read or analytics:read permission."
+        detail="Administration needs the admin:accounts, admin:users, admin:api-clients, admin:config, admin:connectors, admin:migration, capacity:view, audit:read or analytics:read permission."
       />
     );
   }

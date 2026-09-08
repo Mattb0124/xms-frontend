@@ -287,6 +287,14 @@ export const SCREENS: Screen[] = [
     purpose: "Group identity, lead and members.",
   },
   {
+    path: "/admin/api-clients",
+    screen: "admin.api_clients",
+    label: "API clients",
+    section: "Admin",
+    permission: "admin:api-clients",
+    purpose: "Machine identities: scopes, granted accounts, expiry, last used, revoke.",
+  },
+  {
     path: "/admin/config",
     screen: "admin.config",
     label: "Configuration",
