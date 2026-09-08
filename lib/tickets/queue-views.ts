@@ -26,6 +26,12 @@ export interface TicketListParams {
   /** The out-of-scope flag (TM-11); one or more values of `OUT_OF_SCOPE`. */
   out_of_scope?: string[];
   q?: string;
+  /**
+   * The filter builder's set, base64url JSON of `{ conditions, match }`, as
+   * `GET /v1/tickets` takes it. It arrives already encoded:
+   * `paramsToQuery` stringifies values, it does not serialize them.
+   */
+  conditions?: string;
   sort?: "updated_desc" | "created_desc" | "priority";
   limit?: number;
   cursor?: string;

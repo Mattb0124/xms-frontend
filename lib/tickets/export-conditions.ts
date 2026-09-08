@@ -17,6 +17,8 @@ export type ExportOperator =
   | "before"
   | "after"
   | "is_null"
+  /** Offered by the filter builder; the server has carried it all along. */
+  | "is_not_null"
   | "is_me"
   /** The group queue (TM-08): the assignment groups the caller belongs to, resolved on the server. */
   | "is_mine";

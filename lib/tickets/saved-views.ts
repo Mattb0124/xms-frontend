@@ -54,13 +54,22 @@ export function shareLabel(share: string): string {
 }
 
 /**
- * The current view and chips as a definition the API will accept. The
- * export's own notes come back with it, since "Breached counts resolution
- * breaches only" is as true of a saved view as it is of a spreadsheet.
+ * The current view, chips and built conditions as a definition the API will
+ * accept. The export's own notes come back with it, since "Breached counts
+ * resolution breaches only" is as true of a saved view as it is of a
+ * spreadsheet.
+ *
+ * `built` is the filter builder's own set. It cannot be read back out of
+ * `params.conditions`, which is already base64url by the time it gets here,
+ * so the screen hands it over as the objects it holds; leaving it out would
+ * save a view that quietly shows more than the list the reader was looking at.
  */
-export function definitionFromParams(params: TicketListParams): { definition: SavedViewDefinition; notes: string[] } {
+export function definitionFromParams(
+  params: TicketListParams,
+  built: ExportCondition[] = [],
+): { definition: SavedViewDefinition; notes: string[] } {
   const spec = paramsToExportSpec(params);
-  const conditions: ExportCondition[] = [...spec.conditions.conditions];
+  const conditions: ExportCondition[] = [...spec.conditions.conditions, ...built];
   if (spec.accountIds.length > 0) conditions.push({ field: "account_id", op: "in", value: spec.accountIds });
   const definition: SavedViewDefinition = { conditions: { conditions, match: "all" } };
   if (params.sort) definition.sort = params.sort;

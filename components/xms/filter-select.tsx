@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronDownIcon, CloseIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export interface FilterSelectOption {
@@ -11,91 +10,93 @@ export interface FilterSelectOption {
 export interface FilterSelectProps {
   /** "Account", "State", "Priority", "Type" - the dimension, not the value. */
   label: string;
-  /** The empty string means the dimension is unfiltered and the pill reads "all". */
+  /** The empty string means the dimension is unfiltered and the control reads "all". */
   value: string;
   options: FilterSelectOption[];
   onChange: (value: string) => void;
-  onClear: () => void;
-  /** The primary "Show:" dimension is drawn in blue outline and never carries a clear mark. */
+  /**
+   * The primary dimension, drawn in the link colour. It is the one the reader
+   * always has ("Show: All open"), so it is never removable and never quiet.
+   */
   primary?: boolean;
+  /** Appended to the primary label in brackets: "Show: All open (26)". */
+  count?: number;
+  /** Extra groups under the plain options: the server's saved views, in practice. */
+  groups?: Array<{ label: string; options: FilterSelectOption[] }>;
   className?: string;
 }
 
 /**
- * A standing filter pill (v3 render 01): the toolbar carries one per dimension
- * whether or not it is filtering, reading "Account: all" until a value is
- * chosen, with a chevron that opens the real menu and a clear mark that
- * appears only once the dimension is carrying a criterion.
+ * The look of a select standing on the grey tool strip: 32px on the 4px
+ * control radius with the strip's own edge, 13px, the platform's chevron.
+ * `primary` is the link-coloured one the reader always has.
  *
- * The URL is still the state: choosing a value writes the chip, and the clear
- * mark removes it. What changed is that an unfiltered dimension is drawn
- * rather than hidden, which is what the render shows and what makes the
- * toolbar the same shape on every visit.
+ * Exported because the Queue's own "Show:" control is a select over the
+ * system views and the server's saved views at once, which is more than one
+ * dimension of options; it wears this rather than a class of its own.
  */
-export function FilterSelect({ label, value, options, onChange, onClear, primary, className }: FilterSelectProps) {
+export function stripSelectClass(primary?: boolean): string {
+  return cn(
+    // The width is capped so a long option value cannot set it: without that
+    // "State: awaiting third party" made the State control 195px wide and
+    // pushed Type off the end of the strip.
+    "bg-xms-card h-[var(--xms-header-pill-h)] shrink-0 cursor-pointer rounded-[var(--xms-radius-control)] border px-[9px] text-[13px]",
+    primary
+      ? "max-w-[220px] border-xms-accent text-xms-accent font-medium"
+      : "max-w-[150px] border-xms-control-line text-xms-body hover:border-xms-accent-border",
+  );
+}
+
+/**
+ * A standing dimension on the grey tool strip.
+ *
+ * The reviewer's own reference for the filter row
+ * (`01-architecture/wireframes/v3/refs/filter-builder.png`) draws these as
+ * real select controls with the platform's chevron, 32px tall on the 4px
+ * control radius with the strip's own edge, and with no clear mark: the
+ * dimension reads "Account: all" until it carries a value and "Account: all"
+ * again the moment it is set back. That replaces the pill-with-a-cross the
+ * v3 render draws, and it is the reference that wins here.
+ *
+ * The label lives inside the option text so the control is one thing to read
+ * and one thing to operate; the URL is still the state.
+ */
+export function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  primary,
+  count,
+  groups,
+  className,
+}: FilterSelectProps) {
   const active = value !== "";
-  const shown = active ? (options.find((option) => option.value === value)?.label ?? value) : "all";
+  const suffix = primary && count !== undefined ? ` (${count})` : "";
   return (
-    <span
+    <select
       data-testid={`filter-${label.toLowerCase()}`}
       data-active={active ? "true" : undefined}
-      className={cn(
-        // 4px, not a lozenge: every v3 render draws the toolbar dimensions as
-        // square-cornered controls and keeps 999px for the state, priority
-        // and count pills inside the list.
-        "bg-xms-card inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center rounded-[var(--xms-radius-control)] border pr-1 pl-3",
-        primary ? "border-xms-accent" : "border-xms-control-line",
-        className,
-      )}
+      aria-label={label}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(stripSelectClass(primary), className)}
     >
-      <span className="relative inline-flex items-center">
-        <span
-          className={cn(
-            "pointer-events-none flex items-center gap-1 pr-5 text-[13px] whitespace-nowrap",
-            primary ? "text-xms-accent font-medium" : "text-xms-body",
-          )}
-        >
-          <span className={primary ? undefined : "text-xms-label"}>{label}:</span>
-          <span className="font-medium">{shown}</span>
-        </span>
-        <ChevronDownIcon
-          size={13}
-          className={cn("pointer-events-none absolute right-1", primary ? "text-xms-accent" : "text-xms-muted")}
-        />
-        <select
-          aria-label={label}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="absolute inset-0 cursor-pointer opacity-0"
-        >
-          <option value="">{`${label}: all`}</option>
-          {options.map((option) => (
+      <option value="">{`${label}: all${suffix}`}</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {`${label}: ${option.label}${suffix}`}
+        </option>
+      ))}
+      {groups?.map((group) => (
+        <optgroup key={group.label} label={group.label}>
+          {group.options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
-        </select>
-      </span>
-      {/* The render draws the clear mark on every standing dimension, quiet
-          while the dimension carries nothing and inked once it does, so the
-          pill never changes width the moment it starts filtering. The primary
-          "Show:" dimension is the one that never carries one. */}
-      {primary ? (
-        <span aria-hidden className="ml-1 h-[22px] w-[22px]" />
-      ) : (
-        <button
-          type="button"
-          aria-label={`Remove the ${label.toLowerCase()} filter`}
-          onClick={onClear}
-          disabled={!active}
-          className={cn(
-            "hover:bg-xms-tint ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-[var(--xms-radius-control)]",
-            active ? "text-xms-muted hover:text-xms-ink" : "text-xms-placeholder",
-          )}
-        >
-          <CloseIcon size={12} />
-        </button>
-      )}
-    </span>
+        </optgroup>
+      ))}
+    </select>
   );
 }

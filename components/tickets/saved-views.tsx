@@ -14,6 +14,7 @@ import {
   validateSavedView,
   type ShareMode,
 } from "@/lib/tickets/saved-views";
+import type { ExportCondition } from "@/lib/tickets/export-conditions";
 import type { TicketListParams } from "@/lib/tickets/queue-views";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
@@ -65,6 +66,7 @@ function ShareLine({ view }: { view: SavedView }) {
  */
 export function SavedViewsBar({
   params,
+  built = [],
   accounts,
   current,
   onSaved,
@@ -75,6 +77,13 @@ export function SavedViewsBar({
 }: {
   /** The list the Queue is showing, view preset and chips already merged. */
   params: TicketListParams;
+  /**
+   * The filter builder's own conditions, as objects. `params.conditions` is
+   * base64url by the time it reaches here, so the set has to arrive beside
+   * it: otherwise a saved view would drop every condition the builder added
+   * and quietly show more than the list the reader was looking at.
+   */
+  built?: ExportCondition[];
   accounts: GrantedAccount[];
   /** The saved view whose conditions are in the URL, where one is. */
   current: SavedView | null;
@@ -124,7 +133,7 @@ export function SavedViewsBar({
     const found = validateSavedView(draft);
     setProblems(found);
     if (found.length > 0) return;
-    const { definition, notes } = definitionFromParams(params);
+    const { definition, notes } = definitionFromParams(params, built);
     try {
       const view = await create({
         account_id: accountId,

@@ -1,31 +1,46 @@
 /**
- * The condition set grammar shared by the Queue, saved views and the Audit
- * search. Serializes to a compact JSON string carried in the URL (`c=`) and
- * sent to the API verbatim; the server validates fields and operators against
- * its own allowlist (Ticket Management technical section 3, P2.11.1).
+ * The condition set grammar the Queue's filter builder, the saved views and
+ * the export all speak.
+ *
+ * The operators and the operator-per-kind map are the server's own
+ * (`src/modules/tickets/conditions.ts`: `Operator`, `FIELDS`,
+ * `OPERATORS_BY_KIND`), not a second vocabulary that has to be translated on
+ * the way out. The set that was here before ("is", "is_not", "gt", "lt",
+ * "empty") named operators the API does not have, so a condition built with
+ * it could never have been sent; the export already spoke the server's
+ * grammar, and now one grammar serves all three.
+ *
+ * The URL carries the set as compact JSON in `c=`, so a criterion is readable
+ * in the address bar and removable one at a time; `encodeConditions` in
+ * `lib/tickets/export-conditions.ts` is what turns it into the base64url the
+ * list and export routes decode.
  */
 
 export const OPERATORS = [
-  "is",
-  "is_not",
+  "eq",
+  "neq",
   "in",
+  "not_in",
   "contains",
-  "gt",
-  "lt",
   "before",
   "after",
-  "empty",
-  "not_empty",
+  "is_null",
+  "is_not_null",
+  /** The signed-in person, resolved on the server; never a client-side id. */
+  "is_me",
+  /** The signed-in person's assignment groups, resolved on the server (TM-08). */
+  "is_mine",
 ] as const;
 export type Operator = (typeof OPERATORS)[number];
 
 export interface Condition {
   field: string;
   op: Operator;
-  value: string | string[] | null;
+  value: string | string[] | boolean | null;
 }
 
-export type FieldKind = "text" | "enum" | "number" | "date" | "actor";
+/** The server's own field kinds, which decide the operators and the value control. */
+export type FieldKind = "text" | "enum" | "uuid" | "actor" | "group" | "timestamp" | "boolean";
 
 export interface ConditionField {
   key: string;
@@ -35,25 +50,35 @@ export interface ConditionField {
 }
 
 export const OPERATORS_BY_KIND: Record<FieldKind, Operator[]> = {
-  text: ["contains", "is", "is_not", "empty", "not_empty"],
-  enum: ["is", "is_not", "in", "empty"],
-  number: ["is", "gt", "lt"],
-  date: ["before", "after", "empty"],
-  actor: ["is", "is_not", "empty"],
+  text: ["contains", "eq", "neq", "is_null", "is_not_null"],
+  enum: ["eq", "neq", "in", "not_in", "is_null", "is_not_null"],
+  uuid: ["eq", "neq", "in", "not_in", "is_null", "is_not_null"],
+  actor: ["eq", "neq", "in", "not_in", "is_me", "is_null", "is_not_null"],
+  group: ["eq", "neq", "in", "not_in", "is_mine", "is_null", "is_not_null"],
+  timestamp: ["before", "after", "is_null", "is_not_null"],
+  boolean: ["eq"],
 };
 
 export const OPERATOR_LABEL: Record<Operator, string> = {
-  is: "is",
-  is_not: "is not",
+  eq: "is",
+  neq: "is not",
   in: "is any of",
+  not_in: "is none of",
   contains: "contains",
-  gt: "greater than",
-  lt: "less than",
   before: "before",
   after: "after",
-  empty: "is empty",
-  not_empty: "is not empty",
+  is_null: "is empty",
+  is_not_null: "is not empty",
+  is_me: "is me",
+  is_mine: "is mine",
 };
+
+/** The operators that stand alone: the row draws no value control for them. */
+const VALUELESS: Operator[] = ["is_null", "is_not_null", "is_me", "is_mine"];
+
+export function needsValue(op: Operator): boolean {
+  return !VALUELESS.includes(op);
+}
 
 export function isOperator(value: unknown): value is Operator {
   return typeof value === "string" && (OPERATORS as readonly string[]).includes(value);
@@ -74,7 +99,7 @@ export function parseConditions(raw: string | null | undefined): Condition[] {
       if (!Array.isArray(entry) || entry.length !== 3) continue;
       const [field, op, value] = entry as unknown[];
       if (typeof field !== "string" || !isOperator(op)) continue;
-      if (value !== null && typeof value !== "string" && !Array.isArray(value)) continue;
+      if (value !== null && typeof value !== "string" && typeof value !== "boolean" && !Array.isArray(value)) continue;
       out.push({ field, op, value: value as Condition["value"] });
     }
     return out;
@@ -83,12 +108,27 @@ export function parseConditions(raw: string | null | undefined): Condition[] {
   }
 }
 
+/**
+ * A condition the API would refuse is worse than no condition: a row whose
+ * value has not been given yet stays in the URL but is left out of the
+ * request, so the list is the list until the reader finishes the row.
+ */
+export function isComplete(condition: Condition): boolean {
+  if (!needsValue(condition.op)) return true;
+  if (Array.isArray(condition.value)) return condition.value.length > 0;
+  if (typeof condition.value === "boolean") return true;
+  return typeof condition.value === "string" && condition.value.trim() !== "";
+}
+
 export function describeCondition(condition: Condition, fields: ConditionField[]): string {
   const field = fields.find((f) => f.key === condition.field);
   const label = field?.label ?? condition.field;
-  const value = Array.isArray(condition.value) ? condition.value.join(", ") : (condition.value ?? "");
-  const needsValue = condition.op !== "empty" && condition.op !== "not_empty";
-  return needsValue
+  const raw = Array.isArray(condition.value) ? condition.value : [condition.value];
+  const named = raw
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => field?.options?.find((option) => option.value === entry)?.label ?? entry);
+  const value = named.length > 0 ? named.join(", ") : String(condition.value ?? "");
+  return needsValue(condition.op)
     ? `${label} ${OPERATOR_LABEL[condition.op]} ${value}`.trim()
     : `${label} ${OPERATOR_LABEL[condition.op]}`;
 }

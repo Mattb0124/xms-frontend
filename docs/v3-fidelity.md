@@ -159,6 +159,59 @@ Four asks, all on the Queue and all of them overriding what render 01 draws:
   (render 08 has them there) and on Dispatch, through the new
   `accountIdentity` column option.
 
+## 1c. The filter row and the builder the funnel opens
+
+The reviewer sent a reference for the filter row
+(`01-architecture/wireframes/v3/refs/filter-builder.png`, copied here as
+`docs/images/filter-builder-reference.png`). **It wins over render 01 for
+this row**: the render draws pills with a caret and a cross, the reference
+draws real select controls, and the conditions the pills could not express
+live in a builder the funnel opens rather than behind "+ Add filter".
+
+The reference:
+
+![The reviewer's reference](./images/filter-builder-reference.png)
+
+The built screen, funnel open with two conditions set
+(`/tickets?c=[["short_description","contains","report"],["priority","eq","p1"]]`):
+
+![The filter builder as built](./images/filter-builder-built.png)
+
+What that took:
+
+- **The strip's dimensions are selects.** `FilterSelect` is a native `select`
+  on the strip's own 32px, 4px, 13px control geometry, reading "Account: all"
+  until it carries a value; setting it back to all is what removes the
+  criterion, so there is no cross to find. The primary dimension carries the
+  count in brackets, as the reference's "Show: Active (7)" does, and the
+  Queue's system views and the server's saved views share the one control.
+  The widths are capped at 150px: "State: awaiting third party" was setting
+  the State control to 195px and pushing Type off the end of the strip.
+- **The builder stands on the grey under the strip.** `ContentHeaderBar`
+  grew a panel slot and a `HeaderFilterPanel`; a screen that registers one
+  gets the funnel, and the funnel carries a badge with the number of
+  conditions standing behind it. The card header's own funnel drives the same
+  panel through `useHeaderFilterPanel`, so the reader is never asked which
+  filter was meant.
+- **One condition grammar, and it is the server's.** `lib/conditions.ts` used
+  to declare operators the API does not have ("is", "is_not", "gt", "lt",
+  "empty"), so a condition built with it could never have been sent. It is
+  now the server's own vocabulary (`src/modules/tickets/conditions.ts`), with
+  the same operator-per-kind map, and `lib/tickets/queue-conditions.ts`
+  declares the offered fields out of the server's allowlist, filling Account
+  and Group from the catalogs so neither asks for a uuid.
+- **The URL is still the state.** Conditions travel in `c=` as readable JSON
+  and reach `GET /v1/tickets` as the base64url set the route already decodes,
+  which the desk had never sent. A row still being filled in stays in the URL
+  and is left out of the request. The breadcrumb restates every condition in
+  words and each segment removes its own, and Save as view folds the built set
+  into the definition beside the chips.
+
+Still differs: the reference shows three dimensions on the strip and the Queue
+carries four (Account, State, Priority, Type), which is render 01's set; and
+the reference's condition row is one line wide where the built one is capped
+at 760px so the value box does not run the width of a 1460px desk.
+
 ## 2. Queue (render 01)
 
 `before-tickets.png` / `after-tickets.png`, overlay `diff-01-queue.png`.

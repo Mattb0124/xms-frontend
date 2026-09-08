@@ -28,28 +28,29 @@ describe("FilterPill and FilterChip", () => {
 describe("FilterSelect", () => {
   const options = [{ value: "acct-1", label: "Brookfield" }];
 
-  it("stands a dimension whether or not it filters, and only clears once it does", () => {
-    const onClear = vi.fn();
-    const { rerender } = render(
-      <FilterSelect label="Account" value="" options={options} onChange={vi.fn()} onClear={onClear} />,
-    );
-    // The render draws "Account: all" with a quiet clear mark beside it, so
-    // the pill does not change width the moment it starts filtering.
-    expect(screen.getByTestId("filter-account")).not.toHaveAttribute("data-active");
-    const clear = screen.getByRole("button", { name: "Remove the account filter" });
-    expect(clear).toBeDisabled();
-    fireEvent.click(clear);
-    expect(onClear).not.toHaveBeenCalled();
+  it("stands the dimension whether or not it filters, and clears by going back to all", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(<FilterSelect label="Account" value="" options={options} onChange={onChange} />);
+    // The reviewer's reference draws a select reading "Account: all", not a
+    // pill with a cross: setting it back to all is what removes the criterion.
+    const control = screen.getByLabelText("Account");
+    expect(control).not.toHaveAttribute("data-active");
+    expect(screen.getByRole("option", { name: "Account: all" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Account: Brookfield" })).toBeInTheDocument();
 
-    rerender(<FilterSelect label="Account" value="acct-1" options={options} onChange={vi.fn()} onClear={onClear} />);
-    expect(screen.getByTestId("filter-account")).toHaveAttribute("data-active", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Remove the account filter" }));
-    expect(onClear).toHaveBeenCalledTimes(1);
+    rerender(<FilterSelect label="Account" value="acct-1" options={options} onChange={onChange} />);
+    expect(screen.getByLabelText("Account")).toHaveAttribute("data-active", "true");
+    fireEvent.change(screen.getByLabelText("Account"), { target: { value: "" } });
+    expect(onChange).toHaveBeenCalledWith("");
   });
 
-  it("gives the primary dimension no clear mark at all", () => {
-    render(<FilterSelect primary label="Show" value="" options={options} onChange={vi.fn()} onClear={vi.fn()} />);
-    expect(screen.queryByRole("button", { name: /Remove the show filter/ })).not.toBeInTheDocument();
+  it("carries the count on the primary dimension alone", () => {
+    const { rerender } = render(
+      <FilterSelect primary count={26} label="Show" value="" options={options} onChange={vi.fn()} />,
+    );
+    expect(screen.getByRole("option", { name: "Show: all (26)" })).toBeInTheDocument();
+    rerender(<FilterSelect count={26} label="Account" value="" options={options} onChange={vi.fn()} />);
+    expect(screen.getByRole("option", { name: "Account: all" })).toBeInTheDocument();
   });
 });
 

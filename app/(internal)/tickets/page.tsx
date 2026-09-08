@@ -4,15 +4,22 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
-import { HeaderAction, HeaderFilters, HeaderSearch, HeaderSearchField } from "@/components/shell/content-header-bar";
+import {
+  HeaderAction,
+  HeaderFilterPanel,
+  HeaderFilters,
+  HeaderSearch,
+  HeaderSearchField,
+  useHeaderFilterPanel,
+} from "@/components/shell/content-header-bar";
 import { ExportMenu } from "@/components/tickets/export-menu";
 import { savedViewLabel, SavedViewsBar, useSavedViews } from "@/components/tickets/saved-views";
 import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
-import { FilterBar } from "@/components/xms/filter-bar";
-import { FilterSelect } from "@/components/xms/filter-select";
+import { ConditionBuilder } from "@/components/xms/condition-builder";
+import { FilterSelect, stripSelectClass } from "@/components/xms/filter-select";
 import {
   ChevronDownIcon,
   ColumnsIcon,
@@ -27,11 +34,17 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { RowsPerPage, type RowsPerPageOption } from "@/components/xms/table-footer";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { describeCondition, parseConditions, serializeConditions, type Condition } from "@/lib/conditions";
 import { STARS_KEY, useToggleInList } from "@/lib/persisted-set";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
+  builtConditions,
+  conditionsParam,
+  CONDITIONS_PARAM,
+  queueConditionFields,
+} from "@/lib/tickets/queue-conditions";
+import {
   addChip,
-  CHIP_KEYS,
   CHIP_LABEL,
   chipsFromSearch,
   chipsToSearch,
@@ -71,12 +84,12 @@ const STATE_OPTIONS = [
   "cancelled",
 ];
 
-const CHIP_SELECT = "border-xms-line bg-xms-card text-xms-ink h-[28px] rounded-[4px] border px-2 text-[12px]";
-
 /**
- * The dimensions the v3 toolbar (render 01) always draws, in the render's own
- * order, whether or not they carry a criterion. Everything else in the chip
- * grammar appears only once it filters, behind Add filter.
+ * The dimensions the tool strip always draws, whether or not they carry a
+ * criterion. Everything else the grammar can say is a condition in the
+ * builder the funnel opens, which is where the reviewer's own reference puts
+ * it: the strip carries the two or three dimensions a consultant switches
+ * between all day, and the builder carries the rest.
  */
 const STANDING: ChipKey[] = ["account_id", "state", "priority", "type"];
 
@@ -84,11 +97,6 @@ const STANDING: ChipKey[] = ["account_id", "state", "priority", "type"];
 function withoutChip(chips: Chip[], key: ChipKey): Chip[] {
   return chips.filter((chip) => chip.key !== key);
 }
-
-// The primary "Show:" dimension (v3 render 01): a real dropdown wearing the
-// render's blue outline pill rather than the platform's own select chrome.
-const SHOW_PILL =
-  "border-xms-accent text-xms-accent bg-xms-card h-[var(--xms-header-pill-h)] cursor-pointer appearance-none rounded-[999px] border pr-7 pl-3 text-[13px] font-medium";
 
 const CARD_ICON_BUTTON =
   "border-xms-line bg-xms-card text-xms-label hover:text-xms-ink hover:border-xms-line-strong flex h-[34px] w-[38px] shrink-0 items-center justify-center rounded-[6px] border";
@@ -110,20 +118,39 @@ function QueueScreen() {
   const view = viewByKey(parsed.view);
   const [cursor, setCursor] = useState<string | undefined>();
   const [previous, setPrevious] = useState<string[]>([]);
-  const [adding, setAdding] = useState<ChipKey | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState(parsed.q);
   // The v3 render (01) ends the table at Assignee. SLA and Updated stay one
   // click away on the card header column control rather than being deleted.
   const [clocks, setClocks] = useState(false);
+  const filterPanel = useHeaderFilterPanel();
+
+  // The filter builder's conditions, carried in the URL as readable JSON and
+  // sent to the list route as the base64url set it decodes, so a pasted link
+  // reproduces the list conditions and all.
+  const conditions = useMemo(
+    () => parseConditions(new URLSearchParams(searchString).get(CONDITIONS_PARAM)),
+    [searchString],
+  );
+  const conditionsSent = useMemo(() => conditionsParam(conditions), [conditions]);
 
   const params = useMemo(
-    () => viewToParams(view, parsed.chips, { q: parsed.q || undefined, limit: parsed.limit, cursor }),
-    [view, parsed, cursor],
+    () =>
+      viewToParams(view, parsed.chips, {
+        q: parsed.q || undefined,
+        limit: parsed.limit,
+        cursor,
+        conditions: conditionsSent,
+      }),
+    [view, parsed, cursor, conditionsSent],
   );
   const { data, isLoading, isError, refetch } = useListTicketsQuery(params, { pollingInterval: 60_000 });
-  // The export carries the view and chips, never the page cursor or size.
-  const exportParams = useMemo(() => viewToParams(view, parsed.chips, { q: parsed.q || undefined }), [view, parsed]);
+  // The export carries the view, the chips and the conditions, never the page
+  // cursor or size.
+  const exportParams = useMemo(
+    () => viewToParams(view, parsed.chips, { q: parsed.q || undefined, conditions: conditionsSent }),
+    [view, parsed, conditionsSent],
+  );
   const { data: accounts } = useListGrantedAccountsQuery();
   // The assignment groups the group chip names (TM-08); `/v1/groups` stands
   // on tickets:view, the Queue's own gate.
@@ -158,14 +185,17 @@ function QueueScreen() {
   // Changing a criterion drops the saved view id: the list is no longer the
   // saved one, and a name over a different list would be a lie. The page size
   // leaves it alone, since it does not change what is being listed.
-  const navigate = (next: { view?: string; chips?: Chip[]; q?: string; limit?: number }) => {
+  const navigate = (next: { view?: string; chips?: Chip[]; q?: string; limit?: number; conditions?: Condition[] }) => {
     const target = chipsToSearch(
       next.view ?? parsed.view,
       next.chips ?? parsed.chips,
       next.q ?? parsed.q,
       next.limit ?? parsed.limit,
     );
-    const criteriaKept = next.view === undefined && next.chips === undefined && next.q === undefined;
+    const nextConditions = next.conditions ?? conditions;
+    if (nextConditions.length > 0) target.set(CONDITIONS_PARAM, serializeConditions(nextConditions));
+    const criteriaKept =
+      next.view === undefined && next.chips === undefined && next.q === undefined && next.conditions === undefined;
     if (criteriaKept && parsed.saved) target.set("saved", parsed.saved);
     go(target);
   };
@@ -265,18 +295,27 @@ function QueueScreen() {
   };
 
   const stats = data?.stats;
-  const filtered = parsed.chips.length > 0 || parsed.q !== "";
+  const filtered = parsed.chips.length > 0 || parsed.q !== "" || conditions.length > 0;
+  const conditionFields = useMemo(
+    () => queueConditionFields({ accounts: accounts ?? [], groups: groups ?? [] }),
+    [accounts, groups],
+  );
 
-  // The condition trail (Wireframes section 2): the active view then each chip,
-  // clicking a segment removes that criterion, with the count on the right.
-  // Save as view sits under it, on the server's own views; the star into the
-  // Favourites list the finder bar reads (frontend review finding 12) is what
-  // the bar falls back to while `/v1/views` is not deployed.
+  // The condition trail (Wireframes section 2): the active view, each standing
+  // dimension and then each built condition in words, so the strip and the
+  // builder are restated as one sentence. Clicking a segment removes that
+  // criterion. Save as view sits under it, on the server's own views; the star
+  // into the Favourites list the finder bar reads (frontend review finding 12)
+  // is what the bar falls back to while `/v1/views` is not deployed.
   const [, toggleStar, hasStar] = useToggleInList(STARS_KEY);
   const currentHref = searchString ? `${pathname}?${searchString}` : pathname;
   const trail = [
     { key: "view", label: view.label },
     ...parsed.chips.map((chip) => ({ key: `${chip.key}:${chip.value}`, label: chipValueLabel(chip) })),
+    ...conditions.map((condition, index) => ({
+      key: `condition:${index}`,
+      label: describeCondition(condition, conditionFields),
+    })),
     ...(parsed.q ? [{ key: "q", label: `Search: ${parsed.q}` }] : []),
   ];
   const removeSegment = (key: string) => {
@@ -285,6 +324,10 @@ function QueueScreen() {
       setQuery("");
       return navigate({ q: "" });
     }
+    if (key.startsWith("condition:")) {
+      const index = Number(key.slice("condition:".length));
+      return navigate({ conditions: conditions.filter((_, i) => i !== index) });
+    }
     navigate({ chips: parsed.chips.filter((chip) => `${chip.key}:${chip.value}` !== key) });
   };
 
@@ -292,41 +335,42 @@ function QueueScreen() {
     <div className="flex flex-col gap-5">
       <HeaderFilters>
         <div className="flex items-center gap-2">
-          <span className="relative inline-flex items-center">
-            <select
-              aria-label="View"
-              value={currentSaved ? `saved:${currentSaved.id}` : parsed.view}
-              onChange={(event) => {
-                const value = event.target.value;
-                const saved = savedViews.find((entry) => `saved:${entry.id}` === value);
-                if (saved) {
-                  applySaved(saved);
-                  return;
-                }
-                navigate({ view: value });
-              }}
-              className={SHOW_PILL}
-            >
-              {QUEUE_VIEWS.map((entry) => (
-                <option key={entry.key} value={entry.key}>
-                  Show: {entry.label}
-                </option>
-              ))}
-              {savedViews.length > 0 ? (
-                <optgroup label="Saved views">
-                  {savedViews.map((entry) => (
-                    <option key={entry.id} value={`saved:${entry.id}`}>
-                      {savedViewLabel(entry)}
-                    </option>
-                  ))}
-                </optgroup>
-              ) : null}
-            </select>
-            <ChevronDownIcon size={13} className="text-xms-accent pointer-events-none absolute right-[10px]" />
-          </span>
-          {/* The four standing dimensions the render draws whether or not they
-              filter (01): "Account: all" until a value is chosen, and a clear
-              mark once one is. The URL is still the state. */}
+          {/* "Show: All open (26)": the primary dimension, in the link colour,
+              carrying the number the list is showing under it. The saved views
+              sit in the same control under their own group, so switching to
+              one is the same gesture as switching to a system view. */}
+          <select
+            aria-label="View"
+            value={currentSaved ? `saved:${currentSaved.id}` : parsed.view}
+            onChange={(event) => {
+              const value = event.target.value;
+              const saved = savedViews.find((entry) => `saved:${entry.id}` === value);
+              if (saved) {
+                applySaved(saved);
+                return;
+              }
+              navigate({ view: value });
+            }}
+            className={stripSelectClass(true)}
+          >
+            {QUEUE_VIEWS.map((entry) => (
+              <option key={entry.key} value={entry.key}>
+                {`Show: ${entry.label}${stats !== undefined ? ` (${stats.open})` : ""}`}
+              </option>
+            ))}
+            {savedViews.length > 0 ? (
+              <optgroup label="Saved views">
+                {savedViews.map((entry) => (
+                  <option key={entry.id} value={`saved:${entry.id}`}>
+                    {savedViewLabel(entry)}
+                  </option>
+                ))}
+              </optgroup>
+            ) : null}
+          </select>
+          {/* The standing dimensions, drawn whether or not they filter:
+              "Account: all" until a value is chosen. Setting one back to all
+              is what removes it, so there is no cross to hunt for. */}
           {STANDING.map((key) => (
             <FilterSelect
               key={key}
@@ -341,58 +385,19 @@ function QueueScreen() {
                       : addChip(withoutChip(parsed.chips, key), { key, value }),
                 })
               }
-              onClear={() => navigate({ chips: withoutChip(parsed.chips, key) })}
             />
           ))}
-          {/* Anything outside the four standing dimensions, plus the dashed
-              Add filter and Clear all. */}
-          <FilterBar
-            criteria={parsed.chips
-              .filter((chip) => !STANDING.includes(chip.key))
-              .map((chip) => ({
-                key: `${chip.key}:${chip.value}`,
-                label: CHIP_LABEL[chip.key],
-                value: chipValueLabel(chip),
-              }))}
-            onRemove={(id) => navigate({ chips: parsed.chips.filter((chip) => `${chip.key}:${chip.value}` !== id) })}
-            onAdd={() => setAdding((current) => (current ? null : "out_of_scope"))}
-            onClearAll={() => navigate({ chips: [], q: "" })}
-          />
-          {adding ? (
-            <span className="flex items-center gap-1" data-testid="add-filter">
-              <select
-                aria-label="Filter dimension"
-                value={adding}
-                onChange={(event) => setAdding(event.target.value as ChipKey)}
-                className={CHIP_SELECT}
-              >
-                {CHIP_KEYS.map((key) => (
-                  <option key={key} value={key}>
-                    {CHIP_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label="Filter value"
-                defaultValue=""
-                onChange={(event) => {
-                  if (!event.target.value) return;
-                  navigate({ chips: addChip(parsed.chips, { key: adding, value: event.target.value }) });
-                  setAdding(null);
-                }}
-                className={CHIP_SELECT}
-              >
-                <option value="">Choose</option>
-                {chipOptions(adding).map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </span>
-          ) : null}
         </div>
       </HeaderFilters>
+      {/* Everything the grammar can say that the standing dimensions cannot:
+          the builder the funnel opens, on the grey under the strip. */}
+      <HeaderFilterPanel count={conditions.length}>
+        <ConditionBuilder
+          fields={conditionFields}
+          value={conditions}
+          onChange={(next) => navigate({ conditions: next })}
+        />
+      </HeaderFilterPanel>
       {/* The render's local search sits in the header bar beside the gear;
           the in-card field searches the same term, so both write it. */}
       <HeaderSearch>
@@ -420,6 +425,7 @@ function QueueScreen() {
         <BreadcrumbTrail segments={trail} onRemove={removeSegment} className="min-w-0 flex-1" />
         <SavedViewsBar
           params={exportParams}
+          built={builtConditions(conditions)}
           accounts={accounts ?? []}
           current={currentSaved}
           available={savedAvailable}
@@ -476,11 +482,15 @@ function QueueScreen() {
           }
           actions={
             <>
+              {/* The card's own funnel and the strip's are the same control:
+                  both open the one builder, so the reader is never asked
+                  which filter they meant. */}
               <button
                 type="button"
                 aria-label="Filter the list"
-                onClick={() => setAdding((current) => (current ? null : "account_id"))}
-                className={CARD_ICON_BUTTON}
+                aria-pressed={filterPanel.open}
+                onClick={filterPanel.toggle}
+                className={cn(CARD_ICON_BUTTON, filterPanel.open && "border-xms-accent text-xms-accent")}
               >
                 <FunnelIcon size={16} />
               </button>

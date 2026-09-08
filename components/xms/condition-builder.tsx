@@ -1,6 +1,8 @@
 "use client";
 
+import { CloseIcon } from "@/components/xms/icons";
 import {
+  needsValue,
   OPERATOR_LABEL,
   OPERATORS_BY_KIND,
   type Condition,
@@ -16,103 +18,140 @@ export interface ConditionBuilderProps {
   className?: string;
 }
 
-const CONTROL = "border-xms-line bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[13px]";
+/**
+ * The controls are the same 32px, 4px-radius, 13px controls the tool strip
+ * carries, drawn as native selects so the chevron is the platform's own: the
+ * reference the reviewer sent draws them that way rather than as pills with a
+ * glyph of their own.
+ */
+const CONTROL =
+  "border-xms-control-line bg-xms-card text-xms-ink h-[var(--xms-header-pill-h)] rounded-[var(--xms-radius-control)] border px-2 text-[13px]";
 
-function needsValue(op: Operator): boolean {
-  return op !== "empty" && op !== "not_empty";
+function firstOperator(field: ConditionField | undefined): Operator {
+  return field ? OPERATORS_BY_KIND[field.kind][0] : "eq";
 }
 
-/** AND-stacked field, operator, value rows (Queue grammar, User Experience section 3.2). */
+/**
+ * The filter builder the funnel opens (the reviewer's own reference,
+ * `01-architecture/wireframes/v3/refs/filter-builder.png`): a "WHERE" label,
+ * one row per condition of field, operator and value with a cross to remove
+ * it, and "Add condition" and "Clear conditions" underneath.
+ *
+ * Rows join with AND, which is the `match: "all"` the server defaults to, so
+ * the word does not need repeating down the column: "WHERE" says it once.
+ * Fields, operators and value kinds all come from the server's own allowlist
+ * through `lib/conditions.ts`, so a row that can be built is a row the list
+ * route will accept.
+ */
 export function ConditionBuilder({ fields, value, onChange, className }: ConditionBuilderProps) {
-  const update = (index: number, patch: Partial<Condition>) => {
-    const next = value.map((condition, i) => (i === index ? { ...condition, ...patch } : condition));
-    onChange(next);
-  };
+  const update = (index: number, patch: Partial<Condition>) =>
+    onChange(value.map((condition, i) => (i === index ? { ...condition, ...patch } : condition)));
   const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
   const add = () => {
     const first = fields[0];
     if (!first) return;
-    onChange([...value, { field: first.key, op: OPERATORS_BY_KIND[first.kind][0], value: "" }]);
+    onChange([...value, { field: first.key, op: firstOperator(first), value: "" }]);
   };
 
   return (
-    <div className={cn("flex flex-col gap-2", className)} role="group" aria-label="Conditions">
-      {value.map((condition, index) => {
-        const field = fields.find((f) => f.key === condition.field) ?? fields[0];
-        const operators = field ? OPERATORS_BY_KIND[field.kind] : [];
-        return (
-          <div key={index} className="flex items-center gap-2" data-condition-row>
-            <span className="xms-mono text-xms-muted w-8 text-[11px]">{index === 0 ? "" : "AND"}</span>
-            <select
-              aria-label="Field"
-              value={condition.field}
-              onChange={(event) => {
-                const nextField = fields.find((f) => f.key === event.target.value);
-                update(index, {
-                  field: event.target.value,
-                  op: nextField ? OPERATORS_BY_KIND[nextField.kind][0] : condition.op,
-                  value: "",
-                });
-              }}
-              className={CONTROL}
-            >
-              {fields.map((f) => (
-                <option key={f.key} value={f.key}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-            <select
-              aria-label="Operator"
-              value={condition.op}
-              onChange={(event) => update(index, { op: event.target.value as Operator })}
-              className={CONTROL}
-            >
-              {operators.map((op) => (
-                <option key={op} value={op}>
-                  {OPERATOR_LABEL[op]}
-                </option>
-              ))}
-            </select>
-            {needsValue(condition.op) ? (
-              field?.kind === "enum" && field.options ? (
-                <select
-                  aria-label="Value"
-                  value={Array.isArray(condition.value) ? (condition.value[0] ?? "") : (condition.value ?? "")}
-                  onChange={(event) => update(index, { value: event.target.value })}
-                  className={CONTROL}
-                >
-                  <option value="">Choose</option>
-                  {field.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+    // The stack is capped: a condition row is three controls and a cross, and
+    // stretching the value box across a 1460px desk turns a short phrase into
+    // a runway.
+    <div className={cn("flex max-w-[760px] items-start gap-3", className)} role="group" aria-label="Conditions">
+      <span className="xms-caption pt-[11px]">Where</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        {value.map((condition, index) => {
+          const field = fields.find((f) => f.key === condition.field) ?? fields[0];
+          const operators = field ? OPERATORS_BY_KIND[field.kind] : [];
+          const choices = field?.kind === "enum" || field?.kind === "uuid" ? field.options : undefined;
+          const shown = Array.isArray(condition.value)
+            ? (condition.value[0] ?? "")
+            : typeof condition.value === "string"
+              ? condition.value
+              : "";
+          return (
+            <div key={index} className="flex items-center gap-2" data-condition-row>
+              <select
+                aria-label="Field"
+                value={condition.field}
+                onChange={(event) => {
+                  const nextField = fields.find((f) => f.key === event.target.value);
+                  update(index, { field: event.target.value, op: firstOperator(nextField), value: "" });
+                }}
+                className={cn(CONTROL, "min-w-[168px]")}
+              >
+                {fields.map((f) => (
+                  <option key={f.key} value={f.key}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Operator"
+                value={condition.op}
+                onChange={(event) => update(index, { op: event.target.value as Operator })}
+                className={cn(CONTROL, "min-w-[140px]")}
+              >
+                {operators.map((op) => (
+                  <option key={op} value={op}>
+                    {OPERATOR_LABEL[op]}
+                  </option>
+                ))}
+              </select>
+              {needsValue(condition.op) ? (
+                choices ? (
+                  <select
+                    aria-label="Value"
+                    value={shown}
+                    onChange={(event) => update(index, { value: event.target.value })}
+                    className={cn(CONTROL, "min-w-[180px] flex-1")}
+                  >
+                    <option value="">Value</option>
+                    {choices.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    aria-label="Value"
+                    type={field?.kind === "timestamp" ? "date" : "text"}
+                    placeholder="Value"
+                    value={shown}
+                    onChange={(event) => update(index, { value: event.target.value })}
+                    className={cn(CONTROL, "min-w-[180px] flex-1")}
+                  />
+                )
               ) : (
-                <input
-                  aria-label="Value"
-                  type={field?.kind === "date" ? "date" : field?.kind === "number" ? "number" : "text"}
-                  value={Array.isArray(condition.value) ? condition.value.join(",") : (condition.value ?? "")}
-                  onChange={(event) => update(index, { value: event.target.value })}
-                  className={cn(CONTROL, "min-w-[160px]")}
-                />
-              )
-            ) : null}
+                <span aria-hidden className="min-w-[180px] flex-1" />
+              )}
+              <button
+                type="button"
+                aria-label="Remove condition"
+                onClick={() => remove(index)}
+                className="text-xms-muted hover:text-xms-ink flex h-[var(--xms-header-pill-h)] w-6 shrink-0 items-center justify-center"
+              >
+                <CloseIcon size={15} />
+              </button>
+            </div>
+          );
+        })}
+        <div className="flex items-center gap-5 pt-[2px]">
+          <button type="button" onClick={add} className="text-xms-accent text-[13px] font-medium hover:underline">
+            + Add condition
+          </button>
+          {value.length > 0 ? (
             <button
               type="button"
-              aria-label="Remove condition"
-              onClick={() => remove(index)}
-              className="text-xms-muted hover:text-xms-ink text-[14px]"
+              onClick={() => onChange([])}
+              className="text-xms-accent text-[13px] font-medium hover:underline"
             >
-              ×
+              Clear conditions
             </button>
-          </div>
-        );
-      })}
-      <button type="button" onClick={add} className="text-xms-accent self-start text-[12px] hover:underline">
-        + Add condition
-      </button>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
