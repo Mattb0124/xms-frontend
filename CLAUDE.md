@@ -10,7 +10,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
@@ -53,7 +53,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts)
 
 ```
 middleware.ts           the per-request CSP nonce: sets it on the request headers and the response policy
@@ -66,7 +66,13 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         with the priority preview), /tickets/[key] (record bar, transition menu, Properties with the matrix
                         caption on the Priority row and one Assignee control, Conversation,
                         Activity, Time, Resolution, Links, Email, rail with Service levels (target, elapsed, remaining and the
-                        paused segment with its reason), Attachments, Solutions, Contract, Requester,
+                        paused segment with its reason), Scope (TM-11: the flag state, its reason, who raised it and when,
+                        and the decision with its note, its allowance in hours and who decided; Flag out of scope with a
+                        required reason and Withdraw flag under tickets:work, Approve with an optional whole-minute
+                        allowance and an optional note and Decline with a note under tickets:approve-scope, both hidden
+                        from the flagger with the reason worded; ticket_closed, already_flagged, reason_required,
+                        not_flagged, flagger_cannot_decide and no_contract_period naming its day, all in words; the card
+                        is not drawn at all when the API answered without the block), Attachments, Solutions, Contract, Requester,
                         Watching), /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics), /tickets/quarantine
                         (held email: reason, stripped body, decide with confirm on the destructive ones; P1.6.5);
                         /roster (P2.12.1, CAP-01: Count-card list with role, FTE, zone, group and skill chips, URL filters, Import from
@@ -117,9 +123,13 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         contracts:view and no admin:accounts reaches the same AccountBudgetView, the tab not offered without it) (TB-13), and a Satisfaction
                         tab (`?tab=satisfaction`, CP-07 results per account; tickets:view, fails closed: the average score,
                         the responses in range, the low-score count, the surveys sent, answered and suppressed, the
-                        distribution as five bars from very satisfied down sized against the largest count, and the
+                        distribution as five bars from very satisfied down sized against the largest count, the
                         responses newest first with the score pill, the ticket link, the comment, the respondent by name and
-                        address or Anonymous, and the date, over a from and to range with the API's ninety-day default), with the skills
+                        address or Anonymous, and the date, over a from and to range with the API's ninety-day default, and
+                        beside them the quarterly relationship block (the latest period, the mean per question with the key
+                        in words, and the four-period trend oldest first with each mean against the five-point scale), drawn
+                        only when the API answers with one that has a period or a trend in it, since the two surveys ask
+                        different questions and are never averaged into one number), with the skills
                         coverage chips above the tabs under capacity:view ("Single point of failure: OneStream", "Gap: SAP"
                         from the account lens; hidden when nothing is flagged) (CAP-07) and the renewal chips above them
                         under contracts:view (one per engagement the server marked expiring, red once inside the notice
@@ -146,7 +156,14 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         already_revoked worded; a note that webhook subscriptions are registered by the client itself
                         through the API with its key, since /v1/webhooks answers API client principals only); the
                         account record carries the same skills coverage chips under the record bar (capacity:view; CAP-07)
-                        and has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
+                        and has a Contacts tab (CP-07, Client Portal technical 2.1; admin:accounts, the screen's own gate,
+                        so nothing is asked before it decides: every person the account writes to with their address,
+                        whether they hold a portal user, and the flags they carry as checkboxes over
+                        executive_sponsor (the flag the quarterly survey addresses), billing_contact and csat_recipient,
+                        each set one box at a time but PATCHed as the whole set with the row's version, a search sent as
+                        `q`, stale_version worded and the list read again; a flag a newer API adds is still offered and
+                        still shown, since losing one quietly is how someone stops receiving the survey),
+                        an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
                         with the default marked, New calendar), a Contracts tab (an Engagements panel first: name, owner,
                         renewal date, notice period with its decide-by date, status pill and alerts fired, with New
                         engagement and Edit under contracts:manage; then the contracts (key, name, engagement, model,
@@ -242,6 +259,8 @@ components/tickets/     ticket-columns (the Queue column set and QUEUE_DEFAULT_S
                         an article), time-tab (entries with adjustments, the AfterHoursBadge with the contract's rule from the
                         account's contracts, the EntryAmount and the Over budget pill; LogTimeForm with Start time and the
                         overage_blocked refusal worded), contract-card (burn from the position),
+                        scope-card (ScopeCard on the rail and ScopeState: the flag and the decision as the record carries
+                        them, the flag form, the decision form with its allowance and note, and the flagger's own refusal),
                         resolution-tab, conversation-tab (Composer with Reply / Work note), activity-tab, links-tab,
                         properties-panel, sla-rail (meters with countdown, requester, watch from the record), assignee-picker,
                         attachments (DropZone, useUploads, UploadList, ScanAcknowledgement, AttachmentRow, AttachmentsCard; the
@@ -251,9 +270,12 @@ components/reporting/   format (percent, hours, period, age buckets, periods), p
                         OutcomesPanel, BacklogPanel, BreakdownPanel, NotablePanel, ConsumptionPanel, synthesisLine; each renders
                         only when its measure is present so the client view reuses them), operations-dashboard, account-dashboard,
                         accounts-list, reports-card (runs, RunStatusPill, generate), report-pack, csat-panel (AccountCsatView
-                        fails closed on tickets:view: the figures, DistributionBars, the responses table, the date range)
+                        fails closed on tickets:view: the figures, DistributionBars, the responses table, the date range;
+                        QuarterlyPanel beside it, rendered only when the API answers with a quarterly block)
 lib/reporting/          csat (defaultCsatRange, formatAverage, distributionRows from very satisfied down against the largest
-                        count, respondentLabel, scoreTone), schedules (CADENCES, PERIOD_KINDS, RECIPIENT_KINDS, WEEKDAYS,
+                        count, respondentLabel, scoreTone; hasQuarterly, quarterlyQuestionRows (the server's question order,
+                        else the order the averages arrived), quarterlyTrendRows (each mean against the five-point scale)
+                        and latestPeriodLabel), schedules (CADENCES, PERIOD_KINDS, RECIPIENT_KINDS, WEEKDAYS,
                         maxRunDay, defaultPeriodKind, cadenceLabel, nextRunLabel, recipientLabel, the ScheduleDraft with
                         emptyScheduleDraft, draftFromSchedule, validateSchedule (WEEKLY_RUN_DAY_MESSAGE), scheduleBody and
                         patchBody with the version, validateRunNow and runNowBody, OUTCOME_LABELS, outcomeTone, reasonLabel,
@@ -324,12 +346,21 @@ lib/contracts/engagements  ENGAGEMENT_STATUS labels and tones, renewalLabel, not
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
                         queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
-                        (typed 409 toasts), use-transition
+                        (typed 409 toasts), use-transition, scope (TM-11: SCOPE_STATES and SCOPE_LABELS with scopeTone,
+                        isFlagged, allowanceLabel (minutes as hours), actorLabel (the server's name, never an id),
+                        decisionBlockedReason (the flagger, and nothing pending), flagBody, withdrawBody, decisionBody
+                        (an allowance only as a whole number of minutes above zero, never with a decline), validateFlag
+                        and validateDecision, scopeError and describeScopeError for all six refusal codes plus
+                        stale_version)
 lib/attachments/        uploadAttachment (presign, PUT or POST form, confirm; stages and typed refusals), formatBytes,
                         scanChip and originLabel (desk and portal copy), the quarantine placeholders
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
                         ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), IntakeTab (aliases with state
-                        pills and the loop guard reason), status pills, buttons
+                        pills and the loop guard reason), contacts-tab (AccountContactsTab: the contacts with their flags as
+                        checkboxes and the search sent as `q`), status pills, buttons
+lib/admin/contacts      FLAG_LABELS and FLAG_MEANINGS, flagLabel and flagMeaning, flagsToOffer (the closed set plus any
+                        flag a row already carries), toggleFlag (one box, the whole set back), contactFlagsBody,
+                        contactLabel, flagsLine, contactsError and describeContactsError (stale_version, not_found)
 components/admin/time-zone-field  searchable IANA zone input over a datalist, plain text where the list is unavailable
 components/admin/calendars/  account-calendars-tab, calendar-editor (calendarPatch diff), hours-grid, preview-panel
                         (PreviewResultView), holiday-libraries (list, create form, parseHolidayLines)
@@ -401,44 +432,62 @@ app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome 
                         portal:view-org-tickets), /requests/new (default form per type, inline validation),
                         /requests/[key] (public thread, composer, Files card with upload and scan states, cancel, confirm closure,
                         reopen); /requests/new queues files and uploads them after the request exists;
-                        /surveys (CP-07, functional 5.7: the pending ticket-close surveys as cards with the key, the
-                        description, the expiry, the one question with five buttons labelled very dissatisfied to very
-                        satisfied, an optional comment and Send my answer; the completed ones with their score; "No surveys
-                        pending."; already_answered and survey_closed worded with the list read again) and /surveys/[id]
-                        (with `?token=`, the email link: the one question alone, no chrome, no session, posted to
-                        POST /v1/csat/:id/answer with the token; with a session and no token the Surveys page with that
-                        survey first, or a notice when it was already answered or is no longer open)
+                        /surveys (CP-07, functional 5.7: the pending surveys of both kinds as cards, each asking the
+                        questions its own row carries, so a ticket-close survey shows one (named after the ticket) and a
+                        quarterly one shows five, each a fieldset named by its own question with five buttons labelled very
+                        dissatisfied to very satisfied; Send stays disabled until every question is answered and the body
+                        follows the kind, `score` or the five keyed `scores`; the quarterly card is named by the quarter
+                        ("2026 Q2 relationship survey") where there is no ticket to name; the completed ones read back the
+                        score or each question and its answer; "No surveys pending."; already_answered and survey_closed
+                        worded with the list read again) and /surveys/[id]
+                        (with `#token=`, the email link: no chrome, no session, posted to POST /v1/csat/:id/answer with
+                        the token. The link route has no GET behind it, so the kind cannot be known before the first
+                        answer: the page opens on the one question and, when the server answers `scores_required` naming
+                        the five keys, asks those five instead and says why. The quarterly question text is kept locally
+                        (lib/portal/csat QUARTERLY_FALLBACK_TEXT) for that one path alone, where the refusal names keys
+                        without text; with a session and no token the Surveys page with that survey first, or a notice
+                        when it was already answered or is no longer open)
 components/portal/      PortalChrome (account name and accent, nav with Surveys, user menu, 401 redirect; renders only the
                         main column when isSurveyLink matches, skipping /portal/me), SearchHome, RequestList,
+                        survey-question (SurveyQuestion takes the row's questions: one fieldset each, named by its own
+                        question, five labelled buttons, one comment, Send disabled until every question is answered),
                         RequestForm (validateRequest), RequestThread and CommentComposer, RequestDetail, primitives
                         (ClientStatusPill, PortalCard, buttons and inputs), attachments (PortalUploadControl, PortalAttachmentList,
-                        client scan copy), survey-question (SurveyQuestion: the five buttons, the comment, the submit
-                        disabled until a score), surveys (SurveysPage with focusId), survey-link (SurveyLinkAnswer).
+                        client scan copy), surveys (SurveysPage with focusId, both kinds), survey-link (SurveyLinkAnswer,
+                        which learns the kind from the server's scores_required refusal).
                         Renders portal view models only; nothing
                         from components/tickets or app/(internal) is imported here
 lib/portal/             client-language (the seven client statuses, type and level copy, priority words, relative time),
-                        csat (SCORES, SCORE_LABELS, scoreLabel, surveyQuestion, isSurveyLink, expiryLabel, surveyError and
-                        describeSurveyError for already_answered, survey_closed with its status, not_found, token_required)
-test-kit/portal.tsx     constructed portal fixtures (aPortalMe, aPortalTicket, aTimeline, aSurvey, anAnsweredSurvey), the
-                        fetch stub and renderPortal for the portal tests
-test-kit/reporting.ts   dashboard, audit and report fixtures, plus aCsatSummary, aSchedule, aRun, aDelivery, SCHEDULE_ID
-                        and INTERNAL_USER_ID
+                        csat (SCORES, SCORE_LABELS, scoreLabel, surveyQuestion, isSurveyLink, expiryLabel; the two kinds:
+                        surveyKind (a row with none reads as ticket_close), isQuarterly, periodLabel ("2026 Q2"), keyLabel,
+                        QUARTERLY_FALLBACK_TEXT and questionsFromKeys (the email-link path alone), questionsOf,
+                        surveySubject, answerBody (`score` or the five keyed `scores`), answerLine; surveyError and
+                        describeSurveyError for scores_required, already_answered, survey_closed with its status,
+                        not_found, token_required)
+test-kit/portal.tsx     constructed portal fixtures (aPortalMe, aPortalTicket, aTimeline, aSurvey, anAnsweredSurvey,
+                        QUARTERLY_QUESTIONS, aQuarterlySurvey, aQuarterlyAnswer), the fetch stub and renderPortal for the
+                        portal tests
+test-kit/reporting.ts   dashboard, audit and report fixtures, plus aCsatSummary, aCsatQuarterly, aSchedule, aRun,
+                        aDelivery, SCHEDULE_ID and INTERNAL_USER_ID
 test-kit/integrations.ts  constructed API client and finance fixtures (anApiClient, aScope, someScopes, aDestination,
                         aFinanceDelivery) with the ids API_CLIENT_ID, FINANCE_ACCOUNT_ID, OTHER_ACCOUNT_ID and
                         BILLING_PERIOD_ID; no live key, endpoint or account
 test-kit/desk.tsx       renderDesk (store plus toasts) for desk component tests, re-exporting the fetch stub
-test-kit/my-work.ts     constructed My work fixtures (aWaitingItem, aWaiting)
+test-kit/my-work.ts     constructed My work fixtures (aWaitingItem, aWaiting written the way the API writes it today,
+                        aPlatformWaiting in the older platform URL space, WAITING_ACCOUNT_ID)
 components/my-work/     waiting-rail (WaitingRail over GET /v1/me/waiting: a row per item with a non-zero count linking to
-                        the address lib/my-work/waiting-links resolves for its key, never the server's link;
-                        "Nothing is waiting on you" when none is; hidden entirely, with no error, while the route
-                        answers 404 or 501, so My work keeps working before the backend deploys; waitingRows and
-                        isNotDeployed)
-lib/my-work/waiting-links  WAITING_TARGETS (the item key to a lib/routes screen id and its search) and waitingHref: the
-                        API answers /queue, /timesheet, /notifications and /reports/runs, which this desk does not
-                        serve, so the key is resolved through the registry against the screens this viewer may see; a
-                        key mapped to no screen (notifications live in the shell's bell) and a screen the viewer may
-                        not open both read as text, and only a key the registry has never heard of falls back to the
-                        server's link, through lib/safe-url
+                        the address lib/my-work/waiting-links resolves for it; "Nothing is waiting on you" when none is;
+                        hidden entirely, with no error, while the route answers 404 or 501, so My work keeps working
+                        before the backend deploys; waitingRows and isNotDeployed)
+lib/my-work/waiting-links  serverHref, WAITING_TARGETS (the item key to a lib/routes screen id and its search) and
+                        waitingHref. The API now writes this application's own addresses, two of which name an account
+                        no key could express (the report-review row's Report packs tab, the low-score row's Satisfaction
+                        tab), so the link comes first and is checked rather than trusted: same-site, matched through
+                        matchScreen, and a screen this viewer may open. Anything else falls back to the key's target,
+                        which is how an older API's /queue and /timesheet and a viewer without admin:accounts both still
+                        land somewhere real; a key mapped to no screen (notifications live in the shell's bell) and a
+                        screen the viewer may not open both read as text, and only a key the registry has never heard of
+                        falls back to the server's link through lib/safe-url alone
 components/shell/       FinderBar, FinderOverlay, PinnedSidebar, ContentHeaderBar (HeaderFilters, HeaderAction portals),
                         CommandPalette, NotificationsMenu (bell dropdown, 60 s unread poll), Shell, ScreenStub
 components/xms/         the house composition components (P1.4.2), one file each, import by path, no barrel;
@@ -455,23 +504,30 @@ lib/auth/               dev-mode (DEPLOY_TARGET and readDeployTarget, IS_LOCAL_T
 lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenViews, useTrack, request-id memory
 lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
-redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/waiting on the Waiting tag), adminApi.ts (Accounts & Administration endpoints and types, plus
+redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/waiting on the Waiting tag, the item's
+                        link optional as the API sends it), adminApi.ts (Accounts & Administration endpoints and types, plus
                         getAccountConfig (effective may be null when nothing is active), setAccountOverride and
-                        removeAccountOverride on the AccountConfig tag),
+                        removeAccountOverride on the AccountConfig tag; CONTACT_FLAGS with listContacts (`q`) and
+                        setContactFlags (the whole set with the version, the list reloaded either way) on the Contacts tag),
                         migrationApi.ts (batches with filters and run_by_name, create, one batch with its report, run, records
                         with status and search, one record with its payload, reconciliation reports with signed_by_name,
                         explained_by_name, can_sign and sign_blocker, explain, sign-off; tags MigrationBatches,
                         MigrationBatch, MigrationRecords, Reconciliation),
-                        ticketsApi.ts (tickets, transitions with optimistic list and record patches, messages, timeline,
+                        ticketsApi.ts (tickets carrying the scope block, flagTicketScope under tickets:work and
+                        decideTicketScope under tickets:approve-scope (each reloading the ticket, its timeline and the
+                        waiting rail, the decision also the Budget tag since an allowance changes it),
+                        transitions with optimistic list and record patches, messages, timeline,
                         links, watchers, notifications, directory lookups, account contracts with after_hours_handling,
                         after_hours_multiplier and the budget rules (threshold_percents, threshold_notify_client, overage_rule,
                         overage_multiplier, rollover_rule, rollover_cap_hours, forecast_window_days) and technology_codes,
                         patchContract with the version over the whole rule set (engagement_id included), invalidating
                         SkillsMatrix; listEngagements, createEngagement and patchEngagement on the account's
                         `:engagements` tag, the list reloaded even when a patch is refused), portalApi.ts (the
-                        /v1/portal mirror, the searchArticles placeholder, portalSurveys with pending and answered,
-                        answerPortalSurvey reloading the list even when refused, and answerSurveyLink posting the token to
-                        /v1/csat/:id/answer on the PortalSurveys tag), reportingApi.ts also accountCsat with from and to on
+                        /v1/portal mirror, the searchArticles placeholder, portalSurveys with pending and answered, each
+                        row carrying its kind, period, questions and answers, one AnswerSurveyBody taking `score` or
+                        `scores`, answerPortalSurvey reloading the list even when refused, and answerSurveyLink posting
+                        the token to /v1/csat/:id/answer on the PortalSurveys tag),
+                        reportingApi.ts also accountCsat with from and to, its optional quarterly block, on
                         the Csat tag, reportSchedules by account, createReportSchedule, patchReportSchedule with the version
                         (reloading the list either way), runScheduleNow with the optional period (reloading schedules, runs
                         and the account's Reports), and scheduleRuns by account, status and schedule on the ReportSchedules
