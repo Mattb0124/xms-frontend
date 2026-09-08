@@ -62,7 +62,7 @@ export default function MyWorkPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <h1 className="sr-only">My work</h1>
       {/* The four scorecards the render (08) draws, each with the caption
           that says what the number is counted over. */}

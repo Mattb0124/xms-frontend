@@ -291,7 +291,7 @@ function QueueScreen() {
     stats !== undefined ? `${stats.open} open ticket${stats.open === 1 ? "" : "s"}` : `${rows.length} shown`;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <HeaderFilters>
         <div className="flex items-center gap-2">
           <span className="relative inline-flex items-center">

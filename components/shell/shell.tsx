@@ -187,7 +187,11 @@ export function Shell({ children }: { children: ReactNode }) {
         ) : null}
         <div className="flex min-w-0 flex-1 flex-col">
           <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
-            <main className="flex flex-1 flex-col p-4">{children}</main>
+            {/* 20px, measured off render 01: the card's left edge sits at
+                x=278 with the sidebar ending at 258, and its top at y=226 with
+                the toolbar rule at 167, which is 20px of page padding and a
+                20px gap under the breadcrumb row. It was 16px on both. */}
+            <main className="flex flex-1 flex-col p-5">{children}</main>
           </ContentHeaderBar>
         </div>
         {/* The panel pushes the content, it does not overlay it (Wireframes v2

@@ -70,7 +70,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
     : "No requester email on this ticket; watchers are notified in app";
 
   return (
-    <div className="flex flex-col gap-4" data-ticket={ticket.key}>
+    <div className="flex flex-col gap-5" data-ticket={ticket.key}>
       {/* The record bar (v3 render 02): the key in mono beside the title as
           plain text on one line, then the pill row. The built bar wrapped the
           title in a bordered input, which reads as a form field on a page that
@@ -182,7 +182,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             {tab === "sync" ? <SyncCard ticketId={ticket.id} flush /> : null}
           </div>
         </section>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} pausedReason={ticket.state_label} />
           <ScopeCard ticket={ticket} />
           <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
