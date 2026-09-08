@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
 import { GroupPicker } from "@/components/tickets/group-picker";
-import { RecordForm, type RecordField } from "@/components/xms/record-form";
+import { RecordForm, StackedReveal, type RecordField } from "@/components/xms/record-form";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { describeGroupError } from "@/lib/tickets/groups";
@@ -12,6 +12,7 @@ import { LEVELS, PRIORITIES, SOURCE_LABEL, TICKET_TYPES } from "@/lib/tickets/vo
 import { useMe } from "@/redux/me";
 import {
   useListAccountContractsQuery,
+  useListDirectoryGroupsQuery,
   useListGrantedAccountsQuery,
   usePatchTicketMutation,
   type PatchTicketBody,
@@ -55,6 +56,10 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   const { push } = useToast();
   const canOverride = me.hasPermission("tickets:override-priority");
   const account = accounts?.find((row) => row.id === ticket.account_id);
+  // The group's own name, so the row reads as text at rest rather than as an
+  // open select; the picker itself resolves the same directory.
+  const { data: directoryGroups } = useListDirectoryGroupsQuery();
+  const groupName = directoryGroups?.find((group) => group.id === ticket.group_id)?.name ?? "";
 
   const fields = useMemo<RecordField[]>(
     () => [
@@ -230,8 +235,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         picker rather than a properties row because it is the queue the work
         sits in, not a field.
       */}
-      <div className="border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]">
-        <span className="text-xms-muted text-[12px] leading-[1.3]">Group</span>
+      <StackedReveal label="Group" value={ticket.group_id ? groupName || "No group" : "No group"} disabled={readOnly}>
         <GroupPicker
           id="ticket-group"
           aria-label="Group"
@@ -243,9 +247,8 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
               .catch((error) => push({ title: "Not saved", detail: describeGroupError(error), tone: "error" }))
           }
         />
-      </div>
-      <div className="border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]">
-        <span className="text-xms-muted text-[12px] leading-[1.3]">Assignee</span>
+      </StackedReveal>
+      <StackedReveal label="Assignee" value={ticket.assignee_name ?? "Unassigned"} disabled={readOnly}>
         <AssigneePicker
           id="ticket-assignee"
           value={ticket.assignee_id}
@@ -258,7 +261,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
               .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
           }
         />
-      </div>
+      </StackedReveal>
       <RecordForm layout="stacked" fields={tail} onCommit={commit} />
     </section>
   );

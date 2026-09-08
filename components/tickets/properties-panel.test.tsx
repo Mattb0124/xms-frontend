@@ -10,6 +10,16 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));
 
 const ACCOUNTS = [{ id: ACCOUNT_ID, key: "AUS", name: "Austral Mining Corporation" }];
 
+/**
+ * A properties row is text at rest and reveals its control on click, which is
+ * the hand-off's own rule for this rail: an open bordered select standing in a
+ * 262px column is the one shape it must not have. Every test that drives the
+ * group or assignee picker opens its row first, as a reader does.
+ */
+async function openRow(name: string) {
+  fireEvent.click(await screen.findByRole("button", { name }));
+}
+
 function stub(permissions: string[]) {
   return stubFetch({
     "GET /v1/admin/me": () => json({ principal: { kind: "internal", userId: "u-ben", accountIds: [], permissions } }),
@@ -140,6 +150,9 @@ describe("PropertiesPanel", () => {
     );
     // One control for one concept: the picker names the assignee itself.
     expect(screen.queryByText("Assigned to")).toBeNull();
+    // The row reads as the assignee's name until it is clicked.
+    expect(screen.getByRole("button", { name: "Assignee" })).toHaveTextContent("Ben Okafor");
+    await openRow("Assignee");
     // The seeded reader is the assignee here, so the control marks it "(you)".
     expect(screen.getByRole("combobox", { name: "Assignee" })).toHaveAttribute(
       "data-current-assignee",
@@ -196,6 +209,7 @@ describe("PropertiesPanel reassignment", () => {
   it("moves the ticket to a group and sends the version with it", async () => {
     const calls = stubGroups(["tickets:view", "tickets:work"]);
     renderDesk(<PropertiesPanel ticket={aTicketView()} />);
+    await openRow("Group");
     await screen.findByRole("option", { name: "Application support" });
     fireEvent.change(screen.getByLabelText("Group"), { target: { value: GROUP_ID } });
     await waitFor(() => expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(true));
@@ -205,6 +219,7 @@ describe("PropertiesPanel reassignment", () => {
   it("leaves a retired group off the picker, since the API refuses work queued to one", async () => {
     stubGroups(["tickets:view", "tickets:work"]);
     renderDesk(<PropertiesPanel ticket={aTicketView()} />);
+    await openRow("Group");
     await screen.findByRole("option", { name: "Application support" });
     expect(screen.queryByRole("option", { name: /Legacy team/ })).toBeNull();
   });
@@ -212,12 +227,14 @@ describe("PropertiesPanel reassignment", () => {
   it("still shows a retired group that is the one in force", async () => {
     stubGroups(["tickets:view", "tickets:work"]);
     renderDesk(<PropertiesPanel ticket={aTicketView({ group_id: "g-old" })} />);
+    await openRow("Group");
     expect(await screen.findByRole("option", { name: "Legacy team (retired)" })).toBeTruthy();
   });
 
   it("words the refusal when the group has been retired underneath the desk", async () => {
     stubGroups(["tickets:view", "tickets:work"], () => json({ code: "group_retired" }, 400));
     renderDesk(<PropertiesPanel ticket={aTicketView()} />);
+    await openRow("Group");
     await screen.findByRole("option", { name: "Application support" });
     fireEvent.change(screen.getByLabelText("Group"), { target: { value: GROUP_ID } });
     await screen.findByText(/has been retired/);

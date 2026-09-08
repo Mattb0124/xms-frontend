@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface RecordOption {
@@ -71,6 +71,59 @@ const STACK_ROW = "border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]
 
 /** The label above a stacked value: 12px on 1.3 in the muted grey. */
 const STACK_LABEL = "text-xms-muted text-[12px] leading-[1.3]";
+
+/**
+ * A properties row whose own control is not a `RecordField`: the group and
+ * assignee pickers on the ticket record.
+ *
+ * The hand-off's rule for this rail is that a property is text at rest and
+ * commits on change or blur, so a bordered `select` standing open in a 262px
+ * rail is the one shape it must not have. This is the same reveal the stacked
+ * `Field` uses: the value as a button, the caller's control once it is
+ * clicked, and back to text when focus leaves the row.
+ */
+export function StackedReveal({
+  label,
+  value,
+  disabled,
+  children,
+}: {
+  label: string;
+  /** What the row reads at rest; empty reads "Not set". */
+  value: string;
+  disabled?: boolean;
+  /** The real control, mounted only while the row is open. */
+  children: ReactNode;
+}) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <div className={STACK_ROW} data-field={label.toLowerCase()}>
+      <span className={STACK_LABEL}>{label}</span>
+      {editing && !disabled ? (
+        <div
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setEditing(false);
+          }}
+        >
+          {children}
+        </div>
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setEditing(true)}
+          aria-label={label}
+          className={cn(
+            "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[13px] leading-[1.4] font-medium",
+            value ? "text-xms-ink" : "text-xms-muted font-normal",
+          )}
+        >
+          {value || "Not set"}
+        </button>
+      )}
+    </div>
+  );
+}
 
 /**
  * The words a read-only field shows: a select shows its option's label, not
