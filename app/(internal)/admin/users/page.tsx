@@ -15,7 +15,8 @@ import {
 } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
-import { FilterBar } from "@/components/xms/filter-bar";
+import { FilterSelect } from "@/components/xms/filter-select";
+import { ICON, PlusIcon } from "@/components/xms/icons";
 import { KeyLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -190,18 +191,28 @@ function UsersList() {
   const rows = useMemo(() => data ?? [], [data]);
   return (
     <>
+      {/* One dimension, drawn. The strip carried a primary reading "Show:
+          Users", which named the screen rather than narrowing it, and the
+          kind was reached by clicking "+ Add filter" until the right one came
+          round. */}
       <HeaderFilters>
-        <FilterBar
-          primary={{ label: "Show", value: "Users" }}
-          criteria={kind ? [{ key: "kind", label: "Kind", value: kind }] : []}
-          onRemove={() => setKind(null)}
-          onAdd={() => setKind((current) => KINDS[(KINDS.indexOf(current ?? "service") + 1) % KINDS.length])}
-          onClearAll={() => setKind(null)}
+        <FilterSelect
+          label="Show"
+          primary
+          count={rows.length}
+          value={kind ?? ""}
+          options={KINDS.map((entry) => ({ value: entry, label: entry }))}
+          onChange={(value) => setKind((value || null) as UserKind | null)}
         />
       </HeaderFilters>
       <HeaderAction>
-        <button type="button" className={PRIMARY_BUTTON} onClick={() => setInviting(true)}>
-          Invite user
+        <button
+          type="button"
+          className={`${PRIMARY_BUTTON} inline-flex items-center gap-1`}
+          onClick={() => setInviting(true)}
+        >
+          <PlusIcon size={ICON.action} />
+          New
         </button>
       </HeaderAction>
       <div className="flex flex-col gap-4">
@@ -215,6 +226,7 @@ function UsersList() {
         ) : null}
         <DenseTable
           title="Users"
+          subtitle="internal people, portal contacts and machine identities"
           columns={COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}

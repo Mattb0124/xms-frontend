@@ -13,7 +13,8 @@ import {
 } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
-import { FilterBar } from "@/components/xms/filter-bar";
+import { FilterSelect } from "@/components/xms/filter-select";
+import { ICON, PlusIcon } from "@/components/xms/icons";
 import { KeyLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -150,18 +151,27 @@ function AdminAccountsPageBody() {
 
   return (
     <>
+      {/* The strip's primary read "Show: Accounts", which named the screen
+          rather than narrowing it, and the status was reached by clicking
+          "+ Add filter" until the right one came round. */}
       <HeaderFilters>
-        <FilterBar
-          primary={{ label: "Show", value: "Accounts" }}
-          criteria={status ? [{ key: "status", label: "Status", value: status }] : []}
-          onRemove={() => setStatus(null)}
-          onAdd={() => setStatus((current) => STATUSES[(STATUSES.indexOf(current ?? "") + 1) % STATUSES.length])}
-          onClearAll={() => setStatus(null)}
+        <FilterSelect
+          label="Show"
+          primary
+          count={rows.length}
+          value={status ?? ""}
+          options={STATUSES.map((entry) => ({ value: entry, label: entry }))}
+          onChange={(value) => setStatus(value || null)}
         />
       </HeaderFilters>
       <HeaderAction>
-        <button type="button" className={PRIMARY_BUTTON} onClick={() => setCreating(true)}>
-          New account
+        <button
+          type="button"
+          className={`${PRIMARY_BUTTON} inline-flex items-center gap-1`}
+          onClick={() => setCreating(true)}
+        >
+          <PlusIcon size={ICON.action} />
+          New
         </button>
       </HeaderAction>
       <div className="flex flex-col gap-4">
@@ -175,12 +185,13 @@ function AdminAccountsPageBody() {
         ) : null}
         <DenseTable
           title="Accounts"
+          subtitle="every client account, its isolation tier and where it is in its life"
           columns={COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}
           loading={isLoading}
           onRowClick={(row) => router.push(`/admin/accounts/${row.id}`)}
-          emptyState={isLoading ? "Loading" : "No accounts yet. Create the first one with New account."}
+          emptyState={isLoading ? "Loading" : "No accounts yet. Create the first one with New."}
         />
       </div>
     </>

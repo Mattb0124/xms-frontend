@@ -12,7 +12,8 @@ import {
 } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
-import { FilterBar } from "@/components/xms/filter-bar";
+import { StripSelect } from "@/components/xms/filter-select";
+import { ICON, PlusIcon } from "@/components/xms/icons";
 import { KeyLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { StatePill } from "@/components/xms/state-pill";
@@ -104,22 +105,29 @@ function AdminRolesPageBody() {
   const { data, isLoading } = useListRolesQuery({ catalog });
   return (
     <>
+      {/* The catalog was a pill that swapped on click, so the other catalog
+          was never named until you were in it. It is a menu, like every other
+          primary dimension. */}
       <HeaderFilters>
-        <FilterBar
-          primary={{
-            label: "Catalog",
-            value: catalog,
-            onClick: () => setCatalog((c) => (c === "operator" ? "portal" : "operator")),
-          }}
-          criteria={[]}
-          onRemove={() => undefined}
-          onAdd={() => setCatalog((c) => (c === "operator" ? "portal" : "operator"))}
-          onClearAll={() => setCatalog("operator")}
-        />
+        <StripSelect
+          label="Catalog"
+          primary
+          value={catalog}
+          onChange={(value) => setCatalog(value as Catalog)}
+          display={catalog}
+        >
+          <option value="operator">Catalog: operator</option>
+          <option value="portal">Catalog: portal</option>
+        </StripSelect>
       </HeaderFilters>
       <HeaderAction>
-        <button type="button" className={PRIMARY_BUTTON} onClick={() => setCreating(true)}>
-          New role
+        <button
+          type="button"
+          className={`${PRIMARY_BUTTON} inline-flex items-center gap-1`}
+          onClick={() => setCreating(true)}
+        >
+          <PlusIcon size={ICON.action} />
+          New
         </button>
       </HeaderAction>
       <div className="flex flex-col gap-4">
