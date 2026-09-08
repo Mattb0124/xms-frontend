@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { assigneeLabel, AssigneePicker, rosterHint } from "@/components/tickets/assignee-picker";
-import { aPerson } from "@/redux/rosterApi.test";
+import { aPerson } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS0001204" }));
@@ -112,7 +112,7 @@ describe("AssigneePicker capacity markers (CAP-06)", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("names the marker only for warning and over, and caps the candidates at 50 roster ids", async () => {
-    const { aCapacityCheck } = await import("@/redux/capacityApi.test");
+    const { aCapacityCheck } = await import("@/test-kit/capacity");
     const { capacityWarning, checkCandidates } = await import("@/components/tickets/assignee-picker");
     expect(capacityWarning(undefined)).toBe("");
     expect(capacityWarning(aCapacityCheck())).toBe("");
@@ -133,7 +133,7 @@ describe("AssigneePicker capacity markers (CAP-06)", () => {
   });
 
   it("checks the visible candidates once per open picker under tickets:work and shows the hours and the marker", async () => {
-    const { aCapacityCheck } = await import("@/redux/capacityApi.test");
+    const { aCapacityCheck } = await import("@/test-kit/capacity");
     const calls = stubFetch({
       "GET /v1/admin/me": me(["tickets:work", "capacity:view"]),
       "GET /v1/users": () => json(USERS),

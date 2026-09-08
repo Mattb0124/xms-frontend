@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountDashboard } from "@/components/reporting/account-dashboard";
-import { aCompTimeReport } from "@/redux/timeApi.test";
+import { aCompTimeReport } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 import { aClientDashboard, anAccountDashboard, aReportRun } from "@/test-kit/reporting";
 

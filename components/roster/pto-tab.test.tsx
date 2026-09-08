@@ -1,8 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { canWritePto, ptoBody, PtoTab, rangeLabel } from "@/components/roster/pto-tab";
-import { aPto, PTO_ID } from "@/redux/capacityApi.test";
-import { PERSON_ID } from "@/redux/rosterApi.test";
+import { aPto, PTO_ID } from "@/test-kit/capacity";
+import { PERSON_ID } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/roster/${PERSON_ID}` }));

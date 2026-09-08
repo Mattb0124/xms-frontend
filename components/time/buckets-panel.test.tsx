@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BucketsPanel } from "@/components/time/buckets-panel";
-import { aBucket, BUCKET_ID } from "@/redux/timeApi.test";
+import { aBucket, BUCKET_ID } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" }));

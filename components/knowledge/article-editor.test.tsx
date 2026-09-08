@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ArticleEditor } from "@/components/knowledge/article-editor";
-import { anArticle } from "@/redux/knowledgeApi.test";
+import { anArticle } from "@/test-kit/knowledge";
 
 describe("ArticleEditor", () => {
   it("commits a section on blur with only that section, and rolls back on rejection", async () => {

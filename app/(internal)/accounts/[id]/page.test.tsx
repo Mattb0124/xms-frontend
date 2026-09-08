@@ -1,8 +1,8 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import AccountPage, { accountTabs, initialAccountTab } from "@/app/(internal)/accounts/[id]/page";
-import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
-import { aBudget } from "@/redux/timeApi.test";
+import { aSkillsMatrixAccount } from "@/test-kit/capacity";
+import { aBudget } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 import { aCsatSummary, anAccountDashboard } from "@/test-kit/reporting";
 

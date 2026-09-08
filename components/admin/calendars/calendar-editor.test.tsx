@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CalendarEditor, calendarPatch } from "@/components/admin/calendars/calendar-editor";
-import { ACCOUNT_ID, aCalendar, aHolidayCalendar, CALENDAR_ID, HOLIDAY_LIBRARY_ID } from "@/redux/calendarsApi.test";
+import { ACCOUNT_ID, aCalendar, aHolidayCalendar, CALENDAR_ID, HOLIDAY_LIBRARY_ID } from "@/test-kit/calendars";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/calendars/${CALENDAR_ID}` }));

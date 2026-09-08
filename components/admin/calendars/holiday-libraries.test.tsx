@@ -6,7 +6,7 @@ import {
   NewHolidayLibraryForm,
   parseHolidayLines,
 } from "@/components/admin/calendars/holiday-libraries";
-import { ACCOUNT_ID, aCalendar, aHolidayCalendar } from "@/redux/calendarsApi.test";
+import { ACCOUNT_ID, aCalendar, aHolidayCalendar } from "@/test-kit/calendars";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/holiday-calendars" }));

@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PeopleList } from "@/components/roster/people-list";
-import { aPerson, aPersonSkill, GROUP_ID } from "@/redux/rosterApi.test";
+import { aPerson, aPersonSkill, GROUP_ID } from "@/test-kit/roster";
 
 describe("PeopleList", () => {
   it("renders one row per person with role, FTE, zone, group chips, skill chips with the level and the active pill", () => {

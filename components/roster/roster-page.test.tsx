@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import RosterPage from "@/app/(internal)/roster/page";
-import { aPerson, aSkill, GROUP_ID } from "@/redux/rosterApi.test";
+import { aPerson, aSkill, GROUP_ID } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({

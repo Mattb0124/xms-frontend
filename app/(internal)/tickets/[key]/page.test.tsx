@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import TicketPage from "@/app/(internal)/tickets/[key]/page";
-import { ACCOUNT_ID, aContract, aTicketView } from "@/redux/ticketsApi.test";
+import { ACCOUNT_ID, aContract, aTicketView } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch, type RecordedCall } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({

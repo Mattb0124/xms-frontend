@@ -5,7 +5,7 @@ import { FieldMapEditor, transformFor, unmappedRequired } from "@/components/adm
 import { FieldMapTab } from "@/components/admin/connectors/field-map-tab";
 import { pickDefaultMap } from "@/components/admin/connectors/map-lifecycle";
 import { ValidationReportView } from "@/components/admin/connectors/map-versions";
-import { aFieldMap, anInstance } from "@/redux/connectorsApi.test";
+import { aFieldMap, anInstance } from "@/test-kit/connectors";
 import type { FieldMapEntry } from "@/redux/connectorsApi";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 

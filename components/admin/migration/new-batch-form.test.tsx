@@ -1,8 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NewBatchForm } from "@/components/admin/migration/new-batch-form";
-import { anInstance } from "@/redux/connectorsApi.test";
-import { ACCOUNT_ID, INSTANCE_ID, aBatch } from "@/redux/migrationApi.test";
+import { anInstance } from "@/test-kit/connectors";
+import { ACCOUNT_ID, INSTANCE_ID, aBatch } from "@/test-kit/migration";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/migration/new" }));

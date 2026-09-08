@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ScopeCard } from "@/components/tickets/scope-card";
-import { anApprovedScope, aFlaggedScope, aScope, aTicketView, APPROVER_ID, FLAGGER_ID } from "@/redux/ticketsApi.test";
+import { anApprovedScope, aFlaggedScope, aScope, aTicketView, APPROVER_ID, FLAGGER_ID } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));

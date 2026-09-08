@@ -19,7 +19,7 @@ import {
   renewalLabel,
   validateEngagement,
 } from "@/lib/contracts/engagements";
-import { anEngagement, anExpiringEngagement, OWNER_USER_ID } from "@/redux/ticketsApi.test";
+import { anEngagement, anExpiringEngagement, OWNER_USER_ID } from "@/test-kit/tickets";
 
 describe("the engagement words", () => {
   it("words the renewal date, the notice period and its deadline", () => {

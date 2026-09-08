@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ArticleActions, describeArticleError, FindingsSheet } from "@/components/knowledge/article-actions";
-import { anArticle } from "@/redux/knowledgeApi.test";
+import { anArticle } from "@/test-kit/knowledge";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({

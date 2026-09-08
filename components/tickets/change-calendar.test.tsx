@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChangeCalendarScreen } from "@/components/tickets/change-calendar";
-import { aChangeWindow, ACCOUNT_ID, anOpenWindowAt, aFreeze } from "@/redux/ticketsApi.test";
+import { aChangeWindow, ACCOUNT_ID, anOpenWindowAt, aFreeze } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const CALENDAR = "GET /v1/change-calendar";

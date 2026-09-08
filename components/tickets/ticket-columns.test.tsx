@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import type { ClockView } from "@/lib/tickets/sla";
-import { aTicketView } from "@/redux/ticketsApi.test";
+import { aTicketView } from "@/test-kit/tickets";
 import type { TicketView } from "@/redux/ticketsApi";
 
 const accounts = new Map();

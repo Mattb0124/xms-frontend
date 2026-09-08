@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CompTimePanel, daysBefore } from "@/components/time/comp-time-panel";
-import { aCompTimeReport } from "@/redux/timeApi.test";
+import { aCompTimeReport } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/accounts/acct-1" }));

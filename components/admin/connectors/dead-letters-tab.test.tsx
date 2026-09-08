@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DeadLettersTab, summarizeOutcomes } from "@/components/admin/connectors/dead-letters-tab";
-import { aDeadLetter, anInstance } from "@/redux/connectorsApi.test";
+import { aDeadLetter, anInstance } from "@/test-kit/connectors";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/connectors/x" }));

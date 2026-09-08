@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { scheduleLabel, TicketGroupsCatalog } from "@/components/tickets/ticket-groups";
-import { aProjectGroup, aTicketGroup, ACCOUNT_ID } from "@/redux/ticketsApi.test";
+import { aProjectGroup, aTicketGroup, ACCOUNT_ID } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const LIST = "GET /v1/ticket-groups";

@@ -9,7 +9,7 @@ import {
   RecordStatusPill,
   ReportStatusPill,
 } from "@/components/admin/migration/pills";
-import { ACCOUNT_ID, aBatch, aBatchDetail } from "@/redux/migrationApi.test";
+import { ACCOUNT_ID, aBatch, aBatchDetail } from "@/test-kit/migration";
 
 describe("migration pills", () => {
   it("puts batch, record, line and report statuses on the signal trios", () => {

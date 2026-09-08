@@ -2,9 +2,9 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { formatMinutes, LogTimeForm, TimeTab, today, validateDraft } from "@/components/tickets/time-tab";
 import { toDeskCatalogs } from "@/lib/tickets/use-catalogs";
-import { ACCOUNT_ID, CONTRACT_ID, aCompTimeContract, aPremiumContract } from "@/redux/ticketsApi.test";
+import { ACCOUNT_ID, CONTRACT_ID, aCompTimeContract, aPremiumContract } from "@/test-kit/tickets";
 import type { LogTimeBody } from "@/redux/timeApi";
-import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/redux/timeApi.test";
+import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS0001001" }));

@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BillingPeriodsTab } from "@/components/admin/billing/billing-periods-tab";
 import { DownloadError } from "@/lib/exports/download";
-import { aBillingExport, aBillingPeriod, aLockedPeriod } from "@/redux/timeApi.test";
+import { aBillingExport, aBillingPeriod, aLockedPeriod } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" }));

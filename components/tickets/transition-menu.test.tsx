@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TransitionMenu } from "@/components/tickets/transition-menu";
-import { ACCOUNT_ID, aTicketView } from "@/redux/ticketsApi.test";
+import { ACCOUNT_ID, aTicketView } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));

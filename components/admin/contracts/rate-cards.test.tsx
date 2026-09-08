@@ -8,8 +8,8 @@ import {
   toRateCardBody,
   validateRateCard,
 } from "@/components/admin/contracts/rate-cards";
-import { ACCOUNT_ID, CONTRACT_ID, aContract } from "@/redux/ticketsApi.test";
-import { aRateCard } from "@/redux/timeApi.test";
+import { ACCOUNT_ID, CONTRACT_ID, aContract } from "@/test-kit/tickets";
+import { aRateCard } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));

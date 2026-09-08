@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RoutingRulesPanel } from "@/components/admin/config/routing-rules";
-import { ACCOUNT_ID, aRoutingRule, GROUP_ID } from "@/redux/ticketsApi.test";
+import { ACCOUNT_ID, aRoutingRule, GROUP_ID } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const RULES = `GET /v1/accounts/${ACCOUNT_ID}/routing-rules`;

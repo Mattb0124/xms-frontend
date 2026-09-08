@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { dayStatus, dayTone, Timesheet, weekOf } from "@/components/time/timesheet";
 import type { DeskCatalogs } from "@/lib/tickets/use-catalogs";
-import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/redux/timeApi.test";
+import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/test-kit/time";
 import type { TimesheetWeek, TimesheetWeekDay } from "@/redux/timeApi";
 
 /** A constructed week: Monday to Sunday of 2026-09-07 with the calendar's 8-hour days. */

@@ -12,7 +12,7 @@ import {
   DEMAND_ID,
   OTHER_ACCOUNT_ID,
   OTHER_DEMAND_ID,
-} from "@/redux/capacityApi.test";
+} from "@/test-kit/capacity";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({ search: "", replace: vi.fn(), push: vi.fn() }));

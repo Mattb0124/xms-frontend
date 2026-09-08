@@ -8,7 +8,7 @@ import {
   anAccountConfig,
   anOverride,
   anOverriddenConfig,
-} from "@/redux/adminApi.test";
+} from "@/test-kit/config";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));

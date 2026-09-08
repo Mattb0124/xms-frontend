@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { modeNotice, SyncCard, SyncCardView } from "@/components/tickets/sync-card";
-import { aLink, aRun, aSyncCardOutbound } from "@/redux/connectorsApi.test";
+import { aLink, aRun, aSyncCardOutbound } from "@/test-kit/connectors";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 describe("SyncCardView", () => {

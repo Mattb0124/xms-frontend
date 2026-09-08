@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BucketLog } from "@/components/time/bucket-log";
-import { aBucket, anEntry, BUCKET_ID } from "@/redux/timeApi.test";
+import { aBucket, anEntry, BUCKET_ID } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/time" }));

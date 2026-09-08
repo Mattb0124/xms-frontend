@@ -8,8 +8,8 @@ import {
   aSkillsMatrixPeople,
   OTHER_ACCOUNT_ID,
   OTHER_PERSON_ID,
-} from "@/redux/capacityApi.test";
-import { PERSON_ID } from "@/redux/rosterApi.test";
+} from "@/test-kit/capacity";
+import { PERSON_ID } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({ search: "", replace: vi.fn(), push: vi.fn() }));

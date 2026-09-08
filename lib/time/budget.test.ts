@@ -14,7 +14,7 @@ import {
   thresholdMarkers,
   unratedNote,
 } from "@/lib/time/budget";
-import { aBudgetCard, aForecast, aPosition, aThresholdEvent, aThresholds } from "@/redux/timeApi.test";
+import { aBudgetCard, aForecast, aPosition, aThresholdEvent, aThresholds } from "@/test-kit/time";
 
 describe("budget words", () => {
   it("shows hours with one decimal only where the minutes are not whole hours", () => {

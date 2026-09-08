@@ -19,7 +19,7 @@ import {
   aContract,
   aPremiumContract,
   anEngagement,
-} from "@/redux/ticketsApi.test";
+} from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));

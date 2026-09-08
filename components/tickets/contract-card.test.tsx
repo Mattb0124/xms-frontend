@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ContractCardView, hoursText, positionTone } from "@/components/tickets/contract-card";
-import { aPosition } from "@/redux/timeApi.test";
+import { aPosition } from "@/test-kit/time";
 
 describe("contract card", () => {
   it("maps the server status to the tone", () => {

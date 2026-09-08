@@ -23,7 +23,7 @@ import {
   remainingLabel,
   weightedMinutes,
 } from "@/lib/capacity/vocab";
-import { aCapacityCheck, aDemandRow, aProjectDemandRow, aSkillsMatrixPeople } from "@/redux/capacityApi.test";
+import { aCapacityCheck, aDemandRow, aProjectDemandRow, aSkillsMatrixPeople } from "@/test-kit/capacity";
 
 describe("capacity vocab", () => {
   it("weights demand like the server, words the sources and subjects, and moves months", () => {

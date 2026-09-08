@@ -11,7 +11,7 @@ import {
   outboundStatusTone,
   pendingLabel,
 } from "@/lib/connectors/outbound";
-import { aConflictOutcome } from "@/redux/connectorsApi.test";
+import { aConflictOutcome } from "@/test-kit/connectors";
 
 describe("the outbound queue vocabulary", () => {
   it("puts each status on a signal tone and names it", () => {

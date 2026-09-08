@@ -4,7 +4,7 @@ import { CalendarTab } from "@/components/roster/calendar-tab";
 import { CertificationsTab, ExpiryPill } from "@/components/roster/certifications-tab";
 import { changedFields, DetailsTab } from "@/components/roster/details-tab";
 import { SkillsTab } from "@/components/roster/skills-tab";
-import { aCertification, aPersonDetail, aPersonSkill, aSkill, PERSON_ID, SKILL_ID } from "@/redux/rosterApi.test";
+import { aCertification, aPersonDetail, aPersonSkill, aSkill, PERSON_ID, SKILL_ID } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/roster/${PERSON_ID}` }));

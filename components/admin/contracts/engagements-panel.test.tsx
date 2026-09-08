@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EngagementsPanel } from "@/components/admin/contracts/engagements-panel";
 import { AccountRenewalChips } from "@/components/admin/contracts/renewal-chip";
-import { ACCOUNT_ID, ENGAGEMENT_ID, OWNER_USER_ID, anEngagement, anExpiringEngagement } from "@/redux/ticketsApi.test";
+import { ACCOUNT_ID, ENGAGEMENT_ID, OWNER_USER_ID, anEngagement, anExpiringEngagement } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));

@@ -13,7 +13,7 @@ import {
   validateFlag,
   withdrawBody,
 } from "@/lib/tickets/scope";
-import { aFlaggedScope, anApprovedScope, aScope, FLAGGER_ID } from "@/redux/ticketsApi.test";
+import { aFlaggedScope, anApprovedScope, aScope, FLAGGER_ID } from "@/test-kit/tickets";
 
 describe("the out-of-scope vocabulary", () => {
   it("words the four states and tones them by what they wait on", () => {

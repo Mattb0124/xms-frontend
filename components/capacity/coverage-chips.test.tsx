@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
-import { ACCOUNT_ID, aSkillsMatrixAccount, OTHER_ACCOUNT_ID } from "@/redux/capacityApi.test";
+import { ACCOUNT_ID, aSkillsMatrixAccount, OTHER_ACCOUNT_ID } from "@/test-kit/capacity";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));

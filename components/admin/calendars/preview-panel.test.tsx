@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PreviewPanel, PreviewResultView } from "@/components/admin/calendars/preview-panel";
-import { CALENDAR_ID } from "@/redux/calendarsApi.test";
+import { CALENDAR_ID } from "@/test-kit/calendars";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/calendars/${CALENDAR_ID}` }));

@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AfterHoursBadge } from "@/components/time/after-hours-badge";
 import { describeHandling, formatMultiplier, isStartTime, startTimeLabel } from "@/lib/time/after-hours";
-import { aCompTimeContract, aContract, aPremiumContract } from "@/redux/ticketsApi.test";
-import { anAfterHoursEntry, anEntry } from "@/redux/timeApi.test";
+import { aCompTimeContract, aContract, aPremiumContract } from "@/test-kit/tickets";
+import { anAfterHoursEntry, anEntry } from "@/test-kit/time";
 
 describe("after-hours vocabulary", () => {
   it("words the handling rule from the contract's handling and multiplier", () => {

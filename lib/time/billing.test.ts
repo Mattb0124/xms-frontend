@@ -8,7 +8,7 @@ import {
   describeBillingError,
   periodLabel,
 } from "@/lib/time/billing";
-import { aBillingPeriod, aLockedPeriod } from "@/redux/timeApi.test";
+import { aBillingPeriod, aLockedPeriod } from "@/test-kit/time";
 
 describe("billing vocabulary", () => {
   it("offers the moves the status allows and the viewer may make, in the table's order", () => {

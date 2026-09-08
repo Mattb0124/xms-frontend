@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ModeSwitch } from "@/components/admin/connectors/instance-header";
-import { anInstance } from "@/redux/connectorsApi.test";
+import { anInstance } from "@/test-kit/connectors";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/connectors/x" }));

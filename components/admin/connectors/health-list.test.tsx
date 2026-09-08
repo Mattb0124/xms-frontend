@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ConnectorHealthList } from "@/components/admin/connectors/health-list";
 import { HealthPill, LinkStatePill, ModePill, OutcomePill } from "@/components/admin/connectors/pills";
-import { aHealthRow } from "@/redux/connectorsApi.test";
+import { aHealthRow } from "@/test-kit/connectors";
 
 describe("connector pills", () => {
   it("puts health, mode, link state and outcome on the signal trios", () => {

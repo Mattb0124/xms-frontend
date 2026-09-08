@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReconciliationTab, signOffBlockedReason } from "@/components/admin/migration/reconciliation-tab";
-import { ACCOUNT_ID, BATCH_ID, REPORT_ID, aLine, aReport } from "@/redux/migrationApi.test";
+import { ACCOUNT_ID, BATCH_ID, REPORT_ID, aLine, aReport } from "@/test-kit/migration";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/migration/x" }));

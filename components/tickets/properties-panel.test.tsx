@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PropertiesPanel } from "@/components/tickets/properties-panel";
 import { WORK_AREA_TABS } from "@/components/tickets/work-area-tabs";
-import { ACCOUNT_ID, aContract, aTicketView } from "@/redux/ticketsApi.test";
+import { ACCOUNT_ID, aContract, aTicketView } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));

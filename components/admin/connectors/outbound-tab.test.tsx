@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminConnectorRecordPage from "@/app/(internal)/admin/connectors/[id]/page";
 import { OutboundTab, statusFromSearch } from "@/components/admin/connectors/outbound-tab";
-import { aConflictOutcome, aHealthRow, anInstance, anOutboundRow } from "@/redux/connectorsApi.test";
+import { aConflictOutcome, aHealthRow, anInstance, anOutboundRow } from "@/test-kit/connectors";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const ID = anInstance().id;

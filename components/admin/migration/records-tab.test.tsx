@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RecordsTab } from "@/components/admin/migration/records-tab";
-import { BATCH_ID, RECORD_ID, aRecord } from "@/redux/migrationApi.test";
+import { BATCH_ID, RECORD_ID, aRecord } from "@/test-kit/migration";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const OTHER = "99999999-9999-4999-8999-999999999998";

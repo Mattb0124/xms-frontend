@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AddServiceNowForm } from "@/components/admin/connectors/add-servicenow-form";
-import { anInstance } from "@/redux/connectorsApi.test";
+import { anInstance } from "@/test-kit/connectors";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" }));

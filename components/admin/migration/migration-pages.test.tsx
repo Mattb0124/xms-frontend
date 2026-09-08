@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminMigrationBatchPage from "@/app/(internal)/admin/migration/[id]/page";
 import AdminMigrationNewPage from "@/app/(internal)/admin/migration/new/page";
 import AdminMigrationPage from "@/app/(internal)/admin/migration/page";
-import { ACCOUNT_ID, BATCH_ID, INSTANCE_ID, aBatch, aBatchDetail, aReport } from "@/redux/migrationApi.test";
+import { ACCOUNT_ID, BATCH_ID, INSTANCE_ID, aBatch, aBatchDetail, aReport } from "@/test-kit/migration";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({

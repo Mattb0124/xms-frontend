@@ -9,7 +9,7 @@ import {
   aPosition,
   aThresholdEvent,
   aThresholds,
-} from "@/redux/timeApi.test";
+} from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" }));
