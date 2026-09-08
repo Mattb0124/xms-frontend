@@ -18,7 +18,6 @@ import { PeriodSwitcher } from "@/components/reporting/period-switcher";
 import { ReportsCard } from "@/components/reporting/reports-card";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { CompTimePanel } from "@/components/time/comp-time-panel";
-import { AccountDot } from "@/components/xms/account-dot";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
 import { ticketTypeLabel } from "@/lib/tickets/vocab";
@@ -59,13 +58,13 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
         </button>
       </HeaderAction>
 
+      {/* The account is named once, with no identity swatch and no back link:
+          the reviewer took the dot off every screen, and Accounts is a row in
+          the sidebar and in the All overlay. */}
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/accounts" className="text-xms-label hover:text-xms-ink text-[12px]">
-          ← Accounts
-        </Link>
         {account ? (
           <>
-            <AccountDot name={account.name} className="text-[18px] font-semibold" />
+            <span className="text-xms-ink text-[18px] font-semibold">{account.name}</span>
             <span className="xms-mono text-xms-label text-[12px]">{account.key}</span>
           </>
         ) : null}
@@ -112,7 +111,11 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
         <>
           <p className="text-xms-label text-[12px]">{formatPeriod(data.period)}</p>
           {!asClient ? (
-            <p className="bg-xms-navy rounded-[6px] px-5 py-4 text-[14px] text-white" data-testid="synthesis">
+            // The same ruling Operations took in pass three: a line written
+            // from the measures the tiles read is generated text, so it takes
+            // the tint this product gives generated text. On the shell's navy
+            // it read as a system banner, which is the one thing it is not.
+            <p className="xms-ai text-xms-body px-5 py-[18px] text-[15px] leading-[1.6]" data-testid="synthesis">
               {synthesisLine(data.measures)}
             </p>
           ) : null}

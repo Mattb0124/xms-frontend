@@ -289,20 +289,14 @@ describe("the icon scale", () => {
 });
 
 /**
- * No account identity square and no type colour bar in a list, on any screen.
- * The renders draw both; the reviewer took them off, so a row carries colour
- * for state, priority and the clock alone. The two components stay in the
- * system for the account record's own heading, which is the one place a
- * single swatch names one account.
+ * No account identity square and no type colour bar, on any screen. The
+ * renders draw both; the reviewer took them off outright, so a row carries
+ * colour for state, priority and the clock alone and the account record names
+ * its account in plain ink. The two files stay because `TicketType` and
+ * `TYPE_LABEL` live in one of them, but nothing draws either component.
  */
 describe("colour in a list", () => {
-  const ALLOWED = [
-    "components/xms/account-dot.tsx",
-    "components/xms/type-bar.tsx",
-    // The account record's own heading: one account, named once, with its
-    // swatch beside it. Not a list.
-    "components/reporting/account-dashboard.tsx",
-  ];
+  const ALLOWED = ["components/xms/account-dot.tsx", "components/xms/type-bar.tsx"];
 
   it("draws the account and the type as plain text", () => {
     const offenders = sourceFiles()
