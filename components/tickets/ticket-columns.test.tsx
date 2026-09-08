@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
+import { QUEUE_DEFAULT_SORT, attentionColumns, openedDate, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import type { ClockView } from "@/lib/tickets/sla";
 import { aTicketView } from "@/test-kit/tickets";
@@ -32,7 +32,8 @@ const ROWS: TicketView[] = [
  * description, Account, State, Priority, Assignee, SLA, Updated, and the
  * list did not open on SLA. The prototype (Wireframes section 3.1) is Key,
  * Short description, Account, Type, Priority, State, Assignee, SLA,
- * Updated, and "SLA is the default sort".
+ * Updated, and "SLA is the default sort". Opened was added after it, between
+ * State and Assignee, on the reviewer's ask.
  */
 describe("the Queue columns", () => {
   it("runs in the prototype's order", () => {
@@ -43,6 +44,7 @@ describe("the Queue columns", () => {
       "Type",
       "Priority",
       "State",
+      "Opened",
       "Assignee",
       "SLA",
       "Updated",
@@ -56,6 +58,7 @@ describe("the Queue columns", () => {
       "type",
       "priority",
       "state",
+      "opened",
       "assignee",
       "sla",
       "updated",
@@ -76,8 +79,7 @@ describe("the Queue columns", () => {
     expect(QUEUE_DEFAULT_SORT).toEqual({ key: "sla", direction: "asc" });
     render(
       <DenseTable<TicketView>
-        title="Count"
-        count={ROWS.length}
+        title="Queue"
         columns={ticketColumns({ accounts, showClocks: true })}
         rows={ROWS}
         rowKey={(row) => row.key}
@@ -95,8 +97,7 @@ describe("the Queue columns", () => {
   it("leaves a table with no default sort in the order it was given", () => {
     render(
       <DenseTable<TicketView>
-        title="Count"
-        count={ROWS.length}
+        title="Queue"
         columns={ticketColumns({ accounts })}
         rows={ROWS}
         rowKey={(row) => row.key}
@@ -107,5 +108,52 @@ describe("the Queue columns", () => {
       .slice(1)
       .map((row) => row.getAttribute("data-row-key"));
     expect(keys).toEqual(["CS1000001", "CS1000002", "CS1000003"]);
+  });
+
+  // The reviewer asked for the date the request arrived: "Updated" answers a
+  // different question and a queue read for age could not answer this one.
+  it("dates the Opened cell in mono, sorted on the instant and not the words", () => {
+    const columns = ticketColumns({ accounts });
+    const opened = columns.find((column) => column.key === "opened");
+    expect(opened?.mono).toBe(true);
+    expect(opened?.sortValue?.(aTicketView({ created_at: "2026-08-25T09:00:00Z" }))).toBe("2026-08-25T09:00:00Z");
+    render(
+      <DenseTable<TicketView>
+        title="Queue"
+        columns={columns}
+        rows={[aTicketView({ key: "CS1000004", created_at: "2026-08-25T09:00:00Z" })]}
+        rowKey={(row) => row.key}
+      />,
+    );
+    expect(screen.getByText("25 Aug")).toBeInTheDocument();
+  });
+
+  it("names the year on a ticket opened in another one", () => {
+    const now = new Date("2026-09-08T00:00:00Z");
+    expect(openedDate("2026-08-25T09:00:00Z", now)).toBe("25 Aug");
+    expect(openedDate("2025-12-31T09:00:00Z", now)).toBe("31 Dec 25");
+    expect(openedDate("not a date", now)).toBe("");
+  });
+
+  // The reviewer took the colour off these two: the row carries state,
+  // priority and the clock, and nothing else competes with them.
+  it("draws Account and Type as plain text on the Queue and keeps the identity square on My work", () => {
+    const rows = [aTicketView({ key: "CS1000005", type: "incident" })];
+    const { unmount } = render(
+      <DenseTable<TicketView> title="Queue" columns={ticketColumns({ accounts })} rows={rows} rowKey={(r) => r.key} />,
+    );
+    expect(screen.getByText("Incident")).not.toHaveClass("xms-type");
+    expect(document.querySelector(".xms-account")).toBeNull();
+    unmount();
+
+    render(
+      <DenseTable<TicketView>
+        title="Needs attention"
+        columns={attentionColumns({ accounts })}
+        rows={rows}
+        rowKey={(r) => r.key}
+      />,
+    );
+    expect(document.querySelector(".xms-account")).not.toBeNull();
   });
 });

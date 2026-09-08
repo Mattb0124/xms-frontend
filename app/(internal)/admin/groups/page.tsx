@@ -125,7 +125,6 @@ function AdminGroupsPageBody() {
         ) : null}
         <DenseTable
           title="Assignment groups"
-          count={data?.length ?? 0}
           columns={COLUMNS}
           rows={data ?? []}
           rowKey={(row) => row.id}

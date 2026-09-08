@@ -265,7 +265,6 @@ function AccessTab({ id }: { id: string }) {
         </Panel>
         <DenseTable
           title="Portal users"
-          count={portalUsers.data?.length ?? 0}
           columns={PORTAL_COLUMNS}
           rows={portalUsers.data ?? []}
           rowKey={(row) => row.id}

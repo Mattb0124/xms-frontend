@@ -187,7 +187,6 @@ function KnowledgeList() {
       ) : (
         <DenseTable<Article>
           title="Solutions"
-          count={rows.length}
           columns={COLUMNS}
           rows={rows}
           rowKey={(row) => row.display_key}

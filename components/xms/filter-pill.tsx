@@ -17,8 +17,10 @@ export function FilterPill({ label, value, primary, onClick, className }: Filter
       onClick={onClick}
       data-primary={primary ? "true" : undefined}
       className={cn(
-        "inline-flex h-[var(--xms-header-pill-h)] items-center gap-1 rounded-[999px] border px-3 text-[13px] whitespace-nowrap",
-        primary ? "border-xms-accent text-xms-accent bg-xms-card" : "border-xms-line bg-xms-card text-xms-body",
+        // The toolbar dimensions are 4px controls in every v3 render; 999px is
+        // reserved for the state, priority and count pills inside the list.
+        "inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center gap-1 rounded-[var(--xms-radius-control)] border px-[11px] text-[13px] whitespace-nowrap",
+        primary ? "border-xms-accent text-xms-accent bg-xms-card" : "border-xms-control-line bg-xms-card text-xms-body",
         className,
       )}
     >

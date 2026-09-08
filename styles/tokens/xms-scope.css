@@ -26,13 +26,31 @@
   --xms-navy: #10193a;
   --xms-navy-overlay: #1a2450;
   --xms-navy-line: #232f60;
-  --xms-bar: #f0f3fa;
+  /* The toolbar band is a neutral grey, not a blue tint: the band under the
+   * navy bar reads #E7E9ED over a #CFD5DF rule in every v3 render, and the
+   * prototype's own markup states the same two values. */
+  --xms-bar: #e7e9ed;
+  --xms-bar-line: #cfd5df;
+  /* The soft fill behind a mono count: the Count badge, the Dispatch age
+   * badge, the Waiting on me counts, the sidebar's own count pills. */
+  --xms-chip: #f0f3fa;
   --xms-bg: #f4f5f7;
   --xms-card: #ffffff;
   --xms-tint: #eff4ff;
   --xms-line: #e4e8f5;
+  /* The input and card-control edge (the hand-off's --xms-line-input). */
   --xms-line-strong: #c9d2e6;
-  --xms-row-hover: #f7f8fa;
+  /* The table header underline, one step darker than a row hairline
+   * (the hand-off's --xms-line-strong). */
+  --xms-line-head: #d5dbe5;
+  /* The row divider, and the only thing that separates two rows. */
+  --xms-line-row: #eef1f6;
+  /* The control border on the grey strip, dark enough to read against it. */
+  --xms-control-line: #c3cad6;
+  /* The quietest drawn line: the dashed Add filter edge and the idle sort
+   * glyph on a column header. */
+  --xms-quiet-line: #b4bdcc;
+  --xms-row-hover: #f0f3fa;
   --xms-cell-hover: #eff4ff;
   --xms-selected-bar: #2563eb;
 
@@ -112,6 +130,12 @@
   --xms-navy-overlay: #121b33;
   --xms-navy-line: #1e2a4f;
   --xms-bar: #121b2e;
+  --xms-bar-line: #1e2a4f;
+  --xms-chip: #1a2740;
+  --xms-line-head: #2f4160;
+  --xms-line-row: #1c2740;
+  --xms-control-line: #2f4160;
+  --xms-quiet-line: #3a4d70;
   --xms-bg: #0c1626;
   --xms-card: #141f31;
   --xms-tint: #1a2740;

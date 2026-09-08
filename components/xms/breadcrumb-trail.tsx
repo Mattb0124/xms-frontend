@@ -9,14 +9,13 @@ export interface BreadcrumbTrailProps {
   segments: TrailSegment[];
   /** Clicking a segment removes that criterion (Wireframes v2 section 2). */
   onRemove?: (key: string) => void;
-  count?: string;
   onSaveView?: () => void;
   /** The current view is already starred, so the control reads Saved. */
   saved?: boolean;
   className?: string;
 }
 
-export function BreadcrumbTrail({ segments, onRemove, count, onSaveView, saved, className }: BreadcrumbTrailProps) {
+export function BreadcrumbTrail({ segments, onRemove, onSaveView, saved, className }: BreadcrumbTrailProps) {
   return (
     <div className={cn("flex flex-wrap items-center gap-2 text-[12px]", className)} data-testid="condition-trail">
       <nav aria-label="Condition trail" className="flex flex-wrap items-center gap-1">
@@ -35,7 +34,6 @@ export function BreadcrumbTrail({ segments, onRemove, count, onSaveView, saved, 
         ))}
       </nav>
       <span className="ml-auto flex items-center gap-3">
-        {count ? <span className="xms-mono text-xms-label">{count}</span> : null}
         {onSaveView ? (
           <button
             type="button"

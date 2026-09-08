@@ -141,7 +141,6 @@ export function ConnectorHealthList({ rows, accountNames, loading }: HealthListP
   return (
     <DenseTable
       title="Connector instances"
-      count={rows.length}
       columns={columns}
       rows={rows}
       rowKey={(row) => row.id}

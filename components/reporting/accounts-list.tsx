@@ -86,7 +86,6 @@ export function AccountsList() {
   return (
     <DenseTable<AccountListRow>
       title="Accounts"
-      count={rows.length}
       columns={columns}
       rows={rows}
       rowKey={(row) => row.id}

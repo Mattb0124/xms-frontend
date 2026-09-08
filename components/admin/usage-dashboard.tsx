@@ -137,7 +137,6 @@ export function UsageDashboard() {
           {data.per_account ? (
             <DenseTable<UsageAccountRow>
               title="Accounts"
-              count={data.per_account.length}
               columns={ACCOUNT_COLUMNS}
               rows={data.per_account}
               rowKey={(row) => row.account_id}

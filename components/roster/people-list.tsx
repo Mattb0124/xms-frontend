@@ -106,7 +106,6 @@ export function PeopleList({ rows, groupNames, loading, search, emptyState }: Pe
   return (
     <DenseTable
       title="People"
-      count={rows.length}
       columns={columns}
       rows={rows}
       rowKey={(row) => row.id}

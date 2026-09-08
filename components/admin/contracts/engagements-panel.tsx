@@ -352,7 +352,6 @@ export function EngagementsPanel({ accountId }: { accountId: string }) {
     <div className="flex flex-col gap-4" data-testid="engagements">
       <DenseTable
         title="Engagements"
-        count={rows.length}
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}

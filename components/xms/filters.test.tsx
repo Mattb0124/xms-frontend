@@ -6,6 +6,7 @@ import { ClearAllLink } from "@/components/xms/clear-all-link";
 import { FilterBar } from "@/components/xms/filter-bar";
 import { FilterChip } from "@/components/xms/filter-chip";
 import { FilterPill } from "@/components/xms/filter-pill";
+import { FilterSelect } from "@/components/xms/filter-select";
 import { BulkAction, SelectionBar } from "@/components/xms/selection-bar";
 import { RowsPerPage, TableFooter } from "@/components/xms/table-footer";
 
@@ -24,6 +25,34 @@ describe("FilterPill and FilterChip", () => {
   });
 });
 
+describe("FilterSelect", () => {
+  const options = [{ value: "acct-1", label: "Brookfield" }];
+
+  it("stands a dimension whether or not it filters, and only clears once it does", () => {
+    const onClear = vi.fn();
+    const { rerender } = render(
+      <FilterSelect label="Account" value="" options={options} onChange={vi.fn()} onClear={onClear} />,
+    );
+    // The render draws "Account: all" with a quiet clear mark beside it, so
+    // the pill does not change width the moment it starts filtering.
+    expect(screen.getByTestId("filter-account")).not.toHaveAttribute("data-active");
+    const clear = screen.getByRole("button", { name: "Remove the account filter" });
+    expect(clear).toBeDisabled();
+    fireEvent.click(clear);
+    expect(onClear).not.toHaveBeenCalled();
+
+    rerender(<FilterSelect label="Account" value="acct-1" options={options} onChange={vi.fn()} onClear={onClear} />);
+    expect(screen.getByTestId("filter-account")).toHaveAttribute("data-active", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Remove the account filter" }));
+    expect(onClear).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives the primary dimension no clear mark at all", () => {
+    render(<FilterSelect primary label="Show" value="" options={options} onChange={vi.fn()} onClear={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: /Remove the show filter/ })).not.toBeInTheDocument();
+  });
+});
+
 describe("AddFilterButton and ClearAllLink", () => {
   it("fire their callbacks", () => {
     const onAdd = vi.fn();
@@ -34,7 +63,8 @@ describe("AddFilterButton and ClearAllLink", () => {
         <ClearAllLink onClick={onClear} />
       </>,
     );
-    fireEvent.click(screen.getByText("+ Add filter"));
+    // The plus is a drawn glyph beside the words, not a character inside them.
+    fireEvent.click(screen.getByRole("button", { name: "Add filter" }));
     fireEvent.click(screen.getByText("Clear all"));
     expect(onAdd).toHaveBeenCalled();
     expect(onClear).toHaveBeenCalled();
@@ -122,7 +152,6 @@ describe("BreadcrumbTrail", () => {
           { key: "group", label: "My group" },
         ]}
         onRemove={onRemove}
-        count="42 open tickets"
         onSaveView={onSave}
       />,
     );
@@ -130,6 +159,5 @@ describe("BreadcrumbTrail", () => {
     expect(onRemove).toHaveBeenCalledWith("group");
     fireEvent.click(screen.getByText("Save as view"));
     expect(onSave).toHaveBeenCalled();
-    expect(screen.getByText("42 open tickets")).toHaveClass("xms-mono");
   });
 });

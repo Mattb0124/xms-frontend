@@ -84,7 +84,6 @@ export function RunsTab({ instanceId }: { instanceId: string }) {
   return (
     <DenseTable
       title="Runs"
-      count={runs.data?.length ?? 0}
       columns={RUN_COLUMNS}
       rows={runs.data ?? []}
       rowKey={(row) => row.id}

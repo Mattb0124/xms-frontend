@@ -184,7 +184,6 @@ export function OutboundTab({ instanceId }: { instanceId: string }) {
   return (
     <DenseTable
       title="Outbound queue"
-      count={queue.data?.length ?? 0}
       columns={columns}
       rows={queue.data ?? []}
       rowKey={(row) => row.id}

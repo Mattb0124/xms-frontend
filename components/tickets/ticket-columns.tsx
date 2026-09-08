@@ -7,9 +7,24 @@ import { KeyLink } from "@/components/xms/key-link";
 import { PriorityPill } from "@/components/xms/priority-pill";
 import { SlaValue } from "@/components/xms/sla-value";
 import { StatePill } from "@/components/xms/state-pill";
-import { TypeBar } from "@/components/xms/type-bar";
 import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
+import { typeLabel } from "@/lib/tickets/vocab";
 import type { GrantedAccount, TicketView } from "@/redux/ticketsApi";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * "3 Sep" for the Opened column, with the year appended once the ticket was
+ * opened in another one, so a list that spans a year boundary still reads.
+ * Built from the parts rather than through `toLocaleDateString` so the column
+ * is the same on every machine and the tests can assert it.
+ */
+export function openedDate(iso: string, now: Date = new Date()): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  const stem = `${at.getDate()} ${MONTHS[at.getMonth()]}`;
+  return at.getFullYear() === now.getFullYear() ? stem : `${stem} ${String(at.getFullYear()).slice(2)}`;
+}
 
 /** "3m ago", "2h ago", "4d ago" for the Updated column. */
 export function relativeTime(iso: string, now: Date = new Date()): string {
@@ -44,21 +59,40 @@ export interface ColumnOptions {
    * clock and a hidden column can still be sorted on.
    */
   showClocks?: boolean;
+  /**
+   * Draw the account identity square before the name. My work's Needs
+   * attention list keeps it, because render 08 draws it there and the list is
+   * six rows across three accounts, which is exactly the case the swatch was
+   * for. The Queue does not: at 25 rows across seven columns the reviewer
+   * read it as decoration.
+   */
+  accountIdentity?: boolean;
 }
 
 /** The Queue's default sort: the tightest clock first (Wireframes section 3.1). */
 export const QUEUE_DEFAULT_SORT = { key: "sla", direction: "asc" } as const;
 
 /**
- * The Queue column set in the prototype's order (Wireframes section 3.1, v3
- * render 01): Key, Short description, Account, Type, Priority, State,
- * Assignee, then SLA and Updated, which v3 does not draw.
+ * The Queue column set (Wireframes section 3.1, v3 render 01): Key, Short
+ * description, Account, Type, Priority, State, Opened, Assignee, then SLA and
+ * Updated, which v3 does not draw.
+ *
+ * Account and Type are plain text. The render draws an identity square before
+ * the account and a type bar before the label, and the reviewer took both off
+ * the Queue: the row now carries colour for state, priority and the clock
+ * alone, which is the three questions the list is read for. `AccountDot` and
+ * `TypeBar` stay in the system and stay in use on the record and on Dispatch.
  *
  * The widths add up to the render's: 1500 less the 238px sidebar, the page
- * padding and the card border leaves about 1180 for the seven cells, which is
- * why Short description takes the slack and everything else is fixed.
+ * padding and the card border leaves about 1180 for the visible cells, which
+ * is why Short description takes the slack and everything else is fixed.
  */
-export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptions): DenseColumn<TicketView>[] {
+export function ticketColumns({
+  accounts,
+  hideAccount,
+  showClocks,
+  accountIdentity,
+}: ColumnOptions): DenseColumn<TicketView>[] {
   const columns: DenseColumn<TicketView>[] = [
     {
       key: "key",
@@ -84,7 +118,12 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       sortValue: (row) => accounts.get(row.account_id)?.name ?? row.account_id,
       render: (row) => {
         const account = accounts.get(row.account_id);
-        return <AccountDot name={account?.name ?? "Account"} hue={accountHue(account?.key)} />;
+        const name = account?.name ?? "Account";
+        return accountIdentity ? (
+          <AccountDot name={name} hue={accountHue(account?.key)} />
+        ) : (
+          <span className="text-xms-body">{name}</span>
+        );
       },
     },
     {
@@ -92,7 +131,7 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       title: "Type",
       width: "112px",
       sortValue: (row) => row.type,
-      render: (row) => <TypeBar type={row.type} />,
+      render: (row) => <span className="text-xms-body">{typeLabel(row.type)}</span>,
     },
     {
       key: "priority",
@@ -107,6 +146,16 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       width: "154px",
       sortValue: (row) => row.state,
       render: (row) => <StatePill state={row.state} label={row.state_label} />,
+    },
+    {
+      // When the request arrived, which is the question the queue is read
+      // for after the clock and is not answerable from "Updated".
+      key: "opened",
+      title: "Opened",
+      width: "104px",
+      mono: true,
+      sortValue: (row) => row.created_at,
+      render: (row) => <span className="text-xms-label">{openedDate(row.created_at)}</span>,
     },
     {
       key: "assignee",
@@ -150,7 +199,7 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
  */
 export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView>[] {
   const wanted = new Set(["key", "short_description", "account", "state", "sla"]);
-  return ticketColumns({ ...options, showClocks: true })
+  return ticketColumns({ ...options, showClocks: true, accountIdentity: true })
     .filter((column) => wanted.has(column.key))
     .map((column) => (column.key === "sla" ? { ...column, title: "", align: "right" as const } : column));
 }

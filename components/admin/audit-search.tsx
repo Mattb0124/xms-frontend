@@ -589,7 +589,6 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
       ) : (
         <DenseTable<AuditEvent>
           title="Events"
-          count={items.length}
           columns={COLUMNS}
           rows={items}
           rowKey={(row) => row.id}

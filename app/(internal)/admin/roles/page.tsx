@@ -134,7 +134,6 @@ function AdminRolesPageBody() {
         ) : null}
         <DenseTable
           title={`${catalog === "operator" ? "Operator" : "Portal"} roles`}
-          count={data?.length ?? 0}
           columns={COLUMNS}
           rows={data ?? []}
           rowKey={(row) => row.id}

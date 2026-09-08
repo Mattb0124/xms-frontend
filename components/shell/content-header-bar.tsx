@@ -59,7 +59,7 @@ export function ContentHeaderBar({
       <HeaderActionContext.Provider value={actionSlot}>
         <HeaderSearchContext.Provider value={searchSlot}>
           <div
-            className="bg-xms-bar border-xms-line flex shrink-0 items-center gap-2 border-b px-3"
+            className="bg-xms-bar border-xms-bar-line flex shrink-0 items-center gap-[10px] border-b px-4"
             style={{ height: "var(--xms-header-bar-h)" }}
             data-testid="content-header-bar"
           >
@@ -99,7 +99,7 @@ export function ContentHeaderBar({
                 keeps the width reserved so the blue action never moves. */}
             <div
               ref={setSearchSlot}
-              className="flex w-[190px] shrink-0 items-center"
+              className="flex w-[186px] shrink-0 items-center"
               data-testid="header-search-slot"
             />
             <div ref={setActionSlot} className="flex shrink-0 items-center gap-2" data-testid="header-action-slot" />
@@ -146,7 +146,7 @@ export function HeaderSearchField({
 }) {
   return (
     <form
-      className="border-xms-line bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-[6px] border px-[10px]"
+      className="border-xms-control-line bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-[var(--xms-radius-control)] border px-[11px]"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit?.();

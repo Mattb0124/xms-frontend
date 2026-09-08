@@ -147,7 +147,6 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
     <section aria-label={`${scopeLabel} report`} data-report={report.id} data-current={current ? "true" : undefined}>
       <DenseTable
         title={`${scopeLabel} report`}
-        count={lines.length}
         columns={columns}
         rows={lines}
         rowKey={(row) => String(row.index)}

@@ -124,7 +124,6 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
           <NotablePanel notable={data.notable} />
           <DenseTable<AccountStrip>
             title="Accounts"
-            count={data.per_account.length}
             columns={COLUMNS}
             rows={data.per_account}
             rowKey={(row) => row.account_id}

@@ -259,14 +259,35 @@ export function DownloadIcon(props: IconProps) {
 }
 
 /**
- * The paired caret beside a sortable column title (v3 render 01): both arms
- * muted while the column is idle, the active arm picked out once it sorts.
+ * The glyph beside a sortable column title (hand-off section 5): Lucide's
+ * `chevrons-up-down` while the column is idle, swapped for `arrow-up` (turned
+ * over for a descending sort) once the column carries the sort. Both are the
+ * Lucide geometry on the same 24 unit canvas at 1.5px, drawn here rather than
+ * pulled from `lucide-react` so the whole icon set stays one module and no
+ * package is added for two paths.
+ *
+ * The arms were 12px at 2.2px stroke and read as a smudge; the hand-off
+ * states 13px, and the caller inks the idle glyph with --xms-quiet-line and
+ * the sorted one with the link colour.
  */
 export function SortCaret({ direction, ...props }: IconProps & { direction?: "asc" | "desc" }) {
+  if (!direction) {
+    return (
+      <Icon size={13} {...props} strokeWidth={1.5}>
+        <path d="m7 15 5 5 5-5" />
+        <path d="m7 9 5-5 5 5" />
+      </Icon>
+    );
+  }
   return (
-    <Icon {...props} strokeWidth={2.2}>
-      <path d="m8.5 10.5 3.5-3.5 3.5 3.5" opacity={direction === "desc" ? 0.28 : 1} />
-      <path d="m8.5 13.5 3.5 3.5 3.5-3.5" opacity={direction === "asc" ? 0.28 : 1} />
+    <Icon
+      size={13}
+      {...props}
+      strokeWidth={1.5}
+      style={{ ...props.style, transform: direction === "desc" ? "rotate(180deg)" : undefined }}
+    >
+      <path d="m5 12 7-7 7 7" />
+      <path d="M12 19V5" />
     </Icon>
   );
 }

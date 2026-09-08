@@ -88,7 +88,6 @@ export function FunnelPanel({ funnel }: { funnel: UsageFunnel }) {
       {funnel.per_account && funnel.per_account.length > 0 ? (
         <DenseTable<AccountFunnel>
           title="Core loop by account"
-          count={funnel.per_account.length}
           columns={columns}
           rows={funnel.per_account}
           rowKey={(row) => row.account_id}
@@ -129,7 +128,6 @@ export function AdoptionPanel({ rows }: { rows: AdoptionRow[] }) {
   return (
     <DenseTable<AdoptionRow>
       title="Adoption by role"
-      count={rows.length}
       columns={ADOPTION_COLUMNS}
       rows={rows}
       rowKey={(row) => `${row.catalog}:${row.role}:${row.action}`}

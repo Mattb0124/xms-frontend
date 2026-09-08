@@ -32,13 +32,15 @@ The `--aix-*` names in `house.css` are not drift and must not be renamed: they a
 | `--xms-muted` | `#7B8CA0` | `#8a97ad` | Meta, timestamps, placeholders; never essential copy |
 | `--xms-accent` | `#2563EB`, hover `#1D4ED8` | `#7ea0ff` | Actions, links, active pill outline, selected item bar, focus. **Never large fills except the primary button** |
 | `--xms-navy` | `#10193A` | `#0b1226` | The finder bar and the finder overlay only |
-| `--xms-line` | `#E4E8F5`, strong `#C9D2E6` | `#243349` | Borders, dividers, table hairlines |
+| `--xms-line` | `#E4E8F5`, strong `#C9D2E6`, head `#D5DBE5`, row `#EEF1F6` | `#243349` | Card edges, control edges, the table header underline and the row divider |
 | `--xms-bg` | `#F4F5F7` | `#0c1626` | Page canvas |
-| `--xms-bar` | `#F0F3FA` | `#121b2e` | Content header bar |
+| `--xms-bar`, `--xms-bar-line` | `#E7E9ED`, `#CFD5DF` | `#121b2e` | The grey tool strip and its rule (hand-off `--xms-toolstrip`) |
+| `--xms-chip` | `#F0F3FA` | `#1a2740` | The soft fill behind a mono count: sidebar badges, the Dispatch age, Waiting on me |
+| `--xms-control-line`, `--xms-quiet-line` | `#C3CAD6`, `#B4BDCC` | tinted | Control edges on the grey strip; the dashed Add filter edge and the idle sort glyph |
 | `--xms-card` | `#FFFFFF` | `#141f31` | Cards, tables, rail cards |
 | `--xms-tint` | `#EFF4FF` | `#1a2740` | Selected row, active pill fill, state pill background |
 | `--xms-ai-bg`, `--xms-ai-border`, `--xms-ai-accent` | `#EDF1FF`, `#C7D6F7`, `#7C9AE8` | tinted | AI-origin content only: summaries, suggestions, drafts, the synthesis line. **Never status** |
-| `--xms-row-hover`, `--xms-cell-hover` | `#F7F8FA`, `#EFF4FF` | tinted | Dense list hover. There is no zebra token |
+| `--xms-row-hover`, `--xms-cell-hover` | `#F0F3FA`, `#EFF4FF` | tinted | Dense list hover. There is no zebra token |
 | `--xms-mono` | IBM Plex Mono | same | Keys, SLA values, counts, tool calls, 11px uppercase labels with `.06em` tracking |
 | `--xms-state-<state>-fg/-bg/-br` | New slate, In progress blue, Awaiting client amber, Awaiting approval teal, Resolved green, Closed grey (values in Wireframes §8.1) | tinted | Ticket state pills only |
 | `--xms-type-incident/-request/-change/-problem` | `#DC2626`, `#0E7490`, `#7A5AF8`, `#B45309` | same | The 3px type bar beside the type label only |

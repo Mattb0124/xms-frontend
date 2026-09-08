@@ -156,7 +156,6 @@ export function RecordsTab({ batchId }: { batchId: string }) {
     <>
       <DenseTable
         title="Records"
-        count={rows.length}
         columns={COLUMNS}
         rows={rows}
         rowKey={(row) => row.id}

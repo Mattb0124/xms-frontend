@@ -206,7 +206,6 @@ function QuarantineScreen() {
       <div className={cn("grid gap-4", selected && "xl:grid-cols-[1fr_420px]")}>
         <DenseTable
           title={showDecided ? "Decided" : "Awaiting review"}
-          count={rows.length}
           columns={showDecided ? DECIDED_COLUMNS : COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}

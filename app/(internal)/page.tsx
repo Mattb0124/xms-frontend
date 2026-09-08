@@ -112,7 +112,6 @@ export default function MyWorkPage() {
           <div className="flex min-w-0 flex-col gap-4">
             <DenseTable<TicketView>
               title="Needs attention"
-              count={attention.length}
               columns={attentionCols}
               rows={attention}
               rowKey={(row) => row.key}
@@ -121,7 +120,6 @@ export default function MyWorkPage() {
             />
             <DenseTable<TicketView>
               title="My open tickets"
-              count={mine.length}
               columns={columns}
               rows={mine}
               rowKey={(row) => row.key}

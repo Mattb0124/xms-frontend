@@ -30,7 +30,13 @@ export interface DenseColumn<Row> {
 
 export interface DenseTableProps<Row> {
   title: string;
-  count: number;
+  /**
+   * Name the list for assistive technology without drawing the title. The
+   * Queue takes this: its card header carried the word "Count" beside a
+   * badge repeating the row count, and both are gone, so the header is the
+   * search field and the two icon controls and nothing else.
+   */
+  titleHidden?: boolean;
   columns: DenseColumn<Row>[];
   rows: Row[];
   rowKey: (row: Row) => string;
@@ -46,7 +52,7 @@ export interface DenseTableProps<Row> {
   selected?: ReadonlySet<string>;
   onSelectionChange?: (selected: Set<string>) => void;
   onRowClick?: (row: Row) => void;
-  /** In-card search slot, rendered in the header after the count. */
+  /** In-card search slot, rendered in the header after the title. */
   search?: ReactNode;
   /** The icon controls to the right of the search field (filter, columns). */
   actions?: ReactNode;
@@ -117,11 +123,8 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
     // it the document was wider than the viewport and the whole page scrolled
     // sideways instead of the table (frontend review finding 8).
     <section className={cn("xms-card flex min-w-0 flex-col", props.className)} aria-label={props.title}>
-      <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-3 border-b px-4 py-2">
-        <span className="text-xms-ink text-[15px] font-semibold">{props.title}</span>
-        <span className="xms-mono bg-xms-tint text-xms-accent rounded-[999px] px-2 py-[2px] text-[11px] font-semibold">
-          {props.count}
-        </span>
+      <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
+        {props.titleHidden ? null : <span className="text-xms-ink text-[17px] font-semibold">{props.title}</span>}
         {props.search ? <div className="ml-auto min-w-0 max-w-full flex-1">{props.search}</div> : null}
         {props.actions ? (
           <div className={cn("flex shrink-0 items-center gap-2", props.search ? undefined : "ml-auto")}>
@@ -130,12 +133,14 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
         ) : null}
       </header>
       {props.banner}
-      <div className="overflow-auto">
+      {/* Horizontal overflow scrolls inside the card, never the page
+          (hand-off section 5). */}
+      <div className="overflow-x-auto">
         <table className="w-full border-collapse text-[13px]">
           <thead className="bg-xms-card sticky top-0 z-10">
-            <tr className="border-xms-line border-b">
+            <tr className="border-xms-line-head border-b">
               {selectable ? (
-                <th className="w-9 px-3 py-2">
+                <th className="w-11 px-5 py-[11px]">
                   <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />
                 </th>
               ) : null}
@@ -147,7 +152,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     style={{ width: column.width }}
                     aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : undefined}
                     className={cn(
-                      "text-xms-ink px-3 py-2 text-left text-[13px] font-semibold whitespace-nowrap",
+                      "text-xms-ink px-[14px] py-[11px] text-left text-[13px] font-semibold whitespace-nowrap",
                       column.align === "right" && "text-right",
                     )}
                   >
@@ -155,12 +160,14 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       <button
                         type="button"
                         onClick={() => setSort(column.key)}
-                        className="hover:text-xms-accent inline-flex items-center gap-1"
+                        className="hover:text-xms-accent inline-flex items-center gap-[5px]"
                       >
                         {column.title}
+                        {/* 13px, and the idle glyph is the quietest line in
+                            the system, not the label grey it was drawn in
+                            (hand-off section 5). */}
                         <SortCaret
-                          size={12}
-                          className={active ? "text-xms-accent" : "text-xms-muted"}
+                          className={active ? "text-xms-accent" : "text-xms-quiet-line"}
                           direction={active ? sort?.direction : undefined}
                         />
                       </button>
@@ -199,13 +206,15 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       : undefined
                   }
                   className={cn(
-                    "border-xms-line hover:bg-xms-row-hover h-[47px] border-b",
+                    // One hairline and a hover fill separate two rows, and
+                    // nothing else does (hand-off rule 1).
+                    "border-xms-line-row hover:bg-xms-row-hover border-b",
                     isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
                     onRowClick && "cursor-pointer",
                   )}
                 >
                   {selectable ? (
-                    <td className="px-3" onClick={(event) => event.stopPropagation()}>
+                    <td className="px-5 py-[13px]" onClick={(event) => event.stopPropagation()}>
                       <input
                         type="checkbox"
                         aria-label={`Select ${key}`}
@@ -218,7 +227,8 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     <td
                       key={column.key}
                       className={cn(
-                        "hover:bg-xms-cell-hover text-xms-ink px-3 align-middle whitespace-nowrap",
+                        // 13px vertical, 14px horizontal (hand-off section 4).
+                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] py-[13px] align-middle whitespace-nowrap",
                         column.mono && "xms-mono",
                         column.align === "right" && "text-right",
                       )}

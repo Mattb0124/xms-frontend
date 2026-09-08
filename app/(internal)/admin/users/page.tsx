@@ -215,7 +215,6 @@ function UsersList() {
         ) : null}
         <DenseTable
           title="Users"
-          count={rows.length}
           columns={COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}

@@ -175,7 +175,6 @@ function AdminAccountsPageBody() {
         ) : null}
         <DenseTable
           title="Accounts"
-          count={rows.length}
           columns={COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}

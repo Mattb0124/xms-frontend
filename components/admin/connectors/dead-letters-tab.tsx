@@ -130,7 +130,6 @@ export function DeadLettersTab({ instanceId }: { instanceId: string }) {
     <div className="flex flex-col gap-4">
       <DenseTable
         title="Open dead letters"
-        count={open.data?.length ?? 0}
         columns={OPEN_COLUMNS}
         rows={open.data ?? []}
         rowKey={(row) => row.id}
@@ -160,7 +159,6 @@ export function DeadLettersTab({ instanceId }: { instanceId: string }) {
           <div className="mt-3">
             <DenseTable
               title="Resolved"
-              count={resolvedRows.length}
               columns={RESOLVED_COLUMNS}
               rows={resolvedRows}
               rowKey={(row) => row.id}

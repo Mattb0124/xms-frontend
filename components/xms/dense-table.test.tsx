@@ -34,7 +34,6 @@ function Harness() {
   return (
     <DenseTable
       title="Queue"
-      count={42}
       columns={COLUMNS}
       rows={ROWS}
       rowKey={(r) => r.key}
@@ -54,9 +53,12 @@ function bodyKeys(): string[] {
 }
 
 describe("DenseTable", () => {
-  it("renders the count badge, mono key links and SLA values", () => {
+  it("draws mono key links and SLA values, and no row count", () => {
     render(<Harness />);
-    expect(screen.getByText("42")).toHaveClass("xms-mono");
+    // The card header carried the row count beside the title. Both the badge
+    // and the word "Count" that labelled it are gone: the reviewer reads the
+    // number off the sidebar, not off three places at once.
+    expect(screen.queryByText("42")).not.toBeInTheDocument();
     const link = screen.getByRole("link", { name: "CS0001204" });
     expect(link).toHaveAttribute("href", "/tickets/CS0001204");
     expect(link).toHaveClass("xms-mono");
@@ -90,7 +92,6 @@ describe("DenseTable", () => {
     render(
       <DenseTable
         title="Queue"
-        count={3}
         columns={COLUMNS}
         rows={ROWS}
         rowKey={(r) => r.key}
@@ -118,7 +119,6 @@ describe("DenseTable", () => {
     render(
       <DenseTable
         title="Queue"
-        count={3}
         columns={COLUMNS}
         rows={ROWS}
         rowKey={(r) => r.key}
@@ -143,20 +143,13 @@ describe("DenseTable", () => {
   });
 
   it("leaves a row that opens nothing out of the tab order", () => {
-    render(<DenseTable title="Queue" count={3} columns={COLUMNS} rows={ROWS} rowKey={(r) => r.key} />);
+    render(<DenseTable title="Queue" columns={COLUMNS} rows={ROWS} rowKey={(r) => r.key} />);
     expect(screen.getByRole("row", { name: /Azure Files mount/ })).not.toHaveAttribute("tabindex");
   });
 
   it("shows the empty state when there are no rows", () => {
     render(
-      <DenseTable
-        title="Queue"
-        count={0}
-        columns={COLUMNS}
-        rows={[]}
-        rowKey={(r) => r.key}
-        emptyState="Nothing in Breached"
-      />,
+      <DenseTable title="Queue" columns={COLUMNS} rows={[]} rowKey={(r) => r.key} emptyState="Nothing in Breached" />,
     );
     expect(screen.getByText("Nothing in Breached")).toBeInTheDocument();
   });

@@ -593,7 +593,6 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
       <EngagementsPanel accountId={accountId} />
       <DenseTable
         title="Contracts"
-        count={rows.length}
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}

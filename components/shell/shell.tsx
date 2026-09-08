@@ -187,11 +187,16 @@ export function Shell({ children }: { children: ReactNode }) {
         ) : null}
         <div className="flex min-w-0 flex-1 flex-col">
           <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
-            {/* 20px, measured off render 01: the card's left edge sits at
-                x=278 with the sidebar ending at 258, and its top at y=226 with
-                the toolbar rule at 167, which is 20px of page padding and a
-                20px gap under the breadcrumb row. It was 16px on both. */}
-            <main className="flex flex-1 flex-col p-5">{children}</main>
+            {/* The work area, and the reason the canvas is grey: the vendored
+                token file paints the body white, and every screen was drawn on
+                white with white cards on it, so nothing had an edge. The
+                hand-off's own skeleton is `background: var(--xms-canvas)` on
+                the scrolling column with the cards standing on it.
+                18px above, 20px either side, 40px below, capped at the 1200px
+                content width (hand-off section 4). */}
+            <main className="bg-xms-bg flex flex-1 justify-start overflow-auto">
+              <div className="flex w-full max-w-[1200px] flex-col px-5 pt-[18px] pb-10">{children}</div>
+            </main>
           </ContentHeaderBar>
         </div>
         {/* The panel pushes the content, it does not overlay it (Wireframes v2

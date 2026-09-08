@@ -287,8 +287,6 @@ function QueueScreen() {
     }
     navigate({ chips: parsed.chips.filter((chip) => `${chip.key}:${chip.value}` !== key) });
   };
-  const countLabel =
-    stats !== undefined ? `${stats.open} open ticket${stats.open === 1 ? "" : "s"}` : `${rows.length} shown`;
 
   return (
     <div className="flex flex-col gap-5">
@@ -414,11 +412,12 @@ function QueueScreen() {
         ) : null}
       </HeaderAction>
 
-      {/* The condition trail, the count and Save as view are one line in the
-          render (01), not three stacked rows. */}
+      {/* The condition trail and Save as view are one line. The open-ticket
+          readout that stood between them is gone with the card's own count
+          badge: the sidebar carries the number the queue is measured by, and
+          repeating it twice more on the screen it names was noise. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <BreadcrumbTrail segments={trail} onRemove={removeSegment} className="min-w-0 flex-1" />
-        <span className="xms-mono text-xms-label shrink-0 text-[12px]">{countLabel}</span>
         <SavedViewsBar
           params={exportParams}
           accounts={accounts ?? []}
@@ -444,8 +443,8 @@ function QueueScreen() {
         <Skeleton lines={8} />
       ) : (
         <DenseTable<TicketView>
-          title="Count"
-          count={rows.length}
+          title="Queue"
+          titleHidden
           columns={columns}
           rows={rows}
           rowKey={(row) => row.key}

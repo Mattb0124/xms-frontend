@@ -40,8 +40,11 @@ export function FilterSelect({ label, value, options, onChange, onClear, primary
       data-testid={`filter-${label.toLowerCase()}`}
       data-active={active ? "true" : undefined}
       className={cn(
-        "bg-xms-card inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center rounded-[999px] border pr-1 pl-3",
-        primary ? "border-xms-accent" : active ? "border-xms-accent-border" : "border-xms-line",
+        // 4px, not a lozenge: every v3 render draws the toolbar dimensions as
+        // square-cornered controls and keeps 999px for the state, priority
+        // and count pills inside the list.
+        "bg-xms-card inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center rounded-[var(--xms-radius-control)] border pr-1 pl-3",
+        primary ? "border-xms-accent" : "border-xms-control-line",
         className,
       )}
     >
@@ -73,19 +76,25 @@ export function FilterSelect({ label, value, options, onChange, onClear, primary
           ))}
         </select>
       </span>
-      {!primary && active ? (
+      {/* The render draws the clear mark on every standing dimension, quiet
+          while the dimension carries nothing and inked once it does, so the
+          pill never changes width the moment it starts filtering. The primary
+          "Show:" dimension is the one that never carries one. */}
+      {primary ? (
+        <span aria-hidden className="ml-1 h-[22px] w-[22px]" />
+      ) : (
         <button
           type="button"
           aria-label={`Remove the ${label.toLowerCase()} filter`}
           onClick={onClear}
-          className="text-xms-muted hover:text-xms-ink hover:bg-xms-tint ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-[999px]"
+          disabled={!active}
+          className={cn(
+            "hover:bg-xms-tint ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-[var(--xms-radius-control)]",
+            active ? "text-xms-muted hover:text-xms-ink" : "text-xms-placeholder",
+          )}
         >
           <CloseIcon size={12} />
         </button>
-      ) : (
-        // Reserved, so a pill does not change width the moment it starts
-        // filtering and shove every pill beside it along the row.
-        <span aria-hidden className="ml-1 h-[22px] w-[22px]" />
       )}
     </span>
   );

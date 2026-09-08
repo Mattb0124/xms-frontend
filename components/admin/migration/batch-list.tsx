@@ -124,7 +124,6 @@ export function BatchList({ rows, accountNames, loading, emptyState }: BatchList
   return (
     <DenseTable
       title="Batches"
-      count={rows.length}
       columns={columns}
       rows={rows}
       rowKey={(row) => row.id}

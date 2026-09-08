@@ -3,9 +3,51 @@
 What changed, screen by screen, against `01-architecture/wireframes/v3/` and
 `01-architecture/WIREFRAMES.md` sections 2, 4 and 8, and what still differs.
 
-Screenshots are outside git, in `C:/Users/matt.brown/Documents/repos/xms-work/shots-v3/`,
-at the prototype's own 1500 by 1020. Before shots are the stack as the reviewer
-was running it; after shots are this branch on a dev server of its own.
+Screenshots are outside git, in `C:/Users/matt.brown/Documents/repos/xms-work/shots-v3/`
+for pass one and `.../shots-v3-pass2/` for pass two, at the prototype's own
+1500 by 1020. Before shots are the stack as the reviewer was running it; after
+shots are this branch on a dev server of its own.
+
+## Hand-off reconciliation (pass two)
+
+Pass one measured the renders off the PNGs because the prototype file
+(`XMS-v3-standalone.html`) is a bundler page with a base64 payload rather than
+readable markup. Two things changed that for pass two:
+
+1. **The payload unpacks.** The `__bundler/template` script in that file is a
+   JSON string holding the whole rendered page with its inline styles, and the
+   `__bundler/manifest` script holds the gzipped assets. Unpacking it gives the
+   prototype's own literals, not a pixel estimate: it is the source every
+   measurement below is now taken from.
+2. **The design hand-off arrived**
+   (`01-architecture/wireframes/v3/handoff/`): `XMS-UI-SPEC.md` and
+   `xms-ui.css`, which the spec names as the source of truth for the build.
+   Where the hand-off and pass one's measurement disagree, the hand-off wins.
+
+What changed as a result, value by value:
+
+| Token or rule                             | Pass one                                        | Now                                                                                        | Source                                                            |
+| ----------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `--xms-bar` (the grey tool strip)         | `#F0F3FA`                                       | `#E7E9ED`                                                                                  | `xms-ui.css` `--xms-toolstrip`; the render's own pixels agree     |
+| The strip's rule                          | `--xms-line` `#E4E8F5`                          | `--xms-bar-line` `#CFD5DF`                                                                 | `--xms-toolstrip-edge`                                            |
+| The page canvas                           | not painted, so the body's white showed through | `--xms-bg` `#F4F5F7` on the scrolling column                                               | `.xms-main { background: var(--xms-canvas) }`                     |
+| Row divider                               | `--xms-line` `#E4E8F5`                          | `--xms-line-row` `#EEF1F6`                                                                 | `.xms-table td`                                                   |
+| Table header underline                    | `--xms-line` `#E4E8F5`                          | `--xms-line-head` `#D5DBE5`                                                                | `.xms-table th`                                                   |
+| Row hover                                 | `--xms-row-hover` `#F7F8FA`                     | `#F0F3FA`                                                                                  | `.xms-table tbody tr:hover`, hand-off section 7                   |
+| Toolbar control edge                      | `--xms-line` `#E4E8F5`                          | `--xms-control-line` `#C3CAD6`                                                             | `--xms-line-control`                                              |
+| Dashed "Add filter" edge, idle sort glyph | `--xms-line-strong` / `--xms-muted`             | `--xms-quiet-line` `#B4BDCC`                                                               | `.xms-chip.is-add`, hand-off section 5                            |
+| Toolbar pill radius                       | `999px`                                         | `4px` (`--xms-radius-control`)                                                             | `--xms-r-ctl`; 999px is for state, priority and count pills alone |
+| Sort glyph                                | a paired caret at 12px, 2.2px stroke            | Lucide `chevrons-up-down` at 13px, 1.5px stroke, swapping to `arrow-up` in the link colour | hand-off section 5                                                |
+| Table cell padding                        | `12px` both ways                                | 13px vertical, 14px horizontal                                                             | `--xms-row-y` / `--xms-row-x`                                     |
+| Content width                             | unbounded                                       | `max-width: 1200px`, 20px gutter, 18px above and 40px below                                | `--xms-content-max`, `.xms-main > .in`                            |
+| Mono count fill                           | `--xms-tint` (blue)                             | `--xms-chip` `#F0F3FA`                                                                     | `.xms-nav-badge`                                                  |
+
+The icons stay in `components/xms/icons.tsx` rather than moving to
+`lucide-react`. The hand-off asks for Lucide geometry at 1.5px stroke on a
+24px canvas and warns against `lucide.createIcons()` inside a React tree; the
+inline set already is that geometry, and the two glyphs the sort control
+needed were drawn from Lucide's own paths, so no package was added for two
+`<path>` elements.
 
 ## How the measurements were taken
 
@@ -94,6 +136,28 @@ Still differs:
   section is empty: both are the route registry and this browser's stars, not
   layout.
 - Quarantine reads 0 and Queue 26 against the render's 3 and 42. Seed data.
+
+## 1b. The Queue, as the reviewer asked for it (pass two)
+
+Four asks, all on the Queue and all of them overriding what render 01 draws:
+
+- **The count is gone, twice.** The card header carried the word "Count" and a
+  badge repeating the row count, and the breadcrumb row carried "26 open
+  tickets" beside Save as view. Both are gone, and with them `DenseTable`'s
+  `count` prop (26 call sites) and `BreadcrumbTrail`'s. The sidebar keeps its
+  badges, which is where the hand-off puts the number.
+- **The sort glyph.** 13px `chevrons-up-down` in `--xms-quiet-line`, swapping
+  to `arrow-up` in the link colour on the sorted column, per hand-off section 5. It was a 12px paired caret at a 2.2px stroke, which read as a smudge.
+- **Opened.** A new column between State and Assignee carrying the instant the
+  request arrived, in mono, as "25 Aug" and "31 Dec 25" once the year differs,
+  sorted on the ISO instant rather than on the words. "Updated" answers a
+  different question and could not stand in for it.
+- **No colour on Account or Type.** The identity square before the account
+  name and the 3px bar before the type label are off the Queue: the row now
+  carries colour for state, priority and the clock alone. `AccountDot` and
+  `TypeBar` are unchanged and still drawn on My work's Needs attention list
+  (render 08 has them there) and on Dispatch, through the new
+  `accountIdentity` column option.
 
 ## 2. Queue (render 01)
 

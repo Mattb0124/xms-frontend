@@ -492,7 +492,6 @@ export function TicketGroupsCatalog() {
       ) : (
         <DenseTable<TicketGroup>
           title="Count"
-          count={rows.length}
           columns={columns}
           rows={rows}
           rowKey={(row) => row.id}
