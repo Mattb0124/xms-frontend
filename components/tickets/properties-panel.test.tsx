@@ -34,6 +34,10 @@ describe("PropertiesPanel", () => {
     expect(screen.getByRole("region", { name: "Properties" })).toBeInTheDocument();
     expect(screen.queryByText(/priority from the matrix/i)).toBeNull();
     expect(container.querySelector('[data-field="priority"]')).toHaveTextContent("Derived from the matrix");
+    // v3 render 02: a stacked row is its value as text until it is clicked, so
+    // the select is not in the tree at rest. Clicking the value opens it.
+    await waitFor(() => expect(screen.getByRole("button", { name: "P2" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "P2" }));
     await waitFor(() => expect(screen.getByLabelText("Priority")).toHaveValue("p2"));
   });
 
@@ -66,15 +70,21 @@ describe("PropertiesPanel", () => {
   });
 });
 
-/** Review finding 21: the tab order differed from the prototype. */
+/**
+ * Review finding 21, then the v3 fidelity pass: the render (02 to 07) ends the
+ * six shared tabs with Sync, which the built record had demoted to a rail card.
+ * Email follows the six because the built record carries an email surface the
+ * prototype does not, and dropping the tab would drop the surface.
+ */
 describe("the work area tabs", () => {
-  it("follows the prototype order, with Email after the five it shares", () => {
+  it("follows the render order, with Email after the six it shares", () => {
     expect(WORK_AREA_TABS.map((tab) => tab.label)).toEqual([
       "Conversation",
       "Activity",
       "Time",
       "Resolution",
       "Links",
+      "Sync",
       "Email",
     ]);
   });

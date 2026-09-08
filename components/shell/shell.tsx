@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { ContentHeaderBar } from "@/components/shell/content-header-bar";
@@ -53,7 +53,13 @@ export function Shell({ children }: { children: ReactNode }) {
   const sidebarOpen = sidebarChoice ?? !narrow;
   const [notifications, setNotifications] = useState(false);
   const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: 60_000, skip: !me.principal });
-  const [axel, setAxel] = useState(false);
+  // The record bar's Ask Axel opens the shell panel through the address, so
+  // the link is a link and a pasted one opens the panel too (render 15).
+  const axelParam = useSearchParams().get("axel") === "1";
+  const [axelChoice, setAxelChoice] = useState<boolean | null>(null);
+  const axel = axelChoice ?? axelParam;
+  const setAxel = (next: boolean | ((open: boolean) => boolean)) =>
+    setAxelChoice(typeof next === "function" ? next(axel) : next);
 
   // The sidebar's counts come from the routes the screens themselves read,
   // asked for one row each so a badge costs a count and not a page: the ticket

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type RampState = "new" | "in-progress" | "awaiting-client" | "awaiting-approval" | "resolved" | "closed";
@@ -44,14 +45,17 @@ export function stateLabel(state: string): string {
 export interface StatePillProps {
   state: string;
   label?: string;
+  /** The record bar puts its transition chevron inside the pill (render 02). */
+  trailing?: ReactNode;
   className?: string;
 }
 
 /** Ticket state pill on the v3 state ramp; never used for SLA or priority. */
-export function StatePill({ state, label, className }: StatePillProps) {
+export function StatePill({ state, label, trailing, className }: StatePillProps) {
   return (
     <span className={cn("xms-state", className)} data-state={rampFor(state)}>
       {label ?? stateLabel(state)}
+      {trailing}
     </span>
   );
 }

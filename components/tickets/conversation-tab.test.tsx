@@ -20,7 +20,7 @@ describe("Composer", () => {
     await waitFor(() => expect(onSend).toHaveBeenCalledWith("note", "Client admin is slow"));
     expect(screen.getByLabelText("Work note")).toHaveValue("");
 
-    fireEvent.click(screen.getByRole("tab", { name: "Reply to client" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Public reply" }));
     fireEvent.change(screen.getByLabelText("Public reply"), { target: { value: "On it" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     await waitFor(() => expect(onSend).toHaveBeenLastCalledWith("reply", "On it"));

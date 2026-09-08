@@ -104,59 +104,70 @@ function ExternalRecordLink({ link }: { link: TicketSyncLink }) {
   );
 }
 
-export function SyncCardView({ links, runs }: { links: TicketSyncLink[]; runs: SyncRun[] }) {
+export function SyncCardView({
+  links,
+  runs,
+  flush,
+}: {
+  links: TicketSyncLink[];
+  runs: SyncRun[];
+  /** Inside the Sync tab there is already a card, so the rail card is dropped. */
+  flush?: boolean;
+}) {
   if (links.length === 0) return null;
-  return (
-    <RailCard caption="Sync">
-      <div className="flex flex-col gap-3">
-        {links.map((link) => {
-          const notice = modeNotice(link);
-          return (
-            <div
-              key={`${link.instance_name}:${link.external_sys_id}`}
-              className="flex flex-col gap-1"
-              data-link-state={link.state}
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <ExternalRecordLink link={link} />
-                <LinkStatePill state={link.state} />
-              </div>
-              <p className="text-xms-label text-[12px]">
-                {link.instance_name}, {modeLabel(link.mode).toLowerCase()}, {link.health}
-              </p>
-              <p className="xms-mono text-xms-label text-[11px]">
-                last in {link.last_inbound_at ? formatDate(link.last_inbound_at) : "never"}
-                {link.last_outbound_at ? `, last out ${formatDate(link.last_outbound_at)}` : ""}
-              </p>
-              {notice ? (
-                <p className="text-xms-body text-[12px]" data-notice>
-                  {notice}
-                </p>
-              ) : null}
-              <OutboundState link={link} />
-              <ConflictNote link={link} />
+  const body = (
+    <div className="flex flex-col gap-3">
+      {links.map((link) => {
+        const notice = modeNotice(link);
+        return (
+          <div
+            key={`${link.instance_name}:${link.external_sys_id}`}
+            className="flex flex-col gap-1"
+            data-link-state={link.state}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <ExternalRecordLink link={link} />
+              <LinkStatePill state={link.state} />
             </div>
-          );
-        })}
-        {runs.length > 0 ? (
-          <ul className="border-xms-line flex flex-col gap-1 border-t pt-2" aria-label="Recent runs">
-            {runs.slice(0, 5).map((run) => (
-              <li key={run.id} className="flex items-center gap-2 text-[12px]">
-                <span className="xms-mono text-xms-label">{formatDate(run.created_at)}</span>
-                <span className="text-xms-body">{run.direction}</span>
-                <OutcomePill outcome={run.outcome} />
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-    </RailCard>
+            <p className="text-xms-label text-[12px]">
+              {link.instance_name}, {modeLabel(link.mode).toLowerCase()}, {link.health}
+            </p>
+            <p className="xms-mono text-xms-label text-[11px]">
+              last in {link.last_inbound_at ? formatDate(link.last_inbound_at) : "never"}
+              {link.last_outbound_at ? `, last out ${formatDate(link.last_outbound_at)}` : ""}
+            </p>
+            {notice ? (
+              <p className="text-xms-body text-[12px]" data-notice>
+                {notice}
+              </p>
+            ) : null}
+            <OutboundState link={link} />
+            <ConflictNote link={link} />
+          </div>
+        );
+      })}
+      {runs.length > 0 ? (
+        <ul className="border-xms-line flex flex-col gap-1 border-t pt-2" aria-label="Recent runs">
+          {runs.slice(0, 5).map((run) => (
+            <li key={run.id} className="flex items-center gap-2 text-[12px]">
+              <span className="xms-mono text-xms-label">{formatDate(run.created_at)}</span>
+              <span className="text-xms-body">{run.direction}</span>
+              <OutcomePill outcome={run.outcome} />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
+  return flush ? body : <RailCard caption="Sync">{body}</RailCard>;
 }
 
 /** The rail's Sync card: nothing renders until the ticket has a link (User Experience 3.4, Sync). */
-export function SyncCard({ ticketId }: { ticketId: string }) {
+export function SyncCard({ ticketId, flush }: { ticketId: string; flush?: boolean }) {
   const { data } = useTicketSyncQuery(ticketId);
-  if (!data || data.links.length === 0) return null;
-  return <SyncCardView links={data.links} runs={data.runs} />;
+  if (!data || data.links.length === 0)
+    return flush ? (
+      <p className="text-xms-label text-[13px]">This ticket is not linked to an external record.</p>
+    ) : null;
+  return <SyncCardView links={data.links} runs={data.runs} flush={flush} />;
 }

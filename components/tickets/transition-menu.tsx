@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { formatDate, INPUT } from "@/components/admin/primitives";
 import { ResolveForm, toResolutionBody } from "@/components/tickets/resolve-form";
+import { ChevronDownIcon } from "@/components/xms/icons";
 import { StatePill } from "@/components/xms/state-pill";
 import {
   CHANGE_REASON_REQUIRED,
@@ -134,14 +135,16 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
         aria-label={`State ${ticket.state_label}, change`}
         disabled={terminal || pending}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-1 disabled:cursor-default"
+        className="inline-flex disabled:cursor-default"
       >
-        <StatePill state={ticket.state} label={ticket.state_label} />
-        {!terminal ? (
-          <span aria-hidden className="text-xms-muted text-[10px]">
-            ▾
-          </span>
-        ) : null}
+        {/* The record bar's state pill carries the chevron inside itself in the
+            render (02), and stands at 32px rather than at a list row's height. */}
+        <StatePill
+          state={ticket.state}
+          label={ticket.state_label}
+          className="h-[32px] gap-[6px] px-[14px] text-[13px] font-semibold"
+          trailing={terminal ? undefined : <ChevronDownIcon size={13} className="opacity-70" />}
+        />
       </button>
       {open ? (
         <ul role="menu" className="xms-card absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-[13px]">

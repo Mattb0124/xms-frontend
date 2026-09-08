@@ -70,11 +70,11 @@ export function Composer({
           aria-selected={mode === "reply"}
           onClick={() => setMode("reply")}
           className={cn(
-            "h-[26px] rounded-[999px] px-3 text-[12px] font-medium",
+            "h-[28px] rounded-[999px] px-[14px] text-[13px] font-medium",
             mode === "reply" ? "bg-xms-accent text-white" : "text-xms-body hover:bg-xms-tint",
           )}
         >
-          Reply to client
+          Public reply
         </button>
         <button
           type="button"
@@ -82,13 +82,36 @@ export function Composer({
           aria-selected={note}
           onClick={() => setMode("note")}
           className={cn(
-            "h-[26px] rounded-[999px] px-3 text-[12px] font-medium",
+            "h-[28px] rounded-[999px] px-[14px] text-[13px] font-medium",
             note ? "bg-xms-navy text-white" : "text-xms-body hover:bg-xms-tint",
           )}
         >
           Work note
         </button>
-        {note ? <span className="text-xms-label ml-auto text-[11px] uppercase">Internal, never leaves</span> : null}
+        {note ? <span className="xms-caption ml-2">Internal, never leaves</span> : null}
+        {/* Draft with Axel and Template sit on the right of the composer's own
+            header in the render (02). Neither has a route behind it yet: the
+            Axel turn surface is held and there is no template catalog, so both
+            are drawn disabled with the reason on them rather than as controls
+            that do nothing when clicked. */}
+        <span className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            disabled
+            title="The Axel drafting turn is not wired yet."
+            className="border-xms-line bg-xms-card text-xms-body h-[28px] rounded-[6px] border px-3 text-[13px] disabled:opacity-50"
+          >
+            Draft with Axel
+          </button>
+          <button
+            type="button"
+            disabled
+            title="There is no reply template catalog on the API yet."
+            className="border-xms-line bg-xms-card text-xms-body h-[28px] rounded-[6px] border px-3 text-[13px] disabled:opacity-50"
+          >
+            Template
+          </button>
+        </span>
       </div>
       <textarea
         aria-label={note ? "Work note" : "Public reply"}
@@ -108,7 +131,7 @@ export function Composer({
           type="submit"
           disabled={readOnly || pending || !body.trim() || Boolean(blockedReason)}
           className={cn(
-            "ml-auto h-[30px] rounded-[4px] px-3 text-[12px] font-medium text-white disabled:opacity-50",
+            "ml-auto h-[32px] rounded-[6px] px-4 text-[13px] font-semibold text-white disabled:opacity-50",
             note ? "bg-xms-navy" : "bg-xms-accent hover:bg-xms-accent-hover",
           )}
         >

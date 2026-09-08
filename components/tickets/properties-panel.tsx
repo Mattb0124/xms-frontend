@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { formatDate } from "@/components/admin/primitives";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
 import { GroupPicker } from "@/components/tickets/group-picker";
-import { Panel } from "@/components/xms/panel";
 import { RecordForm, type RecordField } from "@/components/xms/record-form";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -132,9 +131,14 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   };
 
   return (
-    <Panel title="Properties">
+    // The v3 render (02) draws Properties as an ALL-CAPS caption over a
+    // hairline-ruled list of label-above-value rows, not as a titled card with
+    // a two-column bordered form inside it, so the card is flush and the
+    // caption is the only header.
+    <section className="xms-card flex flex-col" aria-label="Properties">
+      <p className="xms-caption border-xms-line border-b px-4 py-3">Properties</p>
       <RecordForm
-        columns={1}
+        layout="stacked"
         fields={fields}
         onCommit={commit}
         onRollback={(_key, _restored, error) => {
@@ -154,7 +158,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         picker rather than a properties row because it is the queue the work
         sits in, not a field.
       */}
-      <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3">
+      <div className="border-xms-line flex flex-col gap-[3px] border-b px-4 py-[10px]">
         <span className="text-xms-label text-[12px]">Group</span>
         <GroupPicker
           id="ticket-group"
@@ -168,7 +172,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
           }
         />
       </div>
-      <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3">
+      <div className="flex flex-col gap-[3px] px-4 py-[10px]">
         <span className="text-xms-label text-[12px]">Assignee</span>
         <AssigneePicker
           id="ticket-assignee"
@@ -183,6 +187,6 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
           }
         />
       </div>
-    </Panel>
+    </section>
   );
 }
