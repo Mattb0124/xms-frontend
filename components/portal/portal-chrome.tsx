@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ClerkSignOut } from "@/components/portal/clerk-sign-out";
 import { PORTAL_SECONDARY } from "@/components/portal/primitives";
 import { Skeleton } from "@/components/xms/skeleton";
 import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
 import { setDevToken } from "@/lib/auth/token";
+import { isSurveyLink } from "@/lib/portal/csat";
 import { cn } from "@/lib/utils";
 import { xmsApi } from "@/redux/api";
 import { useAppDispatch } from "@/redux/hooks";
@@ -27,6 +28,7 @@ const NAV: { href: string; label: string; match: (path: string) => boolean }[] =
     match: (path) => path.startsWith("/portal/requests") && path !== "/portal/requests/new",
   },
   { href: "/portal/requests/new", label: "New request", match: (path) => path === "/portal/requests/new" },
+  { href: "/portal/surveys", label: "Surveys", match: (path) => path.startsWith("/portal/surveys") },
 ];
 
 function accentOf(me: PortalMe | undefined): string | undefined {
@@ -36,17 +38,30 @@ function accentOf(me: PortalMe | undefined): string | undefined {
 
 export function PortalChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const search = useSearchParams();
   const router = useRouter();
   const isSignIn = pathname === "/portal/sign-in";
-  const me = usePortalMeQuery(undefined, { skip: isSignIn });
+  // A survey email link answers without a session: no header, no nav, no /portal/me.
+  const bare = isSurveyLink(pathname, search);
+  const me = usePortalMeQuery(undefined, { skip: isSignIn || bare });
   const status = me.error && typeof me.error === "object" && "status" in me.error ? me.error.status : undefined;
 
   useEffect(() => {
-    if (!isSignIn && status === 401) router.replace("/portal/sign-in");
-  }, [isSignIn, status, router]);
+    if (!isSignIn && !bare && status === 401) router.replace("/portal/sign-in");
+  }, [isSignIn, bare, status, router]);
 
   const accent = accentOf(me.data);
   const accountName = me.data?.account?.name;
+
+  if (bare) {
+    return (
+      <div className="bg-xms-bg flex min-h-full flex-1 flex-col" data-testid="portal-bare">
+        <main id="portal-main" className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-xms-bg flex min-h-full flex-1 flex-col">

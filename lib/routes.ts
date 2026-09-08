@@ -394,6 +394,8 @@ export const PORTAL_SCREENS: Screen[] = [
   { path: "/portal/requests", screen: "portal.requests", label: "My requests", section: "Tickets", permission: null },
   { path: "/portal/requests/new", screen: "portal.new", label: "New request", section: "Tickets", permission: null },
   { path: "/portal/requests/[key]", screen: "portal.request", label: "Request", section: "Tickets", permission: null },
+  { path: "/portal/surveys", screen: "portal.surveys", label: "Surveys", section: "Tickets", permission: null },
+  { path: "/portal/surveys/[id]", screen: "portal.survey", label: "Survey", section: "Tickets", permission: null },
 ];
 
 export const SECTIONS: Section[] = [
