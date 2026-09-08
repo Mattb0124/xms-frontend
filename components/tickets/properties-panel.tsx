@@ -157,12 +157,16 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   };
 
   return (
-    // The v3 render (02) draws Properties as an ALL-CAPS caption over a
-    // hairline-ruled list of label-above-value rows, not as a titled card with
-    // a two-column bordered form inside it, so the card is flush and the
-    // caption is the only header.
-    <section className="xms-card flex flex-col" aria-label="Properties">
-      <p className="xms-caption border-xms-line border-b px-4 py-3">Properties</p>
+    /*
+     * The prototype's own card (`proto-v3/template.pretty.html`):
+     * `border:1px solid #E4E8F5;border-radius:6px;padding:16px` with no
+     * shadow, the eyebrow inside it at `margin-bottom:14px` and no rule under
+     * the eyebrow. The built card put a full-width rule under the caption and
+     * gave every row its own 16px horizontal padding, which drew each property
+     * as a box.
+     */
+    <section className="xms-card flex flex-col p-4" aria-label="Properties">
+      <p className="xms-caption mb-[14px]">Properties</p>
       <RecordForm
         layout="stacked"
         fields={fields}
@@ -184,8 +188,8 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         picker rather than a properties row because it is the queue the work
         sits in, not a field.
       */}
-      <div className="border-xms-line flex flex-col gap-[3px] border-b px-4 py-[10px]">
-        <span className="text-xms-label text-[12px]">Group</span>
+      <div className="border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]">
+        <span className="text-xms-muted text-[12px] leading-[1.3]">Group</span>
         <GroupPicker
           id="ticket-group"
           aria-label="Group"
@@ -198,8 +202,8 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
           }
         />
       </div>
-      <div className="flex flex-col gap-[3px] px-4 py-[10px]">
-        <span className="text-xms-label text-[12px]">Assignee</span>
+      <div className="border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]">
+        <span className="text-xms-muted text-[12px] leading-[1.3]">Assignee</span>
         <AssigneePicker
           id="ticket-assignee"
           value={ticket.assignee_id}

@@ -59,8 +59,18 @@ const CONTROL =
 // what lets a long value wrap instead of being clipped (review finding 9).
 const ROW = "grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-1";
 
-/** One row of the v3 record's Properties list (render 02). */
-const STACK_ROW = "border-xms-line flex flex-col gap-[3px] border-b px-4 py-[10px] last:border-b-0";
+/**
+ * One row of the v3 record's Properties list, measured off the prototype's own
+ * markup (`proto-v3/template.pretty.html`): `padding:9px 0` with a
+ * `1px #F0F3FA` rule under every row, the label 4px above the value, and no
+ * horizontal padding of its own, since the card around it carries 16px. The
+ * built row had 10px vertical and 16px horizontal padding of its own and the
+ * card's rule, which is why the rail read as a stack of boxes.
+ */
+const STACK_ROW = "border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]";
+
+/** The label above a stacked value: 12px on 1.3 in the muted grey. */
+const STACK_LABEL = "text-xms-muted text-[12px] leading-[1.3]";
 
 /**
  * The words a read-only field shows: a select shows its option's label, not
@@ -142,7 +152,7 @@ function Field({
           title={text || undefined}
           className={cn(
             "text-xms-ink text-[13px] break-words",
-            stacked && "font-medium",
+            stacked && "leading-[1.4] font-medium",
             field.mono && "xms-mono",
             !text && "text-xms-muted font-normal",
           )}
@@ -162,7 +172,7 @@ function Field({
       }
       return (
         <div className={STACK_ROW} data-field={field.key}>
-          <span className="text-xms-label text-[12px]">{field.label}</span>
+          <span className={STACK_LABEL}>{field.label}</span>
           {field.inlineHint ? <span className="flex items-baseline gap-[6px]">{value}</span> : value}
         </div>
       );
@@ -257,7 +267,7 @@ function Field({
     }
     return (
       <div className={STACK_ROW} data-field={field.key}>
-        <label htmlFor={id} className="text-xms-label text-[12px]">
+        <label htmlFor={id} className={STACK_LABEL}>
           {field.label}
         </label>
         {field.inlineHint ? (
@@ -297,7 +307,7 @@ export function RecordForm({ fields, onCommit, onRollback, columns = 2, layout =
             // One row, two values, a middot between them: render 02 draws
             // impact and urgency this way because the pair is the matrix.
             <div key={field.key} className={STACK_ROW} data-field={field.key}>
-              <span className="text-xms-label text-[12px]">{field.label}</span>
+              <span className={STACK_LABEL}>{field.label}</span>
               <span className="flex flex-wrap items-baseline gap-[6px]">
                 <Field field={field} onCommit={onCommit} onRollback={onRollback} layout="stacked" bare />
                 <span className="text-xms-muted text-[13px]">{"·"}</span>
