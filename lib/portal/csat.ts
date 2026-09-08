@@ -28,13 +28,22 @@ export function surveyQuestion(ticketKey: string | null): string {
     : "How satisfied are you with the handling of your request?";
 }
 
+/** `/portal/surveys/{id}`: the address an email link points at, token or not. */
+export function isSurveyPath(pathname: string): boolean {
+  return /^\/portal\/surveys\/[^/]+\/?$/.test(pathname);
+}
+
 /**
- * The email link is `/portal/surveys/{id}?token=...`: with a token the page
- * answers through the link route and renders without the portal chrome,
- * since the visitor may have no session.
+ * The email link is `/portal/surveys/{id}` carrying a one-time token: with a
+ * token the page answers through the link route and renders without the
+ * portal chrome, since the visitor may have no session.
+ *
+ * The token now arrives in the fragment and is taken out of the address on
+ * read (security review finding 9), so the caller passes what `useSurveyLink`
+ * captured. `search` still counts, for a link already sent with `?token=`.
  */
-export function isSurveyLink(pathname: string, search: URLSearchParams | null): boolean {
-  return /^\/portal\/surveys\/[^/]+\/?$/.test(pathname) && Boolean(search?.get("token"));
+export function isSurveyLink(pathname: string, search: URLSearchParams | null, linkToken?: string | null): boolean {
+  return isSurveyPath(pathname) && Boolean(linkToken || search?.get("token"));
 }
 
 /** "Open until 2026-09-15", or nothing when the server set no expiry. */

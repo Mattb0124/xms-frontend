@@ -8,7 +8,8 @@ import { PORTAL_SECONDARY } from "@/components/portal/primitives";
 import { Skeleton } from "@/components/xms/skeleton";
 import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
 import { setDevToken } from "@/lib/auth/token";
-import { isSurveyLink } from "@/lib/portal/csat";
+import { isSurveyLink, isSurveyPath } from "@/lib/portal/csat";
+import { useSurveyLink } from "@/lib/portal/survey-token";
 import { cn } from "@/lib/utils";
 import { xmsApi } from "@/redux/api";
 import { useAppDispatch } from "@/redux/hooks";
@@ -41,8 +42,13 @@ export function PortalChrome({ children }: { children: ReactNode }) {
   const search = useSearchParams();
   const router = useRouter();
   const isSignIn = pathname === "/portal/sign-in";
-  // A survey email link answers without a session: no header, no nav, no /portal/me.
-  const bare = isSurveyLink(pathname, search);
+  const link = useSurveyLink();
+  // A survey email link answers without a session: no header, no nav, no
+  // /portal/me. The token may be in the fragment, which the server never
+  // sees, so a survey address is treated as a link until the first client
+  // effect says otherwise: the alternative is asking /portal/me for a visitor
+  // who has no session (security review finding 9).
+  const bare = isSurveyLink(pathname, search, link.token) || (isSurveyPath(pathname) && link.pending);
   const me = usePortalMeQuery(undefined, { skip: isSignIn || bare });
   const status = me.error && typeof me.error === "object" && "status" in me.error ? me.error.status : undefined;
 
