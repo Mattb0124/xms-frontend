@@ -84,6 +84,9 @@ export function StatusPill({ status }: { status: CapacityStatus }) {
   return <SignalPill tone={tone} label={label} />;
 }
 
+/** What the Remaining column counts, on the header and in the panel's subtitle. */
+export const REMAINING_BASIS = "Available minus allocated, never below zero; the actual hours logged do not reduce it";
+
 const HEAD = "text-xms-ink px-3 py-2 text-left text-[13px] font-semibold whitespace-nowrap";
 const CELL = "text-xms-ink px-3 align-middle whitespace-nowrap";
 
@@ -146,7 +149,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
     <Panel
       title="People"
       caption="This month"
-      subtitle={`${view.people.length} ${view.people.length === 1 ? "person" : "people"}, with the available, allocated, actual and remaining hours for the month.`}
+      subtitle={`${view.people.length} ${view.people.length === 1 ? "person" : "people"}. Remaining of plan is ${REMAINING_BASIS.charAt(0).toLowerCase()}${REMAINING_BASIS.slice(1)}.`}
       flush
       actions={
         <>
@@ -197,7 +200,15 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
             <th className={cn(HEAD, "text-right")}>Available</th>
             <th className={cn(HEAD, "text-right")}>Allocated</th>
             <th className={cn(HEAD, "text-right")}>Actual</th>
-            <th className={cn(HEAD, "text-right")}>Remaining</th>
+            {/*
+              The server's remaining is available minus allocated, never
+              below zero; actual hours do not reduce it. Unlabelled, a row
+              reading Available 158.4, Allocated 0, Actual 15.5, Remaining
+              158.4 contradicts itself to a reader (review finding 16).
+            */}
+            <th className={cn(HEAD, "text-right")} title={REMAINING_BASIS}>
+              Remaining of plan
+            </th>
             <th className={HEAD}>Status</th>
             {columns.map((accountId) => (
               <th key={accountId} className={cn(HEAD, "xms-mono text-right")} title={title(accountId)} data-account={accountId}>

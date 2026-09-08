@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CapacityPage from "@/app/(internal)/capacity/page";
-import { changedCells, presentAccounts } from "@/components/capacity/capacity-grid";
+import { changedCells, presentAccounts, REMAINING_BASIS } from "@/components/capacity/capacity-grid";
 import { capacityFilterToSearch } from "@/lib/capacity/filters";
 import {
   ACCOUNT_ID,
@@ -103,6 +103,18 @@ describe("CapacityPage", () => {
     expect(ana.querySelector("[data-allocated]")).toHaveTextContent("60 h");
     expect(ana.querySelector("[data-actual]")).toHaveTextContent("9 h");
     expect(ana.querySelector("[data-remaining]")).toHaveTextContent("76.8 h");
+    /*
+     * Review finding 16: a row reading Available 158.4 h, Allocated 0 h,
+     * Actual 15.5 h, Remaining 158.4 h contradicts itself under a bare
+     * "Remaining" heading. The server's remaining is available minus
+     * allocated, clamped at zero, so the column says which plan it counts.
+     */
+    const remainingHead = within(table).getByRole("columnheader", { name: "Remaining of plan" });
+    expect(remainingHead).toHaveAttribute("title", REMAINING_BASIS);
+    expect(within(table).queryByRole("columnheader", { name: "Remaining" })).toBeNull();
+    expect(screen.getByRole("region", { name: "People" })).toHaveTextContent(
+      "the actual hours logged do not reduce it",
+    );
     expect(within(ana).getByText("Available")).toHaveAttribute("data-state", "complete");
     const ben = within(table).getByRole("row", { name: /Ben Ito/ });
     expect(within(ben).getByText("Over")).toHaveAttribute("data-state", "overdue");
