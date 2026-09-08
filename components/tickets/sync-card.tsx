@@ -3,6 +3,7 @@
 import { LinkStatePill, OutcomePill } from "@/components/admin/connectors/pills";
 import { formatDate } from "@/components/admin/primitives";
 import { RailCard } from "@/components/xms/rail-card";
+import { pendingLabel } from "@/lib/connectors/outbound";
 import { externalRecordUrl, modeLabel } from "@/lib/connectors/vocab";
 import { EXTERNAL_REL } from "@/lib/safe-url";
 import { useTicketSyncQuery, type SyncRun, type TicketSyncLink } from "@/redux/connectorsApi";
@@ -16,18 +17,63 @@ export function modeNotice(link: TicketSyncLink): string | null {
   return null;
 }
 
+/**
+ * The last contest on this link, worded from the side that lost it: inbound,
+ * ServiceNow moved a field XMS owns and XMS kept its value; outbound, the
+ * push left fields behind because the instance owns them (functional 5.3 and
+ * 5.5, SN-04). Policy resolves a conflict; the note records it.
+ */
 function ConflictNote({ link }: { link: TicketSyncLink }) {
   const conflict = link.last_conflict;
   if (!conflict) return null;
   const fields = Array.isArray(conflict.fields) ? conflict.fields.map(String) : [];
+  const named = fields.length > 0 ? fields.join(", ") : "a field";
+  const when = conflict.at ? ` (${formatDate(String(conflict.at))})` : "";
+  const outbound = conflict.direction === "out";
   return (
     <p
       className="rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[12px] text-[color:var(--state-needs-input-text)]"
       data-conflict={fields.join(",")}
+      data-conflict-direction={outbound ? "out" : "in"}
     >
-      ServiceNow changed {fields.length > 0 ? fields.join(", ") : "a field"} that XMS owns
-      {conflict.at ? ` (${formatDate(String(conflict.at))})` : ""}. XMS kept its value; the run log names both.
+      {outbound
+        ? `The last push left ${named} behind${when}: ServiceNow owns ${fields.length === 1 ? "that field" : "those fields"}. XMS keeps its own value; the run log names both.`
+        : `ServiceNow changed ${named} that XMS owns${when}. XMS kept its value; the run log names both.`}
     </p>
+  );
+}
+
+/**
+ * What has and has not reached this instance for this ticket (functional
+ * 5.3). It stays on an instance dropped back to ingest only, because the
+ * queued work stays too and the consultant is entitled to know it is waiting
+ * (functional 5.7); it says nothing at all where there is nothing to say.
+ */
+function OutboundState({ link }: { link: TicketSyncLink }) {
+  const outbound = link.outbound;
+  if (!outbound) return null;
+  const worthSaying =
+    link.mode === "bidirectional" ||
+    outbound.pending > 0 ||
+    outbound.failed > 0 ||
+    outbound.last_error !== null ||
+    outbound.last_pushed_at !== null;
+  if (!worthSaying) return null;
+  return (
+    <div className="flex flex-col gap-1" data-outbound-pending={outbound.pending}>
+      <p className="xms-mono text-xms-label text-[11px]">
+        last pushed {outbound.last_pushed_at ? formatDate(outbound.last_pushed_at) : "never"}
+      </p>
+      <p className={outbound.pending > 0 ? "text-xms-body text-[12px]" : "text-xms-label text-[12px]"}>
+        {pendingLabel(outbound.pending)}
+        {outbound.failed > 0 ? `, ${outbound.failed} failed` : ""}
+      </p>
+      {outbound.last_error ? (
+        <p className="text-[12px] text-[color:var(--state-overdue-text)]" data-outbound-error>
+          Last send error: {outbound.last_error}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -87,6 +133,7 @@ export function SyncCardView({ links, runs }: { links: TicketSyncLink[]; runs: S
                   {notice}
                 </p>
               ) : null}
+              <OutboundState link={link} />
               <ConflictNote link={link} />
             </div>
           );

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { modeNotice, SyncCard, SyncCardView } from "@/components/tickets/sync-card";
-import { aLink, aRun } from "@/redux/connectorsApi.test";
+import { aLink, aRun, aSyncCardOutbound } from "@/redux/connectorsApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 describe("SyncCardView", () => {
@@ -61,6 +61,71 @@ describe("SyncCardView", () => {
     expect(screen.getByText(/Kill switch tripped/)).toBeInTheDocument();
     expect(modeNotice(aLink({ mode: "off" }))).toBe("Sync is off for this instance.");
     expect(modeNotice(aLink({ mode: "bidirectional" }))).toBeNull();
+  });
+
+  it("shows the outbound state: the last push, what is waiting and the last send error", () => {
+    render(
+      <SyncCardView
+        links={[
+          aLink({
+            mode: "bidirectional",
+            outbound: aSyncCardOutbound({
+              last_pushed_at: "2026-09-07T09:40:00Z",
+              pending: 2,
+              failed: 1,
+              last_error: "HTTP 401 from the instance",
+            }),
+          }),
+        ]}
+        runs={[]}
+      />,
+    );
+    expect(screen.getByText(/last pushed 2026-09-07 09:40/)).toBeInTheDocument();
+    expect(screen.getByText("2 changes waiting to send, 1 failed")).toBeInTheDocument();
+    expect(screen.getByText(/HTTP 401 from the instance/)).toHaveAttribute("data-outbound-error");
+  });
+
+  it("says nothing about sending when the instance has never sent and nothing waits", () => {
+    render(
+      <SyncCardView
+        links={[aLink({ mode: "ingest_only", outbound: aSyncCardOutbound({ last_pushed_at: null }) })]}
+        runs={[]}
+      />,
+    );
+    expect(screen.queryByText(/waiting to send/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/last pushed/)).not.toBeInTheDocument();
+  });
+
+  it("keeps the queue in view on an instance dropped back to ingest only", () => {
+    render(
+      <SyncCardView
+        links={[aLink({ mode: "ingest_only", outbound: aSyncCardOutbound({ last_pushed_at: null, pending: 3 }) })]}
+        runs={[]}
+      />,
+    );
+    expect(screen.getByText("Updates are not sent to ServiceNow.")).toBeInTheDocument();
+    expect(screen.getByText("3 changes waiting to send")).toBeInTheDocument();
+    expect(screen.getByText(/last pushed never/)).toBeInTheDocument();
+  });
+
+  it("words a conflict the last push lost, rather than the inbound one", () => {
+    render(
+      <SyncCardView
+        links={[
+          aLink({
+            mode: "bidirectional",
+            state: "conflict",
+            last_conflict: { direction: "out", fields: ["short_description"], at: "2026-09-07T09:45:00Z" },
+            outbound: aSyncCardOutbound({ pending: 0 }),
+          }),
+        ]}
+        runs={[]}
+      />,
+    );
+    const note = screen.getByText(/The last push left short_description behind/);
+    expect(note).toHaveAttribute("data-conflict-direction", "out");
+    expect(note).toHaveAttribute("data-conflict", "short_description");
+    expect(note.textContent).toContain("ServiceNow owns that field");
   });
 });
 
