@@ -29,10 +29,22 @@ function linkLabel(link: TicketLink): string {
   return link.direction === "out" ? entry.label : entry.inverse;
 }
 
+/**
+ * The word render 06 puts in the pill before each key: "parent",
+ * "duplicate", "related", "blocks". It is the relation, in lower case, and
+ * the direction is in the row's title rather than in the pill, which the
+ * render sizes for one word.
+ */
+function linkWord(link: TicketLink): string {
+  return link.type;
+}
+
 /** Links list, add by key search (the list endpoint with q=CS…), remove (Ticket Management technical 4). */
 export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?: boolean }) {
   const { data, isLoading } = useListLinksQuery(ticketKey);
-  const [addLink, adding] = useAddLinkMutation();
+  const [addLink, addState] = useAddLinkMutation();
+  // The add row is behind a link, as render 06 draws it.
+  const [adding, setAdding] = useState<{ open: boolean }>({ open: false });
   const [removeLink] = useRemoveLinkMutation();
   const [search] = useLazyListTicketsQuery();
   const { push } = useToast();
@@ -56,6 +68,7 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
       }
       await addLink({ key: ticketKey, to_ticket_id: target.id, type }).unwrap();
       setTargetKey("");
+      setAdding({ open: false });
     } catch (caught) {
       const parsed = apiError(caught);
       setError(parsed.code === "link_cycle" ? "That link would create a cycle." : describeError(parsed));
@@ -63,8 +76,52 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {!readOnly ? (
+    // Render 06 opens on the links and puts "+ Add link by key" under them.
+    // The form used to stand open above an empty list, so the tab opened on
+    // two controls and a button and said "No links." underneath them.
+    <div className="flex flex-col gap-3">
+      {isLoading ? <Skeleton lines={3} /> : null}
+      <ul aria-label="Links">
+        {(data ?? []).map((link) => (
+          <li
+            key={link.id}
+            className="border-xms-line-row flex items-center gap-3 border-b py-[13px] last:border-b-0"
+            data-link-type={link.type}
+            title={linkLabel(link)}
+          >
+            <span className="xms-chip-pill w-[96px] shrink-0 justify-center">{linkWord(link)}</span>
+            <KeyLink ticketKey={link.ticket.key} />
+            <span className="text-xms-ink min-w-0 flex-1 truncate text-[14px]">{link.ticket.short_description}</span>
+            <StatePill state={link.ticket.state} />
+            <PriorityPill priority={link.ticket.priority} />
+            {!readOnly ? (
+              <button
+                type="button"
+                aria-label={`Remove link to ${link.ticket.key}`}
+                onClick={() =>
+                  removeLink({ key: ticketKey, linkId: link.id })
+                    .unwrap()
+                    .catch((caught) =>
+                      push({ title: "Not removed", detail: describeError(apiError(caught)), tone: "error" }),
+                    )
+                }
+                className="text-xms-label hover:text-xms-ink shrink-0 text-[12px]"
+              >
+                Remove
+              </button>
+            ) : null}
+          </li>
+        ))}
+        {data && data.length === 0 ? <li className="text-xms-label py-3 text-[13px]">No links.</li> : null}
+      </ul>
+      {!readOnly && !adding.open ? (
+        <div>
+          <button type="button" onClick={() => setAdding({ open: true })} className="text-xms-accent text-[13px]">
+            + Add link by key
+          </button>
+        </div>
+      ) : null}
+      {!readOnly && adding.open ? (
         <form
           aria-label="Add link"
           className="flex flex-wrap items-end gap-2"
@@ -98,45 +155,19 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
               className={`${INPUT} xms-mono w-[160px]`}
             />
           </label>
-          <button type="submit" disabled={adding.isLoading} className={PRIMARY_BUTTON}>
+          <button type="submit" disabled={addState.isLoading} className={PRIMARY_BUTTON}>
             Add link
           </button>
+          <button type="button" onClick={() => setAdding({ open: false })} className={SECONDARY_BUTTON}>
+            Cancel
+          </button>
           {error ? (
-            <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+            <p role="alert" className="w-full text-[12px] text-[color:var(--state-overdue-text)]">
               {error}
             </p>
           ) : null}
         </form>
       ) : null}
-      {isLoading ? <Skeleton lines={3} /> : null}
-      <ul className="divide-xms-line divide-y" aria-label="Links">
-        {(data ?? []).map((link) => (
-          <li key={link.id} className="flex items-center gap-3 py-2 text-[13px]" data-link-type={link.type}>
-            <span className="text-xms-label w-[110px]">{linkLabel(link)}</span>
-            <KeyLink ticketKey={link.ticket.key} />
-            <span className="text-xms-ink truncate">{link.ticket.short_description}</span>
-            <StatePill state={link.ticket.state} className="ml-auto" />
-            <PriorityPill priority={link.ticket.priority} />
-            {!readOnly ? (
-              <button
-                type="button"
-                aria-label={`Remove link to ${link.ticket.key}`}
-                onClick={() =>
-                  removeLink({ key: ticketKey, linkId: link.id })
-                    .unwrap()
-                    .catch((caught) =>
-                      push({ title: "Not removed", detail: describeError(apiError(caught)), tone: "error" }),
-                    )
-                }
-                className={`${SECONDARY_BUTTON} h-[26px] px-2 text-[12px]`}
-              >
-                Remove
-              </button>
-            ) : null}
-          </li>
-        ))}
-        {data && data.length === 0 ? <li className="text-xms-label py-2 text-[13px]">No links.</li> : null}
-      </ul>
     </div>
   );
 }
