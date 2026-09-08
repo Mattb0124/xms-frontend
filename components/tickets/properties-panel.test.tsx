@@ -2,7 +2,8 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PropertiesPanel } from "@/components/tickets/properties-panel";
 import { WORK_AREA_TABS } from "@/components/tickets/work-area-tabs";
-import { ACCOUNT_ID, aContract, aTicketView } from "@/test-kit/tickets";
+import { ACCOUNT_ID, CONTRACT_ID, aContract, aTicketView } from "@/test-kit/tickets";
+import { aPosition } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));
@@ -33,7 +34,8 @@ describe("PropertiesPanel", () => {
     const { container } = renderDesk(<PropertiesPanel ticket={aTicketView()} />);
     expect(screen.getByRole("region", { name: "Properties" })).toBeInTheDocument();
     expect(screen.queryByText(/priority from the matrix/i)).toBeNull();
-    expect(container.querySelector('[data-field="priority"]')).toHaveTextContent("Derived from the matrix");
+    // Render 02 reads the row as one line: "P2 · derived from the matrix".
+    expect(container.querySelector('[data-field="priority"]')).toHaveTextContent("· derived from the matrix");
     // v3 render 02: a stacked row is its value as text until it is clicked, so
     // the select is not in the tree at rest. Clicking the value opens it.
     await waitFor(() => expect(screen.getByRole("button", { name: "P2" })).toBeInTheDocument());
@@ -41,11 +43,57 @@ describe("PropertiesPanel", () => {
     await waitFor(() => expect(screen.getByLabelText("Priority")).toHaveValue("p2"));
   });
 
+  /**
+   * Render 02 names the contract ("Managed support 2026"); the running stack
+   * drew its uuid, because the row's only option was built from the id
+   * itself whenever the account's contract directory was out of reach.
+   */
+  it("names the contract, and shows no id in any row", async () => {
+    stubFetch({
+      "GET /v1/admin/me": () =>
+        json({ principal: { kind: "internal", userId: "u-ana", accountIds: [], permissions: ["tickets:view"] } }),
+      "GET /v1/accounts": () => json(ACCOUNTS),
+      "GET /v1/groups": () => json([]),
+      "GET /v1/users": () => json([]),
+      // No contracts:view, so the directory is never asked for. The position
+      // route, which the rail beside this panel reads, names the contract.
+      [`GET /v1/accounts/${ACCOUNT_ID}/contracts/${CONTRACT_ID}/position`]: () =>
+        json(
+          aPosition({
+            contract: { id: CONTRACT_ID, key: "CT10001", name: "Managed services retainer", model: "retainer" },
+          }),
+        ),
+    });
+    const ticket = aTicketView();
+    const { container } = renderDesk(<PropertiesPanel ticket={ticket} />);
+    await waitFor(() =>
+      expect(container.querySelector('[data-field="contract_id"]')).toHaveTextContent(
+        "CT10001 Managed services retainer",
+      ),
+    );
+    // Not one row anywhere carries a raw identifier.
+    expect(container.textContent).not.toContain(ticket.contract_id);
+    expect(container.textContent).not.toContain(ticket.account_id);
+  });
+
+  /** Render 02 draws the two axes of the matrix as one row, with a middot. */
+  it("draws impact and urgency as one row, each still its own control", async () => {
+    stub(["tickets:view", "tickets:work"]);
+    const { container } = renderDesk(<PropertiesPanel ticket={aTicketView({ impact: "high", urgency: "medium" })} />);
+    const row = container.querySelector('[data-field="impact"]');
+    expect(row).not.toBeNull();
+    expect(row).toHaveTextContent("Impact / urgency");
+    expect(row?.textContent).toContain("·");
+    // Both values are in that one row, and neither has a row of its own.
+    expect(container.querySelectorAll('[data-field="urgency"]')).toHaveLength(1);
+    expect(row?.querySelector('[data-field="urgency"]')).not.toBeNull();
+  });
+
   it("says so when the priority was overridden by hand", async () => {
     stub(["tickets:view", "tickets:override-priority"]);
     const { container } = renderDesk(<PropertiesPanel ticket={aTicketView({ priority_overridden: true })} />);
     await waitFor(() =>
-      expect(container.querySelector('[data-field="priority"]')).toHaveTextContent("Overridden by hand"),
+      expect(container.querySelector('[data-field="priority"]')).toHaveTextContent("· overridden by hand"),
     );
   });
 

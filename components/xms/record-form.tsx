@@ -19,6 +19,19 @@ export interface RecordField {
   mono?: boolean;
   /** A caption under the value, in sentence case: "Derived from the matrix". */
   hint?: string;
+  /**
+   * Put the hint on the value's own line, after a middot: render 02's
+   * "P2 · derived from the matrix", which is one row and one line.
+   */
+  inlineHint?: boolean;
+  /**
+   * A second value on the same row, after a middot. Render 02 draws impact
+   * and urgency as one row, "2 - Multiple users · 2 - High", because neither
+   * says anything without the other: they are the two axes of one matrix and
+   * the row is named for the pair. The second field keeps its own key, so it
+   * commits and rolls back on its own.
+   */
+  second?: RecordField;
 }
 
 export interface RecordFormProps {
@@ -46,6 +59,9 @@ const CONTROL =
 // what lets a long value wrap instead of being clipped (review finding 9).
 const ROW = "grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-1";
 
+/** One row of the v3 record's Properties list (render 02). */
+const STACK_ROW = "border-xms-line flex flex-col gap-[3px] border-b px-4 py-[10px] last:border-b-0";
+
 /**
  * The words a read-only field shows: a select shows its option's label, not
  * the stored code, and nothing recorded reads as "Not set" rather than as an
@@ -64,11 +80,14 @@ function Field({
   onCommit,
   onRollback,
   layout = "rows",
+  bare,
 }: {
   field: RecordField;
   onCommit: RecordFormProps["onCommit"];
   onRollback?: RecordFormProps["onRollback"];
   layout?: "rows" | "stacked";
+  /** Render the value alone: the row wrapper and the label belong to a paired row. */
+  bare?: boolean;
 }) {
   const [draft, setDraft] = useState(field.value);
   const [pending, setPending] = useState(false);
@@ -100,10 +119,20 @@ function Field({
 
   const id = `record-field-${field.key}`;
   const stacked = layout === "stacked";
-  const STACK_ROW = "border-xms-line flex flex-col gap-[3px] border-b px-4 py-[10px] last:border-b-0";
   // A value nobody can change is text, not a disabled input: an input-shaped
   // box reads as editable, and a fixed-height box clips "AUS - Austral Mining"
   // to "AUS - Austral M" with no ellipsis and no tooltip (review finding 9).
+  // Render 02 continues the value with its caption on the same line
+  // ("P2 · derived from the matrix"); everywhere else the caption is the
+  // line under it.
+  const hintNode = field.hint ? (
+    field.inlineHint ? (
+      <span className="text-xms-label text-[13px]">{`· ${field.hint}`}</span>
+    ) : (
+      <span className="text-xms-label text-[12px]">{field.hint}</span>
+    )
+  ) : null;
+
   if (field.readOnly) {
     const text = readOnlyText(field);
     const value = (
@@ -120,14 +149,21 @@ function Field({
         >
           {text || "Not set"}
         </span>
-        {field.hint ? <span className="text-xms-label text-[12px]">{field.hint}</span> : null}
+        {hintNode}
       </>
     );
     if (stacked) {
+      if (bare) {
+        return (
+          <span className="flex items-baseline gap-[6px]" data-field={field.key}>
+            {value}
+          </span>
+        );
+      }
       return (
         <div className={STACK_ROW} data-field={field.key}>
           <span className="text-xms-label text-[12px]">{field.label}</span>
-          {value}
+          {field.inlineHint ? <span className="flex items-baseline gap-[6px]">{value}</span> : value}
         </div>
       );
     }
@@ -140,6 +176,9 @@ function Field({
   }
   const common = {
     id,
+    // With no label element of its own, a paired control still has to say
+    // what it is.
+    "aria-label": bare ? field.label : undefined,
     disabled: pending,
     "aria-busy": pending || undefined,
     autoFocus: stacked && editing ? true : undefined,
@@ -192,27 +231,46 @@ function Field({
   }
   if (stacked) {
     const text = readOnlyText(field);
+    const shown = editing ? (
+      control
+    ) : (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        aria-label={bare ? field.label : undefined}
+        className={cn(
+          "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[13px] font-medium",
+          text ? "text-xms-ink" : "text-xms-muted font-normal",
+          field.mono && "xms-mono",
+        )}
+      >
+        {text || "Not set"}
+      </button>
+    );
+    if (bare) {
+      return (
+        <span className="flex items-baseline gap-[6px]" data-field={field.key}>
+          {shown}
+          {hintNode}
+        </span>
+      );
+    }
     return (
       <div className={STACK_ROW} data-field={field.key}>
         <label htmlFor={id} className="text-xms-label text-[12px]">
           {field.label}
         </label>
-        {editing ? (
-          control
+        {field.inlineHint ? (
+          <span className="flex items-baseline gap-[6px]">
+            {shown}
+            {hintNode}
+          </span>
         ) : (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className={cn(
-              "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[13px] font-medium",
-              text ? "text-xms-ink" : "text-xms-muted font-normal",
-              field.mono && "xms-mono",
-            )}
-          >
-            {text || "Not set"}
-          </button>
+          <>
+            {shown}
+            {hintNode}
+          </>
         )}
-        {field.hint ? <span className="text-xms-label text-[12px]">{field.hint}</span> : null}
       </div>
     );
   }
@@ -223,7 +281,7 @@ function Field({
       </label>
       <span className="flex min-w-0 flex-col gap-[2px]">
         {control}
-        {field.hint ? <span className="text-xms-label text-[12px]">{field.hint}</span> : null}
+        {hintNode}
       </span>
     </div>
   );
@@ -234,9 +292,22 @@ export function RecordForm({ fields, onCommit, onRollback, columns = 2, layout =
   if (layout === "stacked") {
     return (
       <div className={cn("flex flex-col", className)}>
-        {fields.map((field) => (
-          <Field key={field.key} field={field} onCommit={onCommit} onRollback={onRollback} layout="stacked" />
-        ))}
+        {fields.map((field) =>
+          field.second ? (
+            // One row, two values, a middot between them: render 02 draws
+            // impact and urgency this way because the pair is the matrix.
+            <div key={field.key} className={STACK_ROW} data-field={field.key}>
+              <span className="text-xms-label text-[12px]">{field.label}</span>
+              <span className="flex flex-wrap items-baseline gap-[6px]">
+                <Field field={field} onCommit={onCommit} onRollback={onRollback} layout="stacked" bare />
+                <span className="text-xms-muted text-[13px]">{"·"}</span>
+                <Field field={field.second} onCommit={onCommit} onRollback={onRollback} layout="stacked" bare />
+              </span>
+            </div>
+          ) : (
+            <Field key={field.key} field={field} onCommit={onCommit} onRollback={onRollback} layout="stacked" />
+          ),
+        )}
       </div>
     );
   }

@@ -17,6 +17,7 @@ import {
   type PatchTicketBody,
   type TicketView,
 } from "@/redux/ticketsApi";
+import { useContractPositionQuery } from "@/redux/timeApi";
 
 /**
  * Label-left properties, commit on blur, optimistic rollback with a toast
@@ -30,6 +31,15 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   // keeps the ticket's own contract id rather than taking a needless 403.
   const canReadContracts = me.hasPermission("contracts:view");
   const { data: contracts } = useListAccountContractsQuery(ticket.account_id, { skip: !canReadContracts });
+  // The contract's own name, from the route the rail beside this panel
+  // already reads, so the row never falls back to a uuid. The directory
+  // behind contracts:view is what the row needs to offer a *choice*; naming
+  // the one it carries needs nothing but the ticket.
+  const { data: position } = useContractPositionQuery(
+    { accountId: ticket.account_id, contractId: ticket.contract_id },
+    { skip: !ticket.contract_id },
+  );
+  const contractName = position ? `${position.contract.key} ${position.contract.name}`.trim() : "";
   const [patch] = usePatchTicketMutation();
   const { push } = useToast();
   const canOverride = me.hasPermission("tickets:override-priority");
@@ -40,7 +50,10 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
       {
         key: "account",
         label: "Account",
-        value: account ? `${account.key} · ${account.name}` : ticket.account_id,
+        // Never the id. A uuid in a property row tells the reader nothing and
+        // reads as a bug; until the directory answers, the row is empty and
+        // says so in the words every other unset row uses.
+        value: account ? `${account.key} · ${account.name}` : "",
         readOnly: true,
       },
       {
@@ -58,31 +71,24 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         readOnly: true,
       },
       { key: "category", label: "Category", value: ticket.category ?? "", readOnly },
-      {
-        key: "contract_id",
-        label: "Contract",
-        value: ticket.contract_id,
-        kind: "select",
-        options: (
-          contracts ?? [{ id: ticket.contract_id, key: "", name: ticket.contract_id, model: "", status: "" }]
-        ).map((contract) => ({ value: contract.id, label: `${contract.key} ${contract.name}`.trim() })),
-        readOnly,
-      },
+      // Render 02 draws impact and urgency as one row, "2 - Multiple users ·
+      // 2 - High", because neither says anything without the other: they are
+      // the two axes of the matrix the priority under them comes out of.
       {
         key: "impact",
-        label: "Impact",
+        label: "Impact / urgency",
         value: ticket.impact ?? "",
         kind: "select",
         options: [{ value: "", label: "Not set" }, ...LEVELS],
         readOnly,
-      },
-      {
-        key: "urgency",
-        label: "Urgency",
-        value: ticket.urgency ?? "",
-        kind: "select",
-        options: [{ value: "", label: "Not set" }, ...LEVELS],
-        readOnly,
+        second: {
+          key: "urgency",
+          label: "Urgency",
+          value: ticket.urgency ?? "",
+          kind: "select",
+          options: [{ value: "", label: "Not set" }, ...LEVELS],
+          readOnly,
+        },
       },
       {
         key: "priority",
@@ -95,15 +101,35 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         })),
         // The matrix caption belongs beside the Priority value, not on the
         // panel, whose name is Properties (Wireframes 3.2, finding 21).
-        hint: ticket.priority_overridden ? "Overridden by hand" : "Derived from the matrix",
+        // Render 02 reads it as one line, "P2 · derived from the matrix".
+        hint: ticket.priority_overridden ? "overridden by hand" : "derived from the matrix",
+        inlineHint: true,
         readOnly: readOnly || !canOverride,
       },
+      // The contract sits after the priority, as it does in the render. Its
+      // value is the contract's own key and name; the id it is stored under
+      // is never drawn. A reader who may not read the account's contract
+      // directory cannot be offered the choice, so for them the row is the
+      // name and nothing else rather than a select over one bogus option
+      // whose label was the uuid.
+      canReadContracts && !readOnly
+        ? {
+            key: "contract_id",
+            label: "Contract",
+            value: ticket.contract_id,
+            kind: "select" as const,
+            options: (contracts ?? []).map((contract) => ({
+              value: contract.id,
+              label: `${contract.key} ${contract.name}`.trim(),
+            })),
+          }
+        : { key: "contract_id", label: "Contract", value: contractName, readOnly: true },
       { key: "source", label: "Source", value: SOURCE_LABEL[ticket.source] ?? ticket.source, readOnly: true },
       { key: "created_at", label: "Created", value: formatDate(ticket.created_at), readOnly: true, mono: true },
       { key: "resolved_at", label: "Resolved", value: formatDate(ticket.resolved_at), readOnly: true, mono: true },
       { key: "closed_at", label: "Closed", value: formatDate(ticket.closed_at), readOnly: true, mono: true },
     ],
-    [ticket, account, contracts, readOnly, canOverride],
+    [ticket, account, contracts, contractName, canReadContracts, readOnly, canOverride],
   );
 
   const commit = async (key: string, value: string) => {
