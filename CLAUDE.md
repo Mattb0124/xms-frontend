@@ -16,19 +16,35 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
 - No em-dashes in copy; ServiceNow vocabulary where it aids adoption (CS keys, work notes, resolution codes).
 
-## Tracked security exception
+## The Content Security Policy
 
-**TODO: replace `'unsafe-inline'` in `script-src` with a per-request nonce.**
-The App Router inlines the flight payload and the bootstrap script into every
-server-rendered document, so the CSP in `next.config.ts` cannot drop
-`'unsafe-inline'` without emitting a nonce from a `middleware.ts` and using
-`script-src 'self' 'nonce-<n>' 'strict-dynamic'`. Until that lands, the CSP is
-a host allowlist and a clickjacking control, not an XSS control, and the
-comment beside the policy says so. What keeps the residual risk bounded, and
-must stay true: no HTML-injection sink anywhere (no `dangerouslySetInnerHTML`,
-no `innerHTML`, no markdown renderer), every `href`, `window.open` and download
+The CSP carries a **per-request nonce** and is therefore not in
+`next.config.ts` at all: `lib/security/csp.ts` builds it and `middleware.ts`
+sends it, setting the nonce on the request headers (where the framework reads
+it, and where `@clerk/nextjs` reads `x-nonce` for its own script tag) and the
+policy on the response. Nothing else may send a CSP: two policies on one
+response are enforced as the intersection of both.
+
+`script-src` is `'self' 'nonce-<n>' 'strict-dynamic'` plus the Clerk origins;
+`'self'` and the origins are there for CSP2-only browsers, which ignore
+`'strict-dynamic'`. `'unsafe-eval'` is added in development only.
+`style-src` deliberately keeps `'unsafe-inline'`: `next/font` and next-themes
+write inline styles that carry no nonce, and a nonce in `style-src` would
+make `'unsafe-inline'` ignored and break the page. Inline style is not a
+script-execution sink here, so the residual risk is style injection on a page
+with no HTML-injection sink at all.
+
+The root layout reads the nonce back out of the headers and passes it to
+next-themes, the one inline script this tree writes itself. `middleware.ts`
+is deprecated in favour of `proxy.ts` in Next 16.3 and still supported; the
+rename is a separate change.
+
+What must stay true, and is what kept the risk bounded before the nonce
+landed: no HTML-injection sink anywhere (no `dangerouslySetInnerHTML`, no
+`innerHTML`, no markdown renderer), every `href`, `window.open` and download
 target built from server data validated through `lib/safe-url`, and no cookie
-authentication. Security review 2026-09-08, findings 25 and 26.
+authentication. Security review 2026-09-08, findings 25 and 26; finding 25 is
+closed.
 
 ## Commands
 
@@ -40,7 +56,9 @@ authentication. Security review 2026-09-08, findings 25 and 26.
 ## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass)
 
 ```
-app/layout.tsx          fonts, .xms-scope, Providers
+middleware.ts           the per-request CSP nonce: sets it on the request headers and the response policy
+lib/security/csp        contentSecurityPolicy, newNonce and NONCE_HEADER ("x-nonce"); the only CSP in the codebase
+app/layout.tsx          fonts, .xms-scope, the nonce read back from the headers, Providers
 app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, time today, the Waiting on me rail,
                         needs attention, my open tickets),
                         /tickets Queue (system views, chips, condition trail, Count card in the prototype's column order and

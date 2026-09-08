@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -45,16 +47,19 @@ describe("the security headers", () => {
       expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
       expect(headers["X-Frame-Options"]).toBe("DENY");
       expect(headers["Permissions-Policy"]).toContain("camera=()");
-      expect(headers["Content-Security-Policy"]).toContain("frame-ancestors 'none'");
-      expect(headers["Content-Security-Policy"]).toContain("object-src 'none'");
-      expect(headers["Content-Security-Policy"]).toContain("base-uri 'self'");
-      expect(headers["Content-Security-Policy"]).toContain("form-action 'self'");
     }
   });
 
-  it("allows unsafe-eval in development only, so production stays strict", async () => {
-    expect(await headersFor("development")).toHaveProperty("Content-Security-Policy");
-    expect((await headersFor("development"))["Content-Security-Policy"]).toContain("'unsafe-eval'");
-    expect((await headersFor("production"))["Content-Security-Policy"]).not.toContain("'unsafe-eval'");
+  /**
+   * The CSP moved to middleware.ts when it gained a per-request nonce
+   * (security review finding 25). It must not be sent from here as well: a
+   * response carrying two policies is held to the intersection of both, so a
+   * static one would block every nonce'd script the other allows.
+   */
+  it("sends no Content-Security-Policy of its own, which middleware.ts now owns", async () => {
+    for (const environment of ["production", "development"]) {
+      expect(await headersFor(environment)).not.toHaveProperty("Content-Security-Policy");
+    }
+    expect(readFileSync(join(process.cwd(), "next.config.ts"), "utf8")).not.toContain("script-src");
   });
 });

@@ -47,4 +47,37 @@ test.describe("smoke", () => {
     expect(response.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
     expect(response.headers()["x-content-type-options"]).toBe("nosniff");
   });
+
+  /**
+   * Security review finding 25. The policy is an XSS control only while
+   * every script the framework emits carries the request's nonce and none of
+   * them leans on `'unsafe-inline'`; a page that quietly loses one shows up
+   * here as a refusal in the console.
+   */
+  test("every script carries the request nonce and nothing is blocked", async ({ page }) => {
+    const blocked: string[] = [];
+    page.on("console", (message) => {
+      if (/Content Security Policy|Refused to (execute|load)/i.test(message.text())) blocked.push(message.text());
+    });
+    const response = await page.goto("/");
+    const csp = response?.headers()["content-security-policy"] ?? "";
+    const nonce = /'nonce-([^']+)'/.exec(csp)?.[1];
+    expect(nonce, "the response policy carries a nonce").toBeTruthy();
+    expect(csp).toContain("'strict-dynamic'");
+    expect(csp.split(";").find((part) => part.trim().startsWith("script-src"))).not.toContain("'unsafe-inline'");
+
+    // Browsers blank the nonce *attribute* once the document is parsed and
+    // keep the value on the IDL property alone, so that a CSS attribute
+    // selector cannot exfiltrate it. Reading `.nonce` is the only way to see
+    // what the script actually carries.
+    const scripts = await page.locator("script").evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        nonce: (node as HTMLScriptElement).nonce,
+        src: node.getAttribute("src") ?? "inline",
+      })),
+    );
+    expect(scripts.length).toBeGreaterThan(0);
+    expect(scripts.filter((script) => !script.nonce).map((script) => script.src)).toEqual([]);
+    expect(blocked).toEqual([]);
+  });
 });

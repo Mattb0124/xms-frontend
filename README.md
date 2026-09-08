@@ -51,5 +51,6 @@ pnpm test:e2e   # Playwright golden paths against a running API with the seed (E
 - Tokens only (`styles/tokens`), no raw hex; the wireframes are the UI source of truth.
 - No developer conveniences off the local deploy target: the dev sign-in, the `/dev` pages and the token in browser storage need `NEXT_PUBLIC_DEPLOY_TARGET=local`.
 - No authorisation decisions in the browser: `lib/routes.ts` gates navigation on the permissions the API returned, and every screen fails closed.
+- The Content Security Policy carries a per-request nonce from `middleware.ts` (built in `lib/security/csp.ts`), so `script-src` is `'self' 'nonce-<n>' 'strict-dynamic'` with no `'unsafe-inline'`. Nothing else may send a CSP; `style-src` keeps `'unsafe-inline'` because `next/font` and next-themes write inline styles that carry no nonce.
 - Telemetry carries identifiers and structured facts, never ticket, email or article text.
 - No em-dashes in copy; "generalization" is spelled with a z.

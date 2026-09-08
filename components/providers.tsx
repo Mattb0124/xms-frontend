@@ -29,13 +29,17 @@ function Identity({ children }: { children: ReactNode }) {
   );
 }
 
-/** Store, identity, theme, toasts and telemetry, in that order, once at the root. */
-export function Providers({ children }: { children: ReactNode }) {
+/**
+ * Store, identity, theme, toasts and telemetry, in that order, once at the
+ * root. `nonce` is the request's CSP nonce, read off the headers by the root
+ * layout and passed down for the one inline script this tree writes.
+ */
+export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [store] = useState(makeStore);
   return (
     <ReduxProvider store={store}>
       <Identity>
-        <ThemeProvider>
+        <ThemeProvider nonce={nonce}>
           <ToastProvider>
             <TelemetryProvider>
               <ScreenViews />

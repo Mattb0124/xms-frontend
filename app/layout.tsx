@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { headers } from "next/headers";
 import { Providers } from "@/components/providers";
+import { NONCE_HEADER } from "@/lib/security/csp";
 import "./globals.css";
 
 // Two typefaces and no third one (Wireframes v2 section 4): Inter for the UI,
@@ -24,7 +26,15 @@ export const metadata: Metadata = {
   description: "Xelerated Managed Services: tickets, SLAs, contracts and knowledge for the DMS practice.",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/**
+ * The nonce is minted per request by `middleware.ts` and read back here, so
+ * the one inline script this tree writes (next-themes, before the first
+ * paint) carries it. The framework's own scripts take it from the request
+ * header without being told, and so does `@clerk/nextjs`, which reads
+ * `x-nonce` itself.
+ */
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   return (
     <html
       lang="en"
@@ -32,7 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${inter.variable} ${plexMono.variable} xms-scope h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );
