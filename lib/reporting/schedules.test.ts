@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cadenceLabel,
+  DEFAULT_REVIEW_GRACE_HOURS,
   deliverySummary,
   describeScheduleError,
   draftFromSchedule,
@@ -11,6 +12,7 @@ import {
   reasonLabel,
   recipientLabel,
   requestedByLabel,
+  reviewRequiredNote,
   runNowBody,
   scheduleBody,
   scheduleError,
@@ -68,6 +70,7 @@ describe("schedule vocabulary", () => {
         { kind: "contact" as const, id: "", email: " pat@client.test ", name: "Pat" },
         { kind: "internal" as const, id: INTERNAL_USER_ID, email: "", name: "" },
       ],
+      review_required: true,
       enabled: false,
     };
     expect(scheduleBody(draft, "acct-1")).toEqual({
@@ -81,9 +84,19 @@ describe("schedule vocabulary", () => {
         { kind: "contact", email: "pat@client.test", name: "Pat" },
         { kind: "internal", id: INTERNAL_USER_ID },
       ],
+      review_required: true,
       enabled: false,
     });
-    expect(patchBody(draft, 3)).toMatchObject({ version: 3, name: "Monthly pack", run_day: 15, enabled: false });
+    expect(patchBody(draft, 3)).toMatchObject({
+      version: 3,
+      name: "Monthly pack",
+      run_day: 15,
+      review_required: true,
+      enabled: false,
+    });
+    // The grace period is never sent from this form, so the API keeps the
+    // schedule's own and a deadline a reviewer was told about cannot move.
+    expect(patchBody(draft, 3)).not.toHaveProperty("review_grace_hours");
     // A schedule round-trips into a draft the form can show.
     expect(draftFromSchedule(aSchedule())).toEqual({
       name: "Weekly status report",
@@ -95,8 +108,18 @@ describe("schedule vocabulary", () => {
         { kind: "internal", id: INTERNAL_USER_ID, email: "cara@example.test", name: "Cara Lee" },
         { kind: "contact", id: "", email: "pat@client.test", name: "Pat Client" },
       ],
+      review_required: false,
       enabled: true,
     });
+    expect(draftFromSchedule(aSchedule({ review_required: true })).review_required).toBe(true);
+  });
+
+  it("says what the review-required switch does, in the schedule's own grace hours", () => {
+    expect(reviewRequiredNote()).toBe(
+      "Each run is built and held for a reviewer instead of being sent. Nobody on the distribution list is told until someone approves it, and if 24 hours pass with no decision the run waits rather than sending itself.",
+    );
+    expect(reviewRequiredNote(48)).toContain("48 hours pass with no decision");
+    expect(DEFAULT_REVIEW_GRACE_HOURS).toBe(24);
   });
 
   it("checks the run-now period and builds its body", () => {

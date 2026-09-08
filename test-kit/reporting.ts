@@ -5,11 +5,13 @@ import type {
   CsatQuarterly,
   CsatResponse,
   DeliveryOutcome,
+  HeldPack,
   Measures,
   Notable,
   OperationsDashboard,
   ReportRun,
   ReportSchedule,
+  ReviewRun,
   ScheduleRun,
   SecurityDashboard as SecurityData,
   UsageAccountRow,
@@ -103,6 +105,7 @@ export function aSchedule(overrides: Partial<ReportSchedule> = {}): ReportSchedu
       { kind: "contact", email: "pat@client.test", name: "Pat Client" },
     ],
     review_required: false,
+    review_grace_hours: 24,
     enabled: true,
     next_run_at: "2026-09-14T06:00:00Z",
     last_run_id: null,
@@ -129,6 +132,70 @@ export function aRun(overrides: Partial<ScheduleRun> = {}): ScheduleRun {
     ],
     requested_by: "system",
     created_at: "2026-09-07T06:00:00Z",
+    ...overrides,
+  };
+}
+
+export const REVIEW_RUN_ID = "55555555-5555-4555-8555-555555555555";
+export const HELD_PACK_ID = "66666666-6666-4666-8666-666666666666";
+
+/**
+ * The pack frozen behind a held run: the same measures the dashboards use,
+ * two notable rows and two narrative versions, so a screen that shows the
+ * older one is caught. Both rendition keys are set; the presigned links live
+ * on the run, not the pack.
+ */
+export function aHeldPack(overrides: Partial<HeldPack> = {}): HeldPack {
+  return {
+    id: HELD_PACK_ID,
+    period_start: "2026-08-31",
+    period_end: "2026-09-06",
+    measures: someMeasures({ open_tickets: 120, consumption_minutes: 5_250, time_logged_minutes: 6_000 }),
+    notable: someNotable(),
+    narrative_versions: [
+      { version: 1, text: "First cut of the week.", author_kind: "system", at: "2026-09-07T06:00:00Z" },
+      {
+        version: 2,
+        text: "Volumes held steady and the consolidation cube incident is the only breach this week.",
+        author_kind: "system",
+        at: "2026-09-07T06:01:00Z",
+      },
+    ],
+    pptx_key: "acct-1/reports/pack-held.pptx",
+    pdf_key: "acct-1/reports/pack-held.pdf",
+    ...overrides,
+  };
+}
+
+/**
+ * A run held for a reviewer inside its grace period, with the pack and the
+ * two presigned links the API mints. Nothing has been delivered: `delivery`
+ * is null and no reviewer has decided.
+ */
+export function aReviewRun(overrides: Partial<ReviewRun> = {}): ReviewRun {
+  return {
+    id: REVIEW_RUN_ID,
+    account_id: "acct-1",
+    schedule_id: SCHEDULE_ID,
+    pack_type: "wsr",
+    period_start: "2026-08-31",
+    period_end: "2026-09-06",
+    status: "ready_for_review",
+    error: null,
+    pack_id: HELD_PACK_ID,
+    pptx_key: "acct-1/reports/pack-held.pptx",
+    delivery: null,
+    requested_by: "system",
+    created_at: "2026-09-07T06:00:00Z",
+    reviewer_id: null,
+    reviewed_at: null,
+    review_due_at: "2026-09-08T06:00:00Z",
+    review_note: null,
+    pack: aHeldPack(),
+    files: {
+      pptx: "https://files.example.test/packs/held.pptx?signature=constructed",
+      pdf: "https://files.example.test/packs/held.pdf?signature=constructed",
+    },
     ...overrides,
   };
 }

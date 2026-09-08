@@ -156,6 +156,7 @@ describe("ReportSchedulesTab", () => {
       run_time: "07:30",
       period_kind: "previous_month",
       distribution: [{ kind: "contact", email: "pat@client.test", name: "Pat" }],
+      review_required: false,
       enabled: true,
     });
     expect(screen.queryByRole("form", { name: "Schedule" })).not.toBeInTheDocument();
@@ -210,6 +211,7 @@ describe("ReportSchedulesTab", () => {
         { kind: "internal", id: INTERNAL_USER_ID, email: "cara@example.test", name: "Cara Lee" },
         { kind: "contact", email: "pat@client.test", name: "Pat Client" },
       ],
+      review_required: false,
       enabled: false,
     });
     await waitFor(() => expect(calls.filter((call) => call.key === SCHEDULES).length).toBeGreaterThanOrEqual(2));

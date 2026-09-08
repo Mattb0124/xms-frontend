@@ -2,7 +2,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { reportingApi } from "@/redux/reportingApi";
 import { makeStore } from "@/redux/store";
 import { json, stubFetch } from "@/test-kit/portal";
-import { aCsatSummary, aDelivery, anOperationsDashboard, aRun, aSchedule, SCHEDULE_ID } from "@/test-kit/reporting";
+import {
+  aCsatSummary,
+  aDelivery,
+  anOperationsDashboard,
+  aReviewRun,
+  aRun,
+  aSchedule,
+  REVIEW_RUN_ID,
+  SCHEDULE_ID,
+} from "@/test-kit/reporting";
 
 /** The reporting slice sends the request shapes the dashboards, audit and reports contract expects. */
 describe("reportingApi", () => {
@@ -49,14 +58,76 @@ describe("reportingApi", () => {
     await store.dispatch(reportingApi.endpoints.reportRuns.initiate("acct-1")).unwrap();
     const generated = await store.dispatch(reportingApi.endpoints.generateWsr.initiate("acct-1")).unwrap();
     expect(generated.download).toBe("https://files.test/pack.pptx");
-    await store.dispatch(reportingApi.endpoints.reportPack.initiate("pack-1")).unwrap();
-    expect(calls.map((call) => [call.key, call.body])).toEqual([
+    await store.dispatch(reportingApi.endpoints.reportPack.initiate({ id: "pack-1" })).unwrap();
+    // The PDF is the same route with the format on the query, and its own
+    // cache entry, so asking for it never overwrites the deck's download.
+    await store.dispatch(reportingApi.endpoints.reportPack.initiate({ id: "pack-1", format: "pdf" })).unwrap();
+    expect(calls.map((call) => [`${call.key}${call.search}`, call.body])).toEqual([
       ["POST /v1/audit/search", query],
       ["GET /v1/accounts/acct-1/reports", undefined],
       ["POST /v1/accounts/acct-1/reports/wsr", undefined],
       ["GET /v1/accounts/acct-1/reports", undefined],
       ["GET /v1/reports/packs/pack-1", undefined],
+      ["GET /v1/reports/packs/pack-1?format=pdf", undefined],
     ]);
+  });
+
+  it("reads a held run with its pack and links, approves it, and cancels with the reason", async () => {
+    const held = aReviewRun();
+    const calls = stubFetch({
+      [`GET /v1/reporting/runs/${REVIEW_RUN_ID}`]: () => json(held),
+      [`POST /v1/reporting/runs/${REVIEW_RUN_ID}/approve`]: () =>
+        json(
+          {
+            run_id: REVIEW_RUN_ID,
+            pack_id: held.pack_id,
+            period: { start: held.period_start, end: held.period_end },
+            delivery: [aDelivery()],
+            status: "sent",
+            review_due_at: null,
+          },
+          201,
+        ),
+      [`POST /v1/reporting/runs/${REVIEW_RUN_ID}/cancel`]: () =>
+        json({ run_id: REVIEW_RUN_ID, status: "skipped", reason: "The narrative names the wrong client" }, 201),
+    });
+    const store = makeStore();
+
+    const run = await store.dispatch(reportingApi.endpoints.reviewRun.initiate(REVIEW_RUN_ID)).unwrap();
+    expect(run.status).toBe("ready_for_review");
+    expect(run.delivery).toBeNull();
+    expect(run.pack?.narrative_versions).toHaveLength(2);
+    expect(run.files.pdf).toContain("held.pdf");
+
+    const approved = await store
+      .dispatch(reportingApi.endpoints.approveReportRun.initiate({ id: REVIEW_RUN_ID, accountId: "acct-1" }))
+      .unwrap();
+    expect(approved.status).toBe("sent");
+    expect(approved.delivery[0].outcome).toBe("notified");
+
+    const cancelled = await store
+      .dispatch(
+        reportingApi.endpoints.cancelReportRun.initiate({
+          id: REVIEW_RUN_ID,
+          accountId: "acct-1",
+          reason: "The narrative names the wrong client",
+        }),
+      )
+      .unwrap();
+    expect(cancelled.status).toBe("skipped");
+
+    expect(calls.map((call) => [call.key, call.body])).toContainEqual([
+      `POST /v1/reporting/runs/${REVIEW_RUN_ID}/cancel`,
+      { reason: "The narrative names the wrong client" },
+    ]);
+    // Approve sends no body of its own: the pack that was held is the pack
+    // that goes, so there is nothing left for the caller to choose.
+    expect(calls.find((call) => call.key.endsWith("/approve"))?.body).toBeUndefined();
+    // A decision reloads the run it was taken on, so the screen reads the
+    // status the server now holds rather than the one it drew the buttons on.
+    expect(
+      calls.filter((call) => call.key === `GET /v1/reporting/runs/${REVIEW_RUN_ID}`).length,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it("reads the account CSAT with the range as the API names it", async () => {

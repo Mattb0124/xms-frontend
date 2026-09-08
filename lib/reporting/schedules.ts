@@ -97,11 +97,25 @@ export interface ScheduleDraft {
   run_time: string;
   period_kind: PeriodKind;
   distribution: RecipientDraft[];
+  review_required: boolean;
   enabled: boolean;
 }
 
 export function emptyRecipient(kind: RecipientKind = "contact"): RecipientDraft {
   return { kind, id: "", email: "", name: "" };
+}
+
+/** The server's default grace period for a held run, in hours (functional 5.8). */
+export const DEFAULT_REVIEW_GRACE_HOURS = 24;
+
+/**
+ * What the review-required switch does, said once so the form and its test
+ * read the same sentence. The hours are the schedule's own where it has
+ * them, since the deadline a reviewer is given is the schedule's, not a
+ * number this form invented.
+ */
+export function reviewRequiredNote(graceHours: number = DEFAULT_REVIEW_GRACE_HOURS): string {
+  return `Each run is built and held for a reviewer instead of being sent. Nobody on the distribution list is told until someone approves it, and if ${graceHours} hours pass with no decision the run waits rather than sending itself.`;
 }
 
 export function emptyScheduleDraft(): ScheduleDraft {
@@ -112,6 +126,7 @@ export function emptyScheduleDraft(): ScheduleDraft {
     run_time: "06:00",
     period_kind: "previous_week",
     distribution: [],
+    review_required: false,
     enabled: true,
   };
 }
@@ -129,6 +144,7 @@ export function draftFromSchedule(schedule: ReportSchedule): ScheduleDraft {
       email: recipient.email ?? "",
       name: recipient.name ?? "",
     })),
+    review_required: schedule.review_required,
     enabled: schedule.enabled,
   };
 }
@@ -172,11 +188,17 @@ export function scheduleBody(draft: ScheduleDraft, accountId: string): CreateSch
     run_time: draft.run_time,
     period_kind: draft.period_kind,
     distribution: toRecipients(draft.distribution),
+    review_required: draft.review_required,
     enabled: draft.enabled,
   };
 }
 
-/** The whole set with the version the row was read at (the concurrent-edit rule). */
+/**
+ * The whole set with the version the row was read at (the concurrent-edit
+ * rule). The grace period is deliberately absent: this form does not offer
+ * it, and the API keeps the schedule's own when a patch leaves it out, so a
+ * deadline a reviewer was told about is never moved from here.
+ */
 export function patchBody(draft: ScheduleDraft, version: number): PatchScheduleBody {
   return {
     version,
@@ -186,6 +208,7 @@ export function patchBody(draft: ScheduleDraft, version: number): PatchScheduleB
     run_time: draft.run_time,
     period_kind: draft.period_kind,
     distribution: toRecipients(draft.distribution),
+    review_required: draft.review_required,
     enabled: draft.enabled,
   };
 }

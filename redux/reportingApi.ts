@@ -214,6 +214,14 @@ export interface NarrativeVersion {
   at: string;
 }
 
+/**
+ * The two renditions a run stores (Dashboards functional 5.6): the deck and
+ * the PDF rendering of the same frozen numbers. `GET /v1/reports/packs/:id`
+ * mints the download for the rendition asked for, so a caller that wants the
+ * other asks the same route again rather than reading a second one.
+ */
+export type PackFormat = "pptx" | "pdf";
+
 export interface ReportPack {
   id: string;
   period_start: string;
@@ -221,6 +229,8 @@ export interface ReportPack {
   measures: Measures;
   notable: Notable[];
   narrative_versions: NarrativeVersion[];
+  /** The rendition this response minted the download for; the API echoes it. */
+  format?: PackFormat;
   download: string | null;
 }
 
@@ -337,7 +347,10 @@ export interface ReportSchedule {
   period_kind: PeriodKind;
   formats: string[];
   distribution: Recipient[];
+  /** Functional 5.8: a run of this schedule is held for a reviewer, never sent on sight. */
   review_required: boolean;
+  /** How long a held run waits before the deadline expires the hold; the server's default is 24. */
+  review_grace_hours: number;
   enabled: boolean;
   next_run_at: string | null;
   last_run_id: string | null;
@@ -352,6 +365,7 @@ export interface ScheduleFields {
   run_time?: string;
   period_kind?: PeriodKind;
   distribution?: Recipient[];
+  review_required?: boolean;
   enabled?: boolean;
 }
 
@@ -371,12 +385,18 @@ export interface RunNowBody {
   period_end?: string;
 }
 
+/**
+ * What a run answers when it is asked for by hand or approved. A schedule
+ * with review required answers `ready_for_review` with the deadline instead
+ * of a delivery: nothing was sent, and the run waits on the review screen.
+ */
 export interface RunNowResult {
   run_id: string;
   pack_id: string;
   period: { start: string; end: string };
   delivery: DeliveryOutcome[];
-  status: "sent" | "failed";
+  status: "sent" | "failed" | "ready_for_review";
+  review_due_at: string | null;
 }
 
 export interface ScheduleRun {
@@ -402,6 +422,52 @@ export interface RunsFilter {
   schedule?: string;
 }
 
+/**
+ * Review before send (Dashboards functional 5.8, DR-05). A run of a schedule
+ * with `review_required` is rendered and then held: `ready_for_review` until
+ * its deadline, `awaiting_review` after the sweep expires the hold. Both are
+ * approvable, and neither has delivered anything. Approve sends the pack that
+ * was held, so the deck the reviewer read is the deck the client receives;
+ * cancel records the reason and the run takes the closed `skipped` status.
+ */
+export const HELD_RUN_STATUSES = ["ready_for_review", "awaiting_review"] as const;
+
+/** The pack frozen behind a held run, as the run detail carries it. */
+export interface HeldPack {
+  id: string;
+  period_start: string;
+  period_end: string;
+  measures: Measures;
+  notable: Notable[];
+  narrative_versions: NarrativeVersion[];
+  pptx_key: string | null;
+  pdf_key: string | null;
+}
+
+/** Presigned links to the two renditions, minted by the API and never rewritten. */
+export interface PackLinks {
+  pptx: string | null;
+  pdf: string | null;
+}
+
+export interface ReviewRun extends ScheduleRun {
+  /** Who decided, and when; both null while the run is still waiting. */
+  reviewer_id: string | null;
+  reviewed_at: string | null;
+  /** The deadline frozen when the run was held; cleared once it is decided. */
+  review_due_at: string | null;
+  /** The reason a cancel recorded. */
+  review_note: string | null;
+  pack: HeldPack | null;
+  files: PackLinks;
+}
+
+export interface CancelRunResult {
+  run_id: string;
+  status: string;
+  reason: string;
+}
+
 function csatTag(accountId: string) {
   return { type: "Csat" as const, id: accountId };
 }
@@ -412,6 +478,27 @@ function schedulesTag(accountId: string) {
 
 function runsTag(accountId: string | undefined) {
   return { type: "ReportRuns" as const, id: accountId ?? "all" };
+}
+
+function runTag(runId: string) {
+  return { type: "ReportRuns" as const, id: `run:${runId}` };
+}
+
+/**
+ * A decision on a held run is reloaded whether the API took it or refused
+ * it: a refusal means this view is behind the run (someone else approved or
+ * cancelled it), which is exactly when the screen must read it again. The
+ * account's runs, its Reports card and the Waiting rail all counted the held
+ * run, so all three move with it.
+ */
+function reviewTags(runId: string, accountId: string | undefined) {
+  return [
+    runTag(runId),
+    runsTag(accountId),
+    runsTag(undefined),
+    { type: "Reports" as const, id: accountId ?? "all" },
+    "Waiting" as const,
+  ];
 }
 
 export const reportingApi = xmsApi.injectEndpoints({
@@ -447,9 +534,13 @@ export const reportingApi = xmsApi.injectEndpoints({
       query: (accountId) => ({ url: `/v1/accounts/${accountId}/reports/wsr`, method: "POST" }),
       invalidatesTags: (_result, _error, accountId) => [{ type: "Reports", id: accountId }],
     }),
-    reportPack: build.query<ReportPack, string>({
-      query: (id) => `/v1/reports/packs/${id}`,
-      providesTags: (_result, _error, id) => [{ type: "Reports", id: `pack:${id}` }],
+    /** `format` picks the rendition the download is minted for; the deck by default. */
+    reportPack: build.query<ReportPack, { id: string; format?: PackFormat }>({
+      query: ({ id, format }) => ({
+        url: `/v1/reports/packs/${id}`,
+        params: format === "pdf" ? { format: "pdf" } : undefined,
+      }),
+      providesTags: (_result, _error, { id, format }) => [{ type: "Reports", id: `pack:${id}:${format ?? "pptx"}` }],
     }),
     portalDashboard: build.query<PortalDashboard, { days?: number } | void>({
       query: (params) => ({ url: "/v1/portal/dashboard", params: { days: params?.days ?? 30 } }),
@@ -493,6 +584,21 @@ export const reportingApi = xmsApi.injectEndpoints({
       }),
       providesTags: (_result, _error, filter) => [runsTag(filter.account)],
     }),
+    /** One run with its frozen pack and a presigned link per rendition (functional 5.8). */
+    reviewRun: build.query<ReviewRun, string>({
+      query: (id) => `/v1/reporting/runs/${id}`,
+      providesTags: (_result, _error, id) => [runTag(id)],
+    }),
+    /** Approve and send: the held pack goes out exactly as it was rendered. */
+    approveReportRun: build.mutation<RunNowResult, { id: string; accountId?: string }>({
+      query: ({ id }) => ({ url: `/v1/reporting/runs/${id}/approve`, method: "POST" }),
+      invalidatesTags: (_result, _error, { id, accountId }) => reviewTags(id, accountId),
+    }),
+    /** Cancel with a reason: nothing is delivered and the reason stays on the run. */
+    cancelReportRun: build.mutation<CancelRunResult, { id: string; accountId?: string; reason: string }>({
+      query: ({ id, reason }) => ({ url: `/v1/reporting/runs/${id}/cancel`, method: "POST", body: { reason } }),
+      invalidatesTags: (_result, _error, { id, accountId }) => reviewTags(id, accountId),
+    }),
   }),
   overrideExisting: false,
 });
@@ -507,6 +613,7 @@ export const {
   useReportRunsQuery,
   useGenerateWsrMutation,
   useReportPackQuery,
+  useLazyReportPackQuery,
   usePortalDashboardQuery,
   useAccountCsatQuery,
   useReportSchedulesQuery,
@@ -514,4 +621,7 @@ export const {
   usePatchReportScheduleMutation,
   useRunScheduleNowMutation,
   useScheduleRunsQuery,
+  useReviewRunQuery,
+  useApproveReportRunMutation,
+  useCancelReportRunMutation,
 } = reportingApi;
