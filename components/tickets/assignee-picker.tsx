@@ -13,6 +13,12 @@ import { useListPeopleQuery, type Person } from "@/redux/rosterApi";
 
 export interface AssigneePickerProps {
   value: string | null;
+  /**
+   * The record's own name for the current assignee. The control shows it
+   * straight away, so the picker names who holds the ticket instead of
+   * reading empty while the directory loads (frontend review finding 10).
+   */
+  valueLabel?: string | null;
   onChange: (user: AssignableUser | null) => void;
   /** Adds an "Assign to me" shortcut for this user id. */
   currentUserId?: string;
@@ -35,6 +41,16 @@ export function capacityWarning(check: CapacityCheck | undefined): string {
   return "";
 }
 
+/**
+ * The words in the closed control: the assignee's name, marked "(you)" when
+ * the reader holds the ticket, or "Unassigned". One control says who has the
+ * ticket and changes it; there is no second read-only line (finding 10).
+ */
+export function assigneeLabel(name: string | null | undefined, isMe: boolean): string {
+  if (!name) return "Unassigned";
+  return isMe ? `${name} (you)` : name;
+}
+
 /** At most 50 roster person ids behind the listed users, in list order: one check per open picker. */
 export function checkCandidates(users: AssignableUser[], byUserId: Map<string, Person>): string[] {
   const ids: string[] = [];
@@ -55,7 +71,15 @@ export function checkCandidates(users: AssignableUser[], byUserId: Map<string, P
  * marker for anyone near or over capacity come from one capacity check
  * per open picker (CAP-06). The notice never blocks.
  */
-export function AssigneePicker({ value, onChange, currentUserId, disabled, id, className }: AssigneePickerProps) {
+export function AssigneePicker({
+  value,
+  valueLabel,
+  onChange,
+  currentUserId,
+  disabled,
+  id,
+  className,
+}: AssigneePickerProps) {
   const { data: users = [] } = useListAssignableUsersQuery();
   const me = useMe();
   const rosterReadable = me.hasPermission("capacity:view");
@@ -75,6 +99,7 @@ export function AssigneePicker({ value, onChange, currentUserId, disabled, id, c
   );
   const checkByPerson = useMemo(() => new Map((checks ?? []).map((check) => [check.person_id, check])), [checks]);
   const selected = users.find((user) => user.id === value);
+  const current = assigneeLabel(selected ? fullName(selected) : valueLabel, Boolean(value) && value === currentUserId);
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const list = needle
@@ -95,10 +120,16 @@ export function AssigneePicker({ value, onChange, currentUserId, disabled, id, c
           aria-expanded={open}
           aria-controls={`${id ?? "assignee"}-options`}
           aria-label="Assignee"
-          placeholder={selected ? fullName(selected) : "Unassigned"}
-          value={query}
+          // Closed, the control reads as the assignee; open, it is a search box
+          // and the assignee stays in the placeholder for context.
+          placeholder={current}
+          data-current-assignee={current}
+          value={open ? query : current === "Unassigned" ? "" : current}
           disabled={disabled}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            setQuery("");
+            setOpen(true);
+          }}
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -106,7 +137,7 @@ export function AssigneePicker({ value, onChange, currentUserId, disabled, id, c
           }}
           className={INPUT}
         />
-        {currentUserId ? (
+        {currentUserId && value !== currentUserId ? (
           <button
             type="button"
             disabled={disabled}

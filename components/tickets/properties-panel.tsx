@@ -154,11 +154,17 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
           });
         }}
       />
-      <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-3">
+      {/*
+        One row for one concept (Wireframes section 3.2, review finding 10):
+        the picker itself names the current assignee, so there is no second
+        read-only "Assigned to" line under an empty combobox.
+      */}
+      <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3">
         <span className="text-xms-label text-[12px]">Assignee</span>
         <AssigneePicker
           id="ticket-assignee"
           value={ticket.assignee_id}
+          valueLabel={ticket.assignee_name}
           disabled={readOnly}
           currentUserId={me.principal?.userId}
           onChange={(user) =>
@@ -167,11 +173,6 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
               .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
           }
         />
-        <span className="text-xms-label text-[12px]">Assigned to</span>
-        <span className="text-xms-ink text-[13px]">
-          {ticket.assignee_name ?? "Unassigned"}
-          {ticket.assignee_id && ticket.assignee_id === me.principal?.userId ? " (you)" : ""}
-        </span>
       </div>
     </Panel>
   );

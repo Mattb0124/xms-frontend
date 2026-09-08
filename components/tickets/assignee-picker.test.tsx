@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AssigneePicker, rosterHint } from "@/components/tickets/assignee-picker";
+import { assigneeLabel, AssigneePicker, rosterHint } from "@/components/tickets/assignee-picker";
 import { aPerson } from "@/redux/rosterApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
@@ -51,6 +51,60 @@ describe("AssigneePicker roster enrichment", () => {
     await waitFor(() => expect(calls.some((call) => call.key === "GET /v1/admin/me")).toBe(true));
     expect(calls.some((call) => call.key === "GET /v1/roster/people")).toBe(false);
     expect(document.querySelector("[data-roster-hint]")).toBeNull();
+  });
+});
+
+/**
+ * Review finding 10: the Assignee control was two rows for one concept, an
+ * empty combobox beside "Assign to me" and a separate read-only "Assigned to
+ * Ben Okafor" line, so reassigning looked like assigning from nothing.
+ */
+describe("AssigneePicker names the current assignee", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("words the closed control from the record, marking the reader's own tickets", () => {
+    expect(assigneeLabel("Ben Okafor", false)).toBe("Ben Okafor");
+    expect(assigneeLabel("Ben Okafor", true)).toBe("Ben Okafor (you)");
+    expect(assigneeLabel(null, false)).toBe("Unassigned");
+    expect(assigneeLabel(undefined, true)).toBe("Unassigned");
+  });
+
+  it("shows the assignee before the directory loads and searches from empty once focused", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["tickets:work"]),
+      "GET /v1/users": () => json(USERS),
+    });
+    renderDesk(<AssigneePicker id="assignee" value="u-ana" valueLabel="Ana Silva" onChange={() => undefined} />);
+    const box = screen.getByRole("combobox", { name: "Assignee" });
+    expect(box).toHaveValue("Ana Silva");
+    expect(box).toHaveAttribute("data-current-assignee", "Ana Silva");
+    fireEvent.focus(box);
+    // Open, the box is a search field and the assignee stays in the placeholder.
+    expect(box).toHaveValue("");
+    expect(box).toHaveAttribute("placeholder", "Ana Silva");
+    await screen.findByRole("option", { name: /Ana Silva/ });
+  });
+
+  it("reads Unassigned with no assignee and hides Assign to me when the reader already holds it", () => {
+    stubFetch({ "GET /v1/admin/me": me(["tickets:work"]), "GET /v1/users": () => json(USERS) });
+    const { unmount } = renderDesk(
+      <AssigneePicker id="assignee" value={null} valueLabel={null} currentUserId="u-ben" onChange={() => undefined} />,
+    );
+    expect(screen.getByRole("combobox", { name: "Assignee" })).toHaveAttribute("data-current-assignee", "Unassigned");
+    expect(screen.getByRole("button", { name: "Assign to me" })).toBeInTheDocument();
+    unmount();
+
+    renderDesk(
+      <AssigneePicker
+        id="assignee"
+        value="u-ben"
+        valueLabel="Ben Ito"
+        currentUserId="u-ben"
+        onChange={() => undefined}
+      />,
+    );
+    expect(screen.getByRole("combobox", { name: "Assignee" })).toHaveValue("Ben Ito (you)");
+    expect(screen.queryByRole("button", { name: "Assign to me" })).toBeNull();
   });
 });
 
