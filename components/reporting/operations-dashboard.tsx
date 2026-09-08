@@ -19,6 +19,7 @@ import { AccountDot } from "@/components/xms/account-dot";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
+import { ticketTypeLabel } from "@/lib/tickets/vocab";
 import { useOperationsDashboardQuery, type AccountStrip } from "@/redux/reportingApi";
 
 const COLUMNS: DenseColumn<AccountStrip>[] = [
@@ -111,7 +112,13 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
               linkBase="/tickets"
               param="priority"
             />
-            <BreakdownPanel title="Open by type" values={data.measures.open_by_type} linkBase="/tickets" param="type" />
+            <BreakdownPanel
+              title="Open by type"
+              values={data.measures.open_by_type}
+              linkBase="/tickets"
+              param="type"
+              labelOf={ticketTypeLabel}
+            />
             <ConsumptionPanel measures={data.measures} />
           </div>
           <NotablePanel notable={data.notable} />

@@ -1,6 +1,6 @@
 /**
  * The condition set grammar shared by the Queue, saved views and the Audit
- * search. Serialises to a compact JSON string carried in the URL (`c=`) and
+ * search. Serializes to a compact JSON string carried in the URL (`c=`) and
  * sent to the API verbatim; the server validates fields and operators against
  * its own allowlist (Ticket Management technical section 3, P2.11.1).
  */
@@ -63,7 +63,7 @@ export function serializeConditions(conditions: Condition[]): string {
   return JSON.stringify(conditions.map((c) => [c.field, c.op, c.value]));
 }
 
-/** Parses a serialised set; malformed input yields an empty set instead of throwing. */
+/** Parses a serialized set; malformed input yields an empty set instead of throwing. */
 export function parseConditions(raw: string | null | undefined): Condition[] {
   if (!raw) return [];
   try {

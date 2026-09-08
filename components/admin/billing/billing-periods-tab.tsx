@@ -95,7 +95,7 @@ export function PeriodPeople({ period }: { period: BillingPeriod }) {
 
 function SummaryCell({ period }: { period: BillingPeriod }) {
   const summary = period.summary;
-  if (!summary) return <span className="text-xms-label text-[12px]">Not summarised yet</span>;
+  if (!summary) return <span className="text-xms-label text-[12px]">Not summarized yet</span>;
   const classes = Object.entries(summary.by_class);
   return (
     <div className="flex flex-col gap-1" data-summary>

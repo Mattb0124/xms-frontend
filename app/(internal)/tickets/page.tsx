@@ -9,6 +9,7 @@ import { ExportMenu } from "@/components/tickets/export-menu";
 import { ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
+import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
 import { FilterBar } from "@/components/xms/filter-bar";
 import { ScoreTile } from "@/components/xms/score-tile";
 import { BulkAction, SelectionBar } from "@/components/xms/selection-bar";
@@ -16,6 +17,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { RowsPerPage, type RowsPerPageOption } from "@/components/xms/table-footer";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { STARS_KEY, useToggleInList } from "@/lib/persisted-set";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
   CHIP_LABEL,
@@ -159,6 +161,28 @@ function QueueScreen() {
   const stats = data?.stats;
   const filtered = parsed.chips.length > 0 || parsed.q !== "";
 
+  // The condition trail (Wireframes section 2): the active view then each chip,
+  // clicking a segment removes that criterion, with the count on the right and
+  // Save as view, which stars the current URL into the same Favourites list the
+  // finder bar reads (frontend review finding 12).
+  const [, toggleStar, hasStar] = useToggleInList(STARS_KEY);
+  const currentHref = searchString ? `${pathname}?${searchString}` : pathname;
+  const trail = [
+    { key: "view", label: view.label },
+    ...parsed.chips.map((chip) => ({ key: `${chip.key}:${chip.value}`, label: chipValueLabel(chip) })),
+    ...(parsed.q ? [{ key: "q", label: `Search: ${parsed.q}` }] : []),
+  ];
+  const removeSegment = (key: string) => {
+    if (key === "view") return navigate({ view: QUEUE_VIEWS[0].key });
+    if (key === "q") {
+      setQuery("");
+      return navigate({ q: "" });
+    }
+    navigate({ chips: parsed.chips.filter((chip) => `${chip.key}:${chip.value}` !== key) });
+  };
+  const countLabel =
+    stats !== undefined ? `${stats.open} open ticket${stats.open === 1 ? "" : "s"}` : `${rows.length} shown`;
+
   return (
     <div className="flex flex-col gap-4">
       <HeaderFilters>
@@ -231,6 +255,14 @@ function QueueScreen() {
         </span>
       </HeaderAction>
 
+      <BreadcrumbTrail
+        segments={trail}
+        onRemove={removeSegment}
+        count={countLabel}
+        onSaveView={() => toggleStar(currentHref)}
+        saved={hasStar(currentHref)}
+      />
+
       {stats ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="stats-strip">
           <ScoreTile label="Open" value={stats.open} href="/tickets" />
@@ -290,7 +322,7 @@ function QueueScreen() {
                 placeholder="Search by key, description or requester"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="border-xms-line bg-xms-card text-xms-ink h-[32px] w-[320px] rounded-[4px] border px-3 text-[13px] outline-none"
+                className="border-xms-line bg-xms-card text-xms-ink h-[32px] w-full max-w-full rounded-[4px] border px-3 text-[13px] outline-none sm:w-[320px]"
               />
             </form>
           }

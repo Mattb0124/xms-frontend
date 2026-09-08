@@ -79,7 +79,7 @@ const MAX_FILE_NAME = 120;
  * A filename fit for `a.download`. The name arrives in a Content-Disposition
  * header, so it is server-supplied: path separators, control characters and
  * bidi overrides are removed, leading dots are dropped so it can be neither a
- * traversal nor a hidden file, and the length is capped. Browsers sanitise
+ * traversal nor a hidden file, and the length is capped. Browsers sanitize
  * `download` themselves; this is the layer that does not depend on that.
  */
 export function safeFileName(candidate: string | null | undefined, fallback: string): string {

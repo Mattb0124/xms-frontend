@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DeadLettersTab, summariseOutcomes } from "@/components/admin/connectors/dead-letters-tab";
+import { DeadLettersTab, summarizeOutcomes } from "@/components/admin/connectors/dead-letters-tab";
 import { aDeadLetter, anInstance } from "@/redux/connectorsApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
@@ -88,6 +88,6 @@ describe("DeadLettersTab", () => {
     await waitFor(() => expect(calls).toHaveLength(2));
     expect(calls[1].search).toBe("");
     await screen.findByText("Duplicate");
-    expect(summariseOutcomes([{ id: "a", outcome: "discarded" }], "discarded")).toBe("1 discarded.");
+    expect(summarizeOutcomes([{ id: "a", outcome: "discarded" }], "discarded")).toBe("1 discarded.");
   });
 });

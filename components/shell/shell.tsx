@@ -9,14 +9,11 @@ import { FinderOverlay, type HistoryEntry } from "@/components/shell/finder-over
 import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { PinnedSidebar } from "@/components/shell/pinned-sidebar";
 import { initials } from "@/components/xms/actor-chip";
-import { usePersistedList, useToggleInList } from "@/lib/persisted-set";
+import { HISTORY_KEY, PINS_KEY, STARS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
 import { matchScreen, visibleScreens } from "@/lib/routes";
+import { NARROW_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { useMe } from "@/redux/me";
 import { useUnreadCountQuery } from "@/redux/ticketsApi";
-
-const PINS_KEY = "xms.pins";
-const STARS_KEY = "xms.starred";
-const HISTORY_KEY = "xms.history";
 
 function parseHistory(raw: string): HistoryEntry | null {
   try {
@@ -45,7 +42,13 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const [finder, setFinder] = useState<FinderKind | null>(null);
   const [palette, setPalette] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // The sidebar follows the viewport until the reader says otherwise: open on a
+  // desk-width window, closed below the md breakpoint where 238px would leave
+  // about 150px of content (frontend review finding 8). The content header
+  // bar's control then opens it over the content.
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const [sidebarChoice, setSidebarChoice] = useState<boolean | null>(null);
+  const sidebarOpen = sidebarChoice ?? !narrow;
   const [notifications, setNotifications] = useState(false);
   const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: 60_000, skip: !me.principal });
 
@@ -146,7 +149,7 @@ export function Shell({ children }: { children: ReactNode }) {
           />
         ) : null}
         <div className="flex min-w-0 flex-1 flex-col">
-          <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarOpen((open) => !open)}>
+          <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
             <main className="flex flex-1 flex-col p-4">{children}</main>
           </ContentHeaderBar>
         </div>

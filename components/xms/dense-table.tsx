@@ -98,13 +98,16 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
   };
 
   return (
-    <section className={cn("xms-card flex flex-col", props.className)} aria-label={props.title}>
-      <header className="border-xms-line flex h-[48px] items-center gap-3 border-b px-4">
+    // min-w-0 keeps the card from growing to the table's intrinsic width: without
+    // it the document was wider than the viewport and the whole page scrolled
+    // sideways instead of the table (frontend review finding 8).
+    <section className={cn("xms-card flex min-w-0 flex-col", props.className)} aria-label={props.title}>
+      <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-3 border-b px-4 py-2">
         <span className="text-xms-ink text-[15px] font-semibold">{props.title}</span>
         <span className="xms-mono bg-xms-tint text-xms-accent rounded-[999px] px-2 py-[2px] text-[11px] font-semibold">
           {props.count}
         </span>
-        {props.search ? <div className="ml-auto">{props.search}</div> : null}
+        {props.search ? <div className="ml-auto min-w-0 max-w-full">{props.search}</div> : null}
       </header>
       {props.banner}
       <div className="overflow-auto">

@@ -14,7 +14,7 @@ import {
 } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
 
-const AI_CAPABILITIES = ["categorise", "prioritise", "duplicates", "summarise", "similar_solutions"] as const;
+const AI_CAPABILITIES = ["categorize", "prioritize", "duplicates", "summarize", "similar_solutions"] as const;
 const AI_MODES = ["off", "suggest", "auto"] as const;
 
 /**

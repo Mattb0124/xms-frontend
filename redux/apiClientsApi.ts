@@ -18,7 +18,7 @@ export interface ApiClient {
   id: string;
   name: string;
   owner_user_id: string | null;
-  /** The first sixteen characters of the key, enough to recognise it in a log. */
+  /** The first sixteen characters of the key, enough to recognize it in a log. */
   key_prefix: string;
   scopes: string[];
   expires_at: string | null;

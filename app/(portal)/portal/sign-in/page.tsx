@@ -72,7 +72,7 @@ export default function PortalSignInPage() {
       ) : null}
       {!CLERK_ENABLED && !AUTH_DEV_MODE ? (
         <PortalNotice>
-          Your organisation&apos;s portal is not active. Ask your XMS administrator to invite you.
+          Your organization&apos;s portal is not active. Ask your XMS administrator to invite you.
         </PortalNotice>
       ) : null}
     </div>

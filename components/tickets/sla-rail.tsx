@@ -16,6 +16,7 @@ function Meter({ clock, fetchedAt, now }: { clock: ClockView; fetchedAt: Date; n
       <span className="text-xms-ink text-[13px]">{meterCaption(clock, fetchedAt, now)}</span>
       <MeterBar
         percent={clock.met ? 100 : percent}
+        met={clock.met}
         breached={clock.breached}
         paused={clock.paused}
         pauses={pauseShare > 0 ? [{ startPct: Math.max(0, percent - pauseShare), endPct: percent }] : []}

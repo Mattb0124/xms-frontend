@@ -39,6 +39,11 @@ function write(key: string, value: string[]): void {
 
 const EMPTY: string[] = [];
 
+/** Per-browser keys the shell and the Queue share. */
+export const PINS_KEY = "xms.pins";
+export const STARS_KEY = "xms.starred";
+export const HISTORY_KEY = "xms.history";
+
 export function usePersistedList(key: string, max = 50): [string[], (next: string[]) => void] {
   const subscribe = useCallback(
     (fn: () => void) => {

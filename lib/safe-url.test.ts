@@ -13,7 +13,11 @@ function walk(directory: string): string[] {
 }
 
 const read = (file: string) => readFileSync(file, "utf8");
-const relative = (file: string) => file.slice(process.cwd().length + 1).split(sep).join("/");
+const relative = (file: string) =>
+  file
+    .slice(process.cwd().length + 1)
+    .split(sep)
+    .join("/");
 
 /**
  * An href, a window.open target and a download name built from a string the

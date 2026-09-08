@@ -5,19 +5,26 @@
  * The resolution codes mirror the backend seed until the catalog is served
  * to non-administrators (the config route needs admin:config today).
  */
-import type { TicketType } from "@/components/xms/type-bar";
+import { TYPE_LABEL, type TicketType } from "@/components/xms/type-bar";
 import type { Priority } from "@/components/xms/priority-pill";
 
 export type Level = "high" | "medium" | "low";
 export type PauseReason = "awaiting_client" | "awaiting_third_party" | "scheduled_window" | "blocked";
 
-export const TICKET_TYPES: { value: TicketType; label: string }[] = [
-  { value: "incident", label: "Incident" },
-  { value: "service_request", label: "Service request" },
-  { value: "change", label: "Change" },
-  { value: "problem", label: "Problem" },
-  { value: "project_task", label: "Project task" },
-];
+/**
+ * One name per type, taken from the type bar's map, so the Queue's Type
+ * column and the dashboards' Open by type cannot disagree: Operations said
+ * "Service Request" while the Queue said "Request" for the same type
+ * (frontend review finding 23).
+ */
+export const TICKET_TYPES: { value: TicketType; label: string }[] = (
+  ["incident", "service_request", "change", "problem", "project_task"] as TicketType[]
+).map((value) => ({ value, label: TYPE_LABEL[value] }));
+
+/** Names a type key, including one the API added that the client does not know. */
+export function ticketTypeLabel(value: string): string {
+  return TYPE_LABEL[value as TicketType] ?? value.replace(/_/g, " ");
+}
 
 export const LEVELS: { value: Level; label: string }[] = [
   { value: "high", label: "High" },

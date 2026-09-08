@@ -21,6 +21,7 @@ import { CompTimePanel } from "@/components/time/comp-time-panel";
 import { AccountDot } from "@/components/xms/account-dot";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
+import { ticketTypeLabel } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useAccountDashboardQuery } from "@/redux/reportingApi";
@@ -131,6 +132,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
               values={data.measures.open_by_type}
               linkBase={queueBase}
               param="type"
+              labelOf={ticketTypeLabel}
             />
             <ConsumptionPanel measures={data.measures} />
           </div>

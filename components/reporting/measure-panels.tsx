@@ -14,6 +14,9 @@ import type { Measures, Notable } from "@/redux/reportingApi";
  * only when its measure is present, so the client view (the portal subset)
  * reuses the same pieces and simply shows fewer of them.
  */
+/** Attainment at or above this is met; below it is a breach of the commitment. */
+export const SLA_TARGET_PERCENT = 90;
+
 export interface QueueLinks {
   /** Base Queue URL for the scope, e.g. `/tickets` or `/tickets?account_id=x`. */
   base: string;
@@ -84,7 +87,11 @@ export function SlaPanel({ measures }: { measures: Partial<Measures> }) {
               </div>
               <MeterBar
                 percent={row.ratio!.value ?? 0}
-                breached={row.ratio!.value !== null && row.ratio!.value < 90}
+                // Attainment is a higher-is-better measure: at or above target
+                // it is met and drawn on the complete trio, never amber
+                // (frontend review finding 11).
+                met={row.ratio!.value !== null && row.ratio!.value >= SLA_TARGET_PERCENT}
+                breached={row.ratio!.value !== null && row.ratio!.value < SLA_TARGET_PERCENT}
                 className="w-full"
               />
             </div>
@@ -160,11 +167,14 @@ export function BreakdownPanel({
   values,
   linkBase,
   param,
+  labelOf,
 }: {
   title: string;
   values: Record<string, number> | undefined;
   linkBase?: string;
   param?: string;
+  /** Names a key; pass the vocabulary so one label is used on every screen. */
+  labelOf?: (key: string) => string;
 }) {
   if (!values) return null;
   const entries = Object.entries(values).sort((a, b) => b[1] - a[1]);
@@ -173,7 +183,7 @@ export function BreakdownPanel({
     <Panel title={title} caption="Open">
       <ul className="flex flex-col gap-2">
         {entries.map(([key, count]) => {
-          const label = key.replace(/_/g, " ");
+          const label = labelOf ? labelOf(key) : key.replace(/_/g, " ");
           const href =
             linkBase && param
               ? `${linkBase}${linkBase.includes("?") ? "&" : "?"}${param}=${encodeURIComponent(key)}`

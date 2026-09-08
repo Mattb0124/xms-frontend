@@ -79,8 +79,8 @@ const RESOLVED_COLUMNS: DenseColumn<DeadLetter>[] = [
   },
 ];
 
-/** Summarises the per-id outcomes of a replay or discard into one toast line. */
-export function summariseOutcomes(results: { id: string; outcome: string }[], verb: "replayed" | "discarded"): string {
+/** Summarizes the per-id outcomes of a replay or discard into one toast line. */
+export function summarizeOutcomes(results: { id: string; outcome: string }[], verb: "replayed" | "discarded"): string {
   const done = results.filter((result) => result.outcome === verb).length;
   const skipped = results.length - done;
   return skipped > 0 ? `${done} ${verb}, ${skipped} already resolved.` : `${done} ${verb}.`;
@@ -114,7 +114,7 @@ export function DeadLettersTab({ instanceId }: { instanceId: string }) {
       (dialog === "replay" ? trackReplay : trackDiscard)({ instance_id: instanceId, count: ids.length });
       push({
         title: dialog === "replay" ? "Replayed" : "Discarded",
-        detail: summariseOutcomes(result.results, dialog === "replay" ? "replayed" : "discarded"),
+        detail: summarizeOutcomes(result.results, dialog === "replay" ? "replayed" : "discarded"),
         tone: "success",
       });
       setSelected(new Set());

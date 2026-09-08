@@ -40,7 +40,7 @@ describe("BillingPeriodsTab", () => {
     const table = await screen.findByRole("table", { name: "Billing periods" });
     const open = within(table).getByRole("row", { name: /September 2026/ });
     expect(within(open).getByText("Open")).toHaveAttribute("data-state", "ready");
-    expect(open).toHaveTextContent("Not summarised yet");
+    expect(open).toHaveTextContent("Not summarized yet");
     const locked = within(table).getByRole("row", { name: /August 2026/ });
     expect(within(locked).getByText("Locked")).toHaveAttribute("data-state", "blocked");
     expect(locked.querySelector("[data-summary-hours]")).toHaveTextContent("2.3 h");

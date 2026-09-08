@@ -3,7 +3,7 @@ import { AUTH_DEV_MODE, CLERK_ENABLED, DEV_TOKEN_STORAGE_KEY } from "@/lib/auth/
 /**
  * Where the bearer for the XMS API comes from. RTK Query's prepareHeaders
  * runs outside React, so the provider is registered once by the Providers
- * tree and read here. The browser never decides authorisation; it only
+ * tree and read here. The browser never decides authorization; it only
  * carries the token the API will verify.
  */
 export interface TokenProvider {

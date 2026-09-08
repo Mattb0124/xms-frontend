@@ -181,7 +181,7 @@ export function ApiClientsView() {
       {fresh ? <NewKeyPanel name={fresh.name} apiKey={fresh.key} onDismiss={() => setFresh(null)} /> : null}
       <Panel
         title="API clients"
-        caption="One key per organisation or system, scoped and granted accounts"
+        caption="One key per organization or system, scoped and granted accounts"
         actions={
           <button
             type="button"
