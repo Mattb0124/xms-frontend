@@ -9,10 +9,12 @@ import {
   rowsToQuery,
   scopeOf,
 } from "@/components/admin/audit-search";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 import { anAuditEvent, anOperatorAuditRow, aSavedQuery, aSavedQueryPage, SAVED_QUERY_ID } from "@/test-kit/reporting";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin/audit" }));
+// Search and Export CSV stand in the toolbar band now, so the band has to be
+// mounted, and it pushes on the screen switcher.
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin/audit", useRouter: () => ({ push: vi.fn() }) }));
 
 const downloadFile = vi.fn();
 vi.mock("@/lib/exports/download", async (importOriginal) => {
@@ -66,7 +68,7 @@ describe("AuditSearch", () => {
         return json({ items: [anAuditEvent()], next_cursor: "c1" });
       },
     });
-    renderDesk(<AuditSearch />);
+    renderDeskInShell(<AuditSearch />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText("Value"), { target: { value: "security" } });
@@ -122,7 +124,7 @@ describe("AuditSearch", () => {
       "POST /v1/audit/search": () =>
         json({ items: [anOperatorAuditRow(), anAuditEvent({ account_id: "acct-77" })], next_cursor: null }),
     });
-    renderDesk(<AuditSearch />);
+    renderDeskInShell(<AuditSearch />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Search" }));
 
@@ -196,7 +198,7 @@ describe("AuditSearch", () => {
       "GET /v1/admin/me": () => json(me(["audit:read"])),
       "POST /v1/audit/search": () => json({ items: [anOperatorAuditRow()], next_cursor: null }),
     });
-    renderDesk(<AuditSearch initialRows={[{ field: "account_id", op: "eq", value: "" }]} />);
+    renderDeskInShell(<AuditSearch initialRows={[{ field: "account_id", op: "eq", value: "" }]} />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText("Operator"), { target: { value: "is_null" } });
@@ -212,7 +214,7 @@ describe("AuditSearch", () => {
 
   it("hides Export CSV without audit:export", async () => {
     stubFetch({ "GET /v1/admin/me": () => json(me(["audit:read"])) });
-    renderDesk(<AuditSearch />);
+    renderDeskInShell(<AuditSearch />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
     expect(screen.queryByRole("button", { name: "Export CSV" })).not.toBeInTheDocument();
   });
@@ -231,7 +233,7 @@ describe("AuditSearch", () => {
         );
       },
     });
-    renderDesk(<AuditSearch />);
+    renderDeskInShell(<AuditSearch />);
 
     await waitFor(() => expect(screen.getByText("Brookfield changes")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
@@ -257,7 +259,7 @@ describe("AuditSearch", () => {
         json(aSavedQueryPage({ next_cursor: "cur-2" }), 201),
       "POST /v1/audit/search": () => json({ items: [anAuditEvent()], next_cursor: null }),
     });
-    renderDesk(<AuditSearch />);
+    renderDeskInShell(<AuditSearch />);
 
     await waitFor(() => expect(screen.getByText("Brookfield changes")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
@@ -273,7 +275,7 @@ describe("AuditSearch", () => {
       "GET /v1/admin/me": () => json(me(["audit:read"])),
       "GET /v1/audit/saved-queries": () => json([aSavedQuery()]),
     });
-    renderDesk(<AuditSearch />);
+    renderDeskInShell(<AuditSearch />);
 
     await waitFor(() => expect(screen.getByText("Brookfield changes")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Load into builder" }));

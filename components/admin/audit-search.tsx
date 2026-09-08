@@ -2,8 +2,11 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { HeaderAction } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
+import { StripSelect } from "@/components/xms/filter-select";
+import { ICON, CloseIcon } from "@/components/xms/icons";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
@@ -201,39 +204,43 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
         return (
           <div key={index} className="flex items-center gap-2" data-condition-row>
             <span className="xms-mono text-xms-muted w-8 text-[11px]">{index === 0 ? "" : "AND"}</span>
-            <select
-              aria-label="Field"
+            {/* The Queue's builder settled this in pass two: a bare select
+                takes the platform's height, padding and chevron, so a row of
+                them reads as browser widgets rather than as the reference's
+                32px controls. */}
+            <StripSelect
+              ariaLabel="Field"
               value={row.field}
-              onChange={(event) => {
-                const next = AUDIT_FIELDS.find((field) => field.key === event.target.value) ?? AUDIT_FIELDS[0];
+              display={spec.label}
+              onChange={(value) => {
+                const next = AUDIT_FIELDS.find((field) => field.key === value) ?? AUDIT_FIELDS[0];
                 update(index, { field: next.key, op: operatorsFor(next)[0], value: "" });
               }}
-              className={CONTROL}
             >
               {AUDIT_FIELDS.map((field) => (
                 <option key={field.key} value={field.key}>
                   {field.label}
                 </option>
               ))}
-            </select>
-            <select
-              aria-label="Operator"
+            </StripSelect>
+            <StripSelect
+              ariaLabel="Operator"
               value={row.op}
-              onChange={(event) => update(index, { op: event.target.value as AuditOperator })}
-              className={CONTROL}
+              display={operatorLabel(spec, row.op)}
+              onChange={(value) => update(index, { op: value as AuditOperator })}
             >
               {operators.map((op) => (
                 <option key={op} value={op}>
                   {operatorLabel(spec, op)}
                 </option>
               ))}
-            </select>
+            </StripSelect>
             {isNullTest(row.op) ? null : spec.kind === "select" && row.op !== "in" ? (
-              <select
-                aria-label="Value"
+              <StripSelect
+                ariaLabel="Value"
                 value={row.value}
-                onChange={(event) => update(index, { value: event.target.value })}
-                className={CONTROL}
+                display={spec.options!.find((option) => option.value === row.value)?.label ?? "Choose"}
+                onChange={(value) => update(index, { value })}
               >
                 <option value="">Choose</option>
                 {spec.options!.map((option) => (
@@ -241,7 +248,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </StripSelect>
             ) : (
               <input
                 aria-label="Value"
@@ -256,9 +263,9 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
               type="button"
               aria-label="Remove condition"
               onClick={() => remove(index)}
-              className="text-xms-muted hover:text-xms-ink text-[14px]"
+              className="text-xms-muted hover:text-xms-ink"
             >
-              ×
+              <CloseIcon size={ICON.glyph} />
             </button>
           </div>
         );
@@ -561,22 +568,19 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
 
   return (
     <div className="flex flex-col gap-4" data-testid="audit-search">
-      <Panel
-        title="Conditions"
-        caption="One search over audit, security and usage"
-        actions={
-          <>
-            {me.hasPermission("audit:export") ? (
-              <button type="button" onClick={() => void onExport()} disabled={exporting} className={SECONDARY_BUTTON}>
-                {exporting ? "Exporting" : "Export CSV"}
-              </button>
-            ) : null}
-            <button type="button" onClick={onSearch} disabled={result.isFetching} className={PRIMARY_BUTTON}>
-              Search
-            </button>
-          </>
-        }
-      >
+      {/* The two actions are the screen's, not the card's, so they stand in
+          the toolbar right where every other screen puts its own. */}
+      <HeaderAction>
+        {me.hasPermission("audit:export") ? (
+          <button type="button" onClick={() => void onExport()} disabled={exporting} className={SECONDARY_BUTTON}>
+            {exporting ? "Exporting" : "Export CSV"}
+          </button>
+        ) : null}
+        <button type="button" onClick={onSearch} disabled={result.isFetching} className={PRIMARY_BUTTON}>
+          Search
+        </button>
+      </HeaderAction>
+      <Panel title="Conditions" caption="One search over audit, security and usage">
         <AuditConditionBuilder rows={rows} onChange={setRows} />
       </Panel>
 
@@ -594,20 +598,24 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
           rowKey={(row) => row.id}
           onRowClick={setSelected}
           emptyState={summary}
+          // The count is said once. It was in the footer and again in the
+          // empty state, so an unrun search read "Run a search" twice.
           footer={
-            <div className="border-xms-line flex items-center gap-4 border-t px-4 py-2">
-              <span className="xms-mono text-xms-label text-[12px]">{summary}</span>
-              {cursor ? (
-                <button
-                  type="button"
-                  onClick={() => void loadMore()}
-                  disabled={result.isFetching || runningSaved.isLoading}
-                  className={cn(SECONDARY_BUTTON, "ml-auto")}
-                >
-                  Load more
-                </button>
-              ) : null}
-            </div>
+            items.length === 0 ? null : (
+              <div className="border-xms-line flex items-center gap-4 border-t px-4 py-2">
+                <span className="xms-mono text-xms-label text-[12px]">{summary}</span>
+                {cursor ? (
+                  <button
+                    type="button"
+                    onClick={() => void loadMore()}
+                    disabled={result.isFetching || runningSaved.isLoading}
+                    className={cn(SECONDARY_BUTTON, "ml-auto")}
+                  >
+                    Load more
+                  </button>
+                ) : null}
+              </div>
+            )
           }
         />
       )}
