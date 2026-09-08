@@ -168,17 +168,42 @@ const NOT_READ_YET = [
 /** The permission the ticket record's contract card keeps: its route stayed on tickets:view. */
 const TICKETS_VIEW_SURFACE = { file: "components/tickets/contract-card.tsx", hook: "useContractPositionQuery" };
 
+/**
+ * Every source file under the four roots, walked and read once for the whole
+ * file. Four permission maps scan the same tree, and re-walking and re-reading
+ * it per map is what pushed this spec past its timeout on a loaded machine.
+ */
+let walked: string[] | undefined;
+const contents = new Map<string, string>();
+
 function sources(): string[] {
+  if (walked) return walked;
   const collect = (directory: string): string[] =>
     readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
       const path = join(directory, entry.name);
       if (entry.isDirectory()) return collect(path);
       return /\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name) ? [path] : [];
     });
-  return SOURCE_ROOTS.flatMap((root) => collect(join(process.cwd(), root)));
+  walked = SOURCE_ROOTS.flatMap((root) => collect(join(process.cwd(), root)));
+  return walked;
 }
 
-const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+function sourceOf(path: string): string {
+  const cached = contents.get(path);
+  if (cached !== undefined) return cached;
+  const text = readFileSync(path, "utf8");
+  contents.set(path, text);
+  return text;
+}
+
+/** The files calling any of the named hooks, as repository-relative paths. */
+function callersOf(hooks: readonly string[]): string[] {
+  return sources()
+    .filter((file) => hooks.some((hook) => sourceOf(file).includes(`${hook}(`)))
+    .map(relative);
+}
+
+const read = (path: string) => sourceOf(join(process.cwd(), path));
 
 describe("a surface reading a contracts:view route gates on contracts:view", () => {
   it("pins each hook to the route it reads", () => {
@@ -192,9 +217,7 @@ describe("a surface reading a contracts:view route gates on contracts:view", () 
   it("lists every file that calls one of those hooks", () => {
     const hooks = CONTRACTS_VIEW_READS.map((entry) => entry.hook);
     const listed = new Set(CONTRACT_SURFACES.map((surface) => surface.file));
-    const callers = sources()
-      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
-      .map(relative);
+    const callers = callersOf(hooks);
     expect(callers.length).toBeGreaterThan(0);
     expect(callers.filter((file) => !listed.has(file))).toEqual([]);
     expect([...listed].filter((file) => !callers.includes(file))).toEqual([]);
@@ -226,7 +249,7 @@ describe("a surface reading a contracts:view route gates on contracts:view", () 
 
   it("reaches no contracts:view route that has no screen yet", () => {
     const offenders = sources().flatMap((file) => {
-      const source = readFileSync(file, "utf8");
+      const source = sourceOf(file);
       return NOT_READ_YET.filter((route) => route.pattern.test(source)).map(
         (route) => `${relative(file)} reads ${route.name}`,
       );
@@ -267,9 +290,7 @@ describe("the outbound queue is read behind admin:connectors", () => {
   it("lists every file that calls one of those hooks", () => {
     const hooks = OUTBOUND_READS.map((entry) => entry.hook);
     const listed = new Set(OUTBOUND_SURFACES.map((surface) => surface.file));
-    const callers = sources()
-      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
-      .map(relative);
+    const callers = callersOf(hooks);
     expect(callers.length).toBeGreaterThan(0);
     expect(callers.filter((file) => !listed.has(file))).toEqual([]);
   });
@@ -323,9 +344,7 @@ describe("the account's contacts are read behind admin:accounts", () => {
   it("lists every file that calls one of those hooks", () => {
     const hooks = CONTACTS_READS.map((entry) => entry.hook);
     const listed = new Set(CONTACTS_SURFACES.map((surface) => surface.file));
-    const callers = sources()
-      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
-      .map(relative);
+    const callers = callersOf(hooks);
     expect(callers.length).toBeGreaterThan(0);
     expect(callers.filter((file) => !listed.has(file))).toEqual([]);
   });
@@ -381,9 +400,7 @@ describe("the audit search and the two analytics dashboards fail closed", () => 
   it("lists every file that calls one of those hooks", () => {
     const hooks = ANALYTICS_READS.map((entry) => entry.hook);
     const listed = new Set(ANALYTICS_SURFACES.map((surface) => surface.file));
-    const callers = sources()
-      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
-      .map(relative);
+    const callers = callersOf(hooks);
     expect(callers.length).toBeGreaterThan(0);
     expect(callers.filter((file) => !listed.has(file))).toEqual([]);
   });
@@ -442,9 +459,7 @@ describe("a held report run is read and decided behind reports:manage", () => {
   it("lists every file that calls one of those hooks", () => {
     const hooks = REVIEW_READS.map((entry) => entry.hook);
     const listed = new Set(REVIEW_SURFACES.map((surface) => surface.file));
-    const callers = sources()
-      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
-      .map(relative);
+    const callers = callersOf(hooks);
     expect(callers.length).toBeGreaterThan(0);
     expect(callers.filter((file) => !listed.has(file))).toEqual([]);
   });
