@@ -177,6 +177,22 @@ The built screen, funnel open with two conditions set
 
 ![The filter builder as built](./images/filter-builder-built.png)
 
+The three corrections after the first pass at it:
+
+- **It opens on one empty row.** It opened on the Where label and a link, so
+  there was nothing to fill in until the link was found. The row is unfinished
+  until it has a value, so it stays out of the request and out of the URL.
+- **Both links stand under the rows.** "+ Add condition" was on the Where line
+  and "Clear conditions" appeared only once something was there to clear.
+- **The controls are drawn, not native.** A bare `<select>` takes the
+  platform's height, padding and chevron, so the strip read as a row of
+  browser widgets. `StripSelect` draws the control and lays a transparent
+  select over it, which keeps the real menu, the keyboard and the form
+  semantics: 32px, the 4px radius, the `--xms-control-line` edge, 13px with
+  the label in label grey and the value in ink, a 13px chevron, and the
+  primary one in the link colour. The builder's own rows use it too, and a
+  card toolbar takes the hand-off's 38px through `size="lg"`.
+
 What that took:
 
 - **The strip's dimensions are selects.** `FilterSelect` is a native `select`
@@ -208,9 +224,83 @@ What that took:
   into the definition beside the chips.
 
 Still differs: the reference shows three dimensions on the strip and the Queue
-carries four (Account, State, Priority, Type), which is render 01's set; and
-the reference's condition row is one line wide where the built one is capped
-at 760px so the value box does not run the width of a 1460px desk.
+carries four (Account, State, Priority, Type), which is render 01's set.
+
+The count in "Show: All open (26)" is the server's own `stats.open`, off the
+same list response the sidebar badge reads. One number, in two places, counted
+once.
+
+## 1d. Every page is full width, and no page has a content max
+
+The hand-off carries `--xms-content-max: 1200px`. The reviewer took it off:
+**every screen is full width**. The work area runs from the sidebar edge to
+the window edge inside the 20px gutter, and nothing in a page shell narrows
+it: not the lists, not the record screens and their rails, not the forms, not
+the dashboards, not the admin screens, not the portal.
+
+Reading width is capped **on the control, never on the page**. `INPUT` in
+`components/admin/primitives.tsx` carries `max-w-[420px]`, so a form on a
+2560px window keeps its fields at a length a person can read across while the
+screen still fills the window.
+
+What that meant in practice: the shell's `max-w-[1200px]` went, and so did
+`mx-auto` and every named `max-w-*` on a page or screen container in the desk
+and in the portal chrome. A pixel cap on a truncating cell, a skeleton, a
+drawer or a single field stays, because none of those is the page.
+
+`components/xms/surfaces.test.tsx` holds the rule: it fails if a page shell
+brings back `mx-auto` or a named `max-w-*`, and if the shell or the tokens
+carry a content max again.
+
+The Queue at 2560 by 1400, filling the window:
+
+![The Queue at 2560, full width](./images/queue-2560-full-width.png)
+
+## 1e. The sidebar's selected row
+
+The hand-off's own rule (`xms-ui.css` section 5b) is now stated once in
+`styles/tokens/xms-scope.css` as `.xms-nav-row` and `.xms-nav-badge`, so the
+component carries no hex:
+
+- the row is the full width of the sidebar, 9px by 14px, with a 10px gap and
+  a 3px transparent border on its own left edge;
+- the selected row fills with `--xms-nav-wash` `#EDF1FF`, inks that border
+  with the link colour, and sets the label to 600 in the strong link colour;
+- its count turns white with a link-coloured edge, and an unselected count is
+  an 11px mono chip on `--xms-chip` at 3px by 7px on a 999px radius;
+- hover on an unselected row is `#F0F3FA` and nothing else;
+- the starred views take the same row, and Browse all screens takes the plain
+  one.
+
+It had been a rounded inset pill with an `inset` box-shadow standing in for
+the border, plain ink for the label, and a bare number instead of a chip.
+
+![The sidebar's selected row](./images/sidebar-selection.png)
+
+## 1f. The icon scale
+
+The hand-off (section 6, `.xms-icon`) asks for Lucide geometry, a 1.5px
+stroke, `currentColor`, never filled, 14 to 19px on a 24px canvas. The shell
+was mixing 13, 14, 15, 16, 17, 18 and 19 by eye and stroking at 1.6.
+
+`ICON` in `components/xms/icons.tsx` is the one scale, named by the job so a
+size is chosen by asking what the glyph is doing. Every value is the
+prototype's own for renders 01 and 08:
+
+| Name           | px  | Where                                                          |
+| -------------- | --- | -------------------------------------------------------------- |
+| `ICON.glyph`   | 13  | The sort glyph on a column header; a chip's cross              |
+| `ICON.control` | 14  | Inside a control beside words: a chevron, a plus               |
+| `ICON.action`  | 15  | A control's own mark: the strip chevron, the star, the sparkle |
+| `ICON.field`   | 16  | A field's adornment: the magnifier in a search field           |
+| `ICON.row`     | 17  | A row's leading mark: the sidebar rows, a card's funnel        |
+| `ICON.tool`    | 18  | A standing tool on the strip: the gear                         |
+| `ICON.bar`     | 19  | The largest: the hamburger and the bell                        |
+
+13px is below the hand-off's floor and is named as such: it is the glyph
+inside a dense cell, which the prototype draws at 13 and which reads as a
+smudge at anything larger. `components/xms/surfaces.test.tsx` fails on a raw
+`size={13}` anywhere in `components/` or `app/`.
 
 ## 2. Queue (render 01)
 
@@ -289,6 +379,43 @@ Still differs:
   and the panel set already match.
 - The Dispatch group and assignee pickers keep native select chrome where the
   render draws its own chevron.
+
+### 4b. My work, finished against render 08 (pass two)
+
+Shots: `shots-v3-pass2/before/08-mywork-ana.png` against
+`shots-v3-pass2/after/08-mywork.png`, overlay
+`diff-after-08-mywork.png`. **6.7% before, 5.4% after** at pass one's own
+pixelmatch settings (threshold 0.2, `includeAA`), cropped to the app frame.
+
+Every defect the reviewer listed, and what it took:
+
+| Defect                                                      | Now                                                                                                                                                                                                           |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The toolbar was the title and the gear                      | The primary "Show: mine (n)", the standing Account dimension, the screen's search and the blue New, through the shared slots                                                                                  |
+| Needs attention had a table header and no clock             | No header row (`DenseTable`'s `headless`), the subtitle "mine first, then group unassigned", and the clock as a mono value behind an 8px signal dot: red breached, cobalt at risk, grey on track, grey paused |
+| The subtitle was not true                                   | The list is my open work on the tightest clock, then the unassigned work in my groups, which the server resolves from the membership table (TM-08), with nothing counted twice                                |
+| A second list and a black banner                            | Both gone. Section 3.3 and the render name one list; what the second held is in the Queue behind "Show: mine"                                                                                                 |
+| Time today was a caps label, "0m" and a link                | The render's card: "Time today" with "2.5 / 7.5 h" in mono on the right, the meter, and the unlogged nudge with Log now and Not now                                                                           |
+| Waiting on me had a "MY WORK" eyebrow and a counted-as line | A plain title and rows with a count chip on the right                                                                                                                                                         |
+| The brief line                                              | Kept, on the note block's grey at the render's 6px radius and 16 by 18px padding, with the worded Dismiss                                                                                                     |
+| Scorecards were toned                                       | A mono number in ink over a grey sub-line, no tone at all: a Breached count of zero was drawn green and an At risk count of zero amber, a signal where there is none                                          |
+| Scorecards navigated away                                   | They filter the list in place and toggle off (render 08, note 1)                                                                                                                                              |
+
+Still differs, and why:
+
+- **The rows are the seed's, not the render's.** `erin.walsh@example.test` is
+  an Account Owner with nothing assigned in this seed: the seeded assignees
+  are A. Costa, B. Okafor and C. Martin. The after shot is taken as
+  `ana.costa@example.test`, who has seven open tickets across two accounts,
+  so the screen carries data. Signed in as erin the screen is correct and
+  empty.
+- **The unlogged nudge names minutes, not a window.** The render reads
+  "Unlogged 11:00 to 13:30, likely CS0001204";
+  `GET /v1/timesheets/me/unlogged` answers in minutes per day with no gaps and
+  no candidate ticket, so the sentence carries the minutes. Nothing is
+  inferred in the browser.
+- **The list is shorter than the render's six rows**, because the seeded
+  reader has one breached ticket and no unassigned work in their groups.
 
 ## 5. The overlays (12 to 14) and the Axel panel (15)
 
