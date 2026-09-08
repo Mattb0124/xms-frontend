@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { INPUT } from "@/components/admin/primitives";
 import { formatMinutes, LogTimeForm } from "@/components/tickets/time-tab";
-import { Panel } from "@/components/xms/panel";
 import { useToast } from "@/components/xms/toast";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
@@ -26,6 +25,11 @@ function activeBuckets(buckets: Bucket[] | undefined): Bucket[] {
  * The activity list and the classes are the account's own catalogs as the
  * API resolves them, the same ones a ticket entry uses, so the same work
  * reads the same way whatever it hangs off.
+ *
+ * These are the fields alone: the form stood in a card of its own permanently
+ * above the week it was about, and it now lives in the timesheet's Add entry
+ * sheet beside the ticket form, which is what render 04 settled for the Time
+ * tab.
  */
 export function BucketLog() {
   const { data: accounts } = useListGrantedAccountsQuery();
@@ -45,75 +49,73 @@ export function BucketLog() {
   const consumes = catalogs.billableClasses.find((entry) => entry.key === bucket?.billable_class)?.consumesContract;
 
   return (
-    <Panel title="Log time without a ticket" caption="NON-TICKET TIME" subtitle="Pick the account, then the bucket.">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-end gap-3 text-[12px]">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end gap-3 text-[12px]">
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Account</span>
+          <select
+            aria-label="Account"
+            value={accountId}
+            onChange={(event) => {
+              setAccountId(event.target.value);
+              setBucketId("");
+            }}
+            className={cn(INPUT, "w-[220px]")}
+          >
+            <option value="">Choose</option>
+            {(accounts ?? []).map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {accountId ? (
           <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Account</span>
+            <span className="text-xms-label">Bucket</span>
             <select
-              aria-label="Account"
-              value={accountId}
-              onChange={(event) => {
-                setAccountId(event.target.value);
-                setBucketId("");
-              }}
-              className={cn(INPUT, "w-[220px]")}
+              aria-label="Bucket"
+              value={bucketId}
+              onChange={(event) => setBucketId(event.target.value)}
+              className={cn(INPUT, "w-[260px]")}
             >
               <option value="">Choose</option>
-              {(accounts ?? []).map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
+              {options.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.label}
+                  {entry.code ? ` (${bucketCodeLabel(entry.code)})` : ""}
                 </option>
               ))}
             </select>
           </label>
-          {accountId ? (
-            <label className="flex flex-col gap-1">
-              <span className="text-xms-label">Bucket</span>
-              <select
-                aria-label="Bucket"
-                value={bucketId}
-                onChange={(event) => setBucketId(event.target.value)}
-                className={cn(INPUT, "w-[260px]")}
-              >
-                <option value="">Choose</option>
-                {options.map((entry) => (
-                  <option key={entry.id} value={entry.id}>
-                    {entry.label}
-                    {entry.code ? ` (${bucketCodeLabel(entry.code)})` : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-        </div>
-        {accountId && options.length === 0 ? (
-          <p className="text-xms-label text-[13px]">This account has no bucket to log against.</p>
-        ) : null}
-        {bucket ? (
-          <>
-            <p className="text-xms-body text-[12px]" data-bucket-class>
-              {bucket.label} is classed {className(bucket.billable_class)}, which{" "}
-              {consumes === undefined
-                ? "the account's catalog decides the burn for"
-                : consumes
-                  ? "consumes the contract"
-                  : "does not consume the contract"}
-              .
-            </p>
-            <LogTimeForm
-              catalogs={catalogs}
-              billableClass={bucket.billable_class}
-              pending={logging.isLoading}
-              onSubmit={async (body) => {
-                const entry = await log({ accountId, bucketId: bucket.id, body }).unwrap();
-                track({ minutes: entry.minutes, activity: entry.activity_type, via: "bucket" });
-                push({ title: `${formatMinutes(entry.minutes)} logged on ${bucket.label}`, tone: "success" });
-              }}
-            />
-          </>
         ) : null}
       </div>
-    </Panel>
+      {accountId && options.length === 0 ? (
+        <p className="text-xms-label text-[13px]">This account has no bucket to log against.</p>
+      ) : null}
+      {bucket ? (
+        <>
+          <p className="text-xms-body text-[12px]" data-bucket-class>
+            {bucket.label} is classed {className(bucket.billable_class)}, which{" "}
+            {consumes === undefined
+              ? "the account's catalog decides the burn for"
+              : consumes
+                ? "consumes the contract"
+                : "does not consume the contract"}
+            .
+          </p>
+          <LogTimeForm
+            catalogs={catalogs}
+            billableClass={bucket.billable_class}
+            pending={logging.isLoading}
+            onSubmit={async (body) => {
+              const entry = await log({ accountId, bucketId: bucket.id, body }).unwrap();
+              track({ minutes: entry.minutes, activity: entry.activity_type, via: "bucket" });
+              push({ title: `${formatMinutes(entry.minutes)} logged on ${bucket.label}`, tone: "success" });
+            }}
+          />
+        </>
+      ) : null}
+    </div>
   );
 }

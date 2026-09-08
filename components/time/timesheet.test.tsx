@@ -105,6 +105,18 @@ describe("Timesheet", () => {
     expect(document.querySelectorAll("[data-entry]")).toHaveLength(2);
   });
 
+  // The seven day groups used to carry three different washes across the row,
+  // which is banding by another name. The signal is a dot and the words.
+  it("stands every day group on the same ground and carries the tone on the status alone", () => {
+    render(<Timesheet week={aWeek()} catalogs={catalogs} />);
+    const groups = Array.from(document.querySelectorAll("[data-day]")) as HTMLElement[];
+    expect(groups).toHaveLength(7);
+    expect(new Set(groups.map((row) => row.className)).size).toBe(1);
+    for (const row of groups) {
+      expect(row.querySelector("[data-day-status] span[aria-hidden]")).toBeInTheDocument();
+    }
+  });
+
   it("badges non-standard entries with their class and start time, and the multiplier only when it is not 1", () => {
     const week = aWeek({
       days: [
