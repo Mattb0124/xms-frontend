@@ -18,7 +18,7 @@ function activeBuckets(buckets: Bucket[] | undefined): Bucket[] {
 
 /**
  * Non-ticket time (TB-12; Time, Contracts & Budget functional 5.3 and 5.8):
- * work that belongs to an account but to no ticket, so utilisation reads
+ * work that belongs to an account but to no ticket, so utilization reads
  * honestly. The bucket names the kind of work through the shared taxonomy,
  * and it carries the billable class the entry takes unless the person names
  * another, which is what decides whether the contract is burned at all.

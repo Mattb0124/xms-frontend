@@ -10,7 +10,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link. It carries the Queue's saved views the same way: `/v1/views` answers to `tickets:view`, the Queue's own gate, so the map exists to keep it there rather than to raise it. The analytics map now covers the audit's saved queries (five routes on `audit:read`, the key the search itself takes) and the Security screen's integrity route.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link. It carries the Queue's saved views the same way: `/v1/views` answers to `tickets:view`, the Queue's own gate, so the map exists to keep it there rather than to raise it. The analytics map now covers the audit's saved queries (five routes on `audit:read`, the key the search itself takes) and the Security screen's integrity route. Two maps were added with the 2026-09-08 group and time work, and both carry two keys rather than one, so each surface names its own: the routing defaults and the group catalog read under `tickets:view` and write under `admin:config` and `tickets:work`, and the non-ticket buckets read under `time:log` and write under `contracts:manage`. Neither write key is implied by its read key, and neither read key is implied by the account record's `admin:accounts` or its Contracts tab's `contracts:view`, which is why the routing panel and the buckets panel hold their own read gates instead of riding on the screen's.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
@@ -54,7 +54,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel, then the group queue with the routing defaults, the group catalog and the change calendar, and non-ticket time)
 
 ```
 proxy.ts                the per-request CSP nonce: sets it on the request headers and the response policy
@@ -62,19 +62,34 @@ lib/security/csp        contentSecurityPolicy, newNonce and NONCE_HEADER ("x-non
 app/layout.tsx          fonts, .xms-scope, the nonce read back from the headers, Providers
 app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, time today, the Waiting on me rail,
                         needs attention, my open tickets),
-                        /tickets Queue (system views including Flagged out of scope, chips on five dimensions (account, type,
+                        /tickets Queue (system views including Flagged out of scope, chips on seven dimensions (account, type,
                         priority, state and out_of_scope over the server's closed vocabulary none, flagged, approved,
-                        declined, a value outside it dropped when the URL is read rather than sent for a 400), the
+                        declined, a value outside it dropped when the URL is read rather than sent for a 400, plus the two
+                        group dimensions of TM-08: my_groups, the flag the server answers from the membership table, and
+                        group_id, one assignment group. Neither is a comma list on the API, so a second chip on either
+                        replaces the first and a hand-typed list is narrowed rather than sent; both compose with any view,
+                        which a preset could not do), the
                         server's saved views in the same list under an optgroup (TM-08: selecting one writes its
                         conditions into the URL rather than sending its id to the list route, so the chips stay
                         removable and `saved=` only names which view is showing and is dropped the moment a criterion
-                        changes; Save as view files the current chips under one account with a name and private or
-                        account sharing, and rename, resharing and delete are offered to the owner alone; the
-                        per-browser star stays the fallback while /v1/views answers 404 or 501), condition
+                        changes; Save as view files the current chips under one account with a name and private,
+                        one group or account sharing, and rename, resharing and delete are offered to the owner alone;
+                        the group share names its group through the picker, since the API refuses one without a
+                        share_ref, and a move away clears the reference; the group queue is saved as the server's own
+                        is_mine on group_id, so a shared "my groups" view means the reader's groups and not the
+                        saver's; the per-browser star stays the fallback while /v1/views answers 404 or 501), condition
                         trail, Count card in the prototype's column order and
                         opening on SLA, selection bar, cursor paging, rows per page), /tickets/new (record form
-                        with the priority preview), /tickets/[key] (record bar, transition menu, Properties with the matrix
-                        caption on the Priority row and one Assignee control, Conversation,
+                        with the priority preview), /tickets/[key] (record bar, transition menu (TM-18: a window refusal
+                        opens the change window sheet rather than only a toast, naming the freeze and its reason or the
+                        tickets already holding the configuration item, and taking the reason that carries the move;
+                        change_freeze and change_conflict are acknowledgements any worker may make, outside_change_window
+                        and change_window_required are overrides offered to a holder of tickets:override-change-window
+                        alone and worded to everyone else, and the reason travels as change_window_reason onto the
+                        audit; a second refusal of the same reason is left to the toast), Properties with the matrix
+                        caption on the Priority row and one Group control and one Assignee control (TM-08: reassignment is
+                        to a group or to a person, a retired group is off the picker but kept while it is the value in
+                        force, and group_retired is worded), Conversation,
                         Activity, Time, Resolution, Links, Email, rail with Service levels (target, elapsed, remaining and the
                         paused segment with its reason), Scope (TM-11: the flag state, its reason, who raised it and when,
                         and the decision with its note, its allowance in hours and who decided; Flag out of scope with a
@@ -85,6 +100,18 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         is not drawn at all when the API answered without the block), Attachments, Solutions, Contract, Requester,
                         Watching), /tickets/dispatch (cards per account) (P1.5.5, P2.12.4 basics), /tickets/quarantine
                         (held email: reason, stripped body, decide with confirm on the destructive ones; P1.6.5);
+                        /tickets/groups (TM-10; tickets:view, fails closed: the projects and change windows across the
+                        granted accounts with the kind, the account, the schedule, the freeze count and the status, filters
+                        on account, kind and status sent as the API names them, and the record form under tickets:work with
+                        the two ends a change window needs, the freezes as rows of start, end and reason saved as the whole
+                        set the API stores on the window, and the kind and the account frozen on an existing record;
+                        invalid_schedule carries the server's own problems into the sentence),
+                        /tickets/change-calendar (TM-18; tickets:view, fails closed: the month with one card per change
+                        window, its freezes and the changes planned in it, the next window with the days to it, and above
+                        them "right now" for one account from GET /v1/change-calendar/at, which reads the same rules the
+                        transition gate uses, so inside, frozen and outside every window are the server's three answers and
+                        not this screen's arithmetic; with several accounts granted and none chosen the line says which
+                        question it cannot answer);
                         /roster (P2.12.1, CAP-01: Count-card list with role, FTE, zone, group and skill chips, URL filters, Import from
                         directory, New person; capacity:view) and /roster/[id] (Details with changed-fields PATCH, Calendar, PTO
                         (CAP-02: list with kind, full or half days and note, add form sending fraction 0.5 only for half days,
@@ -123,6 +150,12 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         the Log time form (ticket Time tab and the timesheet) takes an optional Start time sent as performed_start
                         and hides the person's own after-hours statement while one is given; entry rows carry the after-hours
                         badge (class, the contract's handling in words, the multiplier when not 1) (TB-13);
+                        beneath the quick log, Log time without a ticket (TB-12): the account then the bucket, the same
+                        form over the account's own catalogs, opening on the bucket's billable class rather than the
+                        first activity's and saying whether that class consumes the contract; the buckets carry the
+                        shared taxonomy (governance, qbr_prep, account_mgmt, escalation, custom), a retired one is off
+                        the picker and bucket_retired is worded; an entry with no ticket is named on the timesheet by
+                        its bucket, or as non-ticket time where the API sent no label;
                         /operations (P2.19.3: period switcher, synthesis line, six tiles, SLA meters, outcomes, backlog by age,
                         open by priority and type, notable tickets, per-account strip; needs reports:view-portfolio),
                         /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
@@ -248,7 +281,12 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         version; multiplier_required, cap_required and stale_version
                         worded; a Rate cards panel beneath with a disclosure per contract listing its versions and an
                         Account default section, New version form under contracts:manage over PUT /v1/accounts/:id/rate-cards
-                        with rate_card_exists and duplicate_role worded) (TB-05, TB-09, TB-11, TB-13), a Budget tab
+                        with rate_card_exists and duplicate_role worded; and a Non-ticket buckets panel last (TB-12): the
+                        label, the key, the shared taxonomy, the class with whether it consumes the contract, and the
+                        status, with Edit under contracts:manage sending the version; the list itself answers to time:log,
+                        which neither this tab's contracts:view nor the screen's admin:accounts implies, so the panel holds
+                        its own read gate, and a bucket is not created here because the API takes a key on a closed
+                        pattern) (TB-05, TB-09, TB-11, TB-12, TB-13), a Budget tab
                         (`?tab=budget` opens it, the target of the threshold notifications; contracts:view, fails closed: one
                         card per active contract from /v1/accounts/:id/budget with consumed against available, the burn bar
                         amber from the first fired threshold and red once over, a tick per threshold with the fired ones
@@ -307,7 +345,14 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         its version, or "Nothing active" when effective is null with the editor still usable from an empty
                         object, a JSON body editor per kind with client-side parse, Save as override sending { body },
                         the server's invalid_config problems listed, Remove override with the version history and the
-                        operator default underneath, a ticket-type scope selector for the state machine) (P2.9.2);
+                        operator default underneath, a ticket-type scope selector for the state machine; and beneath it the
+                        Routing defaults (TM-08), which are configuration too but whose read the API answers to
+                        tickets:view: the type, the category (blank meaning the type as a whole, and a category rule
+                        winning over it on the server) and the group, added and removed as a draft of the whole set and
+                        saved with one PUT under admin:config so a rule cannot be half-saved, with a rule naming no group
+                        and two rules covering the same type and category refused before the API is asked; the panel is
+                        drawn for a tickets:view reader without admin:config, read only, since the catalogs above are not)
+                        (P2.9.2);
                         /admin/migration (P2.22.2, admin:migration: Batches list with account, object kind and status as URL
                         filters, a Reconciliation tab over the filtered account, New batch), /admin/migration/new (full-screen
                         form: account, object kind, source kind, instance from the account's connectors, range, dry run on by
@@ -543,8 +588,25 @@ components/admin/migration/  pills (batch, record, line, report status and dry r
 lib/migration/          vocab (statuses, tones, RUNNING and RUNNABLE sets, runBlockedReason, object and source kinds, range
                         and source copy, formatDelta), errors (typed bad_range, no_active_field_map, batch_not_runnable,
                         report_signed, signer_ran_batch, delta_open, not_found by entity), filters (the list URL grammar)
-components/admin/config/  account-config-tab (KindRow per catalog with its effective pill), override-editor
-                        (EffectiveSourcePill, BodyEditor keyed on the effective version id, VersionHistory)
+components/admin/config/  account-config-tab (CatalogOverrides under admin:config, then RoutingRulesPanel), override-editor
+                        (EffectiveSourcePill, BodyEditor keyed on the effective version id, VersionHistory), routing-rules
+                        (RoutingRulesPanel gating the read on tickets:view, RoutingRulesEditor holding the whole set as one
+                        draft and saving it with one PUT)
+components/tickets/group-picker  the one way a screen names an assignment group (the Queue chip, the record, the routing
+                        rules, a view's group share): the /v1/groups directory, a retired group offered only while it is
+                        the value in force, and GroupName for a line of prose that has only the id
+components/tickets/ticket-groups  the groups catalog (filters, DenseTable, GroupForm with the schedule, FreezeRows)
+components/tickets/change-calendar  the month (RightNow from /v1/change-calendar/at, WindowCard per window with its
+                        freezes and its changes, the next window)
+lib/tickets/groups      the two things called a group kept apart, the ticket-group and routing drafts with their
+                        validation in the API's own limits, the instant and local-datetime conversions, and the words for
+                        every refusal the group routes answer with
+lib/tickets/change-window  the four window refusals read out of the 409 (acknowledge versus override), their words, and
+                        the calendar's month grammar (monthRange, shiftMonth, monthLabel, nextWindow, daysUntil)
+components/time/bucket-log  Log time without a ticket: the account, the bucket, and the shared LogTimeForm opened on the
+                        bucket's own billable class
+components/time/buckets-panel  the account's buckets with the taxonomy, the class and its burn, and the edit under
+                        contracts:manage
 lib/admin/config-catalog  the six kinds, their scopes (state machine per ticket type), formatBody and parseBody
 lib/admin/config-errors  typed invalid_config with the server's problems, unknown_config_kind, config_missing, not_found
 components/tickets/sync-card  the rail's Sync card (external record link, link state, mode notice, the outbound state (last
