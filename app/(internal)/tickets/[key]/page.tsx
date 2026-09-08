@@ -178,8 +178,8 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         {/* The tabs are the card header in the render (02 to 07): there is no
             "Work area" title above them. */}
         <section className="xms-card flex min-w-0 flex-col" aria-label="Work area">
-          <TabBar tabs={WORK_AREA_TABS} active={tab} onChange={setTab} className="px-3 pt-1" />
-          <div className="p-4">
+          <TabBar tabs={WORK_AREA_TABS} active={tab} onChange={setTab} />
+          <div className="p-[18px]">
             {tab === "conversation" ? (
               <ConversationTab ticketKey={ticket.key} requesterLine={requesterLine} readOnly={readOnly} />
             ) : null}
