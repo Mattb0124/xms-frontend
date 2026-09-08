@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { FinderOverlay } from "@/components/shell/finder-overlay";
 import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
+import { visibleScreens } from "@/lib/routes";
 
 const base = {
   extraPins: new Set<string>(),
@@ -52,6 +54,52 @@ describe("PinnedSidebar", () => {
     render(<PinnedSidebar {...base} permissions={new Set()} extraPins={new Set(["/admin", "/tickets/dispatch"])} />);
     expect(screen.queryByText("Admin")).not.toBeInTheDocument();
     expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
+  });
+
+  /**
+   * The footer's number is the whole tree, so it has to be the number of rows
+   * the All overlay lists for the same reader. A consultant was shown "Browse
+   * all screens 15" beside a five-row sidebar, and the two numbers were never
+   * checked against each other.
+   */
+  it("counts, in the footer, exactly what the All overlay lists for that reader", () => {
+    const permissions = new Set([
+      "ai:use",
+      "kb:author",
+      "tickets:create",
+      "tickets:resolve",
+      "tickets:view",
+      "tickets:work",
+      "time:log",
+    ]);
+    const screens = visibleScreens(permissions);
+    const { unmount } = render(<PinnedSidebar {...base} permissions={permissions} />);
+    const footer = screen.getByRole("button", { name: /Browse all screens/ });
+    expect(footer).toHaveTextContent(String(screens.length));
+    // Six rows, one of them Solutions rather than Operations, which needs a
+    // permission this reader does not hold.
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "My work",
+      "Queue",
+      "Dispatch",
+      "Quarantine",
+      "My timesheet",
+      "Solutions",
+    ]);
+    unmount();
+
+    const overlay = render(
+      <FinderOverlay
+        kind="all"
+        screens={screens}
+        pinned={new Set()}
+        onTogglePin={() => {}}
+        favourites={[]}
+        history={[]}
+        onClose={() => {}}
+      />,
+    );
+    expect(overlay.container.querySelectorAll("[data-screen]")).toHaveLength(screens.length);
   });
 });
 

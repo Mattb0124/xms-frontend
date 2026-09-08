@@ -58,12 +58,18 @@ const SCREEN_ICON: Record<string, ComponentType<IconProps>> = {
   knowledge: BookIcon,
   accounts: PeopleIcon,
   roster: PeopleIcon,
+  ticket_groups: PeopleIcon,
 };
 
 export function sidebarItems(permissions: ReadonlySet<string> | undefined, extraPins: ReadonlySet<string>): Screen[] {
   if (!permissions) return [];
   const defaults = pinnedScreens(permissions);
-  const extras = visibleScreens(permissions).filter((s) => extraPins.has(s.path) && !s.pinned);
+  // Anything the reader pinned by hand that the default six do not already
+  // carry. It reads the default set rather than the `pinned` rank, because a
+  // ranked screen that fell outside this reader's six is still one they may
+  // choose to pin.
+  const already = new Set(defaults.map((screen) => screen.path));
+  const extras = visibleScreens(permissions).filter((s) => extraPins.has(s.path) && !already.has(s.path));
   return [...defaults, ...extras];
 }
 

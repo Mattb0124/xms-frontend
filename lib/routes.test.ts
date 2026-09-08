@@ -1,5 +1,54 @@
 import { describe, expect, it } from "vitest";
-import { matchScreen, pinnedScreens, SCREENS, visibleScreens } from "@/lib/routes";
+import { matchScreen, PINNED_ROWS, pinnedScreens, SCREENS, visibleScreens } from "@/lib/routes";
+
+/** Ana Costa's own set from the seeded stack: a consultant, no portfolio reports. */
+const CONSULTANT = new Set([
+  "ai:use",
+  "kb:author",
+  "tickets:create",
+  "tickets:resolve",
+  "tickets:view",
+  "tickets:work",
+  "time:log",
+]);
+const EVERYTHING = new Set(SCREENS.map((screen) => screen.permission).filter((p): p is string => p !== null));
+
+describe("the pinned set is per role, and always six rows", () => {
+  it("gives a reader who holds everything the render's own six, in the render's order", () => {
+    expect(pinnedScreens(EVERYTHING).map((screen) => screen.label)).toEqual([
+      "My work",
+      "Queue",
+      "Dispatch",
+      "Quarantine",
+      "My timesheet",
+      "Operations",
+    ]);
+  });
+
+  it("gives a consultant six rows too, with Solutions where Operations cannot open", () => {
+    // Operations needs reports:view-portfolio. The pin used to be a flag, so
+    // the row vanished and the sidebar came back five rows tall.
+    const labels = pinnedScreens(CONSULTANT).map((screen) => screen.label);
+    expect(labels).toHaveLength(PINNED_ROWS);
+    expect(labels).toEqual(["My work", "Queue", "Dispatch", "Quarantine", "My timesheet", "Solutions"]);
+    expect(labels).not.toContain("Operations");
+  });
+
+  it("never pins a screen the reader may not open, and never more than six", () => {
+    for (const permissions of [new Set<string>(), CONSULTANT, EVERYTHING]) {
+      const pins = pinnedScreens(permissions);
+      const visible = new Set(visibleScreens(permissions).map((screen) => screen.path));
+      expect(pins.length).toBeLessThanOrEqual(PINNED_ROWS);
+      for (const pin of pins) expect(visible.has(pin.path)).toBe(true);
+    }
+  });
+
+  it("ranks the pins uniquely, so the sidebar's order does not depend on the sort being stable", () => {
+    const ranks = SCREENS.map((screen) => screen.pinned).filter((rank): rank is number => typeof rank === "number");
+    expect(new Set(ranks).size).toBe(ranks.length);
+    expect(ranks.length).toBeGreaterThan(PINNED_ROWS);
+  });
+});
 
 describe("route registry", () => {
   it("fails closed: nothing is visible until permissions have loaded", () => {

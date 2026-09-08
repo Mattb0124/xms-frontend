@@ -17,8 +17,12 @@ export interface Screen {
   section: Section;
   /** `null` means every signed-in internal user; otherwise one permission key. */
   permission: string | null;
-  /** Shown in the pinned sidebar by default (the prototype's six pins). */
-  pinned?: boolean;
+  /**
+   * This screen's rank in the pinned sidebar, 1 nearest the top. It is a rank
+   * rather than a flag because the sidebar is six rows for every reader: see
+   * `PINNED_ROWS` and `pinnedScreens`.
+   */
+  pinned?: number;
   /** One-line purpose from the wireframe tree; shown in the All overlay. */
   purpose?: string;
 }
@@ -30,7 +34,7 @@ export const SCREENS: Screen[] = [
     label: "My work",
     section: "Home",
     permission: null,
-    pinned: true,
+    pinned: 1,
     purpose: "Your day: scorecards, needs attention, time today.",
   },
   {
@@ -39,7 +43,7 @@ export const SCREENS: Screen[] = [
     label: "Queue",
     section: "Tickets",
     permission: "tickets:view",
-    pinned: true,
+    pinned: 2,
     purpose: "The working list for everything ticket-shaped.",
   },
   {
@@ -48,7 +52,7 @@ export const SCREENS: Screen[] = [
     label: "Dispatch",
     section: "Tickets",
     permission: "tickets:work",
-    pinned: true,
+    pinned: 3,
     purpose: "Unassigned tickets with group and assignee pickers.",
   },
   {
@@ -57,7 +61,7 @@ export const SCREENS: Screen[] = [
     label: "Quarantine",
     section: "Intake",
     permission: "tickets:work",
-    pinned: true,
+    pinned: 4,
     purpose: "Unknown senders awaiting review.",
   },
   {
@@ -66,6 +70,7 @@ export const SCREENS: Screen[] = [
     label: "Groups",
     section: "Tickets",
     permission: "tickets:view",
+    pinned: 9,
     purpose: "Projects and change windows, with the schedule each one carries.",
   },
   {
@@ -98,6 +103,7 @@ export const SCREENS: Screen[] = [
     label: "Solutions",
     section: "Knowledge",
     permission: "tickets:view",
+    pinned: 7,
     purpose: "The knowledge base.",
   },
   {
@@ -132,7 +138,7 @@ export const SCREENS: Screen[] = [
     permission: "time:log",
     // Render 08 and the hand-off both pin six screens: My work, Queue,
     // Dispatch, Quarantine, My timesheet, Operations.
-    pinned: true,
+    pinned: 5,
     purpose: "Your entries for the week.",
   },
   {
@@ -149,6 +155,7 @@ export const SCREENS: Screen[] = [
     label: "Accounts",
     section: "Accounts",
     permission: "tickets:view",
+    pinned: 8,
     purpose: "Granted accounts and their contracts.",
   },
   {
@@ -214,7 +221,7 @@ export const SCREENS: Screen[] = [
     label: "Operations",
     section: "Reports",
     permission: "reports:view-portfolio",
-    pinned: true,
+    pinned: 6,
     purpose: "Six tiles, four panels, one synthesis line.",
   },
   {
@@ -455,8 +462,33 @@ export function visibleScreens(permissions: ReadonlySet<string> | string[] | und
   return SCREENS.filter((screen) => screen.permission === null || set.has(screen.permission));
 }
 
+/** The sidebar is this many rows for every reader (render 08). */
+export const PINNED_ROWS = 6;
+
+/**
+ * The sidebar's default pins for one reader: the highest-ranked screens they
+ * may open, up to `PINNED_ROWS`.
+ *
+ * Render 08 pins six screens, and the sixth, Operations, needs
+ * `reports:view-portfolio`. A consultant does not hold it, and the pins were a
+ * flag filtered by permission, so the row simply vanished and the sidebar came
+ * back five rows tall with a gap where the render has a screen. A pinned row
+ * that cannot be opened must not be drawn either, because a row that refuses
+ * to open is worse than a row that is not there, so the pinned set is defined
+ * per role instead: `pinned` is a rank, the render's six take ranks 1 to 6,
+ * and Solutions, Accounts and Groups stand behind them so a reader who cannot
+ * reach one of the six still gets six rows of their own work. Nothing is
+ * backfilled from outside that ranked list, so no reader is given a sidebar
+ * by accident.
+ *
+ * The footer's own number is the whole tree, `visibleScreens(...).length`,
+ * which is exactly what the All overlay lists for the same reader.
+ */
 export function pinnedScreens(permissions: ReadonlySet<string> | string[] | undefined): Screen[] {
-  return visibleScreens(permissions).filter((screen) => screen.pinned);
+  return visibleScreens(permissions)
+    .filter((screen) => typeof screen.pinned === "number")
+    .sort((a, b) => (a.pinned ?? 0) - (b.pinned ?? 0))
+    .slice(0, PINNED_ROWS);
 }
 
 /** A path carrying a dynamic segment (`/accounts/[id]`) is a pattern, not an address. */
