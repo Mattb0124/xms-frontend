@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WaitingRail, isNotDeployed, waitingRows } from "@/components/my-work/waiting-rail";
-import { aWaiting, aWaitingItem } from "@/test-kit/my-work";
+import { aWaiting, aWaitingItem, WAITING_ACCOUNT_ID } from "@/test-kit/my-work";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -41,7 +41,7 @@ describe("isNotDeployed", () => {
 describe("WaitingRail", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("links each row to this application's route, not the address the server gave", async () => {
+  it("links each row to an address this application serves and this viewer may open", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["tickets:view", "time:log", "reports:view-portfolio"]),
       [ROUTE]: () => json(aWaiting()),
@@ -50,11 +50,18 @@ describe("WaitingRail", () => {
     await screen.findByTestId("waiting-rail");
 
     const assigned = screen.getByRole("link", { name: /Tickets assigned to me/ });
-    // The server sent /queue?view=my-tickets, which this desk does not serve.
     expect(assigned).toHaveAttribute("href", "/tickets?view=mine");
     expect(assigned).toHaveTextContent("4");
     expect(screen.getByRole("link", { name: /Out-of-scope flags to approve/ })).toHaveAttribute("href", "/tickets");
+    // The API named an account's Report packs tab, which needs admin:accounts;
+    // this viewer does not hold it, so the row falls back to the key's screen.
     expect(screen.getByRole("link", { name: /Report packs to review/ })).toHaveAttribute("href", "/reports");
+    // The account whose Satisfaction tab carries the scores is tickets:view,
+    // which this viewer does hold, so the server's own address is followed.
+    expect(screen.getByRole("link", { name: /Low satisfaction scores to answer/ })).toHaveAttribute(
+      "href",
+      `/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`,
+    );
     expect(screen.getByRole("link", { name: /Days this week with unlogged time/ })).toHaveAttribute("href", "/time");
     // Notifications are the shell's bell menu, not a screen, so the row keeps
     // its count and offers no address rather than a link to nothing.

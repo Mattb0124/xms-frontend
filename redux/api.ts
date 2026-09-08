@@ -18,12 +18,16 @@ export interface MeResponse {
   principal: Principal;
 }
 
-/** One thing waiting on the signed-in person, with the address that opens it. */
+/**
+ * One thing waiting on the signed-in person, with the address that opens it.
+ * The link is optional: the API deliberately sends none for the row whose
+ * home is the shell's bell menu rather than a screen.
+ */
 export interface WaitingItem {
   key: string;
   label: string;
   count: number;
-  link: string;
+  link?: string;
 }
 
 /**

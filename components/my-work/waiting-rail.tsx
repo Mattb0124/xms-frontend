@@ -28,11 +28,11 @@ export function waitingRows(items: readonly WaitingItem[] | undefined): WaitingI
 }
 
 function WaitingRow({ item, permitted }: { item: WaitingItem; permitted: readonly Screen[] }) {
-  // The address comes from this application's own route registry, keyed on
-  // the item's stable key, not from the server's link: the API speaks the
-  // platform's URL space, which is not this desk's. A key the registry does
-  // not know falls back to the server's link, and that link is untrusted, so
-  // it goes through safeHref; a row with no address at all reads as text.
+  // The address is the API's own link where that link is a screen this desk
+  // serves and this viewer may open, since two of them name an account no
+  // key could ever express; otherwise the item's stable key resolves it
+  // through the route registry (lib/my-work/waiting-links). Every link is
+  // untrusted and goes through safeHref; a row with no address reads as text.
   const href = waitingHref(item, permitted);
   const body = (
     <>
@@ -55,9 +55,10 @@ function WaitingRow({ item, permitted }: { item: WaitingItem; permitted: readonl
 /**
  * "Waiting on me" on My work (User Experience 3.1, frontend review finding
  * 13): one row per thing the signed-in person must act on, with the count
- * the server counted and the address this application's own route registry
- * gives for that item's key (lib/my-work/waiting-links). Nothing is counted
- * here; a count of zero is not waiting on anyone, so it is left out.
+ * the server counted and the address the API named for it, checked against
+ * this application's route registry and falling back to the item's key
+ * (lib/my-work/waiting-links). Nothing is counted here; a count of zero is
+ * not waiting on anyone, so it is left out.
  *
  * The route sits behind tickets:view, the permission every internal person
  * holds, and the counts are already scoped to the principal. Until the

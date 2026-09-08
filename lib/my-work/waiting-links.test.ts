@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { WAITING_TARGETS, waitingHref } from "@/lib/my-work/waiting-links";
+import { serverHref, WAITING_TARGETS, waitingHref } from "@/lib/my-work/waiting-links";
 import { SCREENS, matchScreen, visibleScreens } from "@/lib/routes";
-import { aWaiting, aWaitingItem } from "@/test-kit/my-work";
+import { aPlatformWaiting, aWaiting, aWaitingItem, WAITING_ACCOUNT_ID } from "@/test-kit/my-work";
 
 /** Everything an internal person can hold, so the map is read at full reach. */
 const ALL_PERMISSIONS = SCREENS.map((screen) => screen.permission).filter((key): key is string => key !== null);
 
 const ALL_SCREENS = visibleScreens(ALL_PERMISSIONS);
+
+const itemFor = (rail: ReturnType<typeof aWaiting>, key: string) => rail.items.find((row) => row.key === key)!;
 
 describe("the waiting map", () => {
   it("covers every key the API answers with, and no key it does not", () => {
@@ -27,33 +29,91 @@ describe("the waiting map", () => {
 });
 
 /**
- * One case per key: the address the rail renders must be a route this
- * application registers, not the platform address the API sent. The path is
- * checked through `matchScreen`, the same resolver the shell uses, so a
- * screen renamed or removed in `lib/routes.ts` fails this test.
+ * The API now writes this application's own addresses
+ * (`test/waiting.int-spec.ts`), so the rail follows the link where it is one
+ * this desk serves and this viewer may open. Every address below is checked
+ * through `matchScreen`, the same resolver the shell uses, so a screen
+ * renamed or removed in `lib/routes.ts` fails this test.
  */
 const CASES: { key: string; href: string | null; screen: string | null }[] = [
   { key: "tickets_assigned", href: "/tickets?view=mine", screen: "queue" },
   { key: "scope_approvals", href: "/tickets", screen: "queue" },
   { key: "articles_in_review", href: "/knowledge?status=in_review", screen: "knowledge" },
-  { key: "report_reviews", href: "/reports", screen: "report_packs" },
+  // The account the newest waiting run belongs to: a key alone cannot say this.
+  { key: "report_reviews", href: `/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`, screen: "admin.account" },
   { key: "pending_time", href: "/time", screen: "time" },
   { key: "unread_notifications", href: null, screen: null },
-  { key: "csat_low_scores", href: null, screen: null },
+  { key: "csat_low_scores", href: `/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`, screen: "account" },
 ];
 
 describe.each(CASES)("waitingHref for $key", ({ key, href, screen }) => {
-  const item = aWaiting().items.find((row) => row.key === key)!;
+  const item = itemFor(aWaiting(), key);
 
-  it("resolves to this application's own route, never the server's link", () => {
+  it("follows the address the API serves, checked against this application's registry", () => {
     expect(item).toBeDefined();
     expect(waitingHref(item, ALL_SCREENS)).toBe(href);
     if (href === null) return;
-    // The server's address is a different URL space, so it must not survive.
-    expect(href).not.toBe(item.link);
     const registered = matchScreen(href.split("?")[0]);
     expect(registered, `${href} is not a registered route`).toBeDefined();
     expect(registered!.screen).toBe(screen);
+  });
+});
+
+/**
+ * The older API wrote the platform's URL space (`/queue`, `/timesheet`,
+ * `/reports/runs`), none of which this desk serves. Those links must not
+ * survive: the key's own target answers instead.
+ */
+const LEGACY: { key: string; href: string | null }[] = [
+  { key: "tickets_assigned", href: "/tickets?view=mine" },
+  { key: "scope_approvals", href: "/tickets" },
+  { key: "report_reviews", href: "/reports" },
+  { key: "pending_time", href: "/time" },
+  { key: "unread_notifications", href: null },
+  { key: "csat_low_scores", href: "/accounts" },
+];
+
+describe.each(LEGACY)("waitingHref for $key on an older API", ({ key, href }) => {
+  const item = itemFor(aPlatformWaiting(), key);
+
+  it("drops an address this application does not serve and resolves the key instead", () => {
+    expect(waitingHref(item, ALL_SCREENS)).toBe(href);
+    if (href !== null) expect(href).not.toBe(item.link);
+  });
+});
+
+describe("an older API's link that this desk does serve", () => {
+  it("is followed as it came, extra parameters and all", () => {
+    // `/knowledge?status=in_review&owner=me` is the Solutions screen, so the
+    // rail opens it rather than rewriting the address; `owner=me` is simply a
+    // parameter that screen's URL grammar does not read.
+    const articles = itemFor(aPlatformWaiting(), "articles_in_review");
+    expect(waitingHref(articles, ALL_SCREENS)).toBe("/knowledge?status=in_review&owner=me");
+  });
+});
+
+describe("serverHref", () => {
+  it("takes a same-site address the registry knows and the viewer may open", () => {
+    expect(serverHref("/tickets?view=mine", ALL_SCREENS)).toBe("/tickets?view=mine");
+    expect(serverHref(`/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`, ALL_SCREENS)).toBe(
+      `/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`,
+    );
+  });
+
+  it("refuses an address this application does not serve, or is not an address at all", () => {
+    expect(serverHref("/queue?view=my-tickets", ALL_SCREENS)).toBeNull();
+    expect(serverHref("/timesheet", ALL_SCREENS)).toBeNull();
+    expect(serverHref(undefined, ALL_SCREENS)).toBeNull();
+    expect(serverHref("javascript:alert(1)", ALL_SCREENS)).toBeNull();
+    expect(serverHref("//evil.example/tickets", ALL_SCREENS)).toBeNull();
+    // An absolute URL is another origin's business, even a registered path on it.
+    expect(serverHref("https://evil.example/tickets", ALL_SCREENS)).toBeNull();
+  });
+
+  it("refuses a screen this viewer may not open", () => {
+    const consultant = visibleScreens(["tickets:view", "time:log"]);
+    expect(serverHref(`/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`, consultant)).toBeNull();
+    expect(serverHref("/tickets?view=mine", consultant)).toBe("/tickets?view=mine");
   });
 });
 
@@ -68,13 +128,25 @@ describe("waitingHref", () => {
     expect(waitingHref(aWaitingItem({ key: "not_a_key", link: "//evil.example" }), ALL_SCREENS)).toBeNull();
   });
 
-  it("offers no address for a screen this viewer may not open", () => {
+  it("never follows a link into a screen this viewer may not open, and falls back where it can", () => {
     const consultant = visibleScreens(["tickets:view", "time:log"]);
-    const reports = aWaiting().items.find((row) => row.key === "report_reviews")!;
-    // reports:view-portfolio is not held, so the row keeps its count and drops
-    // its link rather than sending the reader into a refusal.
-    expect(waitingHref(reports, consultant)).toBeNull();
+    const rail = aWaiting();
+    // admin:accounts is not held, and neither is reports:view-portfolio, so
+    // the row keeps its count and drops its address rather than sending the
+    // reader into a refusal.
+    expect(waitingHref(itemFor(rail, "report_reviews"), consultant)).toBeNull();
+    // The account dashboard is tickets:view, which a consultant does hold, so
+    // the low-score row still opens the account the server named.
+    expect(waitingHref(itemFor(rail, "csat_low_scores"), consultant)).toBe(
+      `/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`,
+    );
     expect(waitingHref(aWaitingItem(), consultant)).toBe("/tickets?view=mine");
+  });
+
+  it("keeps the key's own address when the API sends no link at all", () => {
+    expect(waitingHref(aWaitingItem({ link: undefined }), ALL_SCREENS)).toBe("/tickets?view=mine");
+    // The bell-menu row has no screen either way.
+    expect(waitingHref(aWaitingItem({ key: "unread_notifications", link: undefined }), ALL_SCREENS)).toBeNull();
   });
 
   it("reads the whole registry when no permitted set is given", () => {
