@@ -3,42 +3,75 @@
 import { useState } from "react";
 import { PortalCard, PortalNotice } from "@/components/portal/primitives";
 import { SurveyQuestion } from "@/components/portal/survey-question";
+import { Skeleton } from "@/components/xms/skeleton";
 import {
   answerBody,
   describeSurveyError,
+  expiryLabel,
+  isAnswerable,
+  isQuarterly,
   keyLabel,
-  questionsFromKeys,
+  LINK_NOT_VALID,
+  questionsOf,
   scoreLabel,
+  statusLine,
   surveyError,
-  surveyQuestion,
+  surveyKind,
+  surveySubject,
 } from "@/lib/portal/csat";
-import { useAnswerSurveyLinkMutation, type SurveyAnswer, type SurveyQuestionSpec } from "@/redux/portalApi";
-
-const TICKET_CLOSE: SurveyQuestionSpec[] = [{ key: "score", text: surveyQuestion(null) }];
+import { useAnswerSurveyLinkMutation, useDescribeSurveyLinkQuery, type SurveyAnswer } from "@/redux/portalApi";
 
 /**
- * The email link (`/portal/surveys/{id}#token=...`): the questions with no
- * session and no chrome, posted to /v1/csat/:id/answer with the one-time
- * token as the credential. The ticket is not named because the link route
- * has nothing to read; the email that carried the link does.
+ * The email link (`/portal/surveys/{id}#token=...`): the survey with no
+ * session and no chrome, read and answered with the one-time token as the
+ * only credential.
  *
- * For the same reason the kind is not known before the first answer: there
- * is no GET behind the token. So the page opens on the one ticket-close
- * question, and a quarterly survey answers `scores_required` naming its
- * five keys, at which point the page asks those five instead and says why.
- * The kind still comes from the server, never from a guess made here.
+ * The page reads `POST /v1/csat/{id}/describe` first, so what it asks is
+ * what the server says this survey asks: one question named after the
+ * ticket on a ticket-close survey, the five keyed questions on a quarterly
+ * one. No question text is kept here, which is what the page had to do
+ * while the link route had no read behind it and the kind arrived only in a
+ * refusal.
+ *
+ * An unknown id and a token that does not match answer the same 404, so the
+ * page says the same one thing back rather than telling a visitor which of
+ * the two they hold. A survey that has been answered or has expired is
+ * described just as readily, and reads as its status with no form under it,
+ * rather than offering an answer the API would refuse.
  */
 export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token: string }) {
-  const [answer, { isLoading }] = useAnswerSurveyLinkMutation();
+  const { data: survey, isLoading, isError } = useDescribeSurveyLinkQuery({ id: surveyId, token });
+  const [answer, { isLoading: sending }] = useAnswerSurveyLinkMutation();
   const [done, setDone] = useState<SurveyAnswer | null>(null);
-  const [questions, setQuestions] = useState<SurveyQuestionSpec[]>(TICKET_CLOSE);
   const [error, setError] = useState<string | null>(null);
-  const quarterly = questions !== TICKET_CLOSE;
+
+  if (isLoading && !survey) {
+    return (
+      <Frame>
+        <Skeleton lines={4} />
+      </Frame>
+    );
+  }
+
+  if (isError || !survey) {
+    return (
+      <Frame>
+        <PortalCard>
+          <PortalNotice tone="error">{LINK_NOT_VALID}</PortalNotice>
+        </PortalCard>
+      </Frame>
+    );
+  }
+
+  const quarterly = isQuarterly(survey);
+  const questions = questionsOf(survey);
+  const subject = surveySubject(survey);
+  const expiry = expiryLabel(survey.expires_at);
 
   return (
-    <div className="flex flex-col gap-4" data-testid="survey-link">
-      <h1 className="text-xms-ink text-[22px] font-semibold">How did we do?</h1>
+    <Frame kind={surveyKind(survey)}>
       <PortalCard>
+        <p className="text-xms-label text-[13px]">{subject}</p>
         {done ? (
           <p role="status" className="text-xms-ink text-[15px]">
             {quarterly
@@ -47,15 +80,12 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
                   .join(", ")}, have been recorded.`
               : `Thank you. Your answer, ${done.score} of 5 (${scoreLabel(done.score)}), has been recorded.`}
           </p>
-        ) : (
+        ) : isAnswerable(survey.status) ? (
           <SurveyQuestion
-            // A new question set is a new form, so an answer given against
-            // the single question does not survive into the five.
-            key={quarterly ? "quarterly" : "ticket_close"}
             id={`survey-${surveyId}`}
             questions={questions}
-            label={quarterly ? "Relationship survey" : surveyQuestion(null)}
-            submitting={isLoading}
+            label={quarterly ? subject : (questions[0]?.text ?? subject)}
+            submitting={sending}
             onSubmit={async (scores, comment) => {
               setError(null);
               try {
@@ -63,22 +93,34 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
                   await answer({
                     id: surveyId,
                     token,
-                    body: answerBody(quarterly ? "quarterly" : "ticket_close", scores, comment),
+                    body: answerBody(surveyKind(survey), scores, comment),
                   }).unwrap(),
                 );
               } catch (caught) {
-                const refusal = surveyError(caught);
-                if (refusal.code === "scores_required" && refusal.questionKeys?.length) {
-                  setQuestions(questionsFromKeys(refusal.questionKeys));
-                }
-                setError(describeSurveyError(refusal));
+                setError(describeSurveyError(surveyError(caught)));
               }
             }}
           />
+        ) : (
+          <p role="status" className="text-xms-ink text-[15px]">
+            {statusLine(survey.status)}
+          </p>
         )}
         {error ? <PortalNotice tone="error">{error}</PortalNotice> : null}
       </PortalCard>
-      <p className="text-xms-label text-[13px]">This link is for you only and takes one answer.</p>
+      <p className="text-xms-label text-[13px]">
+        {`This link is for you only and takes one answer.${isAnswerable(survey.status) && expiry ? ` ${expiry}.` : ""}`}
+      </p>
+    </Frame>
+  );
+}
+
+/** The bare page the link renders into: a heading, the card, and nothing of the portal chrome. */
+function Frame({ children, kind }: { children: React.ReactNode; kind?: string }) {
+  return (
+    <div className="flex flex-col gap-4" data-testid="survey-link" data-kind={kind}>
+      <h1 className="text-xms-ink text-[22px] font-semibold">How did we do?</h1>
+      {children}
     </div>
   );
 }

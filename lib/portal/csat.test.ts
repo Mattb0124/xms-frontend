@@ -5,12 +5,14 @@ import {
   describeSurveyError,
   expiryLabel,
   isQuarterly,
+  isAnswerable,
   isSurveyLink,
   keyLabel,
+  LINK_NOT_VALID,
   periodLabel,
-  questionsFromKeys,
   questionsOf,
   scoreLabel,
+  statusLine,
   surveyError,
   surveyQuestion,
   surveySubject,
@@ -94,14 +96,31 @@ describe("the two survey kinds", () => {
     expect(periodLabel("FY27H1")).toBe("FY27H1");
   });
 
-  it("falls back to the five keys the API named when a row carries no question text", () => {
-    expect(questionsFromKeys(["responsiveness", "recommend"])).toEqual([
-      { key: "responsiveness", text: "How responsive were we this quarter?" },
-      { key: "recommend", text: "How likely are you to recommend us to a colleague?" },
-    ]);
-    // A key this build has never heard of still reads as words, never as a blank.
-    expect(questionsFromKeys(["onboarding_speed"])).toEqual([{ key: "onboarding_speed", text: "Onboarding speed" }]);
+  /**
+   * The questions come from the server on both paths now: the list carries
+   * them, and the link page reads them from `describe`. Nothing here holds a
+   * quarterly vocabulary of its own, so a survey the server rewords is asked
+   * the new way without a release.
+   */
+  it("asks what the server sent and invents no question of its own", () => {
+    const asked = questionsOf(
+      aQuarterlySurvey({ questions: [{ key: "onboarding_speed", text: "How quick was it?" }] }),
+    );
+    expect(asked).toEqual([{ key: "onboarding_speed", text: "How quick was it?" }]);
+    expect(questionsOf(aQuarterlySurvey({ questions: undefined }))).toEqual([]);
+    // The key still reads as words where an answer is shown back with no text beside it.
     expect(keyLabel("value")).toBe("Value");
+  });
+
+  it("answers only a survey the server says is still open, and says where the others stand", () => {
+    expect(isAnswerable("sent")).toBe(true);
+    expect(isAnswerable("reminded")).toBe(true);
+    expect(isAnswerable("answered")).toBe(false);
+    expect(isAnswerable("expired")).toBe(false);
+    expect(isAnswerable("suppressed")).toBe(false);
+    expect(statusLine("answered")).toBe("This survey has already been answered. Thank you.");
+    expect(statusLine("expired")).toBe("This survey has expired and can no longer be answered.");
+    expect(statusLine("suppressed")).toBe("This survey is closed and can no longer be answered.");
   });
 
   it("sends score for a ticket-close survey and scores for a quarterly one, trimming the comment", () => {
@@ -130,14 +149,14 @@ describe("the two survey kinds", () => {
     expect(answerLine(aQuarterlySurvey({ status: "answered", answers: null }))).toBe("Answered");
   });
 
-  it("words the quarterly refusal and keeps the keys it named", () => {
-    const refusal = surveyError({
-      status: 400,
-      data: { code: "scores_required", questions: ["responsiveness", "quality"] },
-    });
-    expect(refusal.questionKeys).toEqual(["responsiveness", "quality"]);
-    expect(describeSurveyError(refusal)).toBe(
-      "This is the quarterly relationship survey. It asks five short questions, which are below.",
-    );
+  /**
+   * An unknown id and a token that does not match answer the same 404, so
+   * the visitor is told the one thing that is true of both rather than which
+   * of the two they hold.
+   */
+  it("words a link that does not resolve as one thing, whichever half was wrong", () => {
+    const refusal = surveyError({ status: 404, data: { code: "not_found", entity: "survey" } });
+    expect(describeSurveyError(refusal)).toBe(LINK_NOT_VALID);
+    expect(LINK_NOT_VALID).toMatch(/^This link is not valid\./);
   });
 });

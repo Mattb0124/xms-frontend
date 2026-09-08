@@ -58,38 +58,18 @@ export function keyLabel(key: string): string {
 }
 
 /**
- * The quarterly question texts, used only where the API sent keys without
- * them: the email-link route has no survey to read, so its `scores_required`
- * refusal names the five keys alone. Everywhere else the row's own
- * `questions` are rendered and this table is never consulted.
- */
-export const QUARTERLY_FALLBACK_TEXT: Record<string, string> = {
-  responsiveness: "How responsive were we this quarter?",
-  quality: "How would you rate the quality of the work delivered?",
-  communication: "How clear and timely was our communication?",
-  value: "How well does the service represent value for money?",
-  recommend: "How likely are you to recommend us to a colleague?",
-};
-
-/** Keys the server named, as questions to render; the text falls back to the key in words. */
-export function questionsFromKeys(keys: readonly string[]): SurveyQuestionSpec[] {
-  return keys.map((key) => ({ key, text: QUARTERLY_FALLBACK_TEXT[key] ?? keyLabel(key) }));
-}
-
-/**
- * The questions to ask for a survey row.
+ * The questions to ask for a survey, from the survey itself.
  *
- * A quarterly survey is asked exactly as the server sent it, keys and text
- * together, so the portal never holds that vocabulary. The ticket-close
- * survey is one question, and the portal names the ticket in it where the
- * server's own text says only "this request"; the key still comes from the
- * row where there is one.
+ * Both paths read the row the server sent: the Surveys page reads the list,
+ * and the email link reads `POST /v1/csat/:id/describe` behind its one-time
+ * token. So the portal holds no question vocabulary of its own, quarterly
+ * or otherwise: a survey whose questions the server changes is asked the
+ * new way without a release here. The ticket-close survey is one question,
+ * and the portal names the ticket in it where the server's own text says
+ * only "this request"; the key still comes from the row where there is one.
  */
 export function questionsOf(survey: Pick<Survey, "kind" | "questions" | "ticket_key">): SurveyQuestionSpec[] {
-  if (isQuarterly(survey)) {
-    const sent = survey.questions ?? [];
-    return sent.length > 0 ? sent : questionsFromKeys(Object.keys(QUARTERLY_FALLBACK_TEXT));
-  }
+  if (isQuarterly(survey)) return survey.questions ?? [];
   return [{ key: survey.questions?.[0]?.key ?? "score", text: surveyQuestion(survey.ticket_key) }];
 }
 
@@ -148,11 +128,40 @@ export function expiryLabel(expiresAt: string | null): string | null {
   return expiresAt ? `Open until ${expiresAt.slice(0, 10)}` : null;
 }
 
+/**
+ * Whether the survey can still be answered. `describe` answers an already
+ * answered and an expired survey just as readily as a pending one, each
+ * with its own status, so the link page reads the status rather than
+ * offering a form the answer route would refuse.
+ */
+export function isAnswerable(status: SurveyStatus | "suppressed"): boolean {
+  return status === "sent" || status === "reminded";
+}
+
+/** Where a survey stands, for a visitor who is not being asked to answer it. */
+export function statusLine(status: SurveyStatus | "suppressed"): string {
+  switch (status) {
+    case "answered":
+      return "This survey has already been answered. Thank you.";
+    case "expired":
+      return "This survey has expired and can no longer be answered.";
+    default:
+      return "This survey is closed and can no longer be answered.";
+  }
+}
+
+/**
+ * The one word for a link that does not resolve. `POST /v1/csat/:id/describe`
+ * answers the same 404 for an unknown id and a token that does not match, so
+ * that the route confirms no id; the page says the same one thing back,
+ * rather than guessing which of the two it was.
+ */
+export const LINK_NOT_VALID =
+  "This link is not valid. Open the most recent email we sent you, or ask us for a new link.";
+
 export interface SurveyError extends ApiError {
   /** survey_closed carries the survey's status. */
   surveyStatus?: SurveyStatus | "suppressed";
-  /** scores_required carries the keys the quarterly survey expects. */
-  questionKeys?: string[];
 }
 
 export function surveyError(error: unknown): SurveyError {
@@ -161,16 +170,11 @@ export function surveyError(error: unknown): SurveyError {
   if (data && typeof data === "object" && typeof data.status === "string") {
     parsed.surveyStatus = data.status as SurveyError["surveyStatus"];
   }
-  if (data && Array.isArray(data.questions)) {
-    parsed.questionKeys = data.questions.filter((key): key is string => typeof key === "string");
-  }
   return parsed;
 }
 
 export function describeSurveyError(error: SurveyError): string {
   switch (error.code) {
-    case "scores_required":
-      return "This is the quarterly relationship survey. It asks five short questions, which are below.";
     case "already_answered":
       return "You have already answered this survey. Thank you.";
     case "survey_closed":
@@ -178,7 +182,7 @@ export function describeSurveyError(error: SurveyError): string {
         ? "This survey has expired and can no longer be answered."
         : "This survey is closed and can no longer be answered.";
     case "not_found":
-      return "This survey link is not valid. It may have been used already, or the survey may have been removed.";
+      return LINK_NOT_VALID;
     case "token_required":
       return "This survey link is missing its token. Open the link from your email again.";
     default:

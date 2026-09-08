@@ -145,6 +145,26 @@ export interface SurveyAnswer {
   answered_at: string;
 }
 
+/**
+ * The read behind the email link (`POST /v1/csat/:id/describe`): what the
+ * survey asks and where it stands, behind the same one-time token the
+ * answer route takes. It carries the survey and nothing about the account
+ * or the contact, so a token holder learns only what the email they were
+ * sent already told them, and an unknown id answers exactly as a token that
+ * does not match does.
+ */
+export interface SurveyDescription {
+  id: string;
+  kind: SurveyKind;
+  /** `2026-Q2` on a quarterly survey, null on a ticket-close one. */
+  period: string | null;
+  ticket_key: string | null;
+  /** `suppressed` never reaches a link, but the column can hold it. */
+  status: SurveyStatus | "suppressed";
+  expires_at: string | null;
+  questions: SurveyQuestionSpec[];
+}
+
 /** Placeholder until the knowledge base ships: the screens are wired, the list is empty. */
 export interface PortalArticle {
   id: string;
@@ -246,6 +266,19 @@ export const portalApi = xmsApi.injectEndpoints({
       query: ({ id, body }) => ({ url: `/v1/portal/surveys/${encodeURIComponent(id)}/answer`, method: "POST", body }),
       invalidatesTags: ["PortalSurveys"],
     }),
+    /**
+     * Reads the survey behind the email link without a session. It is a POST
+     * because the token travels in the body rather than the address, where it
+     * would land in history, proxy logs and any forwarded copy of the email
+     * (security review finding 9); it is a query because it reads.
+     */
+    describeSurveyLink: build.query<SurveyDescription, { id: string; token: string }>({
+      query: ({ id, token }) => ({
+        url: `/v1/csat/${encodeURIComponent(id)}/describe`,
+        method: "POST",
+        body: { token },
+      }),
+    }),
     /** Answers from the email link without a session: the one-time token is the credential. */
     answerSurveyLink: build.mutation<SurveyAnswer, { id: string; token: string; body: AnswerSurveyBody }>({
       query: ({ id, token, body }) => ({
@@ -269,5 +302,6 @@ export const {
   useSearchArticlesQuery,
   usePortalSurveysQuery,
   useAnswerPortalSurveyMutation,
+  useDescribeSurveyLinkQuery,
   useAnswerSurveyLinkMutation,
 } = portalApi;

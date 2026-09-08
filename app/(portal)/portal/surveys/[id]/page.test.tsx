@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PortalSurveyPage from "@/app/(portal)/portal/surveys/[id]/page";
 import { PortalChrome } from "@/components/portal/portal-chrome";
 import { resetSurveyToken } from "@/lib/portal/survey-token";
-import { aPortalMe, aSurvey, json, renderPortal, stubFetch } from "@/test-kit/portal";
+import { aPortalMe, aSurvey, aSurveyDescription, json, renderPortal, stubFetch } from "@/test-kit/portal";
 
 const survey = aSurvey();
 const TOKEN = "Xk3nQ8pLmZ2vT7wBfR4jY6sD";
@@ -35,10 +35,13 @@ describe("the survey link page", () => {
 
   it("answers from a fragment token and clears it out of the address", async () => {
     window.history.replaceState(null, "", `/portal/surveys/${survey.id}#token=${TOKEN}`);
-    stubFetch({});
+    // The token is the credential for the read behind the link as well as for
+    // the answer, so the page describes the survey with the token it captured.
+    const calls = stubFetch({ [`POST /v1/csat/${survey.id}/describe`]: () => json(aSurveyDescription()) });
     renderPortal(<PortalSurveyPage />);
     expect(await screen.findByTestId("survey-link")).toBeInTheDocument();
-    expect(screen.getByText("How satisfied are you with the handling of your request?")).toBeInTheDocument();
+    expect(await screen.findByText("How satisfied are you with the handling of CS0001001?")).toBeInTheDocument();
+    expect(calls.map((call) => call.body)).toEqual([{ token: TOKEN }]);
     expect(window.location.hash).toBe("");
     expect(window.location.href).not.toContain(TOKEN);
     expect(window.location.pathname).toBe(`/portal/surveys/${survey.id}`);

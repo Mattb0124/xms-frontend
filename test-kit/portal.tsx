@@ -10,6 +10,7 @@ import type {
   PortalTimelineItem,
   Survey,
   SurveyAnswer,
+  SurveyDescription,
   SurveyQuestionSpec,
 } from "@/redux/portalApi";
 
@@ -164,6 +165,37 @@ export function aQuarterlyAnswer(overrides: Partial<SurveyAnswer> = {}): SurveyA
     answered_at: "2026-07-03T09:15:00Z",
     ...overrides,
   };
+}
+
+/**
+ * What `POST /v1/csat/:id/describe` answers behind the link token: the
+ * survey and where it stands, and nothing about the account or the contact
+ * (backend test/csat.int-spec.ts pins the key set).
+ */
+export function aSurveyDescription(overrides: Partial<SurveyDescription> = {}): SurveyDescription {
+  return {
+    id: aSurvey().id,
+    kind: "ticket_close",
+    period: null,
+    ticket_key: "CS0001001",
+    status: "sent",
+    expires_at: "2026-09-15T10:00:00Z",
+    questions: [{ key: "score", text: "How satisfied are you with the handling of this request?" }],
+    ...overrides,
+  };
+}
+
+/** The same read for a quarterly survey: a period, no ticket, five questions. */
+export function aQuarterlyDescription(overrides: Partial<SurveyDescription> = {}): SurveyDescription {
+  return aSurveyDescription({
+    id: aQuarterlySurvey().id,
+    kind: "quarterly",
+    period: "2026-Q2",
+    ticket_key: null,
+    expires_at: "2026-07-22T08:00:00Z",
+    questions: QUARTERLY_QUESTIONS,
+    ...overrides,
+  });
 }
 
 export function json(body: unknown, status = 200): Response {
