@@ -98,7 +98,6 @@ export const SCREENS: Screen[] = [
     label: "Solutions",
     section: "Knowledge",
     permission: "tickets:view",
-    pinned: true,
     purpose: "The knowledge base.",
   },
   {
@@ -131,6 +130,9 @@ export const SCREENS: Screen[] = [
     label: "My timesheet",
     section: "Time",
     permission: "time:log",
+    // Render 08 and the hand-off both pin six screens: My work, Queue,
+    // Dispatch, Quarantine, My timesheet, Operations.
+    pinned: true,
     purpose: "Your entries for the week.",
   },
   {
