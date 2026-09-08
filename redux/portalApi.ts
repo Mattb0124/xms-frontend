@@ -78,14 +78,31 @@ export interface PortalComment {
 }
 
 /**
- * CSAT on ticket close (Client Portal functional 5.7, CP-07): one five-point
- * question with an optional comment. A survey is pending while sent or
- * reminded; the score is null until it is answered.
+ * CSAT (Client Portal functional 5.7, CP-07): one five-point question with
+ * an optional comment on ticket close, and the five keyed questions of the
+ * quarterly relationship survey. A survey is pending while sent or
+ * reminded; the answers are null until it is answered.
+ *
+ * The row carries the questions of its own kind, so the portal renders
+ * either survey from what the server sent rather than from a second
+ * vocabulary of its own.
  */
 export type SurveyStatus = "sent" | "reminded" | "answered" | "expired";
 
+export type SurveyKind = "ticket_close" | "quarterly";
+
+/** A question as the API words it: the answer document's key and the text to show. */
+export interface SurveyQuestionSpec {
+  key: string;
+  text: string;
+}
+
 export interface Survey {
   id: string;
+  /** Absent on an API older than the quarterly survey; such a row reads as a ticket-close one. */
+  kind?: SurveyKind;
+  /** `2026-Q2` on a quarterly survey, null on a ticket-close one. */
+  period?: string | null;
   ticket_id: string | null;
   ticket_key: string | null;
   short_description: string | null;
@@ -93,7 +110,12 @@ export interface Survey {
   sent_at: string;
   expires_at: string | null;
   answered_at: string | null;
+  /** The ticket-close score; null on a quarterly survey, whose five live in `answers`. */
   score: number | null;
+  /** The questions of this survey's kind, in the order the server asks them. */
+  questions?: SurveyQuestionSpec[];
+  /** What was answered, keyed as the questions are; null while the survey is pending. */
+  answers?: Record<string, number> | null;
 }
 
 export interface SurveyList {
@@ -101,13 +123,24 @@ export interface SurveyList {
   answered: Survey[];
 }
 
+/**
+ * One body for both kinds, as the API's AnswerDto takes it: `score` answers
+ * a ticket-close survey, `scores` the five keyed questions of a quarterly
+ * one. The survey's own kind decides which the server requires, so the
+ * wrong shape is refused rather than believed.
+ */
 export interface AnswerSurveyBody {
-  score: number;
+  score?: number;
+  scores?: Record<string, number>;
   comment?: string;
 }
 
 export interface SurveyAnswer {
   survey_id: string;
+  kind?: SurveyKind;
+  period?: string | null;
+  answers?: Record<string, number>;
+  /** The one score, or the mean of the five on a quarterly survey; the server computes it. */
   score: number;
   answered_at: string;
 }

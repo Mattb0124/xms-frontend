@@ -4,7 +4,14 @@ import { Provider } from "react-redux";
 import { vi } from "vitest";
 import { Toaster, ToastProvider } from "@/components/xms/toast";
 import { makeStore } from "@/redux/store";
-import type { PortalMe, PortalTicket, PortalTimelineItem, Survey } from "@/redux/portalApi";
+import type {
+  PortalMe,
+  PortalTicket,
+  PortalTimelineItem,
+  Survey,
+  SurveyAnswer,
+  SurveyQuestionSpec,
+} from "@/redux/portalApi";
 
 /**
  * Constructed portal data and a fetch stub keyed on method and path, shared
@@ -86,6 +93,8 @@ export function aTimeline(): PortalTimelineItem[] {
 export function aSurvey(overrides: Partial<Survey> = {}): Survey {
   return {
     id: "11111111-1111-4111-8111-111111111111",
+    kind: "ticket_close",
+    period: null,
     ticket_id: "t-1",
     ticket_key: "CS0001001",
     short_description: "Cannot open the consolidation report",
@@ -94,6 +103,8 @@ export function aSurvey(overrides: Partial<Survey> = {}): Survey {
     expires_at: "2026-09-15T10:00:00Z",
     answered_at: null,
     score: null,
+    questions: [{ key: "score", text: "How satisfied are you with the handling of this request?" }],
+    answers: null,
     ...overrides,
   };
 }
@@ -109,8 +120,50 @@ export function anAnsweredSurvey(overrides: Partial<Survey> = {}): Survey {
     expires_at: "2026-09-07T10:00:00Z",
     answered_at: "2026-08-29T08:30:00Z",
     score: 4,
+    answers: { score: 4 },
     ...overrides,
   });
+}
+
+/**
+ * The five keyed questions of the quarterly relationship survey, worded as
+ * the API words them (`QUARTERLY_QUESTIONS`), in the order it asks them.
+ */
+export const QUARTERLY_QUESTIONS: SurveyQuestionSpec[] = [
+  { key: "responsiveness", text: "How responsive were we this quarter?" },
+  { key: "quality", text: "How would you rate the quality of the work delivered?" },
+  { key: "communication", text: "How clear and timely was our communication?" },
+  { key: "value", text: "How well does the service represent value for money?" },
+  { key: "recommend", text: "How likely are you to recommend us to a colleague?" },
+];
+
+/** A pending quarterly relationship survey: no ticket, a period, five questions. */
+export function aQuarterlySurvey(overrides: Partial<Survey> = {}): Survey {
+  return aSurvey({
+    id: "33333333-3333-4333-8333-333333333333",
+    kind: "quarterly",
+    period: "2026-Q2",
+    ticket_id: null,
+    ticket_key: null,
+    short_description: null,
+    sent_at: "2026-07-01T08:00:00Z",
+    expires_at: "2026-07-22T08:00:00Z",
+    questions: QUARTERLY_QUESTIONS,
+    ...overrides,
+  });
+}
+
+/** The answer to a quarterly survey: the five keyed scores and the mean the server returns. */
+export function aQuarterlyAnswer(overrides: Partial<SurveyAnswer> = {}): SurveyAnswer {
+  return {
+    survey_id: aQuarterlySurvey().id,
+    kind: "quarterly",
+    period: "2026-Q2",
+    answers: { responsiveness: 4, quality: 5, communication: 4, value: 3, recommend: 5 },
+    score: 4.2,
+    answered_at: "2026-07-03T09:15:00Z",
+    ...overrides,
+  };
 }
 
 export function json(body: unknown, status = 200): Response {

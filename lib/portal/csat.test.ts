@@ -1,12 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
+  answerBody,
+  answerLine,
   describeSurveyError,
   expiryLabel,
+  isQuarterly,
   isSurveyLink,
+  keyLabel,
+  periodLabel,
+  questionsFromKeys,
+  questionsOf,
   scoreLabel,
   surveyError,
   surveyQuestion,
+  surveySubject,
 } from "@/lib/portal/csat";
+import { anAnsweredSurvey, aQuarterlySurvey, aSurvey, QUARTERLY_QUESTIONS } from "@/test-kit/portal";
 
 describe("csat vocabulary", () => {
   it("labels the five scores from very dissatisfied to very satisfied", () => {
@@ -49,5 +58,86 @@ describe("csat vocabulary", () => {
       /link is not valid/,
     );
     expect(describeSurveyError(surveyError({ status: "FETCH_ERROR" }))).toBe("The API could not be reached.");
+  });
+});
+
+/**
+ * The two kinds (functional 5.7): the row's own `questions` decide what is
+ * asked and its `kind` decides the body, so neither vocabulary is invented
+ * in the browser.
+ */
+describe("the two survey kinds", () => {
+  it("reads a row with no kind as a ticket-close survey and asks its one question", () => {
+    const legacy = aSurvey({ kind: undefined, questions: undefined });
+    expect(isQuarterly(legacy)).toBe(false);
+    expect(questionsOf(legacy)).toEqual([
+      { key: "score", text: "How satisfied are you with the handling of CS0001001?" },
+    ]);
+    expect(surveySubject(legacy)).toBe("CS0001001");
+  });
+
+  it("asks the five questions the quarterly row carries, and names the quarter", () => {
+    const quarterly = aQuarterlySurvey();
+    expect(isQuarterly(quarterly)).toBe(true);
+    expect(questionsOf(quarterly)).toEqual(QUARTERLY_QUESTIONS);
+    expect(questionsOf(quarterly).map((question) => question.key)).toEqual([
+      "responsiveness",
+      "quality",
+      "communication",
+      "value",
+      "recommend",
+    ]);
+    expect(surveySubject(quarterly)).toBe("2026 Q2 relationship survey");
+    expect(periodLabel("2026-Q2")).toBe("2026 Q2");
+    expect(periodLabel(null)).toBeNull();
+    // A period the server writes some other way is shown as it wrote it.
+    expect(periodLabel("FY27H1")).toBe("FY27H1");
+  });
+
+  it("falls back to the five keys the API named when a row carries no question text", () => {
+    expect(questionsFromKeys(["responsiveness", "recommend"])).toEqual([
+      { key: "responsiveness", text: "How responsive were we this quarter?" },
+      { key: "recommend", text: "How likely are you to recommend us to a colleague?" },
+    ]);
+    // A key this build has never heard of still reads as words, never as a blank.
+    expect(questionsFromKeys(["onboarding_speed"])).toEqual([{ key: "onboarding_speed", text: "Onboarding speed" }]);
+    expect(keyLabel("value")).toBe("Value");
+  });
+
+  it("sends score for a ticket-close survey and scores for a quarterly one, trimming the comment", () => {
+    expect(answerBody("ticket_close", { score: 4 })).toEqual({ score: 4 });
+    expect(answerBody("ticket_close", { score: 4 }, "  Quick and clear  ")).toEqual({
+      score: 4,
+      comment: "Quick and clear",
+    });
+    // An all-whitespace comment is no comment; the field is left off entirely.
+    expect(answerBody("ticket_close", { score: 2 }, "   ")).toEqual({ score: 2 });
+    const scores = { responsiveness: 4, quality: 5, communication: 4, value: 3, recommend: 5 };
+    expect(answerBody("quarterly", scores)).toEqual({ scores });
+    expect(answerBody("quarterly", scores, "More of the same")).toEqual({ scores, comment: "More of the same" });
+  });
+
+  it("words an answered survey by its kind", () => {
+    expect(answerLine(anAnsweredSurvey())).toBe("4 of 5, Satisfied");
+    expect(
+      answerLine(
+        aQuarterlySurvey({
+          status: "answered",
+          answers: { responsiveness: 4, quality: 5, communication: 4, value: 3, recommend: 5 },
+        }),
+      ),
+    ).toBe("Responsiveness 4, Quality 5, Communication 4, Value 3, Recommend 5");
+    expect(answerLine(aQuarterlySurvey({ status: "answered", answers: null }))).toBe("Answered");
+  });
+
+  it("words the quarterly refusal and keeps the keys it named", () => {
+    const refusal = surveyError({
+      status: 400,
+      data: { code: "scores_required", questions: ["responsiveness", "quality"] },
+    });
+    expect(refusal.questionKeys).toEqual(["responsiveness", "quality"]);
+    expect(describeSurveyError(refusal)).toBe(
+      "This is the quarterly relationship survey. It asks five short questions, which are below.",
+    );
   });
 });

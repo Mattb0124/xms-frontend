@@ -5,14 +5,26 @@ import { useState } from "react";
 import { PortalCard, PortalNotice } from "@/components/portal/primitives";
 import { SurveyQuestion } from "@/components/portal/survey-question";
 import { Skeleton } from "@/components/xms/skeleton";
-import { describeSurveyError, expiryLabel, scoreLabel, surveyError, surveyQuestion } from "@/lib/portal/csat";
+import {
+  answerBody,
+  answerLine,
+  describeSurveyError,
+  expiryLabel,
+  isQuarterly,
+  questionsOf,
+  surveyError,
+  surveyKind,
+  surveySubject,
+} from "@/lib/portal/csat";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useAnswerPortalSurveyMutation, usePortalSurveysQuery, type Survey } from "@/redux/portalApi";
 
 /**
- * Surveys (Client Portal functional 5.7, CP-07): the pending ticket-close
- * surveys as cards with the one question, and the completed ones with the
- * score given. A refusal (already answered, closed) is worded and the list
+ * Surveys (Client Portal functional 5.7, CP-07): the pending surveys of
+ * both kinds as cards, each asking the questions its own row carries (the
+ * one ticket-close question, or the five of the quarterly relationship
+ * survey with the quarter named), and the completed ones with what was
+ * answered. A refusal (already answered, closed) is worded and the list
  * read again, so the page never shows a survey the server will not take.
  * `focusId` puts the survey a link named first, or explains where it went.
  */
@@ -27,14 +39,15 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
   const focused = focusId ? pending.find((survey) => survey.id === focusId) : undefined;
   const focusedAnswered = focusId && !focused ? answered.find((survey) => survey.id === focusId) : undefined;
 
-  const send = async (survey: Survey, score: number, comment: string | undefined) => {
+  const send = async (survey: Survey, scores: Record<string, number>, comment: string | undefined) => {
     setNotice(null);
+    const kind = surveyKind(survey);
     try {
-      await answer({ id: survey.id, body: comment ? { score, comment } : { score } }).unwrap();
-      track({ survey_id: survey.id, score, has_comment: Boolean(comment) });
+      const result = await answer({ id: survey.id, body: answerBody(kind, scores, comment) }).unwrap();
+      track({ survey_id: survey.id, kind, score: result.score, has_comment: Boolean(comment) });
       setNotice({
         tone: "info",
-        text: `Thank you. Your answer for ${survey.ticket_key ?? "the request"} has been recorded.`,
+        text: `Thank you. Your answer for ${surveySubject(survey)} has been recorded.`,
       });
     } catch (caught) {
       setNotice({ tone: "error", text: describeSurveyError(surveyError(caught)) });
@@ -50,7 +63,7 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
       {data && focusId && !focused ? (
         <PortalNotice>
           {focusedAnswered
-            ? `You have already answered the survey for ${focusedAnswered.ticket_key ?? "that request"}. Thank you.`
+            ? `You have already answered the survey for ${surveySubject(focusedAnswered)}. Thank you.`
             : "That survey is no longer open. It may have expired, or it may not be yours."}
         </PortalNotice>
       ) : null}
@@ -66,8 +79,13 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
           </p>
         ) : null}
         {pending.map((survey) => (
-          <PortalCard key={survey.id} title={survey.ticket_key ?? "Your request"} className="gap-4">
-            <div className="flex flex-col gap-1" data-survey={survey.id}>
+          <PortalCard key={survey.id} title={surveySubject(survey)} className="gap-4">
+            <div className="flex flex-col gap-1" data-survey={survey.id} data-kind={surveyKind(survey)}>
+              {isQuarterly(survey) ? (
+                <p className="text-xms-body text-[14px]">
+                  Five short questions about how the service went, and room for anything else you want to tell us.
+                </p>
+              ) : null}
               {survey.short_description ? (
                 <p className="text-xms-body text-[14px]">{survey.short_description}</p>
               ) : null}
@@ -77,9 +95,10 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
             </div>
             <SurveyQuestion
               id={`survey-${survey.id}`}
-              question={surveyQuestion(survey.ticket_key)}
+              questions={questionsOf(survey)}
+              label={surveySubject(survey)}
               submitting={sending}
-              onSubmit={(score, comment) => send(survey, score, comment)}
+              onSubmit={(scores, comment) => send(survey, scores, comment)}
             />
           </PortalCard>
         ))}
@@ -97,6 +116,7 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
                   key={survey.id}
                   className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
                   data-survey={survey.id}
+                  data-kind={surveyKind(survey)}
                 >
                   {survey.ticket_key ? (
                     <Link
@@ -106,11 +126,11 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
                       {survey.ticket_key}
                     </Link>
                   ) : (
-                    <span className="text-xms-label text-[13px]">Request</span>
+                    <span className="text-xms-label text-[13px]">{surveySubject(survey)}</span>
                   )}
                   <span className="text-xms-body">{survey.short_description}</span>
                   <span className="text-xms-ink ml-auto" data-score={survey.score ?? undefined}>
-                    {survey.score !== null ? `${survey.score} of 5, ${scoreLabel(survey.score)}` : "Answered"}
+                    {answerLine(survey)}
                   </span>
                   {survey.answered_at ? (
                     <span className="xms-mono text-xms-label text-[12px]">{survey.answered_at.slice(0, 10)}</span>

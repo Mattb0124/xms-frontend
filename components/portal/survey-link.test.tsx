@@ -2,7 +2,7 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PortalChrome } from "@/components/portal/portal-chrome";
 import { SurveyLinkAnswer } from "@/components/portal/survey-link";
-import { aSurvey, json, renderPortal, stubFetch } from "@/test-kit/portal";
+import { aQuarterlyAnswer, aSurvey, json, renderPortal, stubFetch } from "@/test-kit/portal";
 
 const survey = aSurvey();
 const TOKEN = "tok-1234567890abcdefghijklmnop";
@@ -83,5 +83,64 @@ describe("survey email link", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "This survey has expired and can no longer be answered.",
     );
+  });
+
+  /**
+   * The link route has no GET behind the token, so the kind arrives with the
+   * server's refusal: `scores_required` names the five keys, and the page
+   * then asks those five instead of the one.
+   */
+  it("asks the five quarterly questions the scores_required refusal names, and answers them", async () => {
+    pathname = `/portal/surveys/${survey.id}`;
+    search = `token=${TOKEN}`;
+    let asked = false;
+    const calls = stubFetch({
+      [LINK]: () => {
+        if (asked) return json(aQuarterlyAnswer({ survey_id: survey.id }), 200);
+        asked = true;
+        return json(
+          { code: "scores_required", questions: ["responsiveness", "quality", "communication", "value", "recommend"] },
+          400,
+        );
+      },
+    });
+    renderPortal(<SurveyLinkAnswer surveyId={survey.id} token={TOKEN} />);
+    fireEvent.click(screen.getByRole("button", { name: "4, Satisfied" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send my answer" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This is the quarterly relationship survey. It asks five short questions, which are below.",
+    );
+    const groups = screen.getAllByRole("group");
+    expect(groups.map((group) => group.getAttribute("data-question"))).toEqual([
+      "responsiveness",
+      "quality",
+      "communication",
+      "value",
+      "recommend",
+    ]);
+    expect(screen.getByText("How responsive were we this quarter?")).toBeInTheDocument();
+    // The one answer given against the single question does not carry over.
+    expect(screen.getByRole("button", { name: "Send my answer" })).toBeDisabled();
+
+    const answer = (question: string, label: string) =>
+      fireEvent.click(within(screen.getByRole("group", { name: question })).getByRole("button", { name: label }));
+    answer("How responsive were we this quarter?", "4, Satisfied");
+    answer("How would you rate the quality of the work delivered?", "5, Very satisfied");
+    answer("How clear and timely was our communication?", "4, Satisfied");
+    answer("How well does the service represent value for money?", "3, Neutral");
+    answer("How likely are you to recommend us to a colleague?", "5, Very satisfied");
+    fireEvent.click(screen.getByRole("button", { name: "Send my answer" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Thank you. Your answers, Responsiveness 4, Quality 5, Communication 4, Value 3, Recommend 5, have been recorded.",
+    );
+    expect(calls.map((call) => call.body)).toEqual([
+      { token: TOKEN, score: 4 },
+      {
+        token: TOKEN,
+        scores: { responsiveness: 4, quality: 5, communication: 4, value: 3, recommend: 5 },
+      },
+    ]);
   });
 });
