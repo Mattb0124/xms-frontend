@@ -196,10 +196,32 @@ export function ticketColumns({
  * state and the clock, and nothing else. The Queue's full set was being used
  * there, which put Type, Priority and Assignee into a rail-width card that
  * had no room for them.
+ *
+ * The widths are the render's: an 82px mono key, the title taking the slack,
+ * a 128px account with its identity square, the state pill, and the clock
+ * right-aligned in 92px with its signal as a dot rather than a pill, so the
+ * only pill on the row is the state.
  */
 export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView>[] {
   const wanted = new Set(["key", "short_description", "account", "state", "sla"]);
+  const widths: Record<string, string | undefined> = {
+    key: "82px",
+    short_description: undefined,
+    account: "128px",
+    state: "132px",
+    sla: "92px",
+  };
   return ticketColumns({ ...options, showClocks: true, accountIdentity: true })
     .filter((column) => wanted.has(column.key))
-    .map((column) => (column.key === "sla" ? { ...column, title: "", align: "right" as const } : column));
+    .map((column) => ({
+      ...column,
+      width: widths[column.key],
+      ...(column.key === "sla"
+        ? {
+            title: "SLA",
+            align: "right" as const,
+            render: (row: TicketView) => <SlaValue snapshot={clockSnapshot(tighterClock(row.sla))} dot />,
+          }
+        : {}),
+    }));
 }

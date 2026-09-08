@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
+  ICON,
   BookIcon,
   ChartIcon,
   ClockIcon,
@@ -86,15 +87,15 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
       aria-label="Pinned"
       data-testid="pinned-sidebar"
     >
-      <div className="flex items-center px-4 pt-4 pb-2">
-        <span className="xms-caption">Pinned</span>
+      <div className="flex items-center gap-[7px] px-[14px] pt-3 pb-2">
+        <span className="xms-caption flex-1">Pinned</span>
         <button
           type="button"
           aria-label="Edit pins"
           onClick={props.onEditPins}
-          className="text-xms-muted hover:text-xms-ink ml-auto"
+          className="text-xms-placeholder hover:text-xms-ink"
         >
-          <PencilIcon size={14} />
+          <PencilIcon size={ICON.control} />
         </button>
       </div>
       {/* The only scrolling region, so the footer below is always in reach. */}
@@ -104,7 +105,7 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
             <Skeleton lines={5} />
           </div>
         ) : (
-          <nav aria-label="Pinned screens" className="flex flex-col gap-[1px] px-2">
+          <nav aria-label="Pinned screens" className="flex flex-col">
             {items.map((screen) => {
               const active = props.currentPath === screen.path;
               const count = props.counts?.[screen.screen];
@@ -114,22 +115,17 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
                   key={screen.path}
                   href={screen.path}
                   aria-current={active ? "page" : undefined}
-                  className={cn(
-                    // The selected row in the renders: a cobalt 3px bar inside
-                    // the left edge, a blue-tinted fill, ink text at 500.
-                    "relative flex h-9 items-center gap-[10px] rounded-[4px] pr-3 pl-[10px] text-[13px] hover:no-underline",
-                    active
-                      ? "bg-xms-tint text-xms-ink font-medium shadow-[inset_3px_0_0_var(--xms-selected-bar)]"
-                      : "text-xms-body hover:bg-xms-row-hover hover:text-xms-ink",
-                  )}
+                  className={cn("xms-nav-row hover:no-underline", active && "is-active")}
                 >
-                  <ScreenIcon size={17} className={active ? "text-xms-accent" : "text-xms-muted"} />
-                  <span className="flex-1 truncate">{screen.label}</span>
-                  {/* Reserved width, so a count arriving after the first paint
-                      does not reflow the label (the header-jump finding). */}
-                  <span className="xms-mono text-xms-label min-w-[18px] text-right text-[12px]">
-                    {typeof count === "number" ? count : ""}
-                  </span>
+                  <ScreenIcon
+                    size={ICON.row}
+                    className={cn("shrink-0", active ? "text-xms-accent-hover" : "text-xms-label")}
+                  />
+                  <span className="min-w-0 flex-1 truncate">{screen.label}</span>
+                  {/* The chip is drawn only where the server counted
+                      something; the row has nothing to reserve, since the
+                      label truncates rather than reflowing. */}
+                  {typeof count === "number" ? <span className="xms-nav-badge">{count}</span> : null}
                 </Link>
               );
             })}
@@ -137,35 +133,30 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
         )}
         {props.permissions && props.starredViews.length > 0 ? (
           <>
-            <p className="xms-caption px-4 pt-5 pb-2">Starred views</p>
-            <nav aria-label="Starred views" className="flex flex-col gap-[1px] px-2">
+            <p className="xms-caption px-[14px] pt-[18px] pb-2">Starred views</p>
+            <nav aria-label="Starred views" className="flex flex-col">
               {props.starredViews.map((view) => (
-                <Link
-                  key={view.path}
-                  href={view.path}
-                  className="text-xms-body hover:bg-xms-row-hover hover:text-xms-ink flex h-8 items-center gap-[10px] rounded-[4px] pr-3 pl-[10px] text-[13px] hover:no-underline"
-                >
-                  <StarIcon size={15} className="text-xms-muted" />
-                  <span className="flex-1 truncate">{view.label}</span>
-                  <span className="xms-mono text-xms-label min-w-[18px] text-right text-[12px]">
-                    {typeof view.count === "number" ? view.count : ""}
-                  </span>
+                <Link key={view.path} href={view.path} className="xms-nav-row text-[13px] hover:no-underline">
+                  <StarIcon size={ICON.field} className="text-xms-placeholder shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">{view.label}</span>
+                  {typeof view.count === "number" ? <span className="xms-nav-badge">{view.count}</span> : null}
                 </Link>
               ))}
             </nav>
           </>
         ) : null}
       </div>
-      <div className="border-xms-line mt-auto border-t px-2 py-2">
+      {/* The footer takes the plain row style, never the selected one. */}
+      <div className="border-xms-line mt-auto border-t">
         <button
           type="button"
           onClick={props.onBrowseAll}
           disabled={!props.permissions}
-          className="text-xms-body hover:bg-xms-row-hover hover:text-xms-ink flex h-9 w-full items-center gap-[10px] rounded-[4px] pr-3 pl-[10px] text-[13px] disabled:opacity-40"
+          className="xms-nav-row w-full py-[13px] text-[13px] disabled:opacity-40"
         >
-          <GridIcon size={17} className="text-xms-muted" />
+          <GridIcon size={ICON.row} className="text-xms-label shrink-0" />
           <span className="flex-1 text-left">Browse all screens</span>
-          <span className="xms-mono text-xms-label min-w-[18px] text-right text-[12px]">{total || ""}</span>
+          <span className="xms-mono text-xms-muted shrink-0 text-[11px]">{total || ""}</span>
         </button>
       </div>
     </aside>

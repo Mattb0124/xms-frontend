@@ -37,7 +37,7 @@ export default function DevSignInPage() {
   return (
     <Panel title="Development sign-in" caption="Local only">
       <form
-        className="flex max-w-xl flex-col gap-3"
+        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           setDevToken(token.trim() || null);

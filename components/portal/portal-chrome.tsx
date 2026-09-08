@@ -62,7 +62,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
   if (bare) {
     return (
       <div className="bg-xms-bg flex min-h-full flex-1 flex-col" data-testid="portal-bare">
-        <main id="portal-main" className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
+        <main id="portal-main" className="flex w-full flex-1 flex-col gap-6 px-5 py-8">
           {children}
         </main>
       </div>
@@ -78,7 +78,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="text-white" style={{ background: accent ?? "var(--xms-navy)" }} aria-label="Portal header">
-        <div className="mx-auto flex h-[60px] w-full max-w-4xl items-center gap-6 px-6">
+        <div className="flex h-[60px] w-full items-center gap-6 px-5">
           <Link href="/portal" className="flex items-baseline gap-2 outline-none focus-visible:underline">
             <span className="text-[15px] font-semibold">{accountName ?? "Support portal"}</span>
             <span className="xms-mono text-[11px] uppercase tracking-wide opacity-70">XMS</span>
@@ -103,7 +103,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
           {!isSignIn ? <UserMenu me={me.data} /> : null}
         </div>
       </header>
-      <main id="portal-main" className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-8">
+      <main id="portal-main" className="flex w-full flex-1 flex-col gap-6 px-5 py-8">
         {isSignIn || me.data ? children : status === 401 ? null : <Skeleton lines={5} className="max-w-md" />}
         {!isSignIn && me.isError && status !== 401 ? (
           <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
@@ -111,7 +111,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
           </p>
         ) : null}
       </main>
-      <footer className="border-xms-line text-xms-label mx-auto w-full max-w-4xl border-t px-6 py-4 text-[13px]">
+      <footer className="border-xms-line text-xms-label w-full border-t px-5 py-4 text-[13px]">
         Need help? Open a request or reply to any email from your support team. Every message lands on your request.
       </footer>
     </div>

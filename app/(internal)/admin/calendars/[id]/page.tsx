@@ -41,7 +41,7 @@ function CalendarRecordPageBody() {
           />
           <div className="flex flex-col gap-4">
             <CalendarEditor accountId={data.account_id} calendar={data} refetch={refetch} />
-            <div className="max-w-xl">
+            <div>
               <PreviewPanel calendarId={data.id} timeZone={data.time_zone} />
             </div>
           </div>

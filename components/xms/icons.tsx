@@ -1,19 +1,43 @@
 /**
  * The line icons the v3 renders use, drawn inline so no icon package and no
- * remote font is needed and every glyph inherits `currentColor`. They are
- * 1.5px strokes on a 24 unit grid, sized by the `size` prop (16 by default),
- * which is what the renders show in the sidebar, the finder bar and the
- * content header bar. Decorative by default: a caller that needs a name
- * passes one and the icon stops being hidden.
+ * remote font is needed and every glyph inherits `currentColor`: Lucide
+ * geometry, 1.5px strokes on a 24 unit canvas, never filled (hand-off
+ * section 6, `xms-ui.css` `.xms-icon`). Decorative by default: a caller that
+ * needs a name passes one and the icon stops being hidden.
  */
 import type { SVGProps } from "react";
+
+/**
+ * The one icon scale, named by the job rather than by the number, so a size
+ * is chosen by asking what the glyph is doing and not by eye. Every value is
+ * measured off the prototype's own markup for renders 01 and 08.
+ *
+ * `components/xms/surfaces.test.tsx` fails on a raw `size={13}` anywhere in
+ * `components/` or `app/`: the scale is the only way to size an icon.
+ */
+export const ICON = {
+  /** Inside a dense cell: the sort glyph on a column header, a chip's cross. */
+  glyph: 13,
+  /** Inside a control, beside words: a pill's chevron, a button's plus. */
+  control: 14,
+  /** A control's own mark: the strip's chevron, the finder star, the sparkle. */
+  action: 15,
+  /** A field's adornment: the magnifier in a search field. */
+  field: 16,
+  /** A row's leading mark: the sidebar rows, a card header's funnel. */
+  row: 17,
+  /** A standing tool on the strip: the gear. */
+  tool: 18,
+  /** The largest in the system: the hamburger and the bell. */
+  bar: 19,
+} as const;
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "children"> {
   size?: number;
   title?: string;
 }
 
-function Icon({ size = 16, title, children, ...rest }: IconProps & { children: React.ReactNode }) {
+function Icon({ size = ICON.field, title, children, ...rest }: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       width={size}
@@ -21,7 +45,7 @@ function Icon({ size = 16, title, children, ...rest }: IconProps & { children: R
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.6}
+      strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden={title ? undefined : true}
@@ -273,7 +297,7 @@ export function DownloadIcon(props: IconProps) {
 export function SortCaret({ direction, ...props }: IconProps & { direction?: "asc" | "desc" }) {
   if (!direction) {
     return (
-      <Icon size={13} {...props} strokeWidth={1.5}>
+      <Icon size={ICON.glyph} {...props} strokeWidth={1.5}>
         <path d="m7 15 5 5 5-5" />
         <path d="m7 9 5-5 5 5" />
       </Icon>

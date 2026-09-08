@@ -66,7 +66,7 @@ export function NewBatchForm({ accounts, initial, onCreated, onCancel }: NewBatc
       }
     >
       <form
-        className="flex max-w-[640px] flex-col gap-3"
+        className="flex flex-col gap-3"
         aria-label="New batch"
         onSubmit={async (event) => {
           event.preventDefault();

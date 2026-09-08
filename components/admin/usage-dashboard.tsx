@@ -105,12 +105,8 @@ export function UsageDashboard() {
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <ScoreTile label="Active users" value={activeTotal} />
-            <ScoreTile
-              label="Searches with no result"
-              value={noResultTotal}
-              tone={noResultTotal > 0 ? "warn" : "neutral"}
-            />
-            <ScoreTile label="API errors" value={errorTotal} tone={errorTotal > 0 ? "warn" : "good"} />
+            <ScoreTile label="Searches with no result" value={noResultTotal} />
+            <ScoreTile label="API errors" value={errorTotal} />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel title="Active users" caption="By principal kind">

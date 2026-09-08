@@ -5,6 +5,7 @@ import { BriefLine } from "@/components/xms/brief-line";
 import { CloseDisciplineChecklist } from "@/components/xms/close-discipline-checklist";
 import { DispatchCard } from "@/components/xms/dispatch-card";
 import { EmptyBanner } from "@/components/xms/empty-banner";
+import { ICON } from "@/components/xms/icons";
 import { MeterBar } from "@/components/xms/meter-bar";
 import { NudgeCard } from "@/components/xms/nudge-card";
 import { Panel } from "@/components/xms/panel";
@@ -54,10 +55,24 @@ describe("TabBar", () => {
 });
 
 describe("ScoreTile and MeterBar", () => {
-  it("renders a linked mono value with tone", () => {
-    render(<ScoreTile label="Breached" value={3} tone="breach" href="/tickets?view=breached" />);
+  it("links a mono number in ink, with the sub-line under it and no signal colour", () => {
+    render(<ScoreTile label="Breached" value={3} detail="CS0001203" href="/tickets?view=breached" />);
     expect(screen.getByRole("link")).toHaveAttribute("href", "/tickets?view=breached");
-    expect(screen.getByText("3")).toHaveAttribute("data-tone", "breach");
+    // Both renders draw every scorecard number in ink. The tile carried a
+    // tone, so a Breached count of zero was drawn in the "good" green and an
+    // At risk count of zero in amber: a signal where there was none.
+    const value = screen.getByText("3");
+    expect(value).toHaveClass("xms-mono", "text-xms-ink");
+    expect(value).not.toHaveAttribute("data-tone");
+    expect(screen.getByText("CS0001203")).toBeInTheDocument();
+  });
+
+  it("puts the sub-line beside the number only when the caller asks", () => {
+    const { container } = render(<ScoreTile label="Open" value={218} detail="+12 this week" detailBeside />);
+    // Render 10's tiles read "218  +12 this week" on one baseline; render 08's
+    // read the number over its own line.
+    expect(container.querySelectorAll("p")).toHaveLength(2);
+    expect(screen.getByText("+12 this week")).toBeInTheDocument();
   });
 
   it("clamps the fill and paints pause segments", () => {
@@ -211,5 +226,70 @@ describe("the focus treatment", () => {
     expect(scope).toContain(".xms-scope :focus-visible");
     expect(scope).toContain("outline: 2px solid var(--xms-accent)");
     expect(scope).toContain("outline-offset: 0");
+  });
+});
+
+/** Every `.tsx` under components/ and app/ that is not a suite file. */
+function sourceFiles(): string[] {
+  const out: string[] = [];
+  for (const root of ["components", "app"]) {
+    for (const file of readdirSync(root, { recursive: true, encoding: "utf8" })) {
+      // readdirSync hands back the platform separator; the assertions read
+      // better with one.
+      const path = `${root}/${file}`.replace(/\\/g, "/");
+      if (path.endsWith(".tsx") && !path.includes(".test.")) out.push(path);
+    }
+  }
+  return out;
+}
+
+/**
+ * One icon scale, named by the job (hand-off section 6: Lucide, 1.5px stroke,
+ * currentColor, never filled, 14 to 19px on a 24px canvas). The shell was
+ * mixing 13, 14, 15, 16, 17, 18 and 19 by eye.
+ */
+describe("the icon scale", () => {
+  it("is the only way to size an icon", () => {
+    const files = sourceFiles().filter((file) => !file.endsWith("components/xms/icons.tsx"));
+    expect(files.length).toBeGreaterThan(80);
+    const offenders = files.filter((file) => /size=\{\d/.test(readFileSync(file, "utf8")));
+    expect(offenders).toEqual([]);
+  });
+
+  it("runs 13 to 19 on the one canvas, with the glyph size below the hand-off floor named as such", () => {
+    expect(Object.values(ICON)).toEqual([13, 14, 15, 16, 17, 18, 19]);
+    const source = readFileSync("components/xms/icons.tsx", "utf8");
+    expect(source).toContain('viewBox="0 0 24 24"');
+    expect(source).toContain("strokeWidth={1.5}");
+  });
+});
+
+/**
+ * Every page is full width: the work area runs from the sidebar edge to the
+ * window edge inside the 20px gutter, and no screen shell narrows it. Reading
+ * width is capped on the control (`INPUT`), never on the page, so a form does
+ * not shrink the screen it stands on.
+ */
+describe("the full-width rule", () => {
+  it("leaves no max width or centring on a page shell", () => {
+    const pages = sourceFiles().filter((file) => file.startsWith("app/") && file.endsWith("page.tsx"));
+    expect(pages.length).toBeGreaterThan(40);
+    const offenders = pages.filter((file) => {
+      // A width cap on a skeleton, a truncating cell or a single control is
+      // fine; one on the container that holds the screen is not. A control
+      // says its cap in pixels (`max-w-[400px]`); a page shell reaches for
+      // the named scale.
+      const source = readFileSync(file, "utf8")
+        .split("\n")
+        .filter((line) => !/Skeleton|truncate|INPUT|title=|max-w-\[/.test(line))
+        .join("\n");
+      return /\bmx-auto\b|\bmax-w-(?:xs|sm|md|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|screen|full|prose)/.test(source);
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps no content max in the shell or the tokens", () => {
+    expect(readFileSync("components/shell/shell.tsx", "utf8")).not.toMatch(/max-w-/);
+    expect(readFileSync("styles/tokens/xms-scope.css", "utf8")).not.toMatch(/content-max|1200px/);
   });
 });

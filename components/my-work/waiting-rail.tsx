@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { waitingHref } from "@/lib/my-work/waiting-links";
 import { visibleScreens, type Screen } from "@/lib/routes";
@@ -36,13 +35,16 @@ function WaitingRow({ item, permitted }: { item: WaitingItem; permitted: readonl
   const href = waitingHref(item, permitted);
   const body = (
     <>
-      <span className="text-xms-ink text-[13px]">{item.label}</span>
-      <span className="xms-mono text-xms-ink ml-auto text-[13px] font-semibold">{item.count}</span>
+      <span className="text-xms-body flex-1 text-[13px] leading-[1.4]">{item.label}</span>
+      {/* The count is a chip on the right (render 08), not a bold figure. */}
+      <span className="xms-mono bg-xms-chip text-xms-body rounded-[999px] px-[10px] py-[5px] text-[12px] leading-none font-medium">
+        {item.count}
+      </span>
     </>
   );
-  const shared = "border-xms-line flex h-[36px] items-center gap-3 border-b px-4 last:border-b-0";
+  const shared = "border-xms-chip flex items-center gap-[10px] border-t py-[11px]";
   return href ? (
-    <Link href={href} className={`${shared} hover:bg-xms-row-hover hover:no-underline`} data-waiting={item.key}>
+    <Link href={href} className={`${shared} hover:text-xms-accent hover:no-underline`} data-waiting={item.key}>
       {body}
     </Link>
   ) : (
@@ -79,22 +81,20 @@ export function WaitingRail() {
 
   const rows = waitingRows(data?.items);
 
+  // Render 08 draws a plain title and the rows. The ALL-CAPS "MY WORK" eyebrow
+  // over it named the screen the card was already on, and the "Counted by the
+  // server as of" line explained a figure the reader had not asked about; both
+  // are gone. The as-of instant is on the row's own screen, where a stale count
+  // would matter.
   return (
-    <Panel
-      title="Waiting on me"
-      caption="My work"
-      subtitle={data ? `Counted by the server as of ${data.as_of}.` : "What needs a decision or an entry from you."}
-      flush
-      className="overflow-hidden"
-    >
+    <section className="xms-card p-4" aria-label="Waiting on me">
+      <h2 className="text-xms-ink mb-[6px] text-[14px] leading-[1.3] font-semibold">Waiting on me</h2>
       {isLoading && !data ? (
-        <div className="p-4">
-          <Skeleton lines={3} />
-        </div>
+        <Skeleton lines={3} />
       ) : isError ? (
-        <p className="text-xms-muted px-4 py-3 text-[13px]">The waiting list could not be loaded.</p>
+        <p className="text-xms-muted text-[13px]">The waiting list could not be loaded.</p>
       ) : rows.length === 0 ? (
-        <p className="text-xms-label px-4 py-3 text-[13px]" data-testid="waiting-empty">
+        <p className="text-xms-muted text-[13px]" data-testid="waiting-empty">
           Nothing is waiting on you
         </p>
       ) : (
@@ -104,6 +104,6 @@ export function WaitingRail() {
           ))}
         </div>
       )}
-    </Panel>
+    </section>
   );
 }

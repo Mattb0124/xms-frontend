@@ -57,7 +57,7 @@ function NewAccountForm({ onDone }: { onDone: (id: string) => void }) {
   return (
     <Panel title="New account" caption="Onboarding starts here">
       <form
-        className="flex max-w-lg flex-col gap-3"
+        className="flex flex-col gap-3"
         onSubmit={async (event) => {
           event.preventDefault();
           setError(null);

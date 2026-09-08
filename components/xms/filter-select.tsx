@@ -1,10 +1,83 @@
 "use client";
 
+import type { ReactNode } from "react";
+import { ICON, ChevronDownIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export interface FilterSelectOption {
   value: string;
   label: string;
+}
+
+/**
+ * The one control every dimension on the grey strip is drawn with, and the
+ * one the filter builder's rows use too.
+ *
+ * A bare `<select>` takes the platform's own height, padding and chevron, so
+ * the strip read as a row of browser widgets rather than as the reference's
+ * 32px controls. This draws the control and lays a transparent native select
+ * over it, which keeps the real menu, the keyboard and the form semantics and
+ * gives the render's geometry: 32px tall, the 4px control radius, a 1px
+ * `--xms-control-line` edge, 13px text with the label in `--xms-label` and
+ * the value in ink, and a 13px chevron. The primary one (Show) inks its
+ * value, its chevron and its edge in the link colour.
+ *
+ * A card toolbar takes `size="lg"`, which is the hand-off's 38px.
+ */
+export function StripSelect({
+  label,
+  ariaLabel,
+  value,
+  onChange,
+  primary,
+  size = "sm",
+  display,
+  className,
+  children,
+}: {
+  /** The dimension, spoken before the value: "Account:". Omitted on a bare control. */
+  label?: string;
+  /** Names the control for assistive technology where no label is drawn. */
+  ariaLabel?: string;
+  value: string;
+  onChange: (value: string) => void;
+  primary?: boolean;
+  size?: "sm" | "lg";
+  /** What the closed control reads; defaults to the selected option's own text. */
+  display: string;
+  className?: string;
+  /** The `<option>` and `<optgroup>` elements of the real menu. */
+  children: ReactNode;
+}) {
+  return (
+    <span
+      data-testid={label ? `filter-${label.toLowerCase()}` : undefined}
+      data-active={value !== "" ? "true" : undefined}
+      className={cn(
+        "bg-xms-card relative inline-flex shrink-0 items-center gap-[7px] rounded-[var(--xms-radius-control)] border pr-[9px] pl-[11px] text-[13px] whitespace-nowrap",
+        size === "lg" ? "h-[var(--xms-control-h-lg)]" : "h-[var(--xms-header-pill-h)]",
+        primary ? "border-xms-accent" : "border-xms-control-line hover:border-xms-accent-border",
+        className,
+      )}
+    >
+      <span className={cn("pointer-events-none flex min-w-0 items-center gap-1", primary && "font-medium")}>
+        {label ? <span className="text-xms-label">{label}:</span> : null}
+        <span className={cn("truncate", primary ? "text-xms-accent" : "text-xms-ink")}>{display}</span>
+      </span>
+      <ChevronDownIcon
+        size={ICON.glyph}
+        className={cn("pointer-events-none shrink-0", primary ? "text-xms-accent" : "text-xms-label")}
+      />
+      <select
+        aria-label={ariaLabel ?? label ?? display}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        {children}
+      </select>
+    </span>
+  );
 }
 
 export interface FilterSelectProps {
@@ -19,32 +92,9 @@ export interface FilterSelectProps {
    * always has ("Show: All open"), so it is never removable and never quiet.
    */
   primary?: boolean;
-  /** Appended to the primary label in brackets: "Show: All open (26)". */
+  /** Appended to the primary value in brackets: "Show: All open (26)". */
   count?: number;
-  /** Extra groups under the plain options: the server's saved views, in practice. */
-  groups?: Array<{ label: string; options: FilterSelectOption[] }>;
   className?: string;
-}
-
-/**
- * The look of a select standing on the grey tool strip: 32px on the 4px
- * control radius with the strip's own edge, 13px, the platform's chevron.
- * `primary` is the link-coloured one the reader always has.
- *
- * Exported because the Queue's own "Show:" control is a select over the
- * system views and the server's saved views at once, which is more than one
- * dimension of options; it wears this rather than a class of its own.
- */
-export function stripSelectClass(primary?: boolean): string {
-  return cn(
-    // The width is capped so a long option value cannot set it: without that
-    // "State: awaiting third party" made the State control 195px wide and
-    // pushed Type off the end of the strip.
-    "bg-xms-card h-[var(--xms-header-pill-h)] shrink-0 cursor-pointer rounded-[var(--xms-radius-control)] border px-[9px] text-[13px]",
-    primary
-      ? "max-w-[220px] border-xms-accent text-xms-accent font-medium"
-      : "max-w-[150px] border-xms-control-line text-xms-body hover:border-xms-accent-border",
-  );
 }
 
 /**
@@ -52,51 +102,29 @@ export function stripSelectClass(primary?: boolean): string {
  *
  * The reviewer's own reference for the filter row
  * (`01-architecture/wireframes/v3/refs/filter-builder.png`) draws these as
- * real select controls with the platform's chevron, 32px tall on the 4px
- * control radius with the strip's own edge, and with no clear mark: the
- * dimension reads "Account: all" until it carries a value and "Account: all"
- * again the moment it is set back. That replaces the pill-with-a-cross the
- * v3 render draws, and it is the reference that wins here.
- *
- * The label lives inside the option text so the control is one thing to read
- * and one thing to operate; the URL is still the state.
+ * controls with a value and a chevron and no clear mark: the dimension reads
+ * "Account: all" until it carries a value and "Account: all" again the moment
+ * it is set back, so setting it back to all is what removes the criterion.
+ * That replaces the pill-with-a-cross render 01 draws.
  */
-export function FilterSelect({
-  label,
-  value,
-  options,
-  onChange,
-  primary,
-  count,
-  groups,
-  className,
-}: FilterSelectProps) {
-  const active = value !== "";
-  const suffix = primary && count !== undefined ? ` (${count})` : "";
+export function FilterSelect({ label, value, options, onChange, primary, count, className }: FilterSelectProps) {
+  const chosen = options.find((option) => option.value === value);
+  const suffix = count === undefined ? "" : ` (${count})`;
   return (
-    <select
-      data-testid={`filter-${label.toLowerCase()}`}
-      data-active={active ? "true" : undefined}
-      aria-label={label}
+    <StripSelect
+      label={label}
       value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className={cn(stripSelectClass(primary), className)}
+      onChange={onChange}
+      primary={primary}
+      display={`${chosen?.label ?? "all"}${suffix}`}
+      className={className}
     >
-      <option value="">{`${label}: all${suffix}`}</option>
+      <option value="">{`${label}: all`}</option>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
-          {`${label}: ${option.label}${suffix}`}
+          {`${label}: ${option.label}`}
         </option>
       ))}
-      {groups?.map((group) => (
-        <optgroup key={group.label} label={group.label}>
-          {group.options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
+    </StripSelect>
   );
 }

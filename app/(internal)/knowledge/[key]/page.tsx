@@ -165,7 +165,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
         }
         actions={<ArticleActions article={article} />}
       />
-      <div className="max-w-2xl">
+      <div>
         <RecordForm
           columns={1}
           fields={[{ key: "title", label: "Title", value: article.title, readOnly: !canEdit }]}

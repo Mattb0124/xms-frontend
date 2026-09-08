@@ -26,7 +26,7 @@ function NewArticleForm() {
   return (
     <Panel title="New article" caption="Identity first; the sections are on the record">
       <form
-        className="flex max-w-xl flex-col gap-3"
+        className="flex flex-col gap-3"
         onSubmit={async (event) => {
           event.preventDefault();
           setError(null);

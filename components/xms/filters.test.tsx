@@ -31,26 +31,32 @@ describe("FilterSelect", () => {
   it("stands the dimension whether or not it filters, and clears by going back to all", () => {
     const onChange = vi.fn();
     const { rerender } = render(<FilterSelect label="Account" value="" options={options} onChange={onChange} />);
-    // The reviewer's reference draws a select reading "Account: all", not a
+    // The reviewer's reference draws a control reading "Account: all", not a
     // pill with a cross: setting it back to all is what removes the criterion.
-    const control = screen.getByLabelText("Account");
-    expect(control).not.toHaveAttribute("data-active");
+    // The control is drawn rather than native, so the real menu is a
+    // transparent select over it and the state is on the drawn wrapper.
+    expect(screen.getByTestId("filter-account")).not.toHaveAttribute("data-active");
+    expect(screen.getByText("all")).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Account: all" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Account: Brookfield" })).toBeInTheDocument();
 
     rerender(<FilterSelect label="Account" value="acct-1" options={options} onChange={onChange} />);
-    expect(screen.getByLabelText("Account")).toHaveAttribute("data-active", "true");
+    expect(screen.getByTestId("filter-account")).toHaveAttribute("data-active", "true");
+    expect(screen.getByText("Brookfield")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Account"), { target: { value: "" } });
     expect(onChange).toHaveBeenCalledWith("");
   });
 
-  it("carries the count on the primary dimension alone", () => {
+  it("carries the count on the value it draws, and only where the caller asks", () => {
     const { rerender } = render(
       <FilterSelect primary count={26} label="Show" value="" options={options} onChange={vi.fn()} />,
     );
-    expect(screen.getByRole("option", { name: "Show: all (26)" })).toBeInTheDocument();
-    rerender(<FilterSelect count={26} label="Account" value="" options={options} onChange={vi.fn()} />);
-    expect(screen.getByRole("option", { name: "Account: all" })).toBeInTheDocument();
+    // The count is on the closed control, not in the menu: an option reading
+    // "Show: My work (26)" would claim the count belonged to that view.
+    expect(screen.getByText("all (26)")).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Show: Brookfield" })).toBeInTheDocument();
+    rerender(<FilterSelect label="Account" value="" options={options} onChange={vi.fn()} />);
+    expect(screen.getByText("all")).toBeInTheDocument();
   });
 });
 

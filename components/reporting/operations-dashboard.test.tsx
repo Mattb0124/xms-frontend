@@ -28,10 +28,10 @@ describe("OperationsDashboard", () => {
     expect(tiles.querySelectorAll("a")).toHaveLength(6);
     expect(screen.getByRole("link", { name: /Breached/ })).toHaveAttribute("href", "/tickets?view=breached");
     expect(screen.getByRole("link", { name: /Unassigned/ })).toHaveAttribute("href", "/tickets?view=unassigned");
-    expect(screen.getByRole("link", { name: /Breached/ }).querySelector("[data-tone]")).toHaveAttribute(
-      "data-tone",
-      "breach",
-    );
+    // Every tile number is ink (render 10). The tile carried a tone, so a
+    // Breached count of zero was drawn in the "good" green, which is a signal
+    // where there is none.
+    expect(screen.getByRole("link", { name: /Breached/ }).querySelector("[data-tone]")).toBeNull();
 
     expect(screen.getByTestId("sla-response")).toHaveTextContent("94%");
     expect(screen.getByTestId("sla-resolution")).toHaveTextContent("90%");

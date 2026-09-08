@@ -19,15 +19,15 @@ export function CountsStrip({ batch }: { batch: BatchDetail }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" aria-label="Counts">
       <ScoreTile label="Extracted" value={counts.extracted} />
-      <ScoreTile label="Loaded" value={counts.loaded} tone={counts.loaded > 0 ? "good" : "neutral"} />
-      <ScoreTile label="Updated" value={counts.updated} tone={counts.updated > 0 ? "good" : "neutral"} />
+      <ScoreTile label="Loaded" value={counts.loaded} />
+      <ScoreTile label="Updated" value={counts.updated} />
       <ScoreTile
         label="Skipped"
         value={counts.skipped}
         detail={counts.skipped > 0 ? "unchanged since the last run" : undefined}
       />
-      <ScoreTile label="Unmatched" value={counts.unmatched} tone={counts.unmatched > 0 ? "warn" : "neutral"} />
-      <ScoreTile label="Errors" value={counts.errors} tone={counts.errors > 0 ? "breach" : "neutral"} />
+      <ScoreTile label="Unmatched" value={counts.unmatched} />
+      <ScoreTile label="Errors" value={counts.errors} />
     </div>
   );
 }

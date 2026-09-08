@@ -1,4 +1,4 @@
-import { PlusIcon } from "@/components/xms/icons";
+import { ICON, PlusIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export interface AddFilterButtonProps {
@@ -22,7 +22,7 @@ export function AddFilterButton({ onClick, className }: AddFilterButtonProps) {
         className,
       )}
     >
-      <PlusIcon size={14} />
+      <PlusIcon size={ICON.control} />
       Add filter
     </button>
   );

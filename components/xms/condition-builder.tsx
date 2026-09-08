@@ -1,6 +1,7 @@
 "use client";
 
-import { CloseIcon } from "@/components/xms/icons";
+import { StripSelect } from "@/components/xms/filter-select";
+import { ICON, CloseIcon } from "@/components/xms/icons";
 import {
   needsValue,
   OPERATOR_LABEL,
@@ -44,23 +45,31 @@ function firstOperator(field: ConditionField | undefined): Operator {
  * route will accept.
  */
 export function ConditionBuilder({ fields, value, onChange, className }: ConditionBuilderProps) {
+  const blank = (): Condition => ({
+    field: fields[0]?.key ?? "",
+    op: firstOperator(fields[0]),
+    value: "",
+  });
+  /**
+   * The builder is never empty: the reference opens on one row waiting to be
+   * filled in, not on a link that has to be found first. The row is unfinished
+   * until it has a value, so it stays out of the request and out of the URL
+   * until the reader has said something with it.
+   */
+  const rows = value.length > 0 ? value : [blank()];
   const update = (index: number, patch: Partial<Condition>) =>
-    onChange(value.map((condition, i) => (i === index ? { ...condition, ...patch } : condition)));
-  const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
+    onChange(rows.map((condition, i) => (i === index ? { ...condition, ...patch } : condition)));
+  const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
   const add = () => {
-    const first = fields[0];
-    if (!first) return;
-    onChange([...value, { field: first.key, op: firstOperator(first), value: "" }]);
+    if (!fields[0]) return;
+    onChange([...rows, blank()]);
   };
 
   return (
-    // The stack is capped: a condition row is three controls and a cross, and
-    // stretching the value box across a 1460px desk turns a short phrase into
-    // a runway.
-    <div className={cn("flex max-w-[760px] items-start gap-3", className)} role="group" aria-label="Conditions">
+    <div className={cn("flex items-start gap-3", className)} role="group" aria-label="Conditions">
       <span className="xms-caption pt-[11px]">Where</span>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        {value.map((condition, index) => {
+        {rows.map((condition, index) => {
           const field = fields.find((f) => f.key === condition.field) ?? fields[0];
           const operators = field ? OPERATORS_BY_KIND[field.kind] : [];
           const choices = field?.kind === "enum" || field?.kind === "uuid" ? field.options : undefined;
@@ -71,40 +80,43 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
               : "";
           return (
             <div key={index} className="flex items-center gap-2" data-condition-row>
-              <select
-                aria-label="Field"
+              <StripSelect
+                ariaLabel="Field"
                 value={condition.field}
-                onChange={(event) => {
-                  const nextField = fields.find((f) => f.key === event.target.value);
-                  update(index, { field: event.target.value, op: firstOperator(nextField), value: "" });
+                display={field?.label ?? condition.field}
+                onChange={(next) => {
+                  const nextField = fields.find((f) => f.key === next);
+                  update(index, { field: next, op: firstOperator(nextField), value: "" });
                 }}
-                className={cn(CONTROL, "min-w-[168px]")}
+                className="w-[184px]"
               >
                 {fields.map((f) => (
                   <option key={f.key} value={f.key}>
                     {f.label}
                   </option>
                 ))}
-              </select>
-              <select
-                aria-label="Operator"
+              </StripSelect>
+              <StripSelect
+                ariaLabel="Operator"
                 value={condition.op}
-                onChange={(event) => update(index, { op: event.target.value as Operator })}
-                className={cn(CONTROL, "min-w-[140px]")}
+                display={OPERATOR_LABEL[condition.op]}
+                onChange={(next) => update(index, { op: next as Operator })}
+                className="w-[152px]"
               >
                 {operators.map((op) => (
                   <option key={op} value={op}>
                     {OPERATOR_LABEL[op]}
                   </option>
                 ))}
-              </select>
+              </StripSelect>
               {needsValue(condition.op) ? (
                 choices ? (
-                  <select
-                    aria-label="Value"
+                  <StripSelect
+                    ariaLabel="Value"
                     value={shown}
-                    onChange={(event) => update(index, { value: event.target.value })}
-                    className={cn(CONTROL, "min-w-[180px] flex-1")}
+                    display={choices.find((option) => option.value === shown)?.label ?? "Value"}
+                    onChange={(next) => update(index, { value: next })}
+                    className="min-w-[200px] flex-1"
                   >
                     <option value="">Value</option>
                     {choices.map((option) => (
@@ -112,7 +124,7 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </StripSelect>
                 ) : (
                   <input
                     aria-label="Value"
@@ -120,11 +132,11 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
                     placeholder="Value"
                     value={shown}
                     onChange={(event) => update(index, { value: event.target.value })}
-                    className={cn(CONTROL, "min-w-[180px] flex-1")}
+                    className={cn(CONTROL, "min-w-[200px] flex-1")}
                   />
                 )
               ) : (
-                <span aria-hidden className="min-w-[180px] flex-1" />
+                <span aria-hidden className="min-w-[200px] flex-1" />
               )}
               <button
                 type="button"
@@ -132,24 +144,24 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
                 onClick={() => remove(index)}
                 className="text-xms-muted hover:text-xms-ink flex h-[var(--xms-header-pill-h)] w-6 shrink-0 items-center justify-center"
               >
-                <CloseIcon size={15} />
+                <CloseIcon size={ICON.action} />
               </button>
             </div>
           );
         })}
+        {/* Both links sit under the rows, side by side, as the reference
+            draws them: neither belongs on the Where line. */}
         <div className="flex items-center gap-5 pt-[2px]">
           <button type="button" onClick={add} className="text-xms-accent text-[13px] font-medium hover:underline">
             + Add condition
           </button>
-          {value.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => onChange([])}
-              className="text-xms-accent text-[13px] font-medium hover:underline"
-            >
-              Clear conditions
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="text-xms-accent text-[13px] font-medium hover:underline"
+          >
+            Clear conditions
+          </button>
         </div>
       </div>
     </div>

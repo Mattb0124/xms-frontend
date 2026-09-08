@@ -37,6 +37,10 @@
   --color-xms-line-strong: var(--xms-line-strong);
   --color-xms-row-hover: var(--xms-row-hover);
   --color-xms-cell-hover: var(--xms-cell-hover);
+  --color-xms-note-bg: var(--xms-note-bg);
+  --color-xms-note-line: var(--xms-note-line);
+  --color-xms-note-ink: var(--xms-note-ink);
+  --color-xms-note-action: var(--xms-note-action);
   --color-xms-ai-bg: var(--xms-ai-bg);
   --color-xms-ai-border: var(--xms-ai-border);
   --color-xms-ai-accent: var(--xms-ai-accent);

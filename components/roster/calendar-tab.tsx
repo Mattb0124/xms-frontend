@@ -53,7 +53,7 @@ export function CalendarTab({ personId, calendar, canEdit, timeZone }: CalendarT
       caption={calendar ? `Hours in ${timeZone}` : "Calendar missing: capacity excludes this person until one is saved"}
     >
       <form
-        className="flex max-w-xl flex-col gap-4"
+        className="flex flex-col gap-4"
         aria-label="Working calendar"
         onSubmit={async (event) => {
           event.preventDefault();

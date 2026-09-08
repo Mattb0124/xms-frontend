@@ -42,14 +42,21 @@ function Harness({ initial = [] }: { initial?: Condition[] }) {
  * server's own (`src/modules/tickets/conditions.ts`), not a second vocabulary.
  */
 describe("ConditionBuilder", () => {
-  it("labels the stack Where and adds a row on the first field and its first operator", () => {
+  it("opens on one empty row, and adds another on the first field and its first operator", () => {
     render(<Harness />);
     expect(screen.getByText("Where")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("+ Add condition"));
+    // The reference opens on a row waiting to be filled in, not on a link
+    // that has to be found first. The row is unfinished, so nothing is sent.
     expect(screen.getAllByLabelText("Field")).toHaveLength(1);
     // Text fields open on "contains", which is what a consultant reaches for.
     expect(screen.getByLabelText("Operator")).toHaveValue("contains");
-    expect(screen.getByTestId("serialized")).toHaveTextContent('[["short_description","contains",""]]');
+    expect(screen.getByTestId("serialized")).toHaveTextContent("[]");
+
+    fireEvent.click(screen.getByText("+ Add condition"));
+    expect(screen.getAllByLabelText("Field")).toHaveLength(2);
+    expect(screen.getByTestId("serialized")).toHaveTextContent(
+      '[["short_description","contains",""],["short_description","contains",""]]',
+    );
   });
 
   it("edits the value and removes the row", () => {
@@ -57,11 +64,13 @@ describe("ConditionBuilder", () => {
     fireEvent.change(screen.getByLabelText("Value"), { target: { value: "in_progress" } });
     expect(screen.getByTestId("serialized")).toHaveTextContent('[["state","eq","in_progress"]]');
     fireEvent.click(screen.getByLabelText("Remove condition"));
-    expect(screen.queryByLabelText("Field")).not.toBeInTheDocument();
+    // The set is empty, and the builder falls back to its one empty row.
     expect(screen.getByTestId("serialized")).toHaveTextContent("[]");
+    expect(screen.getAllByLabelText("Field")).toHaveLength(1);
+    expect(screen.getByLabelText("Field")).toHaveValue("short_description");
   });
 
-  it("clears every condition at once", () => {
+  it("clears every condition at once and keeps both links standing", () => {
     render(
       <Harness
         initial={[
@@ -72,9 +81,11 @@ describe("ConditionBuilder", () => {
     );
     expect(screen.getAllByLabelText("Field")).toHaveLength(2);
     fireEvent.click(screen.getByText("Clear conditions"));
-    expect(screen.queryByLabelText("Field")).not.toBeInTheDocument();
-    // Nothing to clear, so the control is not offered.
-    expect(screen.queryByText("Clear conditions")).not.toBeInTheDocument();
+    expect(screen.getByTestId("serialized")).toHaveTextContent("[]");
+    expect(screen.getAllByLabelText("Field")).toHaveLength(1);
+    // Both links sit under the rows and neither comes and goes.
+    expect(screen.getByText("+ Add condition")).toBeInTheDocument();
+    expect(screen.getByText("Clear conditions")).toBeInTheDocument();
   });
 
   it("changing the field resets the operator to one valid for its kind and drops the value control", () => {

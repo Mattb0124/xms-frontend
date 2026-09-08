@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FinderKind } from "@/components/shell/finder-bar";
-import { CloseIcon, PinIcon, SearchIcon } from "@/components/xms/icons";
+import { ICON, CloseIcon, PinIcon, SearchIcon } from "@/components/xms/icons";
 import { SECTIONS, isDynamicPath, navigableHref, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -111,7 +111,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
           <span className="text-[15px] font-semibold">{title}</span>
           {props.kind === "all" ? (
             <span className="border-xms-navy-line bg-xms-navy ml-auto flex h-8 w-[240px] items-center gap-2 rounded-[4px] border px-2">
-              <SearchIcon size={14} className="shrink-0 text-white/50" />
+              <SearchIcon size={ICON.control} className="shrink-0 text-white/50" />
               <input
                 ref={input}
                 value={filter}
@@ -128,7 +128,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
             className="ml-2 text-white/60 hover:text-white"
             aria-label="Close"
           >
-            <CloseIcon size={16} />
+            <CloseIcon size={ICON.field} />
           </button>
         </header>
         <div className="overflow-auto p-4">
@@ -153,7 +153,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                             props.pinned.has(screen.path) ? "text-white" : "text-white/35 hover:text-white",
                           )}
                         >
-                          <PinIcon size={15} filled={props.pinned.has(screen.path)} />
+                          <PinIcon size={ICON.action} filled={props.pinned.has(screen.path)} />
                         </button>
                         <ScreenRow screen={screen} screens={props.screens} onClose={props.onClose} />
                         {typeof props.counts?.[screen.screen] === "number" ? (

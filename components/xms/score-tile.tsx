@@ -1,40 +1,43 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export type TileTone = "neutral" | "warn" | "breach" | "good";
-
-const TONE_CLASS: Record<TileTone, string> = {
-  neutral: "text-xms-ink",
-  warn: "text-[color:var(--state-needs-input-text)]",
-  breach: "text-[color:var(--state-overdue-text)]",
-  good: "text-[color:var(--state-complete-text)]",
-};
-
 export interface ScoreTileProps {
   label: string;
   value: string | number;
   detail?: string;
-  tone?: TileTone;
+  /**
+   * Operations puts the caption beside the number on the same baseline
+   * ("218  +12 this week", render 10); My work puts it on the line under it
+   * ("11" over "across 3 accounts", render 08).
+   */
+  detailBeside?: boolean;
   /** Every tile links into the Queue with a matching condition set. */
   href?: string;
   className?: string;
 }
 
-export function ScoreTile({ label, value, detail, tone = "neutral", href, className }: ScoreTileProps) {
+/**
+ * A scorecard tile (renders 08 and 10): an eyebrow, a mono number and a grey
+ * sub-line, on the card's own 16px padding.
+ *
+ * The number is always ink. It carried a tone, so a Breached count of zero
+ * was drawn in the "good" green and an At risk count of zero in amber, which
+ * read as a signal where there was none: green is a state, amber is a clock,
+ * and neither is a count. Both renders draw every number in ink, and the
+ * signal lives in the row the tile filters to.
+ */
+export function ScoreTile({ label, value, detail, detailBeside, href, className }: ScoreTileProps) {
   const body = (
     <>
       <p className="xms-caption">{label}</p>
-      {/* The render (08, 10) puts the caption on the same baseline as the
-          number, not on a line under it: "218  +12 this week". */}
-      <p className="mt-[10px] flex items-baseline gap-2">
-        <span className={cn("xms-mono text-[26px] leading-none font-semibold", TONE_CLASS[tone])} data-tone={tone}>
-          {value}
-        </span>
-        {detail ? <span className="text-xms-label text-[13px]">{detail}</span> : null}
+      <p className={cn("mt-[9px]", detailBeside ? "flex items-baseline gap-[10px]" : undefined)}>
+        <span className="xms-mono text-xms-ink block text-[26px] leading-[1.15] font-medium">{value}</span>
+        {detail && detailBeside ? <span className="text-xms-muted text-[13px]">{detail}</span> : null}
       </p>
+      {detail && !detailBeside ? <p className="text-xms-muted mt-[4px] text-[12px] leading-[1.4]">{detail}</p> : null}
     </>
   );
-  const classes = cn("xms-card block px-5 py-4", href && "hover:border-xms-accent-border", className);
+  const classes = cn("xms-card block p-4", href && "hover:border-xms-accent-border", className);
   return href ? (
     <Link href={href} className={classes}>
       {body}

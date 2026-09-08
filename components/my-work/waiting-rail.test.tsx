@@ -73,7 +73,12 @@ describe("WaitingRail", () => {
     expect(screen.getByText("Unread notifications")).toBeInTheDocument();
     // A count of zero is not waiting on anyone, so the row is left out.
     expect(screen.queryByText("My articles in review")).not.toBeInTheDocument();
-    expect(screen.getByText(/as of 2026-09-07/)).toBeInTheDocument();
+    // Render 08 draws a plain title and the rows. The ALL-CAPS "MY WORK"
+    // eyebrow named the screen the card was already on, and the "Counted by
+    // the server as of" line explained a figure nobody had asked about.
+    expect(screen.queryByText(/as of 2026-09-07/)).not.toBeInTheDocument();
+    expect(screen.queryByText("MY WORK")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Waiting on me" })).toBeInTheDocument();
   });
 
   it("renders a row whose screen this viewer may not open as plain text", async () => {

@@ -26,7 +26,7 @@ export default function PortalSignInPage() {
   const [token, setToken] = useState("");
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <h1 className="text-xms-ink text-[22px] font-semibold">Sign in</h1>
       {CLERK_ENABLED ? <ClerkSignIn /> : null}
       {AUTH_DEV_MODE ? (

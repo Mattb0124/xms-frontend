@@ -50,16 +50,31 @@ const TONE_CLASS: Record<SlaTone, string> = {
   none: "text-xms-muted",
 };
 
+const TONE_DOT: Record<SlaTone, string> = {
+  ok: "bg-[color:var(--xms-account-none)]",
+  warn: "bg-xms-accent",
+  breach: "bg-[color:var(--xms-sla-breach)]",
+  paused: "bg-[color:var(--xms-sla-paused)]",
+  met: "bg-[color:var(--state-complete-text)]",
+  none: "bg-[color:var(--xms-sla-paused)]",
+};
+
 export interface SlaValueProps {
   snapshot: SlaSnapshot;
   /** Re-render interval in ms; 0 disables ticking (tests, exports). */
   tickMs?: number;
   now?: Date;
+  /**
+   * Draw the signal as an 8px dot before the value and keep the value in ink,
+   * which is how render 08 shows the clock on My work's Needs attention list.
+   * In a table cell the value carries the colour itself.
+   */
+  dot?: boolean;
   className?: string;
 }
 
 /** Mono SLA value that counts down between polls; tone follows the signal trios. */
-export function SlaValue({ snapshot, tickMs = 30_000, now, className }: SlaValueProps) {
+export function SlaValue({ snapshot, tickMs = 30_000, now, dot, className }: SlaValueProps) {
   const [clock, setClock] = useState<Date>(() => now ?? new Date());
   useEffect(() => {
     if (!tickMs || now) return;
@@ -69,9 +84,14 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, className }: SlaValue
   const display = formatSla(snapshot, now ?? clock);
   return (
     <span
-      className={cn("xms-mono text-[13px] tabular-nums", TONE_CLASS[display.tone], className)}
+      className={cn(
+        "xms-mono text-[13px] tabular-nums",
+        dot ? "text-xms-ink inline-flex items-center gap-[7px] text-[12px]" : TONE_CLASS[display.tone],
+        className,
+      )}
       data-tone={display.tone}
     >
+      {dot ? <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-[999px]", TONE_DOT[display.tone])} /> : null}
       {display.label}
     </span>
   );

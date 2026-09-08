@@ -19,8 +19,9 @@ import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
 import { ConditionBuilder } from "@/components/xms/condition-builder";
-import { FilterSelect, stripSelectClass } from "@/components/xms/filter-select";
+import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import {
+  ICON,
   ChevronDownIcon,
   ColumnsIcon,
   FunnelIcon,
@@ -339,11 +340,15 @@ function QueueScreen() {
               carrying the number the list is showing under it. The saved views
               sit in the same control under their own group, so switching to
               one is the same gesture as switching to a system view. */}
-          <select
-            aria-label="View"
+          <StripSelect
+            primary
+            label="Show"
             value={currentSaved ? `saved:${currentSaved.id}` : parsed.view}
-            onChange={(event) => {
-              const value = event.target.value;
+            // The count is the server's own `stats.open`, which is the figure
+            // the sidebar badge reads from the same response: one number, in
+            // two places, never counted twice.
+            display={`${currentSaved ? savedViewLabel(currentSaved) : view.label}${stats === undefined ? "" : ` (${stats.open})`}`}
+            onChange={(value) => {
               const saved = savedViews.find((entry) => `saved:${entry.id}` === value);
               if (saved) {
                 applySaved(saved);
@@ -351,11 +356,10 @@ function QueueScreen() {
               }
               navigate({ view: value });
             }}
-            className={stripSelectClass(true)}
           >
             {QUEUE_VIEWS.map((entry) => (
               <option key={entry.key} value={entry.key}>
-                {`Show: ${entry.label}${stats !== undefined ? ` (${stats.open})` : ""}`}
+                {`Show: ${entry.label}`}
               </option>
             ))}
             {savedViews.length > 0 ? (
@@ -367,7 +371,7 @@ function QueueScreen() {
                 ))}
               </optgroup>
             ) : null}
-          </select>
+          </StripSelect>
           {/* The standing dimensions, drawn whether or not they filter:
               "Account: all" until a value is chosen. Setting one back to all
               is what removes it, so there is no cross to hunt for. */}
@@ -411,7 +415,7 @@ function QueueScreen() {
       <HeaderAction>
         {me.hasPermission("tickets:create") ? (
           <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
-            <PlusIcon size={15} />
+            <PlusIcon size={ICON.action} />
             New
           </Link>
         ) : null}
@@ -461,7 +465,7 @@ function QueueScreen() {
           onRowClick={(row) => router.push(`/tickets/${row.key}`)}
           search={
             <form
-              className="border-xms-line bg-xms-card mx-auto flex h-[34px] w-full max-w-[400px] items-center gap-2 rounded-[6px] border px-3"
+              className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
               onSubmit={(event) => {
                 event.preventDefault();
                 navigate({ q: query.trim() });
@@ -476,7 +480,7 @@ function QueueScreen() {
                 className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
               />
               <button type="submit" aria-label="Run the search" className="text-xms-muted hover:text-xms-ink shrink-0">
-                <SearchIcon size={15} />
+                <SearchIcon size={ICON.action} />
               </button>
             </form>
           }
@@ -492,7 +496,7 @@ function QueueScreen() {
                 onClick={filterPanel.toggle}
                 className={cn(CARD_ICON_BUTTON, filterPanel.open && "border-xms-accent text-xms-accent")}
               >
-                <FunnelIcon size={16} />
+                <FunnelIcon size={ICON.field} />
               </button>
               <button
                 type="button"
@@ -501,7 +505,7 @@ function QueueScreen() {
                 onClick={() => setClocks((shown) => !shown)}
                 className={cn(CARD_ICON_BUTTON, clocks && "border-xms-accent text-xms-accent")}
               >
-                <ColumnsIcon size={16} />
+                <ColumnsIcon size={ICON.field} />
               </button>
             </>
           }
@@ -511,7 +515,11 @@ function QueueScreen() {
             // lands; Add tag has no route at all yet and says so rather than
             // pretending to be live.
             <SelectionBar count={selected.size} onDismiss={() => setSelected(new Set())}>
-              <BulkAction icon={<SwitchIcon size={14} />} label="Assign" onClick={() => void assignSelected()} />
+              <BulkAction
+                icon={<SwitchIcon size={ICON.control} />}
+                label="Assign"
+                onClick={() => void assignSelected()}
+              />
               <span className="relative inline-flex items-center">
                 <select
                   aria-label="Change state"
@@ -528,10 +536,13 @@ function QueueScreen() {
                     </option>
                   ))}
                 </select>
-                <ChevronDownIcon size={12} className="text-xms-accent pointer-events-none absolute right-[7px]" />
+                <ChevronDownIcon
+                  size={ICON.glyph}
+                  className="text-xms-accent pointer-events-none absolute right-[7px]"
+                />
               </span>
               <BulkAction
-                icon={<TagIcon size={14} />}
+                icon={<TagIcon size={ICON.control} />}
                 label="Add tag"
                 disabled
                 title="Tags land with the bulk route; nothing on the API takes one yet."

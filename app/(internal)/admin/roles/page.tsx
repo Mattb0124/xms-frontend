@@ -50,7 +50,7 @@ function NewRoleForm({ catalog, onDone }: { catalog: Catalog; onDone: (id: strin
   return (
     <Panel title="New role" caption={`${catalog} catalog; permissions are set on the record`}>
       <form
-        className="flex max-w-lg flex-col gap-3"
+        className="flex flex-col gap-3"
         onSubmit={async (event) => {
           event.preventDefault();
           setError(null);

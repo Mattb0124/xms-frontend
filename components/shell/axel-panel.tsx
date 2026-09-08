@@ -1,6 +1,6 @@
 "use client";
 
-import { CloseIcon, SparkleIcon } from "@/components/xms/icons";
+import { ICON, CloseIcon, SparkleIcon } from "@/components/xms/icons";
 import type { ReactNode } from "react";
 
 export interface AxelPanelProps {
@@ -32,7 +32,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
       }}
     >
       <header className="border-xms-line flex h-[44px] shrink-0 items-center gap-2 border-b px-4">
-        <SparkleIcon size={16} className="text-xms-ai-accent" />
+        <SparkleIcon size={ICON.field} className="text-xms-ai-accent" />
         <span className="text-xms-ink text-[15px] font-semibold">Axel</span>
         <span className="text-xms-muted text-[13px]">{context}</span>
         <button
@@ -41,7 +41,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
           onClick={onClose}
           className="text-xms-muted hover:text-xms-ink ml-auto"
         >
-          <CloseIcon size={16} />
+          <CloseIcon size={ICON.field} />
         </button>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">

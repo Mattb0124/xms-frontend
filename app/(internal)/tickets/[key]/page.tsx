@@ -24,7 +24,7 @@ import { PriorityPill } from "@/components/xms/priority-pill";
 import { RecordForm } from "@/components/xms/record-form";
 import { Skeleton } from "@/components/xms/skeleton";
 import { SlaValue } from "@/components/xms/sla-value";
-import { MoreIcon } from "@/components/xms/icons";
+import { ICON, MoreIcon } from "@/components/xms/icons";
 import { TabBar } from "@/components/xms/tab-bar";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -129,7 +129,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             onClick={() => setMore((open) => !open)}
             className="border-xms-line bg-xms-card text-xms-label hover:text-xms-ink flex h-[32px] w-[38px] items-center justify-center rounded-[6px] border"
           >
-            <MoreIcon size={16} />
+            <MoreIcon size={ICON.field} />
           </button>
         </span>
       </div>

@@ -21,8 +21,14 @@ export const SECONDARY_BUTTON =
   "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-tint hover:no-underline h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
 export const DANGER_BUTTON =
   "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
+/**
+ * A field control. The 420px cap is on the control, never on the page: every
+ * screen is full width, so a form on a 2560px window keeps its fields at a
+ * length a person can read across instead of the page narrowing to suit the
+ * longest form standing on it.
+ */
 export const INPUT =
-  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full max-w-[420px] rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
 
 /**
  * Display gating for an admin screen. Nothing renders until `me` has loaded

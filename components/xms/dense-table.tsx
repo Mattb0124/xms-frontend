@@ -37,6 +37,14 @@ export interface DenseTableProps<Row> {
    * search field and the two icon controls and nothing else.
    */
   titleHidden?: boolean;
+  /** The line beside the title, in sentence case: "mine first, then group unassigned". */
+  subtitle?: string;
+  /**
+   * Draw no column header row. Render 08's Needs attention list is a card of
+   * rows, not a table: five fixed cells and no header over them, because five
+   * rows do not need naming and the header cost more than it explained.
+   */
+  headless?: boolean;
   columns: DenseColumn<Row>[];
   rows: Row[];
   rowKey: (row: Row) => string;
@@ -124,7 +132,12 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
     // sideways instead of the table (frontend review finding 8).
     <section className={cn("xms-card flex min-w-0 flex-col", props.className)} aria-label={props.title}>
       <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
-        {props.titleHidden ? null : <span className="text-xms-ink text-[17px] font-semibold">{props.title}</span>}
+        {props.titleHidden ? null : (
+          <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">{props.title}</span>
+        )}
+        {/* Render 08 sets the subtitle beside the title, not under it: "Needs
+            attention  mine first, then group unassigned". */}
+        {props.subtitle ? <span className="text-xms-muted -ml-[6px] text-[13px]">{props.subtitle}</span> : null}
         {props.search ? <div className="ml-auto min-w-0 max-w-full flex-1">{props.search}</div> : null}
         {props.actions ? (
           <div className={cn("flex shrink-0 items-center gap-2", props.search ? undefined : "ml-auto")}>
@@ -137,8 +150,17 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
           (hand-off section 5). */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-[13px]">
-          <thead className="bg-xms-card sticky top-0 z-10">
-            <tr className="border-xms-line-head border-b">
+          {/* Without a header row the widths have nowhere else to live. */}
+          {props.headless ? (
+            <colgroup>
+              {selectable ? <col style={{ width: "44px" }} /> : null}
+              {drawn.map((column) => (
+                <col key={column.key} style={{ width: column.width }} />
+              ))}
+            </colgroup>
+          ) : null}
+          <thead className={cn("bg-xms-card sticky top-0 z-10", props.headless && "hidden")}>
+            <tr className={cn(!props.headless && "border-xms-line-head border-b")}>
               {selectable ? (
                 <th className="w-11 px-5 py-[11px]">
                   <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />

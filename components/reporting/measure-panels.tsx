@@ -29,16 +29,14 @@ function queueHref(links: QueueLinks | undefined, view?: string): string | undef
 }
 
 export function TileStrip({ measures, links }: { measures: Partial<Measures>; links?: QueueLinks }) {
-  const tiles: Array<{
-    key: keyof Measures;
-    label: string;
-    view?: string;
-    tone?: (n: number) => "neutral" | "warn" | "breach" | "good";
-  }> = [
+  // No tone on the numbers: both renders draw every scorecard figure in ink,
+  // and a Breached count of zero drawn in green read as a signal where there
+  // was none.
+  const tiles: Array<{ key: keyof Measures; label: string; view?: string }> = [
     { key: "open_tickets", label: "Open" },
-    { key: "breached_now", label: "Breached", view: "breached", tone: (n) => (n > 0 ? "breach" : "good") },
-    { key: "at_risk_now", label: "At risk", tone: (n) => (n > 0 ? "warn" : "neutral") },
-    { key: "unassigned_now", label: "Unassigned", view: "unassigned", tone: (n) => (n > 0 ? "warn" : "neutral") },
+    { key: "breached_now", label: "Breached", view: "breached" },
+    { key: "at_risk_now", label: "At risk" },
+    { key: "unassigned_now", label: "Unassigned", view: "unassigned" },
     { key: "volume_created", label: "Created" },
     { key: "volume_resolved", label: "Resolved" },
   ];
@@ -48,14 +46,9 @@ export function TileStrip({ measures, links }: { measures: Partial<Measures>; li
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" data-testid="tile-strip">
       {present.map((tile) => {
         const value = measures[tile.key] as number;
+        // Render 10 puts the delta caption beside the number on one baseline.
         return (
-          <ScoreTile
-            key={tile.key}
-            label={tile.label}
-            value={value}
-            tone={tile.tone ? tile.tone(value) : "neutral"}
-            href={queueHref(links, tile.view)}
-          />
+          <ScoreTile key={tile.key} label={tile.label} value={value} detailBeside href={queueHref(links, tile.view)} />
         );
       })}
     </div>

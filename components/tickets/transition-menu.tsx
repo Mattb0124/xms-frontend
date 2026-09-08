@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { formatDate, INPUT } from "@/components/admin/primitives";
 import { ResolveForm, toResolutionBody } from "@/components/tickets/resolve-form";
-import { ChevronDownIcon } from "@/components/xms/icons";
+import { ICON, ChevronDownIcon } from "@/components/xms/icons";
 import { StatePill } from "@/components/xms/state-pill";
 import {
   CHANGE_REASON_REQUIRED,
@@ -143,7 +143,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
           state={ticket.state}
           label={ticket.state_label}
           className="h-[32px] gap-[6px] px-[14px] text-[13px] font-semibold"
-          trailing={terminal ? undefined : <ChevronDownIcon size={13} className="opacity-70" />}
+          trailing={terminal ? undefined : <ChevronDownIcon size={ICON.glyph} className="opacity-70" />}
         />
       </button>
       {open ? (

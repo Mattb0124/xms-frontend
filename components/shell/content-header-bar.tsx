@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDownIcon, FunnelIcon, GearIcon, MenuIcon, SearchIcon } from "@/components/xms/icons";
+import { ICON, ChevronDownIcon, FunnelIcon, GearIcon, MenuIcon, SearchIcon } from "@/components/xms/icons";
 import type { Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -92,7 +92,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
               data-testid="content-header-bar"
             >
               <button type="button" aria-label="Toggle sidebar" onClick={onToggleSidebar} className={ICON_BUTTON}>
-                <MenuIcon size={18} />
+                <MenuIcon size={ICON.tool} />
               </button>
               {panel.present ? (
                 <button
@@ -102,7 +102,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                   onClick={() => setPanelOpen((open) => !open)}
                   className={cn(ICON_BUTTON, "relative", panelOpen && "bg-xms-card text-xms-accent")}
                 >
-                  <FunnelIcon size={16} />
+                  <FunnelIcon size={ICON.field} />
                   {panel.count > 0 ? (
                     <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[9px] font-semibold text-white">
                       {panel.count}
@@ -112,7 +112,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
               ) : null}
               <span className="relative flex shrink-0 items-center gap-[6px] pr-1">
                 <span className="text-xms-ink text-[15px] font-semibold">{current?.label ?? "XMS"}</span>
-                <ChevronDownIcon size={14} className="text-xms-muted" />
+                <ChevronDownIcon size={ICON.control} className="text-xms-muted" />
                 <select
                   aria-label="Screen switcher"
                   value={current?.path ?? ""}
@@ -133,7 +133,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                 data-testid="header-filter-slot"
               />
               <button type="button" aria-label="Screen settings" onClick={onSettings} className={ICON_BUTTON}>
-                <GearIcon size={16} />
+                <GearIcon size={ICON.field} />
               </button>
               {/* The render's local search sits between the gear and the primary
                 action. A screen that has one portals it here; the placeholder
@@ -224,7 +224,7 @@ export function HeaderSearchField({
         onSubmit?.();
       }}
     >
-      <SearchIcon size={14} className="text-xms-muted shrink-0" />
+      <SearchIcon size={ICON.control} className="text-xms-muted shrink-0" />
       <input
         type="search"
         aria-label={label}

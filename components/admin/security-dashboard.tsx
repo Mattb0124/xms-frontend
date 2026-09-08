@@ -221,41 +221,24 @@ export function SecurityDashboard() {
       {data && tiles ? (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5" data-testid="security-tiles">
-            <ScoreTile label="Sign-in failures" value={tiles.signin} tone={tiles.signin > 0 ? "warn" : "good"} />
-            <ScoreTile label="Denials" value={tiles.denials} tone={tiles.denials > 0 ? "warn" : "good"} />
-            <ScoreTile label="Isolation probes" value={tiles.probes} tone={tiles.probes > 0 ? "breach" : "good"} />
+            <ScoreTile label="Sign-in failures" value={tiles.signin} />
+            <ScoreTile label="Denials" value={tiles.denials} />
+            <ScoreTile label="Isolation probes" value={tiles.probes} />
             <ScoreTile label="Admin changes" value={tiles.admin} />
             <ScoreTile label="Exports and downloads" value={tiles.exports} />
-            <ScoreTile label="Abuse events" value={tiles.abuse} tone={tiles.abuse > 0 ? "warn" : "good"} />
+            <ScoreTile label="Abuse events" value={tiles.abuse} />
             {data.rate_limited_clients ? (
-              <ScoreTile
-                label="Rate limited clients"
-                value={tiles.rateLimited}
-                tone={tiles.rateLimited > 0 ? "warn" : "good"}
-                href={apiClientsHref}
-              />
+              <ScoreTile label="Rate limited clients" value={tiles.rateLimited} href={apiClientsHref} />
             ) : null}
             {data.paused_integrations_by_reason ? (
-              <ScoreTile
-                label="Paused integrations"
-                detail="Right now, not over the window"
-                value={tiles.paused}
-                tone={tiles.paused > 0 ? "warn" : "good"}
-              />
+              <ScoreTile label="Paused integrations" detail="Right now, not over the window" value={tiles.paused} />
             ) : null}
-            {data.quarantined_attachments ? (
-              <ScoreTile
-                label="Quarantined files"
-                value={tiles.quarantined}
-                tone={tiles.quarantined > 0 ? "breach" : "good"}
-              />
-            ) : null}
+            {data.quarantined_attachments ? <ScoreTile label="Quarantined files" value={tiles.quarantined} /> : null}
             {data.open_dead_letters_by_queue ? (
               <ScoreTile
                 label="Open dead letters"
                 detail="Right now, not over the window"
                 value={tiles.deadLetters}
-                tone={tiles.deadLetters > 0 ? "warn" : "good"}
                 href={connectorsHref}
               />
             ) : null}

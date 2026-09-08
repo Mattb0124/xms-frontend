@@ -189,14 +189,16 @@ export function Shell({ children }: { children: ReactNode }) {
           <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
             {/* The work area, and the reason the canvas is grey: the vendored
                 token file paints the body white, and every screen was drawn on
-                white with white cards on it, so nothing had an edge. The
-                hand-off's own skeleton is `background: var(--xms-canvas)` on
-                the scrolling column with the cards standing on it.
-                18px above, 20px either side, 40px below, capped at the 1200px
-                content width (hand-off section 4). */}
-            <main className="bg-xms-bg flex flex-1 justify-start overflow-auto">
-              <div className="flex w-full max-w-[1200px] flex-col px-5 pt-[18px] pb-10">{children}</div>
-            </main>
+                white with white cards on it, so nothing had an edge.
+
+                Every page is full width. The hand-off carries a 1200px
+                content max; the reviewer took it off, so the work area runs
+                from the sidebar edge to the window edge inside the 20px
+                gutter and no screen shell carries a max width at all.
+                Reading width is capped on the control (see `INPUT`), never on
+                the page. `components/xms/surfaces.test.tsx` fails if a page
+                shell brings one back. */}
+            <main className="bg-xms-bg flex flex-1 flex-col overflow-auto px-5 pt-[18px] pb-10">{children}</main>
           </ContentHeaderBar>
         </div>
         {/* The panel pushes the content, it does not overlay it (Wireframes v2
