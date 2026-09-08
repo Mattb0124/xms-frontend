@@ -364,9 +364,16 @@ test-kit/integrations.ts  constructed API client and finance fixtures (anApiClie
 test-kit/desk.tsx       renderDesk (store plus toasts) for desk component tests, re-exporting the fetch stub
 test-kit/my-work.ts     constructed My work fixtures (aWaitingItem, aWaiting)
 components/my-work/     waiting-rail (WaitingRail over GET /v1/me/waiting: a row per item with a non-zero count linking to
-                        the address the server gave, checked through lib/safe-url; "Nothing is waiting on you" when none
-                        is; hidden entirely, with no error, while the route answers 404 or 501, so My work keeps working
-                        before the backend deploys; waitingRows and isNotDeployed)
+                        the address lib/my-work/waiting-links resolves for its key, never the server's link;
+                        "Nothing is waiting on you" when none is; hidden entirely, with no error, while the route
+                        answers 404 or 501, so My work keeps working before the backend deploys; waitingRows and
+                        isNotDeployed)
+lib/my-work/waiting-links  WAITING_TARGETS (the item key to a lib/routes screen id and its search) and waitingHref: the
+                        API answers /queue, /timesheet, /notifications and /reports/runs, which this desk does not
+                        serve, so the key is resolved through the registry against the screens this viewer may see; a
+                        key mapped to no screen (notifications live in the shell's bell) and a screen the viewer may
+                        not open both read as text, and only a key the registry has never heard of falls back to the
+                        server's link, through lib/safe-url
 components/shell/       FinderBar, FinderOverlay, PinnedSidebar, ContentHeaderBar (HeaderFilters, HeaderAction portals),
                         CommandPalette, NotificationsMenu (bell dropdown, 60 s unread poll), Shell, ScreenStub
 components/xms/         the house composition components (P1.4.2), one file each, import by path, no barrel;

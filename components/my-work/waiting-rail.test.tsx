@@ -14,7 +14,14 @@ const ROUTE = "GET /v1/me/waiting";
 describe("waitingRows", () => {
   it("keeps only what is actually waiting", () => {
     const rows = waitingRows(aWaiting().items);
-    expect(rows.map((row) => row.key)).toEqual(["tickets_assigned", "scope_approvals", "pending_time"]);
+    expect(rows.map((row) => row.key)).toEqual([
+      "tickets_assigned",
+      "scope_approvals",
+      "report_reviews",
+      "unread_notifications",
+      "pending_time",
+      "csat_low_scores",
+    ]);
     expect(waitingRows([aWaitingItem({ count: 0 })])).toEqual([]);
     expect(waitingRows(undefined)).toEqual([]);
   });
@@ -34,31 +41,45 @@ describe("isNotDeployed", () => {
 describe("WaitingRail", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("renders a row per waiting item, linking to the address the server gave", async () => {
-    stubFetch({ "GET /v1/admin/me": me(["tickets:view"]), [ROUTE]: () => json(aWaiting()) });
+  it("links each row to this application's route, not the address the server gave", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["tickets:view", "time:log", "reports:view-portfolio"]),
+      [ROUTE]: () => json(aWaiting()),
+    });
     renderDesk(<WaitingRail />);
     await screen.findByTestId("waiting-rail");
 
     const assigned = screen.getByRole("link", { name: /Tickets assigned to me/ });
+    // The server sent /queue?view=my-tickets, which this desk does not serve.
     expect(assigned).toHaveAttribute("href", "/tickets?view=mine");
     expect(assigned).toHaveTextContent("4");
-    expect(screen.getByRole("link", { name: /Out-of-scope flags to approve/ })).toHaveAttribute(
-      "href",
-      "/tickets?view=awaiting_approval",
-    );
-    expect(screen.getByRole("link", { name: /Days this week with unlogged time/ })).toHaveAttribute(
-      "href",
-      "/time?week=2026-09-07",
-    );
+    expect(screen.getByRole("link", { name: /Out-of-scope flags to approve/ })).toHaveAttribute("href", "/tickets");
+    expect(screen.getByRole("link", { name: /Report packs to review/ })).toHaveAttribute("href", "/reports");
+    expect(screen.getByRole("link", { name: /Days this week with unlogged time/ })).toHaveAttribute("href", "/time");
+    // Notifications are the shell's bell menu, not a screen, so the row keeps
+    // its count and offers no address rather than a link to nothing.
+    expect(screen.queryByRole("link", { name: /Unread notifications/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Unread notifications")).toBeInTheDocument();
     // A count of zero is not waiting on anyone, so the row is left out.
     expect(screen.queryByText("My articles in review")).not.toBeInTheDocument();
     expect(screen.getByText(/as of 2026-09-07/)).toBeInTheDocument();
   });
 
-  it("renders an item whose link is not an address in this application as plain text", async () => {
+  it("renders a row whose screen this viewer may not open as plain text", async () => {
+    stubFetch({ "GET /v1/admin/me": me(["tickets:view"]), [ROUTE]: () => json(aWaiting()) });
+    renderDesk(<WaitingRail />);
+    await screen.findByTestId("waiting-rail");
+    // time:log and reports:view-portfolio are not held here.
+    expect(screen.queryByRole("link", { name: /Days this week with unlogged time/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Report packs to review/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Days this week with unlogged time")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Tickets assigned to me/ })).toHaveAttribute("href", "/tickets?view=mine");
+  });
+
+  it("renders an unknown key whose link is not an address in this application as plain text", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["tickets:view"]),
-      [ROUTE]: () => json(aWaiting({ items: [aWaitingItem({ link: "javascript:alert(1)" })] })),
+      [ROUTE]: () => json(aWaiting({ items: [aWaitingItem({ key: "later_key", link: "javascript:alert(1)" })] })),
     });
     renderDesk(<WaitingRail />);
     await screen.findByTestId("waiting-rail");

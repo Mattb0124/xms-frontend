@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
-import { safeHref } from "@/lib/safe-url";
+import { waitingHref } from "@/lib/my-work/waiting-links";
+import { visibleScreens, type Screen } from "@/lib/routes";
 import { useMe } from "@/redux/me";
 import { useWaitingOnMeQuery, type WaitingItem } from "@/redux/api";
 
@@ -25,10 +27,13 @@ export function waitingRows(items: readonly WaitingItem[] | undefined): WaitingI
   return (items ?? []).filter((item) => item.count > 0);
 }
 
-function WaitingRow({ item }: { item: WaitingItem }) {
-  // The link is server data, so it goes through safeHref before it reaches an
-  // href; an item whose link is not a place we can navigate to reads as text.
-  const href = safeHref(item.link);
+function WaitingRow({ item, permitted }: { item: WaitingItem; permitted: readonly Screen[] }) {
+  // The address comes from this application's own route registry, keyed on
+  // the item's stable key, not from the server's link: the API speaks the
+  // platform's URL space, which is not this desk's. A key the registry does
+  // not know falls back to the server's link, and that link is untrusted, so
+  // it goes through safeHref; a row with no address at all reads as text.
+  const href = waitingHref(item, permitted);
   const body = (
     <>
       <span className="text-xms-ink text-[13px]">{item.label}</span>
@@ -50,7 +55,8 @@ function WaitingRow({ item }: { item: WaitingItem }) {
 /**
  * "Waiting on me" on My work (User Experience 3.1, frontend review finding
  * 13): one row per thing the signed-in person must act on, with the count
- * the server counted and the address that opens it. Nothing is computed
+ * the server counted and the address this application's own route registry
+ * gives for that item's key (lib/my-work/waiting-links). Nothing is counted
  * here; a count of zero is not waiting on anyone, so it is left out.
  *
  * The route sits behind tickets:view, the permission every internal person
@@ -65,6 +71,7 @@ export function WaitingRail() {
     skip: !allowed,
     pollingInterval: 60_000,
   });
+  const permitted = useMemo(() => visibleScreens(me.permissions), [me.permissions]);
 
   if (!allowed) return null;
   if (isError && isNotDeployed(error)) return null;
@@ -92,7 +99,7 @@ export function WaitingRail() {
       ) : (
         <div data-testid="waiting-rail">
           {rows.map((item) => (
-            <WaitingRow key={item.key} item={item} />
+            <WaitingRow key={item.key} item={item} permitted={permitted} />
           ))}
         </div>
       )}
