@@ -130,6 +130,7 @@ export const xmsApi = createApi({
     "ApiClientScopes",
     "FinanceDestination",
     "FinanceDeliveries",
+    "Contacts",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({

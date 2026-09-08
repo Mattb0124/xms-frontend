@@ -288,3 +288,59 @@ describe("the outbound queue is read behind admin:connectors", () => {
     }
   });
 });
+
+/**
+ * The same map for the account's contacts (CP-07, Client Portal technical
+ * 2.1), which the API answers to `admin:accounts` alone (backend
+ * test/golden/routes.json). The list names every person the account writes
+ * to with their address, and the flags decide who receives the quarterly
+ * relationship survey, so a surface reading it may not ship behind a weaker
+ * key or with no gate above it at all.
+ */
+const CONTACTS_READS = [
+  { hook: "useListContactsQuery", slice: "redux/adminApi.ts", route: "/v1/admin/accounts/${accountId}/contacts" },
+  {
+    hook: "useSetContactFlagsMutation",
+    slice: "redux/adminApi.ts",
+    route: "/v1/admin/accounts/${accountId}/contacts/${id}/flags",
+  },
+];
+
+const CONTACTS_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/admin/contacts-tab.tsx", mountedIn: "app/(internal)/admin/accounts/[id]/page.tsx" },
+  { file: "app/(internal)/admin/accounts/[id]/page.tsx", permission: "admin:accounts" },
+];
+
+describe("the account's contacts are read behind admin:accounts", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of CONTACTS_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = CONTACTS_READS.map((entry) => entry.hook);
+    const listed = new Set(CONTACTS_SURFACES.map((surface) => surface.file));
+    const callers = sources()
+      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
+      .map(relative);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+  });
+
+  it("mounts the contacts tab only inside a screen that gates on admin:accounts", () => {
+    const gates = new Set(CONTACTS_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of CONTACTS_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `<AdminGate permission="${surface.permission}">`,
+      );
+    }
+  });
+});

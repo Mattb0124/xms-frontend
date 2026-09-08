@@ -7,6 +7,7 @@ import { BillingPeriodsTab } from "@/components/admin/billing/billing-periods-ta
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
+import { AccountContactsTab } from "@/components/admin/contacts-tab";
 import { AccountFinanceTab } from "@/components/admin/finance/finance-tab";
 import { AccountContractsTab } from "@/components/admin/contracts/account-contracts-tab";
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
@@ -61,6 +62,7 @@ const TABS: { key: string; label: string; permission?: string }[] = [
   { key: "overview", label: "Overview" },
   { key: "settings", label: "Settings" },
   { key: "access", label: "Access" },
+  { key: "contacts", label: "Contacts" },
   { key: "calendars", label: "Calendars" },
   { key: "contracts", label: "Contracts", permission: "contracts:view" },
   { key: "budget", label: "Budget", permission: "contracts:view" },
@@ -334,6 +336,7 @@ function AccountRecordScreen() {
       {active === "overview" ? <OverviewTab id={id} /> : null}
       {active === "settings" ? <AccountSettingsTab accountId={id} /> : null}
       {active === "access" ? <AccessTab id={id} /> : null}
+      {active === "contacts" ? <AccountContactsTab accountId={id} /> : null}
       {active === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
       {active === "contracts" ? <AccountContractsTab accountId={id} /> : null}
       {active === "budget" ? <AccountBudgetView accountId={id} /> : null}
@@ -348,10 +351,11 @@ function AccountRecordScreen() {
 }
 
 /**
- * Registered as `admin.account`: Overview, Settings, Access, Calendars,
- * Contracts, Budget, Billing, Report packs, Finance, Intake, Connectors and Configuration tabs with the
- * status actions and the skills coverage chips under the record bar
- * (capacity:view); `?tab=` picks the opening tab.
+ * Registered as `admin.account`: Overview, Settings, Access, Contacts,
+ * Calendars, Contracts, Budget, Billing, Report packs, Finance, Intake,
+ * Connectors and Configuration tabs with the status actions and the skills
+ * coverage chips under the record bar (capacity:view); `?tab=` picks the
+ * opening tab.
  */
 export default function AdminAccountRecordPage() {
   return (

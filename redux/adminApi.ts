@@ -207,6 +207,39 @@ export interface InviteUserBody {
   account_ids?: string[];
 }
 
+/**
+ * The account's contacts as the operator administers them (Client Portal
+ * technical 2.1). A contact is a person the account writes to, whether or
+ * not they hold a portal user; the flags say what each one is for.
+ * `executive_sponsor` is the flag the quarterly relationship survey
+ * addresses (functional 5.7). The vocabulary is closed by the API and again
+ * by the column's check constraint (migration 0032), so a typo cannot
+ * quietly drop someone out of every future survey.
+ */
+export const CONTACT_FLAGS = ["executive_sponsor", "billing_contact", "csat_recipient"] as const;
+export type ContactFlag = (typeof CONTACT_FLAGS)[number];
+
+export interface Contact {
+  id: string;
+  account_id: string;
+  email: string;
+  display_name: string;
+  portal_user_id: string | null;
+  status: string;
+  flags: string[];
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+/** The whole flag set is replaced; the version is the one the row was read at. */
+export interface SetContactFlagsBody {
+  version: number;
+  flags: ContactFlag[];
+}
+
+const contactsTag = (accountId: string) => ({ type: "Contacts" as const, id: accountId });
+
 export const adminApi = xmsApi.injectEndpoints({
   endpoints: (build) => ({
     listAccounts: build.query<AccountRow[], { status?: string } | void>({
@@ -255,6 +288,27 @@ export const adminApi = xmsApi.injectEndpoints({
     invitePortalUser: build.mutation<UserRecord, { id: string; body: InviteUserBody }>({
       query: ({ id, body }) => ({ url: `/v1/admin/accounts/${id}/portal-users`, method: "POST", body }),
       invalidatesTags: (_result, _error, { id }) => [{ type: "Account", id: `${id}:portal-users` }, "Users"],
+    }),
+    /** The account's contacts, under admin:accounts; `q` matches the address or the name. */
+    listContacts: build.query<Contact[], { accountId: string; q?: string }>({
+      query: ({ accountId, q }) => ({
+        url: `/v1/admin/accounts/${accountId}/contacts`,
+        params: q ? { q } : undefined,
+      }),
+      providesTags: (_result, _error, { accountId }) => [contactsTag(accountId)],
+    }),
+    /**
+     * Replaces the whole flag set with the version the row was read at. The
+     * list is read again even when the API refuses, because a stale_version
+     * means the browser's copy is behind whatever else happened to the row.
+     */
+    setContactFlags: build.mutation<Contact, { accountId: string; id: string; body: SetContactFlagsBody }>({
+      query: ({ accountId, id, body }) => ({
+        url: `/v1/admin/accounts/${accountId}/contacts/${id}/flags`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { accountId }) => [contactsTag(accountId)],
     }),
 
     listUsers: build.query<UserRecord[], { kind?: UserKind } | void>({
@@ -384,6 +438,8 @@ export const {
   useReplaceAccountGranteesMutation,
   useListPortalUsersQuery,
   useInvitePortalUserMutation,
+  useListContactsQuery,
+  useSetContactFlagsMutation,
   useListUsersQuery,
   useGetUserQuery,
   useInviteUserMutation,
