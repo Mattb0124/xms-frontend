@@ -23,18 +23,31 @@ function pad(n: number): string {
   return n < 10 ? `0${n}` : String(n);
 }
 
-/** Pure formatting of a server-provided clock. The browser only counts down. */
+/**
+ * Pure formatting of a server-provided clock. The browser only counts down.
+ *
+ * The value is always the time remaining, never the time elapsed, and an
+ * overdue clock says how far past due it is rather than the word "Breached"
+ * (render 08's column reads "-38m", "3h 12m", "paused"). A word says the
+ * clock has gone; the number says by how much, which is what decides which
+ * breach is picked up first.
+ *
+ * The word is kept for the case the number cannot answer: a latched breach
+ * whose due time is not in the past, which is what a reopened ticket carries
+ * (TM-05, TM-07), and a breach with no due time at all.
+ */
 export function formatSla(snapshot: SlaSnapshot, now: Date = new Date()): SlaDisplay {
-  if (!snapshot.dueAt) return { label: "No SLA", tone: "none" };
+  if (!snapshot.dueAt)
+    return { label: snapshot.breached ? "Breached" : "No SLA", tone: snapshot.breached ? "breach" : "none" };
   if (snapshot.met) return { label: "Met", tone: "met" };
-  if (snapshot.breached) return { label: "Breached", tone: "breach" };
   const remainingMs = new Date(snapshot.dueAt).getTime() - now.getTime();
   const abs = Math.abs(remainingMs);
   const hours = Math.floor(abs / 3_600_000);
   const minutes = Math.floor((abs % 3_600_000) / 60_000);
   const body = hours >= 24 ? `${Math.floor(hours / 24)}d ${pad(hours % 24)}h` : `${hours}h ${pad(minutes)}m`;
-  if (snapshot.paused) return { label: `${body} paused`, tone: "paused" };
+  if (snapshot.paused) return { label: "paused", tone: "paused" };
   if (remainingMs < 0) return { label: `-${body}`, tone: "breach" };
+  if (snapshot.breached) return { label: "Breached", tone: "breach" };
   const atRisk = snapshot.targetMinutes
     ? remainingMs < snapshot.targetMinutes * 60_000 * 0.25
     : remainingMs < 3_600_000;

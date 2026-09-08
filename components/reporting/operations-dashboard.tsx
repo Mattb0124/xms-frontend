@@ -15,7 +15,6 @@ import {
 } from "@/components/reporting/measure-panels";
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
-import { AccountDot } from "@/components/xms/account-dot";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -27,7 +26,7 @@ const COLUMNS: DenseColumn<AccountStrip>[] = [
     key: "name",
     title: "Account",
     sortValue: (row) => row.name,
-    render: (row) => <AccountDot name={row.name} />,
+    render: (row) => <span className="text-xms-body">{row.name}</span>,
   },
   { key: "key", title: "Key", mono: true, sortValue: (row) => row.key },
   { key: "open", title: "Open", align: "right", mono: true, sortValue: (row) => row.measures.open_tickets },

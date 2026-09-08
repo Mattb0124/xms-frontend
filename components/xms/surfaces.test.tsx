@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BriefLine } from "@/components/xms/brief-line";
 import { CloseDisciplineChecklist } from "@/components/xms/close-discipline-checklist";
-import { DispatchCard } from "@/components/xms/dispatch-card";
+import { DispatchRow } from "@/components/xms/dispatch-card";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { ICON } from "@/components/xms/icons";
 import { MeterBar } from "@/components/xms/meter-bar";
@@ -107,32 +107,52 @@ describe("BriefLine and NudgeCard", () => {
   });
 });
 
-describe("DispatchCard", () => {
-  it("confirms the chosen group and assignee and supports Assign to me", () => {
-    const onConfirm = vi.fn();
+describe("DispatchRow", () => {
+  function renderRow(onConfirm = vi.fn()) {
     render(
-      <DispatchCard
+      <DispatchRow
         ticketKey="CS0001204"
         shortDescription="HFM consolidation fails"
         account={{ name: "Brookfield UK", hue: 1 }}
-        type="incident"
-        priority="p1"
-        sla={{ dueAt: "2026-09-07T12:00:00Z" }}
+        age="26m"
         groups={[{ id: "g1", label: "OneStream Technical" }]}
         assignees={[
-          { id: "u1", label: "Maria" },
-          { id: "u2", label: "Me", warning: "Over capacity" },
+          { id: "u1", label: "S. Ali" },
+          { id: "u2", label: "Me", warning: "104% of capacity, override reason required" },
         ]}
-        suggestion="Axel: OneStream Technical · 82%"
+        suggestion="S. Ali"
         currentUserId="u2"
         onConfirm={onConfirm}
       />,
     );
+    return onConfirm;
+  }
+
+  it("reads key, title, account and age, and confirms the chosen group and assignee", () => {
+    const onConfirm = renderRow();
+    // Render 09's first line: the key, the title, the account and the age.
+    expect(screen.getByRole("link", { name: "CS0001204" })).toBeInTheDocument();
+    expect(screen.getByText("26m")).toHaveClass("xms-mono");
+    fireEvent.change(screen.getByLabelText("Group"), { target: { value: "g1" } });
     fireEvent.click(screen.getByText("Assign to me"));
-    expect(screen.getByText("Over capacity")).toHaveAttribute("data-state", "needs-input");
+    expect(screen.getByText("104% of capacity, override reason required")).toHaveAttribute("data-state", "needs-input");
     fireEvent.click(screen.getByText("Confirm"));
     expect(onConfirm).toHaveBeenCalledWith({ groupId: "g1", assigneeId: "u2" });
-    expect(screen.getByText(/Axel: OneStream/)).toHaveClass("xms-ai");
+  });
+
+  it("offers the suggestion as a control that takes it, and applies nothing until Confirm", () => {
+    const onConfirm = renderRow();
+    const suggestion = screen.getByText("Axel suggests S. Ali");
+    fireEvent.click(suggestion);
+    // Taking the suggestion fills the picker; it does not route the ticket.
+    expect(screen.getByLabelText("Assignee")).toHaveValue("u1");
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("opens on Choose group and Choose assignee where the ticket has neither", () => {
+    renderRow();
+    expect(screen.getAllByText("Choose group").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Choose assignee").length).toBeGreaterThan(0);
   });
 });
 
@@ -261,6 +281,36 @@ describe("the icon scale", () => {
     const source = readFileSync("components/xms/icons.tsx", "utf8");
     expect(source).toContain('viewBox="0 0 24 24"');
     expect(source).toContain("strokeWidth={1.5}");
+  });
+});
+
+/**
+ * No account identity square and no type colour bar in a list, on any screen.
+ * The renders draw both; the reviewer took them off, so a row carries colour
+ * for state, priority and the clock alone. The two components stay in the
+ * system for the account record's own heading, which is the one place a
+ * single swatch names one account.
+ */
+describe("colour in a list", () => {
+  const ALLOWED = [
+    "components/xms/account-dot.tsx",
+    "components/xms/type-bar.tsx",
+    // The account record's own heading: one account, named once, with its
+    // swatch beside it. Not a list.
+    "components/reporting/account-dashboard.tsx",
+  ];
+
+  it("draws the account and the type as plain text", () => {
+    const offenders = sourceFiles()
+      .filter((file) => !ALLOWED.includes(file))
+      .filter((file) => /<AccountDot|<TypeBar/.test(readFileSync(file, "utf8")));
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps state, priority and the clock coloured, which is what a row is read for", () => {
+    const scope = readFileSync("styles/tokens/xms-scope.css", "utf8");
+    expect(scope).toContain(".xms-state");
+    expect(scope).toContain("--xms-sla-breach");
   });
 });
 

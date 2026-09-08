@@ -135,9 +135,10 @@ describe("the Queue columns", () => {
     expect(openedDate("not a date", now)).toBe("");
   });
 
-  // The reviewer took the colour off these two: the row carries state,
-  // priority and the clock, and nothing else competes with them.
-  it("draws Account and Type as plain text on the Queue and keeps the identity square on My work", () => {
+  // The reviewer took the colour off these two, on every list and not only on
+  // the Queue: a row carries state, priority and the clock, and nothing else
+  // competes with them.
+  it("draws Account and Type as plain text, on the Queue and on Needs attention alike", () => {
     const rows = [aTicketView({ key: "CS1000005", type: "incident" })];
     const { unmount } = render(
       <DenseTable<TicketView> title="Queue" columns={ticketColumns({ accounts })} rows={rows} rowKey={(r) => r.key} />,
@@ -154,6 +155,36 @@ describe("the Queue columns", () => {
         rowKey={(r) => r.key}
       />,
     );
-    expect(document.querySelector(".xms-account")).not.toBeNull();
+    expect(document.querySelector(".xms-account")).toBeNull();
+  });
+
+  // Render 08's clock column: the time remaining, never the word "Breached",
+  // and never the time elapsed.
+  it("counts a breached clock down past zero rather than naming it", () => {
+    const overdue = aTicketView({
+      key: "CS1000006",
+      sla: {
+        resolution: {
+          kind: "resolution",
+          dueAt: new Date(Date.now() - 38 * 60_000).toISOString(),
+          remainingMinutes: -38,
+          paused: false,
+          breached: true,
+          met: false,
+          targetMinutes: 480,
+          pausedTotalMinutes: 0,
+        },
+      },
+    });
+    render(
+      <DenseTable<TicketView>
+        title="Needs attention"
+        columns={attentionColumns({ accounts })}
+        rows={[overdue]}
+        rowKey={(r) => r.key}
+      />,
+    );
+    expect(screen.queryByText("Breached")).not.toBeInTheDocument();
+    expect(screen.getByText("-0h 38m")).toHaveAttribute("data-tone", "breach");
   });
 });

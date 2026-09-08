@@ -7,7 +7,6 @@ import { AdoptionPanel, FunnelPanel } from "@/components/admin/usage-funnel";
 import { formatHours } from "@/components/reporting/format";
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
-import { AccountDot } from "@/components/xms/account-dot";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
@@ -33,7 +32,7 @@ const ACCOUNT_COLUMNS: DenseColumn<UsageAccountRow>[] = [
     sortValue: (row) => row.name,
     render: (row) => (
       <Link href={`/accounts/${row.account_id}`} className="text-xms-accent font-medium" data-account={row.account_id}>
-        <AccountDot name={row.name} />
+        <span className="text-xms-body">{row.name}</span>
       </Link>
     ),
   },

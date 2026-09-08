@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { AccountDot } from "@/components/xms/account-dot";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { Panel } from "@/components/xms/panel";
 import { dropOffLine, firstUsedLabel, roleLabel, stepLabel, stepsByKey, stepWidth } from "@/lib/reporting/usage";
@@ -36,7 +35,7 @@ export function FunnelPanel({ funnel }: { funnel: UsageFunnel }) {
           className="text-xms-accent font-medium"
           data-account={row.account_id}
         >
-          <AccountDot name={row.name} />
+          <span className="text-xms-body">{row.name}</span>
         </Link>
       ),
     },

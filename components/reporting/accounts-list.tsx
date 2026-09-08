@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { AccountStatusPill } from "@/components/admin/primitives";
-import { AccountDot } from "@/components/xms/account-dot";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useMe } from "@/redux/me";
@@ -33,7 +32,12 @@ export function AccountsList() {
 
   const columns = useMemo<DenseColumn<AccountListRow>[]>(() => {
     const base: DenseColumn<AccountListRow>[] = [
-      { key: "name", title: "Account", sortValue: (row) => row.name, render: (row) => <AccountDot name={row.name} /> },
+      {
+        key: "name",
+        title: "Account",
+        sortValue: (row) => row.name,
+        render: (row) => <span className="text-xms-body">{row.name}</span>,
+      },
       { key: "key", title: "Key", mono: true, sortValue: (row) => row.key },
       {
         key: "status",

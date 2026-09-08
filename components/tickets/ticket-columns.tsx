@@ -1,6 +1,5 @@
 "use client";
 
-import { AccountDot } from "@/components/xms/account-dot";
 import { shortName } from "@/components/xms/actor-chip";
 import type { DenseColumn } from "@/components/xms/dense-table";
 import { KeyLink } from "@/components/xms/key-link";
@@ -39,7 +38,12 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
   return new Date(iso).toISOString().slice(0, 10);
 }
 
-/** Stable identity hue per account (1 to 6) from the key so dots stay the same across screens. */
+/**
+ * Stable identity hue per account (1 to 6) from the key, so an account keeps
+ * the same one wherever it is drawn. No list draws it any more (the reviewer
+ * took the identity square off every list); it is kept for the account record
+ * itself, which is the one place a single swatch names one account.
+ */
 export function accountHue(key: string | undefined): number | undefined {
   if (!key) return undefined;
   let hash = 0;
@@ -59,14 +63,6 @@ export interface ColumnOptions {
    * clock and a hidden column can still be sorted on.
    */
   showClocks?: boolean;
-  /**
-   * Draw the account identity square before the name. My work's Needs
-   * attention list keeps it, because render 08 draws it there and the list is
-   * six rows across three accounts, which is exactly the case the swatch was
-   * for. The Queue does not: at 25 rows across seven columns the reviewer
-   * read it as decoration.
-   */
-  accountIdentity?: boolean;
 }
 
 /** The Queue's default sort: the tightest clock first (Wireframes section 3.1). */
@@ -77,22 +73,18 @@ export const QUEUE_DEFAULT_SORT = { key: "sla", direction: "asc" } as const;
  * description, Account, Type, Priority, State, Opened, Assignee, then SLA and
  * Updated, which v3 does not draw.
  *
- * Account and Type are plain text. The render draws an identity square before
- * the account and a type bar before the label, and the reviewer took both off
- * the Queue: the row now carries colour for state, priority and the clock
- * alone, which is the three questions the list is read for. `AccountDot` and
- * `TypeBar` stay in the system and stay in use on the record and on Dispatch.
+ * Account and Type are plain text, here and in every other list on every
+ * other screen. The render draws an identity square before the account and a
+ * type bar before the label; the reviewer took both off, so a row carries
+ * colour for state, priority and the clock alone, which is the three
+ * questions a list is read for. `components/xms/surfaces.test.tsx` fails if
+ * either comes back to a list.
  *
  * The widths add up to the render's: 1500 less the 238px sidebar, the page
  * padding and the card border leaves about 1180 for the visible cells, which
  * is why Short description takes the slack and everything else is fixed.
  */
-export function ticketColumns({
-  accounts,
-  hideAccount,
-  showClocks,
-  accountIdentity,
-}: ColumnOptions): DenseColumn<TicketView>[] {
+export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptions): DenseColumn<TicketView>[] {
   const columns: DenseColumn<TicketView>[] = [
     {
       key: "key",
@@ -116,15 +108,7 @@ export function ticketColumns({
       title: "Account",
       width: "168px",
       sortValue: (row) => accounts.get(row.account_id)?.name ?? row.account_id,
-      render: (row) => {
-        const account = accounts.get(row.account_id);
-        const name = account?.name ?? "Account";
-        return accountIdentity ? (
-          <AccountDot name={name} hue={accountHue(account?.key)} />
-        ) : (
-          <span className="text-xms-body">{name}</span>
-        );
-      },
+      render: (row) => <span className="text-xms-body">{accounts.get(row.account_id)?.name ?? "Account"}</span>,
     },
     {
       key: "type",
@@ -211,7 +195,7 @@ export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView
     state: "132px",
     sla: "92px",
   };
-  return ticketColumns({ ...options, showClocks: true, accountIdentity: true })
+  return ticketColumns({ ...options, showClocks: true })
     .filter((column) => wanted.has(column.key))
     .map((column) => ({
       ...column,

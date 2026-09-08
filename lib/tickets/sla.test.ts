@@ -35,8 +35,15 @@ describe("clockDisplay tones", () => {
   });
 
   it("is paused, breached and met in that precedence", () => {
-    expect(clockDisplay(clock({ paused: true }), now)).toEqual({ label: "2h 00m paused", tone: "paused" });
+    // Render 08's clock column reads "paused" on its own: a paused clock has
+    // no remaining time to count, and a figure beside the word would be
+    // elapsed time, which the column never shows.
+    expect(clockDisplay(clock({ paused: true }), now)).toEqual({ label: "paused", tone: "paused" });
+    // A latched breach whose due time is not in the past, which is what a
+    // reopened ticket carries: the number cannot answer, so the word does.
     expect(clockDisplay(clock({ breached: true }), now)).toEqual({ label: "Breached", tone: "breach" });
+    // An overdue clock says how far past due it is, which is what decides
+    // which breach is picked up first.
     expect(clockDisplay(clock({ dueAt: at(-30), remainingMinutes: -30 }), now)).toEqual({
       label: "-0h 30m",
       tone: "breach",
