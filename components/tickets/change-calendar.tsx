@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatDate, INPUT, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { formatDate } from "@/components/admin/primitives";
+import { HeaderFilters } from "@/components/shell/content-header-bar";
+import { FilterSelect } from "@/components/xms/filter-select";
 import { KeyLink } from "@/components/xms/key-link";
+import { MonthSelect } from "@/components/xms/month-select";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
-import { daysUntil, monthLabel, monthRange, nextWindow, shiftMonth } from "@/lib/tickets/change-window";
+import { daysUntil, monthLabel, monthRange, nextWindow } from "@/lib/tickets/change-window";
 import { ticketGroupStatusLabel } from "@/lib/tickets/groups";
-import { cn } from "@/lib/utils";
 import {
   useChangeCalendarQuery,
   useChangeWindowAtQuery,
@@ -128,9 +130,22 @@ export function ChangeCalendarScreen() {
   // The "at" route takes one account, so the line is drawn for the chosen
   // account, or for the only granted one where there is just one.
   const atAccount = accountId || (accounts?.length === 1 ? accounts[0].id : "");
+  const month = `${anchor.getUTCFullYear()}-${String(anchor.getUTCMonth() + 1).padStart(2, "0")}`;
 
   return (
     <div className="flex flex-col gap-4">
+      {/* The two dimensions stand on the grey strip, which was empty while a
+          native account select and three month buttons sat in a card header
+          inside the page. */}
+      <HeaderFilters>
+        <MonthSelect primary month={month} onChange={(value) => setAnchor(new Date(`${value}-01T00:00:00Z`))} />
+        <FilterSelect
+          label="Account"
+          value={accountId}
+          options={(accounts ?? []).map((account) => ({ value: account.id, label: account.name }))}
+          onChange={setAccountId}
+        />
+      </HeaderFilters>
       <Panel
         title="Right now"
         caption="CHANGE WINDOWS"
@@ -149,32 +164,6 @@ export function ChangeCalendarScreen() {
         title={monthLabel(anchor)}
         caption="CALENDAR"
         subtitle="Change windows overlapping this month, with their freezes and the changes planned inside them."
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label="Account"
-              value={accountId}
-              onChange={(event) => setAccountId(event.target.value)}
-              className={cn(INPUT, "h-[28px] w-[200px] text-[12px]")}
-            >
-              <option value="">Every account</option>
-              {(accounts ?? []).map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-            <button type="button" onClick={() => setAnchor(shiftMonth(anchor, -1))} className={SECONDARY_BUTTON}>
-              Previous month
-            </button>
-            <button type="button" onClick={() => setAnchor(shiftMonth(anchor, 1))} className={SECONDARY_BUTTON}>
-              Next month
-            </button>
-            <button type="button" onClick={() => setAnchor(new Date())} className={SECONDARY_BUTTON}>
-              This month
-            </button>
-          </div>
-        }
         flush
       >
         <div className="border-xms-line border-b px-4 py-2 text-[13px]" data-next-window>

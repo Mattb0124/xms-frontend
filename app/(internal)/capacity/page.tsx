@@ -6,7 +6,7 @@ import { AdminGate } from "@/components/admin/primitives";
 import { CapacityGrid } from "@/components/capacity/capacity-grid";
 import { CapacityTabs } from "@/components/capacity/capacity-tabs";
 import { DemandOverlay } from "@/components/capacity/demand-overlay";
-import { MonthSelect } from "@/components/capacity/month-select";
+import { MonthSelect } from "@/components/xms/month-select";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { FilterSelect } from "@/components/xms/filter-select";

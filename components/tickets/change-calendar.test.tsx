@@ -2,7 +2,14 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChangeCalendarScreen } from "@/components/tickets/change-calendar";
 import { aChangeWindow, ACCOUNT_ID, anOpenWindowAt, aFreeze } from "@/test-kit/tickets";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDesk, renderDeskInShell, stubFetch } from "@/test-kit/desk";
+
+// The toolbar band the screen portals its dimensions into pushes on the
+// screen switcher, so the router has to exist.
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/tickets/change-calendar",
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 const CALENDAR = "GET /v1/change-calendar";
 const AT = "GET /v1/change-calendar/at";
@@ -129,9 +136,11 @@ describe("ChangeCalendarScreen", () => {
       [CALENDAR]: () => calendar([aChangeWindow()]),
       [AT]: () => json(anOpenWindowAt()),
     });
-    renderDesk(<ChangeCalendarScreen />);
+    // The month is the strip's primary dimension now, so the toolbar band has
+    // to be mounted for the control to exist at all.
+    renderDeskInShell(<ChangeCalendarScreen />);
     await screen.findByRole("list", { name: "Change windows" });
-    fireEvent.click(screen.getByText("Next month"));
+    fireEvent.change(screen.getByLabelText("Month"), { target: { value: "2026-11" } });
     await waitFor(() =>
       expect(calls.filter((call) => call.key === CALENDAR).map((call) => call.search)).toContain(
         "?from=2026-11-01T00%3A00%3A00.000Z&to=2026-12-01T00%3A00%3A00.000Z",

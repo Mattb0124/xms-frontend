@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo } from "react";
 import { AdminGate, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { CapacityTabs } from "@/components/capacity/capacity-tabs";
-import { MonthSelect } from "@/components/capacity/month-select";
+import { MonthSelect } from "@/components/xms/month-select";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { FilterSelect } from "@/components/xms/filter-select";
