@@ -5,7 +5,7 @@
  * The App Router inlines the flight payload and the bootstrap script into
  * every server-rendered document, so a host-only `script-src` could not drop
  * `'unsafe-inline'` and the policy was a host allowlist and a clickjacking
- * control rather than an XSS control. `middleware.ts` now mints a nonce per
+ * control rather than an XSS control. `proxy.ts` now mints a nonce per
  * request, hands it to the framework on the request headers and sends this
  * policy on the response, so the scripts Next emits carry the nonce and an
  * injected `<script>` does not.
@@ -26,7 +26,7 @@
 /** Clerk's script, frame and websocket origins; also the CSP2 fallback allowlist. */
 export const CLERK_ORIGINS = "https://*.clerk.accounts.dev https://*.clerk.com https://clerk.com";
 
-/** The header the middleware puts the nonce on, and the one Clerk reads it from. */
+/** The header the proxy puts the nonce on, and the one Clerk reads it from. */
 export const NONCE_HEADER = "x-nonce";
 
 /** 16 random bytes, base64: no `<`, `>` or `&`, which Clerk refuses in a nonce. */

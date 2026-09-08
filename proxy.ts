@@ -2,7 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
 
 /**
- * The nonce middleware (security review finding 25).
+ * The nonce proxy (security review finding 25).
+ *
+ * Next 16.3 renamed this file convention: `middleware.ts` exporting
+ * `middleware` is deprecated, and `proxy.ts` exporting `proxy` is the
+ * supported name. Only the file and the export changed; the request and
+ * response objects, the `config.matcher` grammar and the behaviour below are
+ * the ones the middleware had.
  *
  * Every document request gets its own nonce. It goes out twice: on the
  * request headers, where the framework reads it and stamps it on every
@@ -16,7 +22,7 @@ import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/cs
  * Using a nonce makes a page render dynamically, which is what this
  * application does anyway: every screen reads the principal before it draws.
  */
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const nonce = newNonce();
   const csp = contentSecurityPolicy({
     nonce,

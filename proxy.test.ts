@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
 
 /**
@@ -10,8 +10,12 @@ import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/cs
  * control. These tests hold the replacement in place: a nonce per request,
  * on the request headers where the framework reads it and on the response
  * where the browser enforces it.
+ *
+ * The file this covers is `proxy.ts` now: Next 16.3 deprecated the
+ * `middleware` convention and renamed it to `proxy`. The assertions are the
+ * ones the middleware carried, unchanged, since only the name moved.
  */
-const run = (url = "https://xms.example.test/tickets") => middleware(new NextRequest(url));
+const run = (url = "https://xms.example.test/tickets") => proxy(new NextRequest(url));
 
 const cspOf = (response: ReturnType<typeof run>) => response.headers.get("content-security-policy") ?? "";
 
@@ -77,7 +81,7 @@ describe("the policy", () => {
   });
 });
 
-describe("the middleware", () => {
+describe("the proxy", () => {
   it("hands the nonce to the framework and enforces the same one on the response", () => {
     const response = run();
     const nonce = response.headers.get("x-middleware-request-x-nonce");

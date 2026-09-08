@@ -51,12 +51,12 @@ describe("the security headers", () => {
   });
 
   /**
-   * The CSP moved to middleware.ts when it gained a per-request nonce
+   * The CSP moved out of this file when it gained a per-request nonce
    * (security review finding 25). It must not be sent from here as well: a
    * response carrying two policies is held to the intersection of both, so a
    * static one would block every nonce'd script the other allows.
    */
-  it("sends no Content-Security-Policy of its own, which middleware.ts now owns", async () => {
+  it("sends no Content-Security-Policy of its own, which proxy.ts now owns", async () => {
     for (const environment of ["production", "development"]) {
       expect(await headersFor(environment)).not.toHaveProperty("Content-Security-Policy");
     }

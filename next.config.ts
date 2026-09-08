@@ -13,7 +13,7 @@ const isProduction = process.env.NODE_ENV === "production";
 /**
  * The Content-Security-Policy is not in this file (security review finding
  * 25). It carries a per-request nonce now, so it is built in
- * `lib/security/csp.ts` and sent by `middleware.ts`, the only place that can
+ * `lib/security/csp.ts` and sent by `proxy.ts`, the only place that can
  * mint one. Nothing here may send a CSP as well: two policies on one
  * response are enforced as the intersection of both, and a static one would
  * block every nonce'd script the other allows.

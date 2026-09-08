@@ -19,7 +19,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 ## The Content Security Policy
 
 The CSP carries a **per-request nonce** and is therefore not in
-`next.config.ts` at all: `lib/security/csp.ts` builds it and `middleware.ts`
+`next.config.ts` at all: `lib/security/csp.ts` builds it and `proxy.ts`
 sends it, setting the nonce on the request headers (where the framework reads
 it, and where `@clerk/nextjs` reads `x-nonce` for its own script tag) and the
 policy on the response. Nothing else may send a CSP: two policies on one
@@ -35,9 +35,10 @@ script-execution sink here, so the residual risk is style injection on a page
 with no HTML-injection sink at all.
 
 The root layout reads the nonce back out of the headers and passes it to
-next-themes, the one inline script this tree writes itself. `middleware.ts`
-is deprecated in favour of `proxy.ts` in Next 16.3 and still supported; the
-rename is a separate change.
+next-themes, the one inline script this tree writes itself. The file is
+`proxy.ts` exporting `proxy`: Next 16.3 deprecated the `middleware`
+convention and renamed it, and only the file and the export name changed,
+not the request and response objects or the `config.matcher` grammar.
 
 What must stay true, and is what kept the risk bounded before the nonce
 landed: no HTML-injection sink anywhere (no `dangerouslySetInnerHTML`, no
@@ -56,7 +57,7 @@ closed.
 ## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel)
 
 ```
-middleware.ts           the per-request CSP nonce: sets it on the request headers and the response policy
+proxy.ts                the per-request CSP nonce: sets it on the request headers and the response policy
 lib/security/csp        contentSecurityPolicy, newNonce and NONCE_HEADER ("x-nonce"); the only CSP in the codebase
 app/layout.tsx          fonts, .xms-scope, the nonce read back from the headers, Providers
 app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, time today, the Waiting on me rail,

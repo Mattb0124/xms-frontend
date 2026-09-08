@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * The nonce is minted per request by `middleware.ts` and read back here, so
+ * The nonce is minted per request by `proxy.ts` and read back here, so
  * the one inline script this tree writes (next-themes, before the first
  * paint) carries it. The framework's own scripts take it from the request
  * header without being told, and so does `@clerk/nextjs`, which reads

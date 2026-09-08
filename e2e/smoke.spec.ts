@@ -78,6 +78,10 @@ test.describe("smoke", () => {
     );
     expect(scripts.length).toBeGreaterThan(0);
     expect(scripts.filter((script) => !script.nonce).map((script) => script.src)).toEqual([]);
+    // Carrying a nonce is not enough: it has to be the one this response's
+    // policy names. A stale or second nonce would be refused by the browser,
+    // and would mean the proxy and the document disagree about the request.
+    expect(scripts.filter((script) => script.nonce !== nonce).map((script) => script.src)).toEqual([]);
     expect(blocked).toEqual([]);
   });
 });
