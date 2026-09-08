@@ -360,6 +360,22 @@ const SCREEN_ICON: Record<string, ComponentType<IconProps>> = {
   accounts: PeopleIcon,
   roster: PeopleIcon,
   ticket_groups: PeopleIcon,
+  // The admin tree, which the All overlay and the admin console both draw.
+  // Without these, every one of its thirteen rows took the fallback book, so
+  // a column of thirteen identical glyphs said nothing at all.
+  admin: GearIcon,
+  "admin.accounts": PeopleIcon,
+  "admin.users": PeopleIcon,
+  "admin.groups": PeopleIcon,
+  "admin.roles": ShieldIcon,
+  "admin.security": ShieldIcon,
+  "admin.api_clients": SwitchIcon,
+  "admin.connectors": SwitchIcon,
+  "admin.config": GearIcon,
+  "admin.holiday_calendars": ClockIcon,
+  "admin.migration": DownloadIcon,
+  "admin.audit": SearchIcon,
+  "admin.usage": ChartIcon,
 };
 
 export function screenIcon(screen: string | undefined): ComponentType<IconProps> {
