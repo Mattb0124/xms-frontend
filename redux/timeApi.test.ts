@@ -484,7 +484,7 @@ describe("timeApi after hours", () => {
         reads += 1;
         return json(aCompTimeReport());
       },
-      "POST /v1/accounts/acct-1/buckets/b-1/time": () => json(anEntry(), 201),
+      "POST /v1/accounts/acct-1/buckets/b-1/time-entries": () => json(anEntry(), 201),
     });
     const store = makeStore();
     const subscription = store.dispatch(
@@ -504,6 +504,25 @@ describe("timeApi after hours", () => {
       .unwrap();
     await vi.waitFor(() => expect(reads).toBe(2));
     subscription.unsubscribe();
+  });
+
+  it("logs bucket time on the /time-entries route the API renamed it to", async () => {
+    const calls = stubFetch({
+      "POST /v1/accounts/acct-1/buckets/b-1/time-entries": () => json(anEntry({ bucket_id: "b-1" }), 201),
+    });
+    const store = makeStore();
+    const entry = await store
+      .dispatch(
+        timeApi.endpoints.logBucketTime.initiate({
+          accountId: "acct-1",
+          bucketId: "b-1",
+          body: { performed_on: "2026-09-07", minutes: 30, activity_type: "analysis" },
+        }),
+      )
+      .unwrap();
+    expect(entry.bucket_id).toBe("b-1");
+    expect(calls.map((call) => call.key)).toEqual(["POST /v1/accounts/acct-1/buckets/b-1/time-entries"]);
+    expect(calls[0].body).toMatchObject({ performed_on: "2026-09-07", minutes: 30, activity_type: "analysis" });
   });
 
   it("sends the range on the comp-time route", async () => {

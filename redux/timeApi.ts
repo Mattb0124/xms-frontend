@@ -417,9 +417,15 @@ export const timeApi = xmsApi.injectEndpoints({
     listBuckets: build.query<Bucket[], string>({
       query: (accountId) => `/v1/accounts/${accountId}/buckets`,
     }),
+    /**
+     * Non-ticket time on a bucket (TB-12). The route is
+     * `.../buckets/{bucketId}/time-entries`, where technical 4 puts it: the
+     * backend renamed it from `/time` and checks the account in the path, so
+     * the old address is a 404 and logging bucket time stopped working.
+     */
     logBucketTime: build.mutation<TimeEntry, { accountId: string; bucketId: string; body: LogTimeBody }>({
       query: ({ accountId, bucketId, body }) => ({
-        url: `/v1/accounts/${accountId}/buckets/${bucketId}/time`,
+        url: `/v1/accounts/${accountId}/buckets/${bucketId}/time-entries`,
         method: "POST",
         body,
       }),
