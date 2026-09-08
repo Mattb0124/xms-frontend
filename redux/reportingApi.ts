@@ -104,12 +104,34 @@ export interface UsageCount {
   n: number;
 }
 
+/**
+ * One account's slice of the same window, each figure counted from the table
+ * that records it: `acct.tickets` for what was opened and closed,
+ * `acct.time_entries` for the minutes logged, `sys.security_events` for the
+ * portal sign-ins, `rpt.usage_events` for the API client calls and the
+ * active users. No named-user drill-down: that needs
+ * `analytics:read-individual`, and this route stands on `analytics:read`.
+ */
+export interface UsageAccountRow {
+  account_id: string;
+  key: string;
+  name: string;
+  tickets_created: number;
+  tickets_closed: number;
+  minutes_logged: number;
+  portal_signins: number;
+  api_calls: number;
+  active_users: number;
+}
+
 export interface UsageDashboard {
   active_users?: UsageCount[];
   actions?: UsageCount[];
   screens?: UsageCount[];
   no_result_searches?: UsageCount[];
   api_errors?: UsageCount[];
+  /** Optional for the API older than the strip; the screen leaves the table out rather than showing an empty one. */
+  per_account?: UsageAccountRow[];
 }
 
 export type AuditField =

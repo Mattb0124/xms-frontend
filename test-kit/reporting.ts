@@ -12,6 +12,8 @@ import type {
   ReportSchedule,
   ScheduleRun,
   SecurityDashboard as SecurityData,
+  UsageAccountRow,
+  UsageDashboard as UsageData,
 } from "@/redux/reportingApi";
 
 export const SCHEDULE_ID = "33333333-3333-4333-8333-333333333333";
@@ -306,6 +308,55 @@ export function aSecurityDashboard(overrides: Partial<SecurityData> = {}): Secur
     ],
     quarantined_attachments: [{ origin: "email", n: 1 }],
     open_dead_letters: [{ queue: "outbox", n: 5, oldest: "2026-09-01T04:00:00Z" }],
+    ...overrides,
+  };
+}
+
+/**
+ * The per-account strip of the Usage dashboard: two accounts over the same
+ * window, the busier one second so a screen that does not sort by tickets
+ * created is caught.
+ */
+export function aUsageStrip(overrides: Partial<UsageAccountRow>[] = []): UsageAccountRow[] {
+  const strip: UsageAccountRow[] = [
+    {
+      account_id: "acct-2",
+      key: "NWH",
+      name: "Northwind Health",
+      tickets_created: 4,
+      tickets_closed: 2,
+      minutes_logged: 90,
+      portal_signins: 1,
+      api_calls: 0,
+      active_users: 2,
+    },
+    {
+      account_id: "acct-1",
+      key: "BRK",
+      name: "Brookfield",
+      tickets_created: 31,
+      tickets_closed: 27,
+      minutes_logged: 1_320,
+      portal_signins: 12,
+      api_calls: 480,
+      active_users: 9,
+    },
+  ];
+  return strip.map((row, index) => ({ ...row, ...(overrides[index] ?? {}) }));
+}
+
+/** The Usage dashboard as the API answers it, strip and all. */
+export function aUsageDashboard(overrides: Partial<UsageData> = {}): UsageData {
+  return {
+    active_users: [
+      { key: "internal", n: 11 },
+      { key: "portal", n: 4 },
+    ],
+    actions: [{ key: "ticket.transition", n: 62 }],
+    screens: [{ key: "queue", n: 140 }],
+    no_result_searches: [{ key: "knowledge", n: 3 }],
+    api_errors: [{ key: "GET /v1/tickets", n: 2 }],
+    per_account: aUsageStrip(),
     ...overrides,
   };
 }
