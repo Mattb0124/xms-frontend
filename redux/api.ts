@@ -18,6 +18,23 @@ export interface MeResponse {
   principal: Principal;
 }
 
+/** One thing waiting on the signed-in person, with the address that opens it. */
+export interface WaitingItem {
+  key: string;
+  label: string;
+  count: number;
+  link: string;
+}
+
+/**
+ * "Waiting on me" (User Experience 3.1, frontend review finding 13). Every
+ * count is the server's, scoped to the principal; the browser only renders.
+ */
+export interface WaitingOnMe {
+  items: WaitingItem[];
+  as_of: string;
+}
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   credentials: "omit",
@@ -44,6 +61,7 @@ export const xmsApi = createApi({
   },
   tagTypes: [
     "Me",
+    "Waiting",
     "Accounts",
     "Account",
     "Users",
@@ -117,7 +135,11 @@ export const xmsApi = createApi({
       query: () => "/v1/admin/me",
       providesTags: ["Me"],
     }),
+    waitingOnMe: build.query<WaitingOnMe, void>({
+      query: () => "/v1/me/waiting",
+      providesTags: ["Waiting"],
+    }),
   }),
 });
 
-export const { useMeQuery } = xmsApi;
+export const { useMeQuery, useWaitingOnMeQuery } = xmsApi;

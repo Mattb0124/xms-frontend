@@ -41,7 +41,8 @@ authentication. Security review 2026-09-08, findings 25 and 26.
 
 ```
 app/layout.tsx          fonts, .xms-scope, Providers
-app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, needs attention, my open tickets),
+app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, time today, the Waiting on me rail,
+                        needs attention, my open tickets),
                         /tickets Queue (system views, chips, condition trail, Count card in the prototype's column order and
                         opening on SLA, selection bar, cursor paging, rows per page), /tickets/new (record form
                         with the priority preview), /tickets/[key] (record bar, transition menu, Properties with the matrix
@@ -361,6 +362,11 @@ test-kit/integrations.ts  constructed API client and finance fixtures (anApiClie
                         aFinanceDelivery) with the ids API_CLIENT_ID, FINANCE_ACCOUNT_ID, OTHER_ACCOUNT_ID and
                         BILLING_PERIOD_ID; no live key, endpoint or account
 test-kit/desk.tsx       renderDesk (store plus toasts) for desk component tests, re-exporting the fetch stub
+test-kit/my-work.ts     constructed My work fixtures (aWaitingItem, aWaiting)
+components/my-work/     waiting-rail (WaitingRail over GET /v1/me/waiting: a row per item with a non-zero count linking to
+                        the address the server gave, checked through lib/safe-url; "Nothing is waiting on you" when none
+                        is; hidden entirely, with no error, while the route answers 404 or 501, so My work keeps working
+                        before the backend deploys; waitingRows and isNotDeployed)
 components/shell/       FinderBar, FinderOverlay, PinnedSidebar, ContentHeaderBar (HeaderFilters, HeaderAction portals),
                         CommandPalette, NotificationsMenu (bell dropdown, 60 s unread poll), Shell, ScreenStub
 components/xms/         the house composition components (P1.4.2), one file each, import by path, no barrel;
@@ -375,7 +381,7 @@ lib/auth/               dev-mode switch (throws in production builds) and the To
 lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenViews, useTrack, request-id memory
 lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
-redux/                  api.ts (base API, me endpoint), adminApi.ts (Accounts & Administration endpoints and types, plus
+redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/waiting on the Waiting tag), adminApi.ts (Accounts & Administration endpoints and types, plus
                         getAccountConfig (effective may be null when nothing is active), setAccountOverride and
                         removeAccountOverride on the AccountConfig tag),
                         migrationApi.ts (batches with filters and run_by_name, create, one batch with its report, run, records

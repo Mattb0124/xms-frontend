@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { WaitingRail } from "@/components/my-work/waiting-rail";
 import { ticketColumns } from "@/components/tickets/ticket-columns";
 import { TimeTodayCard } from "@/components/time/time-today-card";
 import { BriefLine } from "@/components/xms/brief-line";
@@ -79,6 +80,7 @@ export default function MyWorkPage() {
         }
       />
       <TimeTodayCard />
+      <WaitingRail />
       {isLoading && !data ? (
         <Skeleton lines={6} />
       ) : (
