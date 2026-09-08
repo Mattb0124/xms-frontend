@@ -79,10 +79,10 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           on click, through the stacked field's own text-until-clicked shape. */}
       <div className="mb-[14px] flex flex-wrap items-center gap-[10px]">
         <span className="xms-mono text-xms-accent text-[13px] font-medium">{ticket.key}</span>
-        <div className="min-w-[280px] flex-1">
+        <div className="min-w-0 max-w-[520px] flex-1">
           <RecordForm
             layout="stacked"
-            className="[&_label]:sr-only [&>div]:border-b-0 [&>div]:px-0 [&>div]:py-0 [&_button]:text-[15px] [&_button]:font-medium"
+            className="[&_label]:sr-only [&>div]:gap-0 [&>div]:border-b-0 [&>div]:py-0 [&_button]:truncate [&_button]:text-[14px] [&_button]:leading-[1.4] [&_button]:font-normal [&_span]:truncate [&_span]:text-[14px] [&_span]:leading-[1.4] [&_span]:font-normal"
             fields={[{ key: "short_description", label: "Title", value: ticket.short_description, readOnly }]}
             onCommit={async (_key, value) => {
               await patch({ key: ticket.key, body: { version: ticket.version, short_description: value } }).unwrap();
@@ -98,16 +98,24 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         {/* The render (02) carries the state, the priority and the clock in
             this row and nothing else: the type is a Properties row, and a
             second coloured mark here competed with the state pill. */}
-        <PriorityPill priority={ticket.priority} className="h-[32px] rounded-[999px] px-[14px] text-[13px]" />
+        <PriorityPill
+          priority={ticket.priority}
+          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-[999px] border px-[14px] py-[9px] text-[13px] leading-none font-medium"
+        />
         {tight ? (
           // The chip the lists carry, in the record bar: the dot takes the
           // signal so a breached clock is red here as it is in a row, and
           // the value says what it is counting ("3h 12m left", render 02)
           // rather than standing as a bare number beside a blue dot that
           // never changed.
-          <span className="border-xms-line bg-xms-card inline-flex h-[32px] items-center gap-2 rounded-[999px] border px-[14px] text-[13px]">
-            <span className="text-xms-body">{tight.kind === "response" ? "Response" : "Resolution"}</span>
-            <SlaValue snapshot={clockSnapshot(tight)} dot verbose />
+          <span className="border-xms-neutral-line bg-xms-neutral-bg text-xms-neutral-ink xms-mono inline-flex items-center gap-2 rounded-[999px] border px-[14px] py-[9px] text-[13px] leading-none font-medium">
+            <SlaValue
+              snapshot={clockSnapshot(tight)}
+              dot
+              verbose
+              kind={tight.kind === "response" ? "Response" : "Resolution"}
+              className="text-xms-neutral-ink text-[13px]"
+            />
           </span>
         ) : null}
         {readOnly ? (
@@ -121,7 +129,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         <span className="ml-auto flex items-center gap-2">
           <Link
             href={`/tickets/${ticket.key}?axel=1`}
-            className="border-xms-line bg-xms-card text-xms-ink hover:border-xms-accent hover:text-xms-accent inline-flex h-[32px] items-center rounded-[6px] border px-3 text-[13px] font-medium hover:no-underline"
+            className="border-xms-note-line bg-xms-quiet-fill text-xms-body hover:text-xms-accent inline-flex items-center rounded-[5px] border px-[15px] py-[11px] text-[13px] leading-none font-semibold hover:no-underline"
           >
             Ask Axel
           </Link>
@@ -131,7 +139,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             aria-haspopup="menu"
             aria-expanded={more}
             onClick={() => setMore((open) => !open)}
-            className="border-xms-line bg-xms-card text-xms-label hover:text-xms-ink flex h-[32px] w-[38px] items-center justify-center rounded-[6px] border"
+            className="border-xms-line-strong bg-xms-card text-xms-body hover:text-xms-ink flex items-center justify-center rounded-[5px] border px-[14px] py-[11px] leading-none"
           >
             <MoreIcon size={ICON.field} />
           </button>

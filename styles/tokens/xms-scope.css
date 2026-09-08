@@ -86,6 +86,16 @@
   /* The quiet primary inside a note block: Log now, Accept. */
   --xms-note-action: #4a5568;
 
+  /* The neutral chip and the quiet filled button, both the prototype's own
+   * (proto-v3/template.pretty.html): the record bar's clock chip and the Sync
+   * tab's note stand on --xms-neutral-bg, and Ask Axel and Draft with Axel on
+   * --xms-quiet-fill. Neither carries state, which is why neither is on the
+   * blue --xms-chip. */
+  --xms-neutral-bg: #f1f3f6;
+  --xms-neutral-line: #dde2ea;
+  --xms-neutral-ink: #334155;
+  --xms-quiet-fill: #eff1f4;
+
   /* AI-origin content only (summaries, suggestions, drafts, synthesis). Never status. */
   --xms-ai-bg: #edf1ff;
   --xms-ai-border: #c7d6f7;
@@ -174,6 +184,10 @@
   --xms-quiet-line: #3a4d70;
   --xms-nav-wash: #16233f;
   --xms-note-bg: #172033;
+  --xms-neutral-bg: #1b2434;
+  --xms-neutral-line: #2a3752;
+  --xms-neutral-ink: #c6cede;
+  --xms-quiet-fill: #1e2839;
   --xms-note-line: #2a3752;
   --xms-note-ink: #d5dce8;
   --xms-note-action: #3c4a63;

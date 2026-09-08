@@ -44,6 +44,10 @@
   --color-xms-note-line: var(--xms-note-line);
   --color-xms-note-ink: var(--xms-note-ink);
   --color-xms-note-action: var(--xms-note-action);
+  --color-xms-neutral-bg: var(--xms-neutral-bg);
+  --color-xms-neutral-line: var(--xms-neutral-line);
+  --color-xms-neutral-ink: var(--xms-neutral-ink);
+  --color-xms-quiet-fill: var(--xms-quiet-fill);
   --color-xms-ai-bg: var(--xms-ai-bg);
   --color-xms-ai-border: var(--xms-ai-border);
   --color-xms-ai-accent: var(--xms-ai-accent);

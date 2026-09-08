@@ -142,8 +142,10 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
         <StatePill
           state={ticket.state}
           label={ticket.state_label}
-          className="h-[32px] gap-[6px] px-[14px] text-[13px] font-semibold"
-          trailing={terminal ? undefined : <ChevronDownIcon size={ICON.glyph} className="opacity-70" />}
+          // The prototype's own state pill in the record bar: 600 13px on 1,
+          // 9px by 14px, an 8px gap and a 15px chevron in the label grey.
+          className="gap-2 px-[14px] py-[9px] text-[13px] leading-none font-semibold"
+          trailing={terminal ? undefined : <ChevronDownIcon size={ICON.action} className="text-xms-label" />}
         />
       </button>
       {open ? (

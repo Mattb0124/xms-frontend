@@ -111,6 +111,26 @@ describe("SlaValue", () => {
     expect(container.querySelector("span[aria-hidden]")).toHaveClass("bg-[color:var(--xms-sla-breach)]");
   });
 
+  /*
+   * The chip in the record bar speaks the clock ("Resolution 3h 12m left",
+   * proto-v3/template.pretty.html). Spoken, a breach is breached by an amount:
+   * the bare minus sign is the list column's treatment, read against a column
+   * of numbers, and in a sentence it reads as a negative amount of time left.
+   */
+  it("names the clock and words a breach when it is spoken", () => {
+    const { rerender } = render(
+      <SlaValue snapshot={{ dueAt: "2026-09-07T13:30:00Z" }} now={now} tickMs={0} dot verbose kind="Resolution" />,
+    );
+    expect(screen.getByText("Resolution 3h 30m left")).toBeInTheDocument();
+    rerender(
+      <SlaValue snapshot={{ dueAt: "2026-09-07T08:00:00Z" }} now={now} tickMs={0} dot verbose kind="Response" />,
+    );
+    expect(screen.getByText("Response breached by 2h 00m")).toBeInTheDocument();
+    // The list column is unchanged: no word, no name, the minus sign kept.
+    rerender(<SlaValue snapshot={{ dueAt: "2026-09-07T08:00:00Z" }} now={now} tickMs={0} />);
+    expect(screen.getByText("-2h 00m")).toBeInTheDocument();
+  });
+
   it("renders in mono with the tone attribute", () => {
     render(<SlaValue snapshot={{ dueAt: "2026-09-07T08:00:00Z" }} now={now} tickMs={0} />);
     const value = screen.getByText("-2h 00m");

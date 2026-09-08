@@ -90,11 +90,18 @@ export interface SlaValueProps {
    * the word would repeat down every row.
    */
   verbose?: boolean;
+  /**
+   * The clock's own name, spoken before the number: the prototype's record bar
+   * reads "Resolution 3h 12m left" as one mono run inside the chip, with the
+   * signal on the dot alone. A list column passes nothing, because its header
+   * already names the clock.
+   */
+  kind?: string;
   className?: string;
 }
 
 /** Mono SLA value that counts down between polls; tone follows the signal trios. */
-export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, className }: SlaValueProps) {
+export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, kind, className }: SlaValueProps) {
   const [clock, setClock] = useState<Date>(() => now ?? new Date());
   useEffect(() => {
     if (!tickMs || now) return;
@@ -103,6 +110,13 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, classNa
   }, [tickMs, now]);
   const display = formatSla(snapshot, now ?? clock);
   const word = !verbose ? "" : display.tone === "ok" || display.tone === "warn" ? " left" : "";
+  // Spoken, a breach is breached by an amount. The bare "-49d 09h" is the
+  // list column's treatment, where the minus sign is read against a column of
+  // numbers; in a sentence it reads as a negative amount of time left.
+  const spoken =
+    verbose && display.tone === "breach" && display.label.startsWith("-")
+      ? `breached by ${display.label.slice(1)}`
+      : `${display.label}${word}`;
   return (
     <span
       className={cn(
@@ -113,7 +127,7 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, classNa
       data-tone={display.tone}
     >
       {dot ? <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-[999px]", TONE_DOT[display.tone])} /> : null}
-      {`${display.label}${word}`}
+      {kind ? `${kind} ${spoken}` : spoken}
     </span>
   );
 }
