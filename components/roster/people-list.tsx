@@ -106,6 +106,7 @@ export function PeopleList({ rows, groupNames, loading, search, emptyState }: Pe
   return (
     <DenseTable
       title="People"
+      subtitle="everyone on the roster, with the groups and skills each one carries"
       columns={columns}
       rows={rows}
       rowKey={(row) => row.id}

@@ -50,7 +50,7 @@ describe("RosterPage", () => {
     expect(calls.some((call) => call.key === "GET /v1/admin/groups")).toBe(false);
     // Groups cannot be resolved, so the chip shows the short id and the filter is disabled.
     expect(screen.getByText(GROUP_ID.slice(0, 8))).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "New person" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "New" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Import from directory" })).not.toBeInTheDocument();
   });
 

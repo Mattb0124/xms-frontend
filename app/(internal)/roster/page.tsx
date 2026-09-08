@@ -2,26 +2,26 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
-import { AdminGate, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { ImportFromDirectoryButton } from "@/components/roster/import-button";
 import { NewPersonForm } from "@/components/roster/new-person-form";
 import { PeopleList } from "@/components/roster/people-list";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
-import { FilterBar, type FilterCriterion } from "@/components/xms/filter-bar";
-import { Panel } from "@/components/xms/panel";
+import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
+import { ICON, PlusIcon, SearchIcon } from "@/components/xms/icons";
 import { Skeleton } from "@/components/xms/skeleton";
 import { filterFromSearch, filterToSearch } from "@/lib/roster/filters";
 import { ROLE_OPTIONS, roleLabel } from "@/lib/roster/vocab";
+import { cn } from "@/lib/utils";
 import { useListGroupsQuery } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
 import { useListPeopleQuery, useListSkillsQuery, type PeopleFilter } from "@/redux/rosterApi";
 
 const ACTIVE_LABEL: Record<NonNullable<PeopleFilter["active"]>, string> = {
-  true: "Active",
-  false: "Inactive",
-  all: "All",
+  true: "active",
+  false: "inactive",
+  all: "everyone",
 };
-const ACTIVE_CYCLE: NonNullable<PeopleFilter["active"]>[] = ["true", "false", "all"];
 
 function RosterScreen() {
   const router = useRouter();
@@ -35,7 +35,6 @@ function RosterScreen() {
   const skills = useListSkillsQuery();
   const groups = useListGroupsQuery(undefined, { skip: !canAdmin });
   const [creating, setCreating] = useState(false);
-  const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState(filter.q ?? "");
 
   const groupNames = useMemo(
@@ -49,114 +48,63 @@ function RosterScreen() {
   }, [people.data]);
 
   const apply = (next: PeopleFilter) => router.replace(`${pathname}${filterToSearch(next)}`);
-  const criteria: FilterCriterion[] = [];
-  if (filter.role) criteria.push({ key: "role", label: "Role", value: roleLabel(filter.role) });
-  if (filter.group)
-    criteria.push({ key: "group", label: "Group", value: groupNames?.[filter.group] ?? filter.group.slice(0, 8) });
-  if (filter.skill)
-    criteria.push({
-      key: "skill",
-      label: "Skill",
-      value: skills.data?.find((skill) => skill.code === filter.skill)?.name ?? filter.skill,
-    });
-  if (filter.q) criteria.push({ key: "q", label: "Search", value: filter.q });
 
   return (
     <>
+      {/* The four dimensions stand on the grey strip. Role, group and skill
+          were behind "+ Add filter", which opened a card of three native
+          selects and a Done button in the page body; the primary was a pill
+          that cycled through three states on click rather than offering
+          them. */}
       <HeaderFilters>
-        <FilterBar
-          primary={{
-            label: "Show",
-            value: ACTIVE_LABEL[filter.active ?? "true"],
-            onClick: () =>
-              apply({
-                ...filter,
-                active: ACTIVE_CYCLE[(ACTIVE_CYCLE.indexOf(filter.active ?? "true") + 1) % ACTIVE_CYCLE.length],
-              }),
-          }}
-          criteria={criteria}
-          onRemove={(key) => {
-            if (key === "q") setQuery("");
-            apply({ ...filter, [key]: undefined });
-          }}
-          onAdd={() => setAdding((value) => !value)}
-          onClearAll={() => {
-            setQuery("");
-            apply({ active: filter.active });
-          }}
+        <StripSelect
+          label="Show"
+          primary
+          value={filter.active ?? "true"}
+          onChange={(value) => apply({ ...filter, active: value as NonNullable<PeopleFilter["active"]> })}
+          display={`${ACTIVE_LABEL[filter.active ?? "true"]} (${(people.data ?? []).length})`}
+        >
+          <option value="true">Show: active</option>
+          <option value="false">Show: inactive</option>
+          <option value="all">Show: everyone</option>
+        </StripSelect>
+        <FilterSelect
+          label="Role"
+          value={filter.role ?? ""}
+          options={roleOptions}
+          onChange={(value) => apply({ ...filter, role: value || undefined })}
+        />
+        <FilterSelect
+          label="Group"
+          value={filter.group ?? ""}
+          // Without admin:users the group directory is out of reach, so the
+          // dimension offers what the rows themselves name and nothing more.
+          options={(groups.data ?? []).map((group) => ({ value: group.id, label: group.name }))}
+          onChange={(value) => apply({ ...filter, group: value || undefined })}
+        />
+        <FilterSelect
+          label="Skill"
+          value={filter.skill ?? ""}
+          options={(skills.data ?? []).map((skill) => ({ value: skill.code, label: skill.name }))}
+          onChange={(value) => apply({ ...filter, skill: value || undefined })}
         />
       </HeaderFilters>
       <HeaderAction>
         {canAdmin ? (
           <>
             <ImportFromDirectoryButton />
-            <button type="button" className={PRIMARY_BUTTON} onClick={() => setCreating(true)}>
-              New person
+            <button
+              type="button"
+              className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}
+              onClick={() => setCreating(true)}
+            >
+              <PlusIcon size={ICON.action} />
+              New
             </button>
           </>
         ) : null}
       </HeaderAction>
       <div className="flex flex-col gap-4">
-        {adding ? (
-          <Panel title="Add filter" caption="Role, group or skill">
-            <div className="grid gap-3 md:grid-cols-3">
-              <label className="flex flex-col gap-1 text-[12px]">
-                <span className="text-xms-label">Role</span>
-                <select
-                  aria-label="Filter by role"
-                  className={INPUT}
-                  value={filter.role ?? ""}
-                  onChange={(event) => apply({ ...filter, role: event.target.value || undefined })}
-                >
-                  <option value="">Any role</option>
-                  {roleOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-[12px]">
-                <span className="text-xms-label">Group</span>
-                <select
-                  aria-label="Filter by group"
-                  className={INPUT}
-                  value={filter.group ?? ""}
-                  disabled={!groups.data}
-                  onChange={(event) => apply({ ...filter, group: event.target.value || undefined })}
-                >
-                  <option value="">{groups.data ? "Any group" : "Groups need admin:users"}</option>
-                  {(groups.data ?? []).map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-[12px]">
-                <span className="text-xms-label">Skill</span>
-                <select
-                  aria-label="Filter by skill"
-                  className={INPUT}
-                  value={filter.skill ?? ""}
-                  onChange={(event) => apply({ ...filter, skill: event.target.value || undefined })}
-                >
-                  <option value="">Any skill</option>
-                  {(skills.data ?? []).map((skill) => (
-                    <option key={skill.id} value={skill.code}>
-                      {skill.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="mt-3">
-              <button type="button" className={SECONDARY_BUTTON} onClick={() => setAdding(false)}>
-                Done
-              </button>
-            </div>
-          </Panel>
-        ) : null}
         {creating && canAdmin ? (
           <NewPersonForm
             groups={groups.data}
@@ -173,6 +121,7 @@ function RosterScreen() {
           loading={people.isLoading}
           search={
             <form
+              className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
               onSubmit={(event) => {
                 event.preventDefault();
                 apply({ ...filter, q: query.trim() || undefined });
@@ -182,18 +131,23 @@ function RosterScreen() {
                 type="search"
                 aria-label="Search people"
                 placeholder="Name or email"
-                className={`${INPUT} h-[30px] w-[220px]`}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
               />
+              <button type="submit" aria-label="Run the search" className="text-xms-muted hover:text-xms-ink shrink-0">
+                <SearchIcon size={ICON.action} />
+              </button>
             </form>
           }
           emptyState={
             people.isLoading
               ? "Loading"
-              : canAdmin
-                ? "No one on the roster yet. Import from the directory to start."
-                : "No one matches."
+              : filter.role || filter.group || filter.skill || filter.q
+                ? "No one here. Set a dimension back to all, or clear the search."
+                : canAdmin
+                  ? "No one on the roster yet. Import from the directory to start."
+                  : "No one matches."
           }
         />
       </div>
@@ -201,7 +155,7 @@ function RosterScreen() {
   );
 }
 
-/** Registered as `roster` (Capacity): the people list with filters, import and New person. */
+/** Registered as `roster` (Capacity): the people list with its dimensions, import and New. */
 export default function RosterPage() {
   return (
     <AdminGate permission="capacity:view">
