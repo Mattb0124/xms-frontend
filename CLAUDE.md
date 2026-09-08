@@ -10,10 +10,11 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link. It carries the Queue's saved views the same way: `/v1/views` answers to `tickets:view`, the Queue's own gate, so the map exists to keep it there rather than to raise it. The analytics map now covers the audit's saved queries (five routes on `audit:read`, the key the search itself takes) and the Security screen's integrity route. Two maps were added with the 2026-09-08 group and time work, and both carry two keys rather than one, so each surface names its own: the routing defaults and the group catalog read under `tickets:view` and write under `admin:config` and `tickets:work`, and the non-ticket buckets read under `time:log` and write under `contracts:manage`. Neither write key is implied by its read key, and neither read key is implied by the account record's `admin:accounts` or its Contracts tab's `contracts:view`, which is why the routing panel and the buckets panel hold their own read gates instead of riding on the screen's.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link. It carries the Queue's saved views the same way: `/v1/views` answers to `tickets:view`, the Queue's own gate, so the map exists to keep it there rather than to raise it. The analytics map now covers the audit's saved queries (five routes on `audit:read`, the key the search itself takes) and the Security screen's integrity route. Two maps were added with the 2026-09-08 group and time work, and both carry two keys rather than one, so each surface names its own: the routing defaults and the group catalog read under `tickets:view` and write under `admin:config` and `tickets:work`, and the non-ticket buckets read under `time:log` and write under `contracts:manage`. Neither write key is implied by its read key, and neither read key is implied by the account record's `admin:accounts` or its Contracts tab's `contracts:view`, which is why the routing panel and the buckets panel hold their own read gates instead of riding on the screen's. A map was added with the request forms (CP-03): all six form routes answer to `admin:config`, read and write alike, which `admin:accounts` does not imply, so the builder holds its own guard and every hook is pinned to the route it reads.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
+- **A test file never imports another test file.** Vitest registers a module's suites the moment it is imported, so a fixture taken out of `redux/timeApi.test.ts` re-ran that file's own `describe` blocks inside the importer: fifty-seven files did it and the gate reported 1744 tests over the 1013 that existed. Every shared builder lives in a `test-kit/*` module, which declares no suite at all, and `test-kit/shared-fixtures.test.ts` scans for both halves of that rule.
 - No em-dashes in copy; ServiceNow vocabulary where it aids adoption (CS keys, work notes, resolution codes).
 
 ## The Content Security Policy
@@ -54,7 +55,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel, then the group queue with the routing defaults, the group catalog and the change calendar, and non-ticket time)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel, then the group queue with the routing defaults, the group catalog and the change calendar, non-ticket time, then the shared fixtures moved into test-kit and the per-account request forms, authored on the account and filled in on the portal)
 
 ```
 proxy.ts                the per-request CSP nonce: sets it on the request headers and the response policy
@@ -351,8 +352,24 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         winning over it on the server) and the group, added and removed as a draft of the whole set and
                         saved with one PUT under admin:config so a rule cannot be half-saved, with a rule naming no group
                         and two rules covering the same type and category refused before the API is asked; the panel is
-                        drawn for a tickets:view reader without admin:config, read only, since the catalogs above are not)
-                        (P2.9.2);
+                        drawn for a tickets:view reader without admin:config, read only, since the catalogs above are not;
+                        and last the Request forms (CP-03), one per ticket type, whose six routes all answer to
+                        admin:config, which admin:accounts does not imply, so the panel holds its own gate and asks
+                        nothing without it: the forms per type with the published version beside each, that version read
+                        only (the label, the key, the kind, whether it is required, the ticket field or custom key it
+                        writes and its condition, which is what a client is asked right now), and the draft beneath,
+                        held as one definition and saved as one body so a field cannot be half-saved. A field carries a
+                        kind over the server's twelve, a label, a key, required, the options of a choice, where the
+                        answer goes (only the columns that kind may write, then custom.<key>, which follows the key when
+                        it is renamed) and a condition on an answer to a conditionable field asked earlier, offered from
+                        that field's own answers. Every rule the server enforces is run first, so a problem reads beside
+                        the field rather than arriving as a 400: the key pattern, a duplicate key, two fields writing the
+                        same place, a kind writing a column it may not, a choice with no options, one attachment field
+                        at most and never a required one, and urgency and impact together or neither. Publish is behind
+                        a confirmation that says the version freezes, that a request being filled in keeps the version
+                        it started on and that the next change is a new draft; it is refused while the draft in hand is
+                        unsaved. New form is offered for a type with no active form, and form_already_exists,
+                        form_version_published and invalid_form_definition are all worded) (P2.9.2, CP-03);
                         /admin/migration (P2.22.2, admin:migration: Batches list with account, object kind and status as URL
                         filters, a Reconciliation tab over the filtered account, New batch), /admin/migration/new (full-screen
                         form: account, object kind, source kind, instance from the account's connectors, range, dry run on by
@@ -429,8 +446,18 @@ components/admin/reports/  report-schedules-tab (ReportSchedulesTab, ReviewPill,
                         the internal and portal user directories and the review switch, RunNowPanel, RunsHistory)
 components/admin/api-clients/  api-clients-view (ApiClientsView, ApiClientStatusPill, ScopeChips, NewKeyPanel: the key in a
                         copy box until it is dismissed by hand)
+components/admin/forms/  ticket-forms-panel (TicketFormsPanel holding its own admin:config gate, TicketFormsEditor with
+                        the forms per type and NewFormForm, FormEditor with the published version read only and the draft
+                        as one saved definition, FieldEditor per field and the publish confirmation)
 components/admin/finance/  finance-tab (AccountFinanceTab, DestinationForm over DestinationEditor keyed on the record's
                         version, NewSecretPanel, DeliveriesPanel with Deliver now, DeliveryStatusPill)
+lib/admin/ticket-forms  the builder's draft grammar (CP-03): TicketForm and TicketFormVersion, the FieldDraft with
+                        emptyFieldDraft, draftFromField, draftFromDefinition and definitionFromDraft (a boolean
+                        condition written back as a boolean, an option list only for the kinds that take one),
+                        mapsToOptions and CUSTOM_PREFIX, controllersFor, validateFormDraft (every check the server makes,
+                        run first so a problem reads beside the field), publishedVersion, draftVersion, versionLabel,
+                        PUBLISH_FREEZES_NOTE, formError and describeFormError for invalid_form_definition with the
+                        server's own problems, form_already_exists and form_version_published
 lib/integrations/       api-clients (API_CLIENT_STATUS, DEFAULT_RATE_LIMIT (600) and MAX_RATE_LIMIT, the ApiClientDraft
                         with emptyApiClientDraft opening on the default rate, toggle,
                         validateApiClient and apiClientBody, lastUsedLabel, expiryLabel, rateLimitLabel, accountLabel,
@@ -622,7 +649,12 @@ lib/admin/              apiError/describeError (typed error bodies) and useMutat
 app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome (never the internal shell):
                         / search-first home (own requests plus the knowledge placeholder), /sign-in (dev token paste,
                         Clerk SignIn when configured), /requests (Open or All, org-wide toggle with
-                        portal:view-org-tickets), /requests/new (default form per type, inline validation),
+                        portal:view-org-tickets), /requests/new (CP-03: the form the account published for the chosen type when there
+                        is one, and the fixed default form otherwise, which is also what the page shows while the
+                        forms route is not deployed; with a published form anywhere on the account the request types
+                        are named by GET /v1/portal/forms rather than here, the chosen one is read again through
+                        /v1/portal/forms/:type, and a type published for nothing still opens the fixed form with the
+                        type already chosen above it rather than asked twice),
                         /requests/[key] (public thread, composer, Files card with upload and scan states, cancel, confirm closure,
                         reopen); /requests/new queues files and uploads them after the request exists;
                         /surveys (CP-07, functional 5.7: the pending surveys of both kinds as cards, each asking the
@@ -645,13 +677,25 @@ components/portal/      PortalChrome (account name and accent, nav with Surveys,
                         main column when isSurveyLink matches, skipping /portal/me), SearchHome, RequestList,
                         survey-question (SurveyQuestion takes the row's questions: one fieldset each, named by its own
                         question, five labelled buttons, one comment, Send disabled until every question is answered),
-                        RequestForm (validateRequest), RequestThread and CommentComposer, RequestDetail, primitives
+                        RequestForm (validateRequest; it takes an optional type where the page has already asked for
+                        one), dynamic-request-form (DynamicRequestForm: a published definition rendered by kind, the
+                        conditional fields asked only once their condition holds, the required ones refused here first,
+                        an attachment field pointing at the Files card, ci_picker and contact_picker as a typed
+                        identifier since the portal serves no directory for either, posting { type, answers } and
+                        wording each invalid_submission problem beside its own field and form_answers_required about
+                        the whole form), RequestThread and CommentComposer, RequestDetail, primitives
                         (ClientStatusPill, PortalCard, buttons and inputs), attachments (PortalUploadControl, PortalAttachmentList,
                         client scan copy), surveys (SurveysPage with focusId, both kinds), survey-link (SurveyLinkAnswer,
                         which reads the survey behind the token before asking anything).
                         Renders portal view models only; nothing
                         from components/tickets or app/(internal) is imported here
 lib/portal/             client-language (the seven client statuses, type and level copy, priority words, relative time),
+                        forms (CP-03, the vocabulary both sides share, mirrored from the server's
+                        src/domain/portal/form-schema.ts and never relaxing it: FORM_FIELD_KINDS, FORM_TICKET_TYPES,
+                        FORM_TICKET_COLUMNS and COLUMNS_BY_KIND, CONDITIONABLE_KINDS and conditionValuesOf, LEVELS,
+                        kindLabel, formTypeLabel and levelLabel; the client half conditionHolds, visibleFields,
+                        answersBody (only what was asked and answered, each in its kind's shape) and missingRequired;
+                        submissionError, problemsByField, describeSubmissionError and FORM_ANSWERS_REQUIRED_MESSAGE),
                         csat (SCORES, SCORE_LABELS, scoreLabel, surveyQuestion, isSurveyLink, expiryLabel; the two kinds:
                         surveyKind (a row with none reads as ticket_close), isQuarterly, periodLabel ("2026 Q2"), keyLabel,
                         questionsOf (what the server sent, never a question text kept here),
@@ -659,6 +703,15 @@ lib/portal/             client-language (the seven client statuses, type and lev
                         answerLine; LINK_NOT_VALID, surveyError and
                         describeSurveyError for already_answered, survey_closed with its status,
                         not_found, token_required)
+test-kit/forms.ts       constructed request form fixtures (aFormField, aFormDefinition (a required summary, a choice a
+                        later field reads, the conditional text behind it and a boolean), aFormVersion, aPublishedVersion,
+                        aTicketForm (version 1 published with version 2 waiting as a draft), aPortalForm and
+                        aDefaultPortalForm) with FORM_ACCOUNT_ID, FORM_ID, DRAFT_VERSION_ID and PUBLISHED_VERSION_ID
+test-kit/time.ts, tickets.ts, roster.ts, connectors.ts, capacity.ts, migration.ts, calendars.ts, knowledge.ts and
+                        config.ts   the builders that used to live in the redux slice tests and were imported across
+                        files, which re-registered those files' suites in every importer; each module declares no suite
+test-kit/shared-fixtures.test.ts  the scan that keeps it that way: no test file imports another, no source file
+                        imports a test file, and no imported test-kit module declares a describe, an it or a test
 test-kit/portal.tsx     constructed portal fixtures (aPortalMe, aPortalTicket, aTimeline, aSurvey, anAnsweredSurvey,
                         QUARTERLY_QUESTIONS, aQuarterlySurvey, aQuarterlyAnswer, aSurveyDescription and
                         aQuarterlyDescription as the describe route answers them), the fetch stub and renderPortal for the
@@ -720,7 +773,10 @@ redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/w
                         link optional as the API sends it), adminApi.ts (Accounts & Administration endpoints and types, plus
                         getAccountConfig (effective may be null when nothing is active), setAccountOverride and
                         removeAccountOverride on the AccountConfig tag; CONTACT_FLAGS with listContacts (`q`) and
-                        setContactFlags (the whole set with the version, the list reloaded either way) on the Contacts tag),
+                        setContactFlags (the whole set with the version, the list reloaded either way) on the Contacts tag;
+                        the six request form routes listTicketForms, createTicketForm, patchTicketForm, addFormVersion,
+                        editFormVersion and publishFormVersion on the TicketForms tag, every write reloading the list,
+                        since the list carries every version of every form),
                         migrationApi.ts (batches with filters and run_by_name, create, one batch with its report, run, records
                         with status and search, one record with its payload, reconciliation reports with signed_by_name,
                         explained_by_name, can_sign and sign_blocker, explain, sign-off; tags MigrationBatches,
@@ -737,7 +793,10 @@ redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/w
                         `:engagements` tag, the list reloaded even when a patch is refused; listSavedViews,
                         createSavedView, patchSavedView and deleteSavedView over /v1/views on the SavedViews tag, the
                         list reloaded even when an edit is refused), portalApi.ts (the
-                        /v1/portal mirror, the searchArticles placeholder, portalSurveys with pending and answered, each
+                        /v1/portal mirror, portalForms and portalForm on the PortalForms tag (the request types the
+                        account offers and the definition behind each, the fixed default among them where it published
+                        none), CreatePortalTicketBody taking `answers` beside the flat shape, the searchArticles
+                        placeholder, portalSurveys with pending and answered, each
                         row carrying its kind, period, questions and answers, one AnswerSurveyBody taking `score` or
                         `scores`, answerPortalSurvey reloading the list even when refused, describeSurveyLink (a POST
                         that reads, because the token belongs in the body and never in the address) and answerSurveyLink
