@@ -71,19 +71,22 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
   );
 
   return (
+    // 16px between the bands, which is the prototype's own margin under the
+    // synthesis line and under the tiles.
     <div className="flex flex-col gap-4" data-testid="operations-dashboard">
       <HeaderFilters>
         <PeriodSwitcher value={days} onChange={setDays} />
-      </HeaderFilters>
-      <div className="flex items-center gap-3">
-        <PeriodSwitcher value={days} onChange={setDays} className="md:hidden" />
+        {/* The window the measures were taken over, beside the control that
+            set it. It stood on a line of its own above the synthesis, which
+            render 10 does not draw and which pushed every band below it down
+            by the height of that line. */}
         {data ? (
-          <span className="text-xms-label ml-auto text-[12px]">
+          <span className="text-xms-label text-[12px] whitespace-nowrap">
             {formatPeriod(data.period)}
             {isFetching ? " · refreshing" : ""}
           </span>
         ) : null}
-      </div>
+      </HeaderFilters>
 
       {isError ? (
         <EmptyBanner
@@ -97,22 +100,29 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
 
       {data ? (
         <>
-          <p className="bg-xms-navy rounded-[6px] px-5 py-4 text-[14px] text-white" data-testid="synthesis">
+          {/* The synthesis line is written from the same snapshots the tiles
+              read (render 10, note 1), so it takes the AI tint the whole
+              product gives generated text, not the navy of the shell. Drawn
+              in navy it read as a system banner, which is the one thing it is
+              not: 18px by 20px, 15px on a 1.6 line, the prototype's own. */}
+          <p className="xms-ai text-xms-body px-5 py-[18px] text-[15px] leading-[1.6]" data-testid="synthesis">
             {synthesisLine(data.measures, data.per_account.length)}
           </p>
           <TileStrip measures={data.measures} links={{ base: "/tickets" }} />
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-[14px] lg:grid-cols-2">
             <SlaPanel measures={data.measures} />
             <OutcomesPanel measures={data.measures} />
             <BacklogPanel measures={data.measures} />
             <BreakdownPanel
               title="Open by priority"
+              note="click to filter the queue"
               values={data.measures.open_by_priority}
               linkBase="/tickets"
               param="priority"
             />
             <BreakdownPanel
               title="Open by type"
+              note="click to filter the queue"
               values={data.measures.open_by_type}
               linkBase="/tickets"
               param="type"

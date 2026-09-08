@@ -37,15 +37,26 @@ export function ScoreTile({ label, value, detail, detailBeside, href, onClick, s
   const body = (
     <>
       <p className="xms-caption">{label}</p>
-      <p className={cn("mt-[9px]", detailBeside ? "flex items-baseline gap-[10px]" : undefined)}>
-        <span className="xms-mono text-xms-ink block text-[26px] leading-[1.15] font-medium">{value}</span>
-        {detail && detailBeside ? <span className="text-xms-muted text-[13px]">{detail}</span> : null}
+      <p className={cn(detailBeside ? "mt-[10px] flex items-baseline gap-[10px]" : "mt-[9px]")}>
+        <span
+          className={cn(
+            "xms-mono text-xms-ink block text-[26px] font-medium",
+            detailBeside ? "leading-[1.1]" : "leading-[1.15]",
+          )}
+        >
+          {value}
+        </span>
+        {detail && detailBeside ? <span className="text-xms-muted text-[13px] leading-none">{detail}</span> : null}
       </p>
       {detail && !detailBeside ? <p className="text-xms-muted mt-[4px] text-[12px] leading-[1.4]">{detail}</p> : null}
     </>
   );
   const classes = cn(
-    "xms-card block p-4 text-left",
+    // The prototype pads a My work tile 16px and a dashboard tile 18px, and
+    // the dashboard tile is exactly the one carrying its detail beside the
+    // number, so the two go together rather than needing a second prop.
+    "xms-card block text-left",
+    detailBeside ? "p-[18px]" : "p-4",
     (href || onClick) && "hover:border-xms-accent-border",
     selected && "border-xms-accent bg-xms-nav-wash",
     className,

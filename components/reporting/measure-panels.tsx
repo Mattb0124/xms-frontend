@@ -43,7 +43,11 @@ export function TileStrip({ measures, links }: { measures: Partial<Measures>; li
   const present = tiles.filter((tile) => typeof measures[tile.key] === "number");
   if (present.length === 0) return null;
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" data-testid="tile-strip">
+    // Three across, at the prototype's own 14px gap. Six across squeezed each
+    // tile to about 200px on a 1500 window, which is narrower than the number
+    // and its delta need on one baseline, so the delta wrapped under the
+    // figure and the strip read as a row of chips.
+    <div className="grid grid-cols-2 gap-[14px] md:grid-cols-3" data-testid="tile-strip">
       {present.map((tile) => {
         const value = measures[tile.key] as number;
         // Render 10 puts the delta caption beside the number on one baseline.
@@ -60,7 +64,7 @@ export function SlaPanel({ measures }: { measures: Partial<Measures> }) {
   const resolution = measures.sla_resolution_attainment;
   if (!response && !resolution) return null;
   return (
-    <Panel title="SLA attainment" caption="Period">
+    <Panel title="SLA attainment" note="this period" bare>
       <div className="flex flex-col gap-4">
         {[
           { label: "Response", ratio: response },
@@ -100,7 +104,7 @@ export function OutcomesPanel({ measures }: { measures: Partial<Measures> }) {
   const hasOldest = measures.oldest_open_days !== undefined;
   if (!hasMttr && !hasReopen && !hasOldest) return null;
   return (
-    <Panel title="Outcomes" caption="Period">
+    <Panel title="Outcomes" note="this period" bare>
       <dl className="grid grid-cols-3 gap-4">
         {hasMttr ? (
           <div>
@@ -134,19 +138,28 @@ export function BacklogPanel({ measures }: { measures: Partial<Measures> }) {
   if (!backlog) return null;
   const max = Math.max(1, ...AGE_BUCKETS.map((bucket) => backlog[bucket.key] ?? 0));
   return (
-    <Panel title="Backlog by age" caption="Days open">
-      <div className="flex h-[140px] items-end gap-3" role="img" aria-label="Backlog by age">
+    // 150px of plot, 12px between the columns, an 8px gap above each label:
+    // the prototype's own bar block. The count above the bar went with it, as
+    // the render draws none and it was taking a fifth of the plot height; the
+    // number is on each column's title instead, so the value is still
+    // readable and still reaches a screen reader.
+    <Panel title="Backlog by age" note="days open" bare>
+      <div className="flex h-[150px] items-end gap-3" role="img" aria-label="Backlog by age">
         {AGE_BUCKETS.map((bucket) => {
           const count = backlog[bucket.key] ?? 0;
           return (
-            <div key={bucket.key} className="flex flex-1 flex-col items-center gap-1" data-bucket={bucket.key}>
-              <span className="xms-mono text-xms-ink text-[12px]">{count}</span>
+            <div
+              key={bucket.key}
+              className="flex h-[150px] flex-1 flex-col items-center justify-end gap-2"
+              data-bucket={bucket.key}
+              title={`${bucket.label}: ${count}`}
+            >
               <div
-                className="bg-xms-accent w-full rounded-t-[3px]"
-                style={{ height: `${Math.max(4, Math.round((count / max) * 100))}px` }}
+                className="bg-xms-accent w-full rounded-t-[4px]"
+                style={{ height: `${Math.max(4, Math.round((count / max) * 126))}px` }}
                 data-testid={`backlog-${bucket.key}`}
               />
-              <span className="xms-mono text-xms-muted text-[11px]">{bucket.label}</span>
+              <span className="xms-mono text-xms-muted text-[11px] leading-none">{bucket.label}</span>
             </div>
           );
         })}
@@ -158,12 +171,15 @@ export function BacklogPanel({ measures }: { measures: Partial<Measures> }) {
 export function BreakdownPanel({
   title,
   values,
+  note,
   linkBase,
   param,
   labelOf,
 }: {
   title: string;
   values: Record<string, number> | undefined;
+  /** The short phrase beside the title, the prototype's own `p.note`. */
+  note?: string;
   linkBase?: string;
   param?: string;
   /** Names a key; pass the vocabulary so one label is used on every screen. */
@@ -173,8 +189,12 @@ export function BreakdownPanel({
   const entries = Object.entries(values).sort((a, b) => b[1] - a[1]);
   const max = Math.max(1, ...entries.map(([, n]) => n));
   return (
-    <Panel title={title} caption="Open">
-      <ul className="flex flex-col gap-2">
+    // The prototype's list row: the label takes the room, the meter is a
+    // fixed 130 by 8, and the value is 48px of mono on the right. The label
+    // used to be capped at 120px and the meter to take the rest, so a long
+    // label truncated while the meter ran half the card wide.
+    <Panel title={title} note={note} bare>
+      <ul className="flex flex-col">
         {entries.map(([key, count]) => {
           const label = labelOf ? labelOf(key) : key.replace(/_/g, " ");
           const href =
@@ -182,18 +202,21 @@ export function BreakdownPanel({
               ? `${linkBase}${linkBase.includes("?") ? "&" : "?"}${param}=${encodeURIComponent(key)}`
               : undefined;
           return (
-            <li key={key} className="flex items-center gap-3 text-[13px]">
+            <li key={key} className="border-xms-line-row flex items-center gap-3 border-t py-[10px] text-[14px]">
               {href ? (
-                <a href={href} className="text-xms-ink w-[120px] capitalize hover:underline">
+                <a href={href} className="text-xms-ink min-w-0 flex-1 truncate capitalize hover:underline">
                   {label}
                 </a>
               ) : (
-                <span className="text-xms-ink w-[120px] capitalize">{label}</span>
+                <span className="text-xms-ink min-w-0 flex-1 truncate capitalize">{label}</span>
               )}
-              <div className="bg-xms-tint h-2 flex-1 overflow-hidden rounded-[999px]">
-                <div className="bg-xms-accent h-full rounded-[999px]" style={{ width: `${(count / max) * 100}%` }} />
-              </div>
-              <span className="xms-mono text-xms-ink w-8 text-right">{count}</span>
+              <span className="bg-xms-line-row h-2 w-[130px] shrink-0 overflow-hidden rounded-[999px]">
+                <span
+                  className="bg-xms-accent block h-2 rounded-[999px]"
+                  style={{ width: `${(count / max) * 100}%` }}
+                />
+              </span>
+              <span className="xms-mono text-xms-body w-12 shrink-0 text-right text-[13px]">{count}</span>
             </li>
           );
         })}
@@ -239,7 +262,7 @@ export function NotablePanel({ notable }: { notable: Notable[] | undefined }) {
 export function ConsumptionPanel({ measures }: { measures: Partial<Measures> }) {
   if (measures.consumption_minutes === undefined && measures.time_logged_minutes === undefined) return null;
   return (
-    <Panel title="Time" caption="Period">
+    <Panel title="Time" note="this period" bare>
       <dl className="grid grid-cols-2 gap-4">
         {measures.consumption_minutes !== undefined ? (
           <div>

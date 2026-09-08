@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OperationsDashboard } from "@/components/reporting/operations-dashboard";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDesk, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 import { anOperationsDashboard, someMeasures } from "@/test-kit/reporting";
 
 const push = vi.fn();
@@ -37,7 +37,8 @@ describe("OperationsDashboard", () => {
     expect(screen.getByTestId("sla-resolution")).toHaveTextContent("90%");
     expect(screen.getByText("11.4h")).toBeInTheDocument();
     expect(screen.getByText("4%")).toBeInTheDocument();
-    expect(screen.getByTestId("backlog-3_7d")).toHaveStyle({ height: "100px" });
+    // 126px is the prototype's own tallest bar in a 150px plot.
+    expect(screen.getByTestId("backlog-3_7d")).toHaveStyle({ height: "126px" });
 
     const notable = screen.getByTestId("notable-list");
     expect(notable.querySelectorAll("li")).toHaveLength(2);
@@ -48,14 +49,17 @@ describe("OperationsDashboard", () => {
     expect(push).toHaveBeenCalledWith("/accounts/acct-2");
   });
 
-  it("re-fetches for the chosen period", async () => {
+  it("re-fetches for the chosen period, from the control on the toolbar strip", async () => {
     const calls = stubFetch({
       "GET /v1/dashboards/operations": () =>
         json(anOperationsDashboard({ measures: someMeasures({ breached_now: 0 }) })),
     });
-    renderDesk(<OperationsDashboard />);
+    // In a real toolbar band, so the period control the reader sees is the
+    // one driven here. The screen used to keep a second copy of it in the
+    // page body, which is what this test used to click.
+    renderDeskInShell(<OperationsDashboard />);
     await waitFor(() => expect(screen.getByTestId("synthesis")).toBeInTheDocument());
-    fireEvent.click(screen.getAllByRole("radio", { name: "30 days" })[0]);
+    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "30" } });
     await waitFor(() => expect(calls.some((call) => call.search === "?days=30")).toBe(true));
   });
 });

@@ -106,7 +106,7 @@ describe("UsageDashboard per-account strip", () => {
     );
 
     await waitFor(() => expect(screen.getByRole("region", { name: "Accounts" })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("radio", { name: "90 days" }));
+    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "90" } });
     await waitFor(() =>
       expect(calls.filter((call) => call.key === "GET /v1/dashboards/usage").at(-1)?.search).toContain("days=90"),
     );

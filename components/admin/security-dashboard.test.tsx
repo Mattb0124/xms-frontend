@@ -165,7 +165,7 @@ describe("SecurityDashboard", () => {
     );
 
     await waitFor(() => expect(screen.getByTestId("security-tiles")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("radio", { name: "30 days" }));
+    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "30" } });
     await waitFor(() =>
       expect(calls.filter((call) => call.key === "GET /v1/dashboards/security").length).toBeGreaterThan(1),
     );
