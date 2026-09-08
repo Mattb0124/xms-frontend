@@ -228,6 +228,53 @@ export interface UsageAccountRow {
   active_users: number;
 }
 
+/**
+ * One step of the core loop (Audit & Analytics 7.1, backend c193b4b), counted
+ * from the record that proves it: the ticket row for the opening, the first
+ * response, the linked solution, the resolution and the closure, and a time
+ * entry for the logged time.
+ *
+ * `drop_off` is the fall from the step before, and it can be negative. A step
+ * is not a subset of the one before it (a ticket can be resolved under a time
+ * exemption, or with no article), so a step can hold more tickets than its
+ * predecessor. That is a property of the loop and not an error, which is why
+ * the screen words a negative rather than hiding it.
+ */
+export interface FunnelStep {
+  step: string;
+  n: number;
+  drop_off: number;
+}
+
+export interface AccountFunnel {
+  account_id: string;
+  key: string;
+  name: string;
+  steps: FunnelStep[];
+}
+
+export interface UsageFunnel {
+  steps: FunnelStep[];
+  per_account: AccountFunnel[];
+}
+
+/**
+ * Feature adoption by role (Audit & Analytics 7.1): which actions each role
+ * uses and when it first used them. `users` and `n` are the window;
+ * `first_used_at` is the first time that role ever used that action, which is
+ * what a first-use date means and what a window would destroy. A person
+ * holding two roles counts under both, and an actor with no assignment is
+ * reported as `unassigned` in the `none` catalog rather than dropped.
+ */
+export interface AdoptionRow {
+  catalog: string;
+  role: string;
+  action: string;
+  users: number;
+  n: number;
+  first_used_at: string;
+}
+
 export interface UsageDashboard {
   active_users?: UsageCount[];
   actions?: UsageCount[];
@@ -236,6 +283,9 @@ export interface UsageDashboard {
   api_errors?: UsageCount[];
   /** Optional for the API older than the strip; the screen leaves the table out rather than showing an empty one. */
   per_account?: UsageAccountRow[];
+  /** The core loop over the window, and again per account. Optional for the same reason. */
+  funnel?: UsageFunnel;
+  adoption?: { by_role: AdoptionRow[] };
 }
 
 export type AuditField =

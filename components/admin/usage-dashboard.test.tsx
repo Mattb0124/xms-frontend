@@ -53,7 +53,8 @@ describe("UsageDashboard per-account strip", () => {
     });
     renderDesk(<UsageDashboard />);
 
-    await waitFor(() => expect(screen.getByText("Brookfield")).toBeInTheDocument());
+    // Scoped to the strip: the core-loop table names the same accounts.
+    await waitFor(() => expect(within(strip()).getByText("Brookfield")).toBeInTheDocument());
     expect(within(strip()).getByRole("link", { name: "Brookfield" })).toHaveAttribute("href", "/accounts/acct-1");
     expect(within(strip()).getByRole("link", { name: "Northwind Health" })).toHaveAttribute("href", "/accounts/acct-2");
   });

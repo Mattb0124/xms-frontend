@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CountList } from "@/components/admin/security-dashboard";
+import { AdoptionPanel, FunnelPanel } from "@/components/admin/usage-funnel";
 import { formatHours } from "@/components/reporting/format";
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
@@ -128,6 +129,11 @@ export function UsageDashboard() {
               <CountList rows={rows(data.api_errors, 30)} empty="No API errors in the period." />
             </Panel>
           </div>
+          {/* The core loop and the adoption table (backend c193b4b), each
+              drawn only where the API answers it, so an older API leaves them
+              out rather than showing a loop of zeros nobody measured. */}
+          {data.funnel ? <FunnelPanel funnel={data.funnel} /> : null}
+          {data.adoption ? <AdoptionPanel rows={data.adoption.by_role} /> : null}
           {data.per_account ? (
             <DenseTable<UsageAccountRow>
               title="Accounts"

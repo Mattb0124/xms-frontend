@@ -1,6 +1,7 @@
 import type {
   AccountCsat,
   AccountDashboard,
+  AdoptionRow,
   AuditEvent,
   AuditSavedQuery,
   CsatQuarterly,
@@ -21,6 +22,7 @@ import type {
   SecurityIntegrity,
   UsageAccountRow,
   UsageDashboard as UsageData,
+  UsageFunnel,
 } from "@/redux/reportingApi";
 
 export const SCHEDULE_ID = "33333333-3333-4333-8333-333333333333";
@@ -626,6 +628,89 @@ export function aUsageStrip(overrides: Partial<UsageAccountRow>[] = []): UsageAc
   return strip.map((row, index) => ({ ...row, ...(overrides[index] ?? {}) }));
 }
 
+/**
+ * The core loop over the window. `solution_linked` deliberately holds more
+ * than `time_logged`, so its drop-off is negative: a ticket can be resolved
+ * under a time exemption and still carry an article, and a screen that hides
+ * that misreports the loop.
+ */
+export function aFunnel(overrides: Partial<UsageFunnel> = {}): UsageFunnel {
+  return {
+    steps: [
+      { step: "opened", n: 40, drop_off: 0 },
+      { step: "first_response", n: 31, drop_off: 9 },
+      { step: "time_logged", n: 18, drop_off: 13 },
+      { step: "solution_linked", n: 20, drop_off: -2 },
+      { step: "resolved", n: 20, drop_off: 0 },
+      { step: "closed", n: 12, drop_off: 8 },
+    ],
+    per_account: [
+      {
+        account_id: "acct-2",
+        key: "NWH",
+        name: "Northwind Health",
+        steps: [
+          { step: "opened", n: 9, drop_off: 0 },
+          { step: "first_response", n: 5, drop_off: 4 },
+          { step: "time_logged", n: 3, drop_off: 2 },
+          { step: "solution_linked", n: 3, drop_off: 0 },
+          { step: "resolved", n: 4, drop_off: -1 },
+          { step: "closed", n: 2, drop_off: 2 },
+        ],
+      },
+      {
+        account_id: "acct-1",
+        key: "BRK",
+        name: "Brookfield",
+        steps: [
+          { step: "opened", n: 31, drop_off: 0 },
+          { step: "first_response", n: 26, drop_off: 5 },
+          { step: "time_logged", n: 15, drop_off: 11 },
+          { step: "solution_linked", n: 17, drop_off: -2 },
+          { step: "resolved", n: 16, drop_off: 1 },
+          { step: "closed", n: 10, drop_off: 6 },
+        ],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/**
+ * Adoption by role, including the row the API reports for an actor holding no
+ * role at all (`unassigned` in the `none` catalog) and a first-use date that
+ * reaches well past the window, which is what a first-use date means.
+ */
+export function anAdoption(overrides: Partial<AdoptionRow>[] = []): AdoptionRow[] {
+  const rows: AdoptionRow[] = [
+    {
+      catalog: "operator",
+      role: "Consultant",
+      action: "ticket.create",
+      users: 6,
+      n: 84,
+      first_used_at: "2026-03-02T09:00:00.000Z",
+    },
+    {
+      catalog: "operator",
+      role: "Dispatcher",
+      action: "export.run",
+      users: 1,
+      n: 3,
+      first_used_at: "2026-09-01T09:00:00.000Z",
+    },
+    {
+      catalog: "none",
+      role: "unassigned",
+      action: "time.log",
+      users: 1,
+      n: 1,
+      first_used_at: "2026-09-06T09:00:00.000Z",
+    },
+  ];
+  return rows.map((row, index) => ({ ...row, ...(overrides[index] ?? {}) }));
+}
+
 /** The Usage dashboard as the API answers it, strip and all. */
 export function aUsageDashboard(overrides: Partial<UsageData> = {}): UsageData {
   return {
@@ -638,6 +723,8 @@ export function aUsageDashboard(overrides: Partial<UsageData> = {}): UsageData {
     no_result_searches: [{ key: "knowledge", n: 3 }],
     api_errors: [{ key: "GET /v1/tickets", n: 2 }],
     per_account: aUsageStrip(),
+    funnel: aFunnel(),
+    adoption: { by_role: anAdoption() },
     ...overrides,
   };
 }
