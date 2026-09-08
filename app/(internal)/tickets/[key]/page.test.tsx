@@ -64,11 +64,15 @@ describe("the ticket record's call budget", () => {
 
   it("leaves the user directory and the roster alone until the assignee picker is opened", async () => {
     const calls = openRecord();
-    const picker = await screen.findByRole("combobox", { name: "Assignee" });
+    // The row is text at rest, so the picker is not even in the tree until it
+    // is clicked, which is a stronger version of the same budget.
+    const row = await screen.findByRole("button", { name: "Assignee" });
     await waitFor(() => expect(pathsOf(calls, "/v1/accounts")).toHaveLength(1));
     expect(pathsOf(calls, "/v1/users")).toHaveLength(0);
     expect(pathsOf(calls, "/v1/roster/people")).toHaveLength(0);
 
+    fireEvent.click(row);
+    const picker = await screen.findByRole("combobox", { name: "Assignee" });
     fireEvent.focus(picker);
     await waitFor(() => expect(pathsOf(calls, "/v1/users")).toHaveLength(1));
   });
