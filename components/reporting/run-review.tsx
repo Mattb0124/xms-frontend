@@ -15,12 +15,22 @@ import {
   deadlineLine,
   describeReviewError,
   EMPTY_SECTION_LINE,
+  hasSavedEdit,
   isEmptySection,
   isHeld,
+  NARRATIVE_SECTIONS,
+  narrativeBody,
+  narrativeChanged,
+  narrativeDraft,
+  narrativeSectionsOf,
+  narrativeSourceLine,
+  needsRegenerate,
   packSections,
   reviewError,
   reviewMoment,
   reviewPill,
+  UNRENDERED_EDIT_NOTE,
+  type NarrativeDraft,
   type ReviewSection,
 } from "@/lib/reporting/review";
 import { requestedByLabel } from "@/lib/reporting/schedules";
@@ -31,7 +41,10 @@ import { useMe } from "@/redux/me";
 import {
   useApproveReportRunMutation,
   useCancelReportRunMutation,
+  useEditRunNarrativeMutation,
+  useRegenerateReportRunMutation,
   useReviewRunQuery,
+  type NarrativeSection,
   type ReviewRun,
 } from "@/redux/reportingApi";
 
@@ -42,16 +55,23 @@ const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
  * Review before send (Dashboards & Report Packs functional 5.8, DR-05): one
  * held run, read before anything is sent to a client.
  *
- * The screen shows the run's status and its deadline, the pack exactly as the
- * two renditions present it, a link to open each rendition, and the two
- * decisions the API takes: approve, which delivers the pack that was held, and
- * cancel, which records a reason and sends nothing. The pack is read only: the
- * API has no narrative edit and no regenerate route, so the specification's
- * editable panel and "Regenerate with my edits" are not offered, and the
- * narrative panel says so rather than showing a control that would refuse.
+ * The screen shows the run's status and its deadline, the narrative in an
+ * editable panel, the numbers exactly as the two renditions present them, a
+ * link to open each rendition, and the decisions the API takes: approve,
+ * which delivers the pack, and cancel, which records a reason and sends
+ * nothing.
+ *
+ * The numbers are read only, because they were frozen when the run rendered
+ * and a review that could move one would not be a review. The prose is
+ * editable section by section: "Regenerate with my edits" saves it and
+ * rebuilds both renditions from the same frozen numbers, and either approve
+ * button ships the words in the panel, the API rebuilding an edit nobody
+ * regenerated before it delivers. While the panel holds the prose the
+ * section panels below carry the numbers alone, so the same paragraph is
+ * never shown twice.
  *
  * The screen is mounted by a gate on `reports:manage`, which is the one key
- * all three routes stand on, so nothing is asked before the browser has
+ * all five routes stand on, so nothing is asked before the browser has
  * decided (`components/admin/fail-closed.test.ts`).
  */
 export function ReportRunReview({ runId }: { runId: string }) {
@@ -82,13 +102,25 @@ export function ReportRunReview({ runId }: { runId: string }) {
   const held = isHeld(run.status);
   const pill = reviewPill(run.status);
   const deadline = deadlineLine(run);
-  const sections = run.pack ? packSections(run.pack) : [];
+  const narrative = narrativeSectionsOf(run);
+  // While the panel above holds the prose, the sections below carry the
+  // numbers alone; once the run is decided there is nothing to edit and the
+  // words are printed with them, as the renditions print them.
+  const sections = run.pack ? packSections(run.pack, held ? [] : narrative) : [];
+  const visible = held ? sections.filter((section) => section.key !== "headline") : sections;
 
-  const onApprove = async () => {
+  const onApprove = async (via: "with_edits" | "as_written") => {
     setProblem(null);
     try {
       const sent = await approve({ id: run.id, accountId: run.account_id }).unwrap();
-      track({ account_id: run.account_id, run_id: run.id, decision: "approved", status: sent.status });
+      track({
+        account_id: run.account_id,
+        run_id: run.id,
+        decision: "approved",
+        status: sent.status,
+        via,
+        narrative_source: run.narrative_source ?? "templated",
+      });
       push({
         title: sent.status === "sent" ? "Report pack sent" : "Report pack approved, nobody reached",
         detail: `${sent.period.start} to ${sent.period.end}`,
@@ -156,8 +188,20 @@ export function ReportRunReview({ runId }: { runId: string }) {
         {run.error ? <p className="text-xms-muted mt-3 text-[13px]">{run.error}</p> : null}
       </Panel>
 
+      {held && run.pack ? (
+        <NarrativePanel
+          // A saved edit is a new version, and a new version is a new panel:
+          // the draft is reseeded from what the server now holds rather than
+          // kept from before the save.
+          key={run.narrative_version ?? 0}
+          run={run}
+          sections={narrative}
+        />
+      ) : null}
+
       {held ? (
         <Decisions
+          hasEdit={hasSavedEdit(run)}
           approving={approving.isLoading}
           cancelling={cancelling.isLoading}
           cancelOpen={cancelOpen}
@@ -172,7 +216,7 @@ export function ReportRunReview({ runId }: { runId: string }) {
             setCancelOpen(false);
           }}
           onReason={setReason}
-          onApprove={() => void onApprove()}
+          onApprove={(via) => void onApprove(via)}
           onCancel={() => void onCancel()}
         />
       ) : (
@@ -186,7 +230,7 @@ export function ReportRunReview({ runId }: { runId: string }) {
       )}
 
       {run.pack ? (
-        sections.map((section) => <SectionPanel key={section.title} section={section} />)
+        visible.map((section) => <SectionPanel key={section.title} section={section} />)
       ) : (
         <Panel title="The pack" caption="Nothing stored">
           <p className="text-xms-label text-[13px]">
@@ -233,8 +277,16 @@ function RenditionLinks({ files }: { files: ReviewRun["files"] }) {
   );
 }
 
-/** Approve and send, or cancel with a reason the API requires. */
+/**
+ * The two ways to send and the one way not to (functional 5.8). Both send
+ * buttons call the same route, which is the honest shape: the API ships the
+ * narrative the pack now carries either way, rebuilding the two files first
+ * where an edit was never regenerated. "Approve and send" is the one to press
+ * having rewritten something, so it waits for an edit to exist; "Send without
+ * changes" is for a reviewer who accepts the narrative as written.
+ */
 function Decisions({
+  hasEdit,
   approving,
   cancelling,
   cancelOpen,
@@ -246,6 +298,7 @@ function Decisions({
   onApprove,
   onCancel,
 }: {
+  hasEdit: boolean;
   approving: boolean;
   cancelling: boolean;
   cancelOpen: boolean;
@@ -254,19 +307,37 @@ function Decisions({
   onOpenCancel: () => void;
   onCloseCancel: () => void;
   onReason: (value: string) => void;
-  onApprove: () => void;
+  onApprove: (via: "with_edits" | "as_written") => void;
   onCancel: () => void;
 }) {
   return (
     <Panel
       title="Decision"
       caption="Approve or cancel"
-      subtitle="Approve sends the pack exactly as it is below; nothing here rewrites it."
+      subtitle={
+        hasEdit
+          ? "Both buttons send the narrative in the panel above, which a reviewer has rewritten; the API rebuilds the two files first if the edit was never regenerated. Cancel sends nothing."
+          : "Nobody has rewritten the narrative, so there is nothing to send but the pack as it was rendered. Cancel sends nothing."
+      }
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-2">
-          <button type="button" className={PRIMARY_BUTTON} onClick={onApprove} disabled={approving || cancelling}>
+          <button
+            type="button"
+            className={PRIMARY_BUTTON}
+            onClick={() => onApprove("with_edits")}
+            disabled={!hasEdit || approving || cancelling}
+            title={hasEdit ? undefined : "Nothing has been rewritten yet, so there are no edits to send."}
+          >
             {approving ? "Sending" : "Approve and send"}
+          </button>
+          <button
+            type="button"
+            className={hasEdit ? SECONDARY_BUTTON : PRIMARY_BUTTON}
+            onClick={() => onApprove("as_written")}
+            disabled={approving || cancelling}
+          >
+            Send without changes
           </button>
           <button
             type="button"
@@ -311,17 +382,92 @@ function Decisions({
 }
 
 /**
+ * The narrative panel (functional 5.8): the prose of the pack, one box per
+ * section of the renditions, with the source of the words said above it.
+ *
+ * "Regenerate with my edits" is two calls in one press, because that is what
+ * the phrase means: the edit is saved to the pack, and both renditions are
+ * rebuilt from the numbers already frozen and the words just written. The
+ * links are minted fresh by that route, and the run is read again, so the
+ * Open PDF and Open slides links on this screen point at the new files
+ * rather than the ones they were signed against.
+ */
+function NarrativePanel({ run, sections }: { run: ReviewRun; sections: NarrativeSection[] }) {
+  const [draft, setDraft] = useState<NarrativeDraft>(() => narrativeDraft(sections));
+  const [edit, editing] = useEditRunNarrativeMutation();
+  const [regenerate, regenerating] = useRegenerateReportRunMutation();
+  const { push } = useToast();
+  const track = useTrack("report.review.regenerate");
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const changed = narrativeChanged(draft, sections);
+  const busy = editing.isLoading || regenerating.isLoading;
+
+  const onRegenerate = async () => {
+    setProblem(null);
+    try {
+      const saved = await edit({
+        id: run.id,
+        accountId: run.account_id,
+        sections: narrativeBody(draft),
+      }).unwrap();
+      await regenerate({ id: run.id, accountId: run.account_id }).unwrap();
+      track({ account_id: run.account_id, run_id: run.id, version: saved.narrative_version });
+      push({
+        title: "Regenerated with your edits",
+        detail: "Both renditions were rebuilt from the same numbers, and the links refreshed.",
+        tone: "success",
+      });
+    } catch (caught) {
+      setProblem(describeReviewError(reviewError(caught)));
+    }
+  };
+
+  return (
+    <Panel title="Narrative" caption="The words, not the numbers" subtitle={narrativeSourceLine(run)}>
+      <div className="flex flex-col gap-3">
+        {NARRATIVE_SECTIONS.map(({ key, title }) => (
+          <label key={key} className="flex flex-col gap-1 text-[12px]">
+            <span className="text-xms-label">{title}</span>
+            <textarea
+              aria-label={title}
+              rows={key === "headline" ? 4 : 2}
+              maxLength={6000}
+              className={cn(INPUT, "h-auto py-1.5 text-[13px]")}
+              value={draft[key]}
+              onChange={(event) => setDraft((current) => ({ ...current, [key]: event.target.value }))}
+            />
+          </label>
+        ))}
+        {needsRegenerate(run) ? <p className="text-xms-label text-[12px]">{UNRENDERED_EDIT_NOTE}</p> : null}
+        <div>
+          <button
+            type="button"
+            className={SECONDARY_BUTTON}
+            onClick={() => void onRegenerate()}
+            disabled={busy || (!changed && !needsRegenerate(run))}
+            title={changed || needsRegenerate(run) ? undefined : "Nothing has been changed to regenerate with."}
+          >
+            {busy ? "Regenerating" : "Regenerate with my edits"}
+          </button>
+        </div>
+        <InlineError message={problem} />
+      </div>
+    </Panel>
+  );
+}
+
+/**
  * One section of the pack as read-only text: the paragraphs, the tiles and the
  * tables the renditions carry, in their order. A section with nothing in it
  * prints the line the deck prints rather than an empty frame.
  */
 function SectionPanel({ section }: { section: ReviewSection }) {
-  const isNarrative = section.title === "Headline";
   return (
     <Panel
       title={section.title}
       caption="From the pack"
-      subtitle={isNarrative ? "Read only: the narrative cannot be edited or regenerated here yet." : undefined}
+      subtitle="The numbers were frozen when the run rendered; nothing here recomputes one."
     >
       {isEmptySection(section) ? (
         <p className="text-xms-label text-[13px]">{EMPTY_SECTION_LINE}</p>

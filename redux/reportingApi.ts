@@ -495,6 +495,22 @@ export interface PackLinks {
   pdf: string | null;
 }
 
+/**
+ * The prose of a pack, section by section, keyed to the sections of the
+ * renditions themselves (`src/domain/reporting/pdf.ts`). Only the prose is
+ * editable: the measures and the notable rows were frozen when the run
+ * rendered, and a review that could move a number would not be a review.
+ */
+export type NarrativeSectionKey = "headline" | "service_levels" | "backlog" | "consumption";
+
+export interface NarrativeSection {
+  key: NarrativeSectionKey;
+  text: string;
+}
+
+/** Where the words came from: the template, Axel, or a reviewer who rewrote them. */
+export type NarrativeSource = "templated" | "ai" | "edited";
+
 export interface ReviewRun extends ScheduleRun {
   /** Who decided, and when; both null while the run is still waiting. */
   reviewer_id: string | null;
@@ -505,6 +521,42 @@ export interface ReviewRun extends ScheduleRun {
   review_note: string | null;
   pack: HeldPack | null;
   files: PackLinks;
+  /** The narrative the pack stands on; null on a run with no pack. */
+  narrative?: { sections: NarrativeSection[] } | null;
+  narrative_source?: NarrativeSource | null;
+  narrative_version?: number | null;
+  /** False while an edit is waiting to be regenerated into the two files. */
+  narrative_rendered?: boolean | null;
+  /** Whether Axel is on for this account, so the screen can say why the words are templated. */
+  ai_enabled?: boolean;
+}
+
+/** What the narrative edit lands: the version it wrote, not yet rendered. */
+export interface NarrativeEditResult {
+  run_id: string;
+  pack_id: string;
+  status: string;
+  narrative: { sections: NarrativeSection[] };
+  narrative_source: NarrativeSource;
+  narrative_version: number;
+  narrative_rendered: boolean;
+}
+
+/**
+ * What "Regenerate with my edits" lands: both renditions rebuilt from the
+ * numbers already frozen and the narrative the pack now carries, with fresh
+ * links, because the old ones were signed against the objects as they were.
+ * The run does not move.
+ */
+export interface RegenerateResult {
+  run_id: string;
+  pack_id: string;
+  status: string;
+  period: { start: string; end: string };
+  files: PackLinks;
+  narrative_source: NarrativeSource;
+  narrative_version: number;
+  narrative_rendered: boolean;
 }
 
 export interface CancelRunResult {
@@ -634,6 +686,32 @@ export const reportingApi = xmsApi.injectEndpoints({
       query: (id) => `/v1/reporting/runs/${id}`,
       providesTags: (_result, _error, id) => [runTag(id)],
     }),
+    /**
+     * The narrative a reviewer wrote, section by section, on a run still held
+     * (functional 5.8). It lands as one more version on the frozen pack and
+     * leaves the numbers alone; the two files are not rebuilt until a
+     * regenerate, or an approve, which rebuilds an unrendered edit first.
+     */
+    editRunNarrative: build.mutation<
+      NarrativeEditResult,
+      { id: string; accountId?: string; sections: NarrativeSection[] }
+    >({
+      query: ({ id, sections }) => ({
+        url: `/v1/reporting/runs/${id}/narrative`,
+        method: "PATCH",
+        body: { sections },
+      }),
+      invalidatesTags: (_result, _error, { id, accountId }) => reviewTags(id, accountId),
+    }),
+    /**
+     * "Regenerate with my edits": both renditions again from the frozen
+     * numbers and the narrative the pack now carries, with fresh links. The
+     * run keeps its status, its deadline and its reviewer.
+     */
+    regenerateReportRun: build.mutation<RegenerateResult, { id: string; accountId?: string }>({
+      query: ({ id }) => ({ url: `/v1/reporting/runs/${id}/regenerate`, method: "POST" }),
+      invalidatesTags: (_result, _error, { id, accountId }) => reviewTags(id, accountId),
+    }),
     /** Approve and send: the held pack goes out exactly as it was rendered. */
     approveReportRun: build.mutation<RunNowResult, { id: string; accountId?: string }>({
       query: ({ id }) => ({ url: `/v1/reporting/runs/${id}/approve`, method: "POST" }),
@@ -667,6 +745,8 @@ export const {
   useRunScheduleNowMutation,
   useScheduleRunsQuery,
   useReviewRunQuery,
+  useEditRunNarrativeMutation,
+  useRegenerateReportRunMutation,
   useApproveReportRunMutation,
   useCancelReportRunMutation,
 } = reportingApi;

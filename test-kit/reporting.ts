@@ -7,8 +7,10 @@ import type {
   DeliveryOutcome,
   HeldPack,
   Measures,
+  NarrativeEditResult,
   Notable,
   OperationsDashboard,
+  RegenerateResult,
   ReportRun,
   ReportSchedule,
   ReviewRun,
@@ -196,6 +198,71 @@ export function aReviewRun(overrides: Partial<ReviewRun> = {}): ReviewRun {
       pptx: "https://files.example.test/packs/held.pptx?signature=constructed",
       pdf: "https://files.example.test/packs/held.pdf?signature=constructed",
     },
+    // The narrative the pack stands on: templated, rendered into both files,
+    // and written by the template because Axel is off for this account.
+    narrative: {
+      sections: [
+        { key: "headline", text: "Volumes held steady and the consolidation cube incident is the only breach." },
+        { key: "consumption", text: "Consumption is tracking to plan." },
+      ],
+    },
+    narrative_source: "templated",
+    narrative_version: 2,
+    narrative_rendered: true,
+    ai_enabled: false,
+    ...overrides,
+  };
+}
+
+/**
+ * What `PATCH /v1/reporting/runs/:id/narrative` answers: the reviewer's
+ * words as one more version on the frozen pack, the source now `edited`, and
+ * `narrative_rendered` false until the two files are rebuilt.
+ */
+export function aNarrativeEdit(overrides: Partial<NarrativeEditResult> = {}): NarrativeEditResult {
+  return {
+    run_id: REVIEW_RUN_ID,
+    pack_id: HELD_PACK_ID,
+    status: "ready_for_review",
+    narrative: {
+      sections: [
+        { key: "headline", text: "A quiet week, with one breach on the consolidation cube." },
+        { key: "consumption", text: "Consumption is tracking to plan." },
+      ],
+    },
+    narrative_source: "edited",
+    narrative_version: 3,
+    narrative_rendered: false,
+    ...overrides,
+  };
+}
+
+/** The run as it reads after that edit: the reviewer's words, waiting to be regenerated. */
+export function anEditedReviewRun(overrides: Partial<ReviewRun> = {}): ReviewRun {
+  const edit = aNarrativeEdit();
+  return aReviewRun({
+    narrative: edit.narrative,
+    narrative_source: "edited",
+    narrative_version: edit.narrative_version,
+    narrative_rendered: false,
+    ...overrides,
+  });
+}
+
+/** What `POST /v1/reporting/runs/:id/regenerate` answers: fresh links, the run unmoved. */
+export function aRegeneratedRun(overrides: Partial<RegenerateResult> = {}): RegenerateResult {
+  return {
+    run_id: REVIEW_RUN_ID,
+    pack_id: HELD_PACK_ID,
+    status: "ready_for_review",
+    period: { start: "2026-08-31", end: "2026-09-06" },
+    files: {
+      pptx: "https://files.example.test/packs/held.pptx?signature=rebuilt",
+      pdf: "https://files.example.test/packs/held.pdf?signature=rebuilt",
+    },
+    narrative_source: "edited",
+    narrative_version: 3,
+    narrative_rendered: true,
     ...overrides,
   };
 }

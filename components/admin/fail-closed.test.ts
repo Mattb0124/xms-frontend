@@ -429,15 +429,22 @@ describe("the audit search and the two analytics dashboards fail closed", () => 
 /**
  * The same map for review before send (Dashboards functional 5.8, DR-05),
  * which the API answers to `reports:manage` alone (backend
- * test/golden/routes.json). The three routes read and decide an unsent report
- * pack: the run detail carries the frozen narrative and a presigned link to
- * each rendition, approve mails that pack to a client, and cancel stops it.
- * None of that may ship behind a weaker key or with no gate above it at all,
- * and the account's Report packs tab, which links held runs here, holds the
- * same key on its own body.
+ * test/golden/routes.json). The five routes read, rewrite and decide an
+ * unsent report pack: the run detail carries the frozen pack and a presigned
+ * link to each rendition, the narrative edit rewrites the words a client will
+ * read, regenerate rebuilds both files, approve mails the pack to a client,
+ * and cancel stops it. None of that may ship behind a weaker key or with no
+ * gate above it at all, and the account's Report packs tab, which links held
+ * runs here, holds the same key on its own body.
  */
 const REVIEW_READS = [
   { hook: "useReviewRunQuery", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}" },
+  { hook: "useEditRunNarrativeMutation", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}/narrative" },
+  {
+    hook: "useRegenerateReportRunMutation",
+    slice: "redux/reportingApi.ts",
+    route: "/v1/reporting/runs/${id}/regenerate",
+  },
   { hook: "useApproveReportRunMutation", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}/approve" },
   { hook: "useCancelReportRunMutation", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}/cancel" },
 ];

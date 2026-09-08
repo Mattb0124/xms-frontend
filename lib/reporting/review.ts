@@ -1,6 +1,13 @@
 import type { SignalTone } from "@/components/xms/signal-pill";
 import { apiError, describeError, type ApiError } from "@/lib/admin/api-error";
-import type { HeldPack, Measures, Notable, ReviewRun } from "@/redux/reportingApi";
+import type {
+  HeldPack,
+  Measures,
+  NarrativeSection,
+  NarrativeSectionKey,
+  Notable,
+  ReviewRun,
+} from "@/redux/reportingApi";
 
 /**
  * Review before send (Dashboards & Report Packs functional 5.8, DR-05): the
@@ -13,10 +20,10 @@ import type { HeldPack, Measures, Notable, ReviewRun } from "@/redux/reportingAp
  * sends the pack that was held. Cancel records a reason and the run takes the
  * closed `skipped` status.
  *
- * The pack itself is read only here. The API has no narrative edit and no
- * regenerate route, so the spec's editable panel and "Regenerate with my
- * edits" are not offered; the screen says so rather than showing a control
- * that would refuse.
+ * The numbers are read only: they were frozen when the run rendered, and a
+ * review that could move one would not be a review. The prose is not: the
+ * narrative is edited section by section, regenerated into both renditions,
+ * and shipped by either approve button.
  */
 export const REVIEW_STATE_LABELS: Record<string, string> = {
   ready_for_review: "Ready for review",
@@ -110,6 +117,8 @@ export interface ReviewTable {
 }
 
 export interface ReviewSection {
+  /** The narrative key of this section, which is what the editor writes to. */
+  key: NarrativeSectionKey;
   title: string;
   paragraphs: string[];
   tiles: ReviewTile[];
@@ -156,16 +165,26 @@ function notableRows(notable: Notable[]): string[][] {
   ]);
 }
 
-export function packSections(pack: HeldPack): ReviewSection[] {
+/**
+ * The pack as the renditions present it. `narrative` is the prose to print
+ * with the numbers: the review screen passes none while it is holding that
+ * prose in the editable panel above, and passes the run's own narrative once
+ * the run is decided and there is nothing left to edit.
+ */
+export function packSections(pack: HeldPack, narrative: readonly NarrativeSection[] = []): ReviewSection[] {
   const measures = pack.measures;
-  const narrative = latestNarrative(pack);
+  const prose = (key: NarrativeSectionKey): string[] => {
+    const text = narrative.find((section) => section.key === key)?.text.trim();
+    return text ? [text] : [];
+  };
   const ages = ageRows(measures.backlog_by_age);
   const notable = notableRows(pack.notable ?? []);
   return [
-    { title: "Headline", paragraphs: narrative ? [narrative] : [], tiles: [], tables: [] },
+    { key: "headline", title: "Headline", paragraphs: prose("headline"), tiles: [], tables: [] },
     {
+      key: "service_levels",
       title: "Service levels",
-      paragraphs: [],
+      paragraphs: prose("service_levels"),
       tiles: [
         { label: "Open requests", value: String(measures.open_tickets) },
         { label: "Past target", value: String(measures.breached_now) },
@@ -180,8 +199,9 @@ export function packSections(pack: HeldPack): ReviewSection[] {
       tables: [],
     },
     {
+      key: "backlog",
       title: "Backlog and notable requests",
-      paragraphs: [],
+      paragraphs: prose("backlog"),
       tiles: [],
       tables: [
         ...(ages.length > 0 ? [{ caption: "Backlog by age", columns: ["Age", "Open"], rows: ages }] : []),
@@ -191,8 +211,10 @@ export function packSections(pack: HeldPack): ReviewSection[] {
       ],
     },
     {
+      key: "consumption",
       title: "Consumption",
       paragraphs: [
+        ...prose("consumption"),
         `${wholeHours(measures.consumption_minutes)} contract hours consumed this period; ${wholeHours(
           measures.time_logged_minutes,
         )} hours logged in total.`,
@@ -211,6 +233,94 @@ export function isEmptySection(section: ReviewSection): boolean {
     section.tables.filter((table) => table.rows.length > 0).length === 0
   );
 }
+
+// The narrative panel (functional 5.8) -------------------------------------------------
+
+/** The four sections the API keys the narrative by, in the deck's own order. */
+export const NARRATIVE_SECTIONS: Array<{ key: NarrativeSectionKey; title: string }> = [
+  { key: "headline", title: "Headline" },
+  { key: "service_levels", title: "Service levels" },
+  { key: "backlog", title: "Backlog and notable requests" },
+  { key: "consumption", title: "Consumption" },
+];
+
+export type NarrativeDraft = Record<NarrativeSectionKey, string>;
+
+export const EMPTY_NARRATIVE: NarrativeDraft = {
+  headline: "",
+  service_levels: "",
+  backlog: "",
+  consumption: "",
+};
+
+/**
+ * The narrative the run stands on. A run read from an API older than the
+ * editor answers no `narrative`, and its words are the newest version on the
+ * pack, which was written as one paragraph: that is the headline.
+ */
+export function narrativeSectionsOf(run: Pick<ReviewRun, "narrative" | "pack">): NarrativeSection[] {
+  const sent = run.narrative?.sections;
+  if (sent) return sent;
+  const text = latestNarrative(run.pack);
+  return text ? [{ key: "headline", text }] : [];
+}
+
+/** Those sections as the panel's draft: every key present, missing ones empty. */
+export function narrativeDraft(sections: readonly NarrativeSection[]): NarrativeDraft {
+  const draft = { ...EMPTY_NARRATIVE };
+  for (const section of sections) {
+    if (section.key in draft) draft[section.key] = section.text;
+  }
+  return draft;
+}
+
+/** The PATCH body: every section once, in the deck's order, so no key is sent twice. */
+export function narrativeBody(draft: NarrativeDraft): NarrativeSection[] {
+  return NARRATIVE_SECTIONS.map(({ key }) => ({ key, text: draft[key] }));
+}
+
+/** True when the panel holds something the pack does not: what "my edits" means. */
+export function narrativeChanged(draft: NarrativeDraft, saved: readonly NarrativeSection[]): boolean {
+  const from = narrativeDraft(saved);
+  return NARRATIVE_SECTIONS.some(({ key }) => draft[key].trim() !== from[key].trim());
+}
+
+/** True once a reviewer's edit is on the pack, which is what "Approve and send" ships. */
+export function hasSavedEdit(run: Pick<ReviewRun, "narrative_source">): boolean {
+  return run.narrative_source === "edited";
+}
+
+/** True while an edit is on the pack but not yet in the two files. */
+export function needsRegenerate(run: Pick<ReviewRun, "narrative_rendered">): boolean {
+  return run.narrative_rendered === false;
+}
+
+const SOURCE_LINE: Record<string, string> = {
+  templated: "These words came from the template.",
+  ai: "Axel wrote these words.",
+  edited: "A reviewer rewrote these words.",
+};
+
+/**
+ * Where the words in front of the reviewer came from, and why. An account
+ * with Axel off is told so, rather than being left to wonder why the
+ * narrative reads like a template: it is one, and nothing was going to write
+ * it otherwise.
+ */
+export function narrativeSourceLine(
+  run: Pick<ReviewRun, "narrative_source" | "narrative_version" | "ai_enabled" | "narrative_rendered">,
+): string {
+  if (!run.narrative_source) return "This run stored no pack, so there is no narrative to read.";
+  const parts = [SOURCE_LINE[run.narrative_source] ?? SOURCE_LINE.templated];
+  if (run.narrative_source === "edited" && run.narrative_version) parts.push(`Version ${run.narrative_version}.`);
+  if (run.ai_enabled === false) parts.push("AI is off for this account, so Axel wrote nothing here.");
+  if (needsRegenerate(run)) parts.push("The edit is not in the two files yet.");
+  return parts.join(" ");
+}
+
+/** What the panel says it does with an edit that has not been regenerated. */
+export const UNRENDERED_EDIT_NOTE =
+  "Regenerate to see it in the PDF and the slides; approving rebuilds them first either way, so the words below are the words that ship.";
 
 // Errors ------------------------------------------------------------------------------
 
@@ -233,9 +343,13 @@ export function reviewError(error: unknown): ReviewError {
  */
 export const CANCEL_REASON_MESSAGE = "Say why this pack is not being sent.";
 
-/** Every refusal the three review routes can answer, in words. */
+/** Every refusal the five review routes can answer, in words. */
 export function describeReviewError(error: ReviewError): string {
   switch (error.code) {
+    // The panel writes each section once, so this is a build that lost that
+    // rule rather than anything the reviewer did.
+    case "duplicate_section":
+      return "The narrative was sent with the same section twice, so nothing was saved. Reload the screen and write it again.";
     case "not_under_review":
       return error.status_now
         ? `This run is no longer waiting on a reviewer: it is ${runStatusLabel(error.status_now).toLowerCase()}. It has been reloaded.`
