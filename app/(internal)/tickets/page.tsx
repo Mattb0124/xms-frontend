@@ -6,6 +6,7 @@ import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { ExportMenu } from "@/components/tickets/export-menu";
+import { savedViewLabel, SavedViewsBar, useSavedViews } from "@/components/tickets/saved-views";
 import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -32,6 +33,7 @@ import {
   type Chip,
   type ChipKey,
 } from "@/lib/tickets/queue-views";
+import { applyDefinition, savedViewSearch } from "@/lib/tickets/saved-views";
 import { PRIORITIES, TICKET_TYPES } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
@@ -40,6 +42,7 @@ import {
   useListTicketsQuery,
   usePatchTicketMutation,
   useWatchTicketMutation,
+  type SavedView,
   type TicketView,
 } from "@/redux/ticketsApi";
 
@@ -85,6 +88,12 @@ function QueueScreen() {
   // The export carries the view and chips, never the page cursor or size.
   const exportParams = useMemo(() => viewToParams(view, parsed.chips, { q: parsed.q || undefined }), [view, parsed]);
   const { data: accounts } = useListGrantedAccountsQuery();
+  // The server's saved views beside the system ones (Ticket Management
+  // technical 2.5). `/v1/views` stands on tickets:view, the Queue's own gate,
+  // so the only reason it is unavailable is an API that does not serve it
+  // yet, and the per-browser star stays the fallback for exactly that.
+  const { views: savedViews, available: savedAvailable } = useSavedViews();
+  const currentSaved = savedViews.find((entry) => entry.id === parsed.saved) ?? null;
   const [patch] = usePatchTicketMutation();
   const [watch] = useWatchTicketMutation();
   const trackAssign = useTrack("dispatch.assign");
@@ -103,6 +112,11 @@ function QueueScreen() {
     setSelected(new Set());
   }
 
+  const go = (target: URLSearchParams) => router.push(target.size > 0 ? `${pathname}?${target.toString()}` : pathname);
+
+  // Changing a criterion drops the saved view id: the list is no longer the
+  // saved one, and a name over a different list would be a lie. The page size
+  // leaves it alone, since it does not change what is being listed.
   const navigate = (next: { view?: string; chips?: Chip[]; q?: string; limit?: number }) => {
     const target = chipsToSearch(
       next.view ?? parsed.view,
@@ -110,7 +124,21 @@ function QueueScreen() {
       next.q ?? parsed.q,
       next.limit ?? parsed.limit,
     );
-    router.push(target.size > 0 ? `${pathname}?${target.toString()}` : pathname);
+    const criteriaKept = next.view === undefined && next.chips === undefined && next.q === undefined;
+    if (criteriaKept && parsed.saved) target.set("saved", parsed.saved);
+    go(target);
+  };
+
+  /**
+   * A saved view is applied by writing its conditions into the URL, so the
+   * chips stay removable and the link is still the list. Anything the chip
+   * grammar cannot say is named rather than dropped in silence.
+   */
+  const applySaved = (view: SavedView) => {
+    const applied = applyDefinition(view.definition);
+    if (applied.notes.length > 0)
+      push({ title: `${view.name} applied`, detail: applied.notes.join(" "), tone: "info" });
+    go(savedViewSearch(view.id, view.definition, parsed.limit));
   };
 
   const chipValueLabel = (chip: Chip): string => {
@@ -168,9 +196,10 @@ function QueueScreen() {
   const filtered = parsed.chips.length > 0 || parsed.q !== "";
 
   // The condition trail (Wireframes section 2): the active view then each chip,
-  // clicking a segment removes that criterion, with the count on the right and
-  // Save as view, which stars the current URL into the same Favourites list the
-  // finder bar reads (frontend review finding 12).
+  // clicking a segment removes that criterion, with the count on the right.
+  // Save as view sits under it, on the server's own views; the star into the
+  // Favourites list the finder bar reads (frontend review finding 12) is what
+  // the bar falls back to while `/v1/views` is not deployed.
   const [, toggleStar, hasStar] = useToggleInList(STARS_KEY);
   const currentHref = searchString ? `${pathname}?${searchString}` : pathname;
   const trail = [
@@ -195,8 +224,16 @@ function QueueScreen() {
         <div className="flex items-center gap-2">
           <select
             aria-label="View"
-            value={parsed.view}
-            onChange={(event) => navigate({ view: event.target.value })}
+            value={currentSaved ? `saved:${currentSaved.id}` : parsed.view}
+            onChange={(event) => {
+              const value = event.target.value;
+              const saved = savedViews.find((entry) => `saved:${entry.id}` === value);
+              if (saved) {
+                applySaved(saved);
+                return;
+              }
+              navigate({ view: value });
+            }}
             className="border-xms-accent text-xms-accent bg-xms-card h-[28px] rounded-[999px] border px-2 text-[12px] font-medium"
           >
             {QUEUE_VIEWS.map((entry) => (
@@ -204,6 +241,15 @@ function QueueScreen() {
                 Show: {entry.label}
               </option>
             ))}
+            {savedViews.length > 0 ? (
+              <optgroup label="Saved views">
+                {savedViews.map((entry) => (
+                  <option key={entry.id} value={`saved:${entry.id}`}>
+                    {savedViewLabel(entry)}
+                  </option>
+                ))}
+              </optgroup>
+            ) : null}
           </select>
           <FilterBar
             criteria={parsed.chips.map((chip) => ({
@@ -261,12 +307,17 @@ function QueueScreen() {
         </span>
       </HeaderAction>
 
-      <BreadcrumbTrail
-        segments={trail}
-        onRemove={removeSegment}
-        count={countLabel}
-        onSaveView={() => toggleStar(currentHref)}
-        saved={hasStar(currentHref)}
+      <BreadcrumbTrail segments={trail} onRemove={removeSegment} count={countLabel} />
+
+      <SavedViewsBar
+        params={exportParams}
+        accounts={accounts ?? []}
+        current={currentSaved}
+        available={savedAvailable}
+        starred={hasStar(currentHref)}
+        onToggleStar={() => toggleStar(currentHref)}
+        onSaved={applySaved}
+        onDeleted={() => navigate({ view: parsed.view })}
       />
 
       {stats ? (

@@ -1,6 +1,7 @@
 import type { Priority } from "@/components/xms/priority-pill";
 import type { TicketType } from "@/components/xms/type-bar";
 import { paramsToQuery, type TicketListParams } from "@/lib/tickets/queue-views";
+import type { SavedViewDefinition } from "@/lib/tickets/saved-views";
 import type { TicketSla } from "@/lib/tickets/sla";
 import type { Level, PauseReason } from "@/lib/tickets/vocab";
 import { xmsApi } from "@/redux/api";
@@ -231,6 +232,41 @@ export interface DirectoryGroup {
   id: string;
   name: string;
   status?: string;
+}
+
+/**
+ * A saved view (`acct.saved_views`, Ticket Management technical 2.5). The
+ * definition is the server's own ConditionSet with an optional sort and
+ * column list; `share` decides who else sees it, and `version` is the
+ * optimistic lock an edit carries. Every route stands on `tickets:view`,
+ * which is the Queue's own gate, and renaming or deleting is the owner's
+ * alone (`not_owner`).
+ */
+export interface SavedView {
+  id: string;
+  account_id: string;
+  owner_id: string;
+  name: string;
+  definition: SavedViewDefinition;
+  share: "private" | "group" | "account";
+  share_ref: string | null;
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+export interface CreateSavedViewBody {
+  account_id: string;
+  name: string;
+  definition: SavedViewDefinition;
+  share?: "private" | "group" | "account";
+}
+
+export interface PatchSavedViewBody {
+  version: number;
+  name?: string;
+  share?: "private" | "group" | "account";
+  definition?: SavedViewDefinition;
 }
 
 /** How a contract handles a non-standard after-hours class (TB-13): a premium multiplier, comp time, or nothing. */
@@ -473,6 +509,29 @@ export const ticketsApi = xmsApi.injectEndpoints({
       query: () => "/v1/accounts",
       providesTags: [{ type: "Accounts", id: "granted" }],
     }),
+
+    /**
+     * The saved views this principal can see: their own, the ones shared with
+     * the account, and the ones shared with a group they belong to. The
+     * server decides all three; the browser never widens the list.
+     */
+    listSavedViews: build.query<SavedView[], void>({
+      query: () => "/v1/views",
+      providesTags: [{ type: "SavedViews", id: "list" }],
+    }),
+    createSavedView: build.mutation<SavedView, CreateSavedViewBody>({
+      query: (body) => ({ url: "/v1/views", method: "POST", body }),
+      invalidatesTags: (_result, error) => (error ? [] : [{ type: "SavedViews", id: "list" }]),
+    }),
+    /** Rename or reshare; the list is read again even when the API refuses, since a refusal means this view is behind. */
+    patchSavedView: build.mutation<SavedView, { id: string; body: PatchSavedViewBody }>({
+      query: ({ id, body }) => ({ url: `/v1/views/${id}`, method: "PATCH", body }),
+      invalidatesTags: [{ type: "SavedViews", id: "list" }],
+    }),
+    deleteSavedView: build.mutation<void, string>({
+      query: (id) => ({ url: `/v1/views/${id}`, method: "DELETE" }),
+      invalidatesTags: [{ type: "SavedViews", id: "list" }],
+    }),
     listDirectoryGroups: build.query<DirectoryGroup[], void>({
       query: () => "/v1/groups",
       providesTags: ["Groups"],
@@ -550,6 +609,10 @@ export const {
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
   useListGrantedAccountsQuery,
+  useListSavedViewsQuery,
+  useCreateSavedViewMutation,
+  usePatchSavedViewMutation,
+  useDeleteSavedViewMutation,
   useListDirectoryGroupsQuery,
   useListAccountContractsQuery,
   usePatchContractMutation,

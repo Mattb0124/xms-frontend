@@ -129,7 +129,18 @@ export function chipsToSearch(view: string, chips: Chip[], q: string, limit: num
   return search;
 }
 
-export function chipsFromSearch(search: URLSearchParams): { view: string; chips: Chip[]; q: string; limit: number } {
+export function chipsFromSearch(search: URLSearchParams): {
+  view: string;
+  chips: Chip[];
+  q: string;
+  limit: number;
+  /**
+   * The saved view (`/v1/views`) whose conditions were written into this URL,
+   * where one was. It names the list rather than filtering it: the chips are
+   * the filter, and the id leaves the URL as soon as one of them changes.
+   */
+  saved: string | null;
+} {
   const chips: Chip[] = [];
   for (const key of CHIP_KEYS) {
     const raw = search.get(key);
@@ -149,6 +160,7 @@ export function chipsFromSearch(search: URLSearchParams): { view: string; chips:
     chips,
     q: search.get("q") ?? "",
     limit: [10, 25, 50, 100].includes(limit) ? limit : 25,
+    saved: search.get("saved"),
   };
 }
 

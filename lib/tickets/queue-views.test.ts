@@ -52,9 +52,12 @@ describe("queue views", () => {
     ];
     const search = chipsToSearch("mine", chips, "brookfield", 50);
     expect(search.toString()).toBe("view=mine&type=incident&state=new%2Cassigned&q=brookfield&limit=50");
-    expect(chipsFromSearch(search)).toEqual({ view: "mine", chips, q: "brookfield", limit: 50 });
+    expect(chipsFromSearch(search)).toEqual({ view: "mine", chips, q: "brookfield", limit: 50, saved: null });
     expect(chipsToSearch("open", [], "", 25).toString()).toBe("");
     expect(chipsFromSearch(new URLSearchParams("limit=7"))).toMatchObject({ view: "open", limit: 25 });
+    // The saved view id names the list rather than filtering it, so it reads
+    // back beside the chips and never as one of them.
+    expect(chipsFromSearch(new URLSearchParams("view=mine&saved=view-1")).saved).toBe("view-1");
   });
 });
 

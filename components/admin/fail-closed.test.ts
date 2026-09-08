@@ -311,6 +311,58 @@ describe("the outbound queue is read behind admin:connectors", () => {
 });
 
 /**
+ * The same map for the Queue's saved views (Ticket Management technical 2.5),
+ * which the API answers to `tickets:view` (backend test/golden/routes.json).
+ * That is the Queue's own gate, so the map exists to keep it that way: a view
+ * carries a condition set over one account's tickets, and a surface that
+ * started reading or writing one from outside the Queue would have to hold
+ * the same key rather than none at all.
+ */
+const SAVED_VIEW_READS = [
+  { hook: "useListSavedViewsQuery", slice: "redux/ticketsApi.ts", route: '"/v1/views"' },
+  { hook: "useCreateSavedViewMutation", slice: "redux/ticketsApi.ts", route: 'url: "/v1/views", method: "POST"' },
+  { hook: "usePatchSavedViewMutation", slice: "redux/ticketsApi.ts", route: "/v1/views/${id}" },
+  { hook: "useDeleteSavedViewMutation", slice: "redux/ticketsApi.ts", route: "/v1/views/${id}" },
+];
+
+const SAVED_VIEW_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/tickets/saved-views.tsx", mountedIn: "app/(internal)/tickets/page.tsx" },
+  { file: "app/(internal)/tickets/page.tsx", permission: "tickets:view" },
+];
+
+describe("saved views are read and written behind tickets:view", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of SAVED_VIEW_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = SAVED_VIEW_READS.map((entry) => entry.hook);
+    const listed = new Set(SAVED_VIEW_SURFACES.map((surface) => surface.file));
+    const callers = callersOf(hooks);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+  });
+
+  it("mounts the saved views only inside a screen that gates on tickets:view", () => {
+    const gates = new Set(SAVED_VIEW_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of SAVED_VIEW_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `<AdminGate permission="${surface.permission}">`,
+      );
+    }
+  });
+});
+
+/**
  * The same map for the account's contacts (CP-07, Client Portal technical
  * 2.1), which the API answers to `admin:accounts` alone (backend
  * test/golden/routes.json). The list names every person the account writes
