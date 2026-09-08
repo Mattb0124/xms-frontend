@@ -185,6 +185,162 @@ export interface PortalDashboard {
   measures: Partial<Measures>;
 }
 
+/**
+ * CSAT per account (Client Portal functional 5.7, the operator view): the
+ * summary the server computed over the responses in the range, the survey
+ * counts for the whole account, and the individual responses with the
+ * respondent unless the account keeps them anonymous.
+ */
+export type CsatScore = "1" | "2" | "3" | "4" | "5";
+
+export interface CsatSummary {
+  responses: number;
+  /** Rounded to two decimals; null with no responses. */
+  average: number | null;
+  distribution: Record<CsatScore, number>;
+  /** Scores of 1 or 2. */
+  low: number;
+}
+
+export interface CsatResponse {
+  id: string;
+  survey_id: string;
+  ticket_key: string | null;
+  score: number;
+  comment: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  created_at: string;
+}
+
+export interface AccountCsat {
+  account_id: string;
+  from: string;
+  to: string;
+  summary: CsatSummary;
+  surveys: { sent: number; answered: number; suppressed: number };
+  responses: CsatResponse[];
+}
+
+export interface CsatParams {
+  accountId: string;
+  from?: string;
+  to?: string;
+}
+
+/**
+ * Report schedules and distribution (Dashboards functional 5.7, DR-05):
+ * one or more schedules per account; the worker builds and delivers the
+ * pack, the per-recipient outcome lives on the run.
+ */
+export type Cadence = "weekly" | "monthly" | "quarterly";
+export type PeriodKind = "previous_week" | "previous_month" | "previous_quarter";
+export type RecipientKind = "internal" | "portal_user" | "contact";
+
+export interface Recipient {
+  kind: RecipientKind;
+  id?: string;
+  email?: string;
+  name?: string;
+}
+
+export interface DeliveryOutcome {
+  kind: RecipientKind;
+  to: string;
+  outcome: "notified" | "emailed" | "skipped";
+  reason?: string;
+}
+
+export interface ReportSchedule {
+  id: string;
+  account_id: string;
+  name: string;
+  pack_type: "wsr" | "qbr" | "custom";
+  cadence: Cadence;
+  /** 1 to 7 for weekly (Monday first), 1 to 31 otherwise. */
+  run_day: number;
+  /** "HH:MM:SS" as the server stores it. */
+  run_time: string;
+  period_kind: PeriodKind;
+  formats: string[];
+  distribution: Recipient[];
+  review_required: boolean;
+  enabled: boolean;
+  next_run_at: string | null;
+  last_run_id: string | null;
+  version: number;
+}
+
+export interface ScheduleFields {
+  name?: string;
+  cadence?: Cadence;
+  run_day?: number;
+  /** "HH:MM". */
+  run_time?: string;
+  period_kind?: PeriodKind;
+  distribution?: Recipient[];
+  enabled?: boolean;
+}
+
+export interface CreateScheduleBody extends ScheduleFields {
+  account_id: string;
+  name: string;
+  cadence: Cadence;
+  run_day: number;
+}
+
+export interface PatchScheduleBody extends ScheduleFields {
+  version: number;
+}
+
+export interface RunNowBody {
+  period_start?: string;
+  period_end?: string;
+}
+
+export interface RunNowResult {
+  run_id: string;
+  pack_id: string;
+  period: { start: string; end: string };
+  delivery: DeliveryOutcome[];
+  status: "sent" | "failed";
+}
+
+export interface ScheduleRun {
+  id: string;
+  account_id: string;
+  schedule_id: string | null;
+  pack_type: string;
+  period_start: string;
+  period_end: string;
+  status: string;
+  error: string | null;
+  pack_id: string | null;
+  pptx_key: string | null;
+  delivery: DeliveryOutcome[] | null;
+  /** A user id, or "system" for the worker. */
+  requested_by: string;
+  created_at: string;
+}
+
+export interface RunsFilter {
+  account?: string;
+  status?: string;
+  schedule?: string;
+}
+
+function csatTag(accountId: string) {
+  return { type: "Csat" as const, id: accountId };
+}
+
+function schedulesTag(accountId: string) {
+  return { type: "ReportSchedules" as const, id: accountId };
+}
+
+function runsTag(accountId: string | undefined) {
+  return { type: "ReportRuns" as const, id: accountId ?? "all" };
+}
+
 export const reportingApi = xmsApi.injectEndpoints({
   endpoints: (build) => ({
     operationsDashboard: build.query<OperationsDashboard, { days: number }>({
@@ -226,6 +382,42 @@ export const reportingApi = xmsApi.injectEndpoints({
       query: (params) => ({ url: "/v1/portal/dashboard", params: { days: params?.days ?? 30 } }),
       providesTags: [{ type: "Dashboards", id: "portal" }],
     }),
+    accountCsat: build.query<AccountCsat, CsatParams>({
+      query: ({ accountId, from, to }) => ({
+        url: `/v1/accounts/${accountId}/csat`,
+        params: { ...(from ? { from } : {}), ...(to ? { to } : {}) },
+      }),
+      providesTags: (_result, _error, { accountId }) => [csatTag(accountId)],
+    }),
+    reportSchedules: build.query<ReportSchedule[], string>({
+      query: (accountId) => ({ url: "/v1/reporting/schedules", params: { account: accountId } }),
+      providesTags: (_result, _error, accountId) => [schedulesTag(accountId)],
+    }),
+    createReportSchedule: build.mutation<ReportSchedule, CreateScheduleBody>({
+      query: (body) => ({ url: "/v1/reporting/schedules", method: "POST", body }),
+      invalidatesTags: (_result, error, { account_id }) => (error ? [] : [schedulesTag(account_id)]),
+    }),
+    /** The version travels with every patch; a stale_version refusal reloads the list either way. */
+    patchReportSchedule: build.mutation<ReportSchedule, { id: string; accountId: string; body: PatchScheduleBody }>({
+      query: ({ id, body }) => ({ url: `/v1/reporting/schedules/${id}`, method: "PATCH", body }),
+      invalidatesTags: (_result, _error, { accountId }) => [schedulesTag(accountId)],
+    }),
+    runScheduleNow: build.mutation<RunNowResult, { id: string; accountId: string; body: RunNowBody }>({
+      query: ({ id, body }) => ({ url: `/v1/reporting/schedules/${id}/run-now`, method: "POST", body }),
+      invalidatesTags: (_result, error, { accountId }) =>
+        error ? [] : [schedulesTag(accountId), runsTag(accountId), runsTag(undefined), { type: "Reports", id: accountId }],
+    }),
+    scheduleRuns: build.query<ScheduleRun[], RunsFilter>({
+      query: (filter) => ({
+        url: "/v1/reporting/runs",
+        params: {
+          ...(filter.account ? { account: filter.account } : {}),
+          ...(filter.status ? { status: filter.status } : {}),
+          ...(filter.schedule ? { schedule: filter.schedule } : {}),
+        },
+      }),
+      providesTags: (_result, _error, filter) => [runsTag(filter.account)],
+    }),
   }),
   overrideExisting: false,
 });
@@ -241,4 +433,10 @@ export const {
   useGenerateWsrMutation,
   useReportPackQuery,
   usePortalDashboardQuery,
+  useAccountCsatQuery,
+  useReportSchedulesQuery,
+  useCreateReportScheduleMutation,
+  usePatchReportScheduleMutation,
+  useRunScheduleNowMutation,
+  useScheduleRunsQuery,
 } = reportingApi;

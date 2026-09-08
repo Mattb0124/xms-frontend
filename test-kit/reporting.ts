@@ -1,11 +1,105 @@
 import type {
+  AccountCsat,
   AccountDashboard,
   AuditEvent,
+  CsatResponse,
+  DeliveryOutcome,
   Measures,
   Notable,
   OperationsDashboard,
   ReportRun,
+  ReportSchedule,
+  ScheduleRun,
 } from "@/redux/reportingApi";
+
+export const SCHEDULE_ID = "33333333-3333-4333-8333-333333333333";
+export const INTERNAL_USER_ID = "44444444-4444-4444-8444-444444444444";
+
+/** Two responses in the range: one satisfied, one low with a comment. */
+export function aCsatSummary(overrides: Partial<AccountCsat> = {}): AccountCsat {
+  const responses: CsatResponse[] = [
+    {
+      id: "r-1",
+      survey_id: "s-1",
+      ticket_key: "CS0001001",
+      score: 5,
+      comment: null,
+      contact_name: "Pat Client",
+      contact_email: "pat@client.test",
+      created_at: "2026-09-06T09:00:00Z",
+    },
+    {
+      id: "r-2",
+      survey_id: "s-2",
+      ticket_key: "CS0000990",
+      score: 2,
+      comment: "Took too long to hear back",
+      contact_name: null,
+      contact_email: null,
+      created_at: "2026-09-02T14:30:00Z",
+    },
+  ];
+  return {
+    account_id: "acct-1",
+    from: "2026-06-09",
+    to: "2026-09-07",
+    summary: { responses: 2, average: 3.5, distribution: { "1": 0, "2": 1, "3": 0, "4": 0, "5": 1 }, low: 1 },
+    surveys: { sent: 4, answered: 2, suppressed: 1 },
+    responses,
+    ...overrides,
+  };
+}
+
+export function aDelivery(overrides: Partial<DeliveryOutcome> = {}): DeliveryOutcome {
+  return { kind: "internal", to: INTERNAL_USER_ID, outcome: "notified", ...overrides };
+}
+
+/** A weekly schedule on Monday at 06:00 with one internal recipient and one contact. */
+export function aSchedule(overrides: Partial<ReportSchedule> = {}): ReportSchedule {
+  return {
+    id: SCHEDULE_ID,
+    account_id: "acct-1",
+    name: "Weekly status report",
+    pack_type: "wsr",
+    cadence: "weekly",
+    run_day: 1,
+    run_time: "06:00:00",
+    period_kind: "previous_week",
+    formats: ["pptx"],
+    distribution: [
+      { kind: "internal", id: INTERNAL_USER_ID, name: "Cara Lee", email: "cara@example.test" },
+      { kind: "contact", email: "pat@client.test", name: "Pat Client" },
+    ],
+    review_required: false,
+    enabled: true,
+    next_run_at: "2026-09-14T06:00:00Z",
+    last_run_id: null,
+    version: 1,
+    ...overrides,
+  };
+}
+
+export function aRun(overrides: Partial<ScheduleRun> = {}): ScheduleRun {
+  return {
+    id: "run-10",
+    account_id: "acct-1",
+    schedule_id: SCHEDULE_ID,
+    pack_type: "wsr",
+    period_start: "2026-08-31",
+    period_end: "2026-09-06",
+    status: "sent",
+    error: null,
+    pack_id: "pack-10",
+    pptx_key: "acct-1/reports/pack-10.pptx",
+    delivery: [
+      aDelivery(),
+      aDelivery({ kind: "contact", to: "pat@client.test", outcome: "skipped", reason: "no_sender_identity" }),
+    ],
+    requested_by: "system",
+    created_at: "2026-09-07T06:00:00Z",
+    ...overrides,
+  };
+}
 
 /** Constructed dashboard, audit and report fixtures shared by the reporting tests. */
 export function someMeasures(overrides: Partial<Measures> = {}): Measures {

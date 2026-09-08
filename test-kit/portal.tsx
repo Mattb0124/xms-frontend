@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { vi } from "vitest";
 import { Toaster, ToastProvider } from "@/components/xms/toast";
 import { makeStore } from "@/redux/store";
-import type { PortalMe, PortalTicket, PortalTimelineItem } from "@/redux/portalApi";
+import type { PortalMe, PortalTicket, PortalTimelineItem, Survey } from "@/redux/portalApi";
 
 /**
  * Constructed portal data and a fetch stub keyed on method and path, shared
@@ -78,6 +78,37 @@ export function aTimeline(): PortalTimelineItem[] {
       created_at: "2026-09-07T08:50:00Z",
     },
   ];
+}
+
+/** A pending ticket-close survey, sent but not yet answered. */
+export function aSurvey(overrides: Partial<Survey> = {}): Survey {
+  return {
+    id: "11111111-1111-4111-8111-111111111111",
+    ticket_id: "t-1",
+    ticket_key: "CS0001001",
+    short_description: "Cannot open the consolidation report",
+    status: "sent",
+    sent_at: "2026-09-05T10:00:00Z",
+    expires_at: "2026-09-15T10:00:00Z",
+    answered_at: null,
+    score: null,
+    ...overrides,
+  };
+}
+
+export function anAnsweredSurvey(overrides: Partial<Survey> = {}): Survey {
+  return aSurvey({
+    id: "22222222-2222-4222-8222-222222222222",
+    ticket_id: "t-2",
+    ticket_key: "CS0000990",
+    short_description: "Password reset for the planning tool",
+    status: "answered",
+    sent_at: "2026-08-28T10:00:00Z",
+    expires_at: "2026-09-07T10:00:00Z",
+    answered_at: "2026-08-29T08:30:00Z",
+    score: 4,
+    ...overrides,
+  });
 }
 
 export function json(body: unknown, status = 200): Response {

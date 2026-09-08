@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { portalApi } from "@/redux/portalApi";
 import { makeStore } from "@/redux/store";
-import { aPortalMe, aPortalTicket, json, stubFetch } from "@/test-kit/portal";
+import { anAnsweredSurvey, aPortalMe, aPortalTicket, aSurvey, json, stubFetch } from "@/test-kit/portal";
 
 /** The portal slice sends exactly the request shapes the /v1/portal contract expects. */
 describe("portalApi", () => {
@@ -62,5 +62,36 @@ describe("portalApi", () => {
     const articles = await store.dispatch(portalApi.endpoints.searchArticles.initiate("cube")).unwrap();
     expect(articles).toEqual([]);
     expect(calls).toEqual([]);
+  });
+
+  it("lists the surveys, answers one as the portal user, and answers from the link with the token", async () => {
+    const survey = aSurvey();
+    const calls = stubFetch({
+      "GET /v1/portal/surveys": () => json({ pending: [survey], answered: [anAnsweredSurvey()] }),
+      [`POST /v1/portal/surveys/${survey.id}/answer`]: () =>
+        json({ survey_id: survey.id, score: 4, answered_at: "2026-09-07T10:00:00Z" }, 201),
+      [`POST /v1/csat/${survey.id}/answer`]: () =>
+        json({ survey_id: survey.id, score: 2, answered_at: "2026-09-07T10:01:00Z" }, 201),
+    });
+    const store = makeStore();
+    const list = await store.dispatch(portalApi.endpoints.portalSurveys.initiate()).unwrap();
+    expect(list.pending[0].ticket_key).toBe("CS0001001");
+    expect(list.answered[0].score).toBe(4);
+    const answered = await store
+      .dispatch(portalApi.endpoints.answerPortalSurvey.initiate({ id: survey.id, body: { score: 4, comment: "Quick" } }))
+      .unwrap();
+    expect(answered.score).toBe(4);
+    await store
+      .dispatch(
+        portalApi.endpoints.answerSurveyLink.initiate({ id: survey.id, token: "tok-1234567890abcdefghij", body: { score: 2 } }),
+      )
+      .unwrap();
+    expect(calls.map((call) => [call.key, call.body])).toEqual([
+      ["GET /v1/portal/surveys", undefined],
+      [`POST /v1/portal/surveys/${survey.id}/answer`, { score: 4, comment: "Quick" }],
+      // The answer makes the list stale: it is read again.
+      ["GET /v1/portal/surveys", undefined],
+      [`POST /v1/csat/${survey.id}/answer`, { token: "tok-1234567890abcdefghij", score: 2 }],
+    ]);
   });
 });

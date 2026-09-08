@@ -77,6 +77,41 @@ export interface PortalComment {
   created_at: string;
 }
 
+/**
+ * CSAT on ticket close (Client Portal functional 5.7, CP-07): one five-point
+ * question with an optional comment. A survey is pending while sent or
+ * reminded; the score is null until it is answered.
+ */
+export type SurveyStatus = "sent" | "reminded" | "answered" | "expired";
+
+export interface Survey {
+  id: string;
+  ticket_id: string | null;
+  ticket_key: string | null;
+  short_description: string | null;
+  status: SurveyStatus;
+  sent_at: string;
+  expires_at: string | null;
+  answered_at: string | null;
+  score: number | null;
+}
+
+export interface SurveyList {
+  pending: Survey[];
+  answered: Survey[];
+}
+
+export interface AnswerSurveyBody {
+  score: number;
+  comment?: string;
+}
+
+export interface SurveyAnswer {
+  survey_id: string;
+  score: number;
+  answered_at: string;
+}
+
 /** Placeholder until the knowledge base ships: the screens are wired, the list is empty. */
 export interface PortalArticle {
   id: string;
@@ -148,6 +183,23 @@ export const portalApi = xmsApi.injectEndpoints({
     searchArticles: build.query<PortalArticle[], string>({
       queryFn: async () => ({ data: [] }),
     }),
+    portalSurveys: build.query<SurveyList, void>({
+      query: () => "/v1/portal/surveys",
+      providesTags: ["PortalSurveys"],
+    }),
+    /** Answers as the signed-in portal user. A refusal (already_answered, survey_closed) means the list is behind. */
+    answerPortalSurvey: build.mutation<SurveyAnswer, { id: string; body: AnswerSurveyBody }>({
+      query: ({ id, body }) => ({ url: `/v1/portal/surveys/${encodeURIComponent(id)}/answer`, method: "POST", body }),
+      invalidatesTags: ["PortalSurveys"],
+    }),
+    /** Answers from the email link without a session: the one-time token is the credential. */
+    answerSurveyLink: build.mutation<SurveyAnswer, { id: string; token: string; body: AnswerSurveyBody }>({
+      query: ({ id, token, body }) => ({
+        url: `/v1/csat/${encodeURIComponent(id)}/answer`,
+        method: "POST",
+        body: { token, ...body },
+      }),
+    }),
   }),
 });
 
@@ -161,4 +213,7 @@ export const {
   useAddPortalCommentMutation,
   usePortalTransitionMutation,
   useSearchArticlesQuery,
+  usePortalSurveysQuery,
+  useAnswerPortalSurveyMutation,
+  useAnswerSurveyLinkMutation,
 } = portalApi;

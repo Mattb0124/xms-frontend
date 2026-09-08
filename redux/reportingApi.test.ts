@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { reportingApi } from "@/redux/reportingApi";
 import { makeStore } from "@/redux/store";
 import { json, stubFetch } from "@/test-kit/portal";
-import { anOperationsDashboard } from "@/test-kit/reporting";
+import { aCsatSummary, aDelivery, anOperationsDashboard, aRun, aSchedule, SCHEDULE_ID } from "@/test-kit/reporting";
 
 /** The reporting slice sends the request shapes the dashboards, audit and reports contract expects. */
 describe("reportingApi", () => {
@@ -57,5 +57,98 @@ describe("reportingApi", () => {
       ["GET /v1/accounts/acct-1/reports", undefined],
       ["GET /v1/reports/packs/pack-1", undefined],
     ]);
+  });
+
+  it("reads the account CSAT with the range as the API names it", async () => {
+    const calls = stubFetch({ "GET /v1/accounts/acct-1/csat": () => json(aCsatSummary()) });
+    const store = makeStore();
+    const view = await store
+      .dispatch(reportingApi.endpoints.accountCsat.initiate({ accountId: "acct-1", from: "2026-06-09", to: "2026-09-07" }))
+      .unwrap();
+    expect(view.summary.average).toBe(3.5);
+    await store.dispatch(reportingApi.endpoints.accountCsat.initiate({ accountId: "acct-1" })).unwrap();
+    expect(calls.map((call) => `${call.key}${call.search}`)).toEqual([
+      "GET /v1/accounts/acct-1/csat?from=2026-06-09&to=2026-09-07",
+      "GET /v1/accounts/acct-1/csat",
+    ]);
+  });
+
+  it("lists, creates, patches with the version and runs a schedule now, then reads the runs by account and schedule", async () => {
+    const calls = stubFetch({
+      "GET /v1/reporting/schedules": () => json([aSchedule()]),
+      "POST /v1/reporting/schedules": () => json(aSchedule({ id: "new" }), 201),
+      [`PATCH /v1/reporting/schedules/${SCHEDULE_ID}`]: () => json(aSchedule({ enabled: false, version: 2 })),
+      [`POST /v1/reporting/schedules/${SCHEDULE_ID}/run-now`]: () =>
+        json(
+          {
+            run_id: "run-11",
+            pack_id: "pack-11",
+            period: { start: "2026-08-24", end: "2026-08-30" },
+            delivery: [aDelivery()],
+            status: "sent",
+          },
+          201,
+        ),
+      "GET /v1/reporting/runs": () => json([aRun()]),
+    });
+    const store = makeStore();
+    await store.dispatch(reportingApi.endpoints.reportSchedules.initiate("acct-1")).unwrap();
+    await store
+      .dispatch(
+        reportingApi.endpoints.createReportSchedule.initiate({
+          account_id: "acct-1",
+          name: "Monthly",
+          cadence: "monthly",
+          run_day: 1,
+          run_time: "07:30",
+          distribution: [{ kind: "contact", email: "pat@client.test", name: "Pat" }],
+        }),
+      )
+      .unwrap();
+    const patched = await store
+      .dispatch(
+        reportingApi.endpoints.patchReportSchedule.initiate({
+          id: SCHEDULE_ID,
+          accountId: "acct-1",
+          body: { version: 1, enabled: false },
+        }),
+      )
+      .unwrap();
+    expect(patched.enabled).toBe(false);
+    const ran = await store
+      .dispatch(
+        reportingApi.endpoints.runScheduleNow.initiate({
+          id: SCHEDULE_ID,
+          accountId: "acct-1",
+          body: { period_start: "2026-08-24", period_end: "2026-08-30" },
+        }),
+      )
+      .unwrap();
+    expect(ran.delivery[0].outcome).toBe("notified");
+    const runs = await store
+      .dispatch(reportingApi.endpoints.scheduleRuns.initiate({ account: "acct-1", schedule: SCHEDULE_ID }))
+      .unwrap();
+    expect(runs[0].pack_id).toBe("pack-10");
+    const seen = calls.map((call) => [`${call.key}${call.search}`, call.body]);
+    expect(seen[0]).toEqual(["GET /v1/reporting/schedules?account=acct-1", undefined]);
+    expect(seen[1]).toEqual([
+      "POST /v1/reporting/schedules",
+      {
+        account_id: "acct-1",
+        name: "Monthly",
+        cadence: "monthly",
+        run_day: 1,
+        run_time: "07:30",
+        distribution: [{ kind: "contact", email: "pat@client.test", name: "Pat" }],
+      },
+    ]);
+    expect(seen).toContainEqual([`PATCH /v1/reporting/schedules/${SCHEDULE_ID}`, { version: 1, enabled: false }]);
+    expect(seen).toContainEqual([
+      `POST /v1/reporting/schedules/${SCHEDULE_ID}/run-now`,
+      { period_start: "2026-08-24", period_end: "2026-08-30" },
+    ]);
+    expect(seen).toContainEqual([`GET /v1/reporting/runs?account=acct-1&schedule=${SCHEDULE_ID}`, undefined]);
+    // Every write reloads the schedules list.
+    expect(calls.filter((call) => call.key === "GET /v1/reporting/schedules").length).toBe(4);
   });
 });
