@@ -107,6 +107,10 @@ export const xmsApi = createApi({
     "Csat",
     "ReportSchedules",
     "ReportRuns",
+    "ApiClients",
+    "ApiClientScopes",
+    "FinanceDestination",
+    "FinanceDeliveries",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
