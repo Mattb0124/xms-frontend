@@ -408,3 +408,67 @@ describe("the audit search and the two analytics dashboards fail closed", () => 
     expect(usage).not.toContain("audit:read");
   });
 });
+
+/**
+ * The same map for review before send (Dashboards functional 5.8, DR-05),
+ * which the API answers to `reports:manage` alone (backend
+ * test/golden/routes.json). The three routes read and decide an unsent report
+ * pack: the run detail carries the frozen narrative and a presigned link to
+ * each rendition, approve mails that pack to a client, and cancel stops it.
+ * None of that may ship behind a weaker key or with no gate above it at all,
+ * and the account's Report packs tab, which links held runs here, holds the
+ * same key on its own body.
+ */
+const REVIEW_READS = [
+  { hook: "useReviewRunQuery", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}" },
+  { hook: "useApproveReportRunMutation", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}/approve" },
+  { hook: "useCancelReportRunMutation", slice: "redux/reportingApi.ts", route: "/v1/reporting/runs/${id}/cancel" },
+];
+
+const REVIEW_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/reporting/run-review.tsx", mountedIn: "app/(internal)/reports/runs/[id]/page.tsx" },
+  { file: "app/(internal)/reports/runs/[id]/page.tsx", permission: "reports:manage" },
+];
+
+describe("a held report run is read and decided behind reports:manage", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of REVIEW_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = REVIEW_READS.map((entry) => entry.hook);
+    const listed = new Set(REVIEW_SURFACES.map((surface) => surface.file));
+    const callers = sources()
+      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
+      .map(relative);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+  });
+
+  it("mounts the review screen only inside a gate on reports:manage", () => {
+    const gates = new Set(REVIEW_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of REVIEW_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `<AdminGate permission="${surface.permission}">`,
+      );
+    }
+  });
+
+  it("registers the review screen on reports:manage, so no weaker reader is offered the link", () => {
+    const routes = read("lib/routes.ts");
+    expect(routes).toContain('path: "/reports/runs/[id]"');
+    expect(routes).toMatch(/screen: "report_run",[\s\S]*?permission: "reports:manage"/);
+    // The account's Report packs tab links held runs here and refuses to read
+    // anything without the same key.
+    expect(read("components/admin/reports/report-schedules-tab.tsx")).toContain('hasPermission("reports:manage")');
+  });
+});

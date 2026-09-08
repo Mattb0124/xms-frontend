@@ -216,6 +216,14 @@ export const SCREENS: Screen[] = [
     purpose: "One pack: frozen numbers, narrative, download.",
   },
   {
+    path: "/reports/runs/[id]",
+    screen: "report_run",
+    label: "Report review",
+    section: "Reports",
+    permission: "reports:manage",
+    purpose: "One held run: the pack as it will go, approve and send, or cancel with a reason.",
+  },
+  {
     path: "/admin",
     screen: "admin",
     label: "Admin",

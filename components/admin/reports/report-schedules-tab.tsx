@@ -10,6 +10,7 @@ import {
   SECONDARY_BUTTON,
   fullName,
 } from "@/components/admin/primitives";
+import { DeliveryList } from "@/components/reporting/delivery-list";
 import { RunStatusPill } from "@/components/reporting/reports-card";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
@@ -26,14 +27,10 @@ import {
   emptyScheduleDraft,
   maxRunDay,
   nextRunLabel,
-  OUTCOME_LABELS,
-  outcomeTone,
   patchBody,
   PERIOD_KINDS,
   periodKindLabel,
-  reasonLabel,
   RECIPIENT_KINDS,
-  recipientKindLabel,
   recipientLabel,
   requestedByLabel,
   runNowBody,
@@ -54,7 +51,6 @@ import {
   useReportSchedulesQuery,
   useRunScheduleNowMutation,
   useScheduleRunsQuery,
-  type DeliveryOutcome,
   type RecipientKind,
   type ReportSchedule,
   type RunNowResult,
@@ -64,26 +60,7 @@ const HEAD = "text-xms-ink px-3 py-2 text-left text-[12px] font-semibold whitesp
 const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
 const SMALL = "h-[26px] px-2 text-[12px]";
 
-/** The per-recipient outcome of one run: kind, address, outcome pill and the reason when skipped. */
-export function DeliveryList({ delivery }: { delivery: DeliveryOutcome[] }) {
-  if (delivery.length === 0) return <p className="text-xms-label text-[12px]">No recipients on this schedule.</p>;
-  return (
-    <ul className="divide-xms-line divide-y text-[12px]" aria-label="Delivery outcomes">
-      {delivery.map((row, index) => (
-        <li
-          key={`${row.kind}-${row.to}-${index}`}
-          className="flex flex-wrap items-center gap-3 py-1.5"
-          data-outcome={row.outcome}
-        >
-          <span className="text-xms-label w-[90px]">{recipientKindLabel(row.kind)}</span>
-          <span className="xms-mono text-xms-body">{row.to || "(no address)"}</span>
-          <SignalPill tone={outcomeTone(row.outcome)} label={OUTCOME_LABELS[row.outcome]} />
-          {reasonLabel(row.reason) ? <span className="text-xms-label">{reasonLabel(row.reason)}</span> : null}
-        </li>
-      ))}
-    </ul>
-  );
-}
+export { DeliveryList };
 
 function userOptions(users: UserRecord[] | undefined) {
   return (users ?? []).filter((user) => user.status !== "deactivated");
