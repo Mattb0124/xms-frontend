@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
 import { groupSkillsByKind, levelCellClass } from "@/lib/capacity/vocab";
 import { levelLabel, roleLabel } from "@/lib/roster/vocab";
@@ -33,6 +34,20 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
   const groups = useMemo(() => groupSkillsByKind(matrix.skills), [matrix.skills]);
   const rows = useMemo(() => heatMapRows(matrix.people, role), [matrix.people, role]);
   const columns = groups.flatMap((group) => group.skills);
+
+  // A grid with zero columns is worse than no grid: with an empty catalog the
+  // heat map drew a lone "Person" column and one blank row per person, then
+  // apologized underneath. The empty state stands on its own (finding 15).
+  if (columns.length === 0) {
+    return (
+      <Panel title="Skills by person" caption="Skills" subtitle="Nothing to plot until the catalog has a skill.">
+        <EmptyBanner
+          title="No skills in the catalog yet"
+          detail="Add them from a person record. The matrix then plots every person against every skill."
+        />
+      </Panel>
+    );
+  }
 
   return (
     <Panel
@@ -117,9 +132,6 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
           ) : null}
         </tbody>
       </table>
-      {columns.length === 0 ? (
-        <p className="text-xms-label px-4 py-3 text-[12px]">No skills in the catalog yet; add them from a person record.</p>
-      ) : null}
     </Panel>
   );
 }

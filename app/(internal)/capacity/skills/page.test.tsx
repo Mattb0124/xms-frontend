@@ -100,6 +100,23 @@ describe("CapacitySkillsPage", () => {
     expect(navigation.replace).toHaveBeenLastCalledWith("/capacity/skills?role=architect");
   });
 
+  /**
+   * Review finding 15: with an empty catalog the heat map drew a table with a
+   * single "Person" column and one blank row per person, then an empty-state
+   * line underneath. A grid with zero columns is worse than no grid.
+   */
+  it("shows the empty state instead of a headerless grid when the catalog holds no skills", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["capacity:view"]),
+      [MATRIX]: () => json(aSkillsMatrixPeople({ skills: [] })),
+    });
+    renderDesk(<CapacitySkillsPage />);
+    expect(await screen.findByText("No skills in the catalog yet")).toBeInTheDocument();
+    expect(screen.queryByRole("table", { name: "Skills heat map" })).toBeNull();
+    expect(screen.queryByText("Ana Silva")).toBeNull();
+    expect(screen.getByText(/Add them from a person record/)).toBeInTheDocument();
+  });
+
   it("shows the account lens as a card per account with the status pills and the qualified names, sending the account filter", async () => {
     navigation.search = `lens=account&account=${ACCOUNT_ID}`;
     const calls = stubFetch({
