@@ -9,6 +9,7 @@ import {
   PortalNotice,
 } from "@/components/portal/primitives";
 import { IMPACT_OPTIONS, PORTAL_TYPES, URGENCY_OPTIONS } from "@/lib/portal/client-language";
+import { cn } from "@/lib/utils";
 import type { CreatePortalTicketBody, PortalLevel, PortalTicketType } from "@/redux/portalApi";
 
 /**
@@ -65,12 +66,20 @@ export function RequestForm({
   onSubmit,
   submitting,
   serverError,
+  type,
 }: {
   onSubmit: (body: CreatePortalTicketBody) => void;
   submitting?: boolean;
   serverError?: string;
+  /**
+   * The type when the page has already asked for it, which is what happens
+   * once the account publishes a form for any type: the page names the types
+   * the API offers and this form fills in the fixed one. Left out, the form
+   * asks for the type itself, which is the portal as it was before forms.
+   */
+  type?: PortalTicketType;
 }) {
-  const [values, setValues] = useState<RequestFormValues>(EMPTY);
+  const [values, setValues] = useState<RequestFormValues>(type ? { ...EMPTY, type } : EMPTY);
   const [errors, setErrors] = useState<RequestFormErrors>({});
   const [touched, setTouched] = useState(false);
 
@@ -92,7 +101,7 @@ export function RequestForm({
         if (Object.keys(found).length === 0) onSubmit(toBody(values));
       }}
     >
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className={cn("flex flex-col gap-2", type && "hidden")}>
         <legend className="text-xms-ink mb-1 text-[14px] font-medium">What kind of request is this?</legend>
         {PORTAL_TYPES.map((option) => (
           <label
