@@ -19,7 +19,7 @@ describe("CompTimePanel", () => {
     expect(daysBefore("2026-03-01", 1)).toBe("2026-02-28");
   });
 
-  it("renders nothing without tickets:view and never asks the API", async () => {
+  it("renders nothing without contracts:view and never asks the API", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["time:log"]) });
     const { container } = renderDesk(<CompTimePanel accountId="acct-1" today="2026-09-07" />);
     await waitFor(() => expect(calls.some((call) => call.key === "GET /v1/admin/me")).toBe(true));
@@ -29,7 +29,7 @@ describe("CompTimePanel", () => {
 
   it("lists minutes and entries per person with the totals over the last 30 days, then re-reads on a new range", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [ROUTE]: () => {
         const last = calls[calls.length - 1];
         return json(

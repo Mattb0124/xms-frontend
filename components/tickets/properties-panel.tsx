@@ -27,7 +27,10 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   const me = useMe();
   const { data: accounts } = useListGrantedAccountsQuery();
   const { data: groups } = useListDirectoryGroupsQuery();
-  const { data: contracts } = useListAccountContractsQuery(ticket.account_id);
+  // The contract directory sits behind contracts:view; without it the row
+  // keeps the ticket's own contract id rather than taking a needless 403.
+  const canReadContracts = me.hasPermission("contracts:view");
+  const { data: contracts } = useListAccountContractsQuery(ticket.account_id, { skip: !canReadContracts });
   const [patch] = usePatchTicketMutation();
   const { push } = useToast();
   const canOverride = me.hasPermission("tickets:override-priority");

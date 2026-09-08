@@ -324,10 +324,14 @@ export function TimeTab({
   contractId?: string;
 }) {
   const { data, isLoading } = useTicketTimeQuery(ticketKey);
-  const contracts = useListAccountContractsQuery(accountId ?? "", { skip: !accountId });
+  const me = useMe();
+  // The contracts route is behind contracts:view, which a consultant logging
+  // time does not hold; without it the after-hours badge shows the class
+  // alone rather than the contract's handling, and nothing is asked for.
+  const canReadContracts = me.hasPermission("contracts:view");
+  const contracts = useListAccountContractsQuery(accountId ?? "", { skip: !accountId || !canReadContracts });
   const rule = contracts.data?.find((contract) => contract.id === contractId) ?? null;
   const [log, logging] = useLogTicketTimeMutation();
-  const me = useMe();
   const { push } = useToast();
   const track = useTrack("time.log");
   const canLog = me.hasPermission("time:log");

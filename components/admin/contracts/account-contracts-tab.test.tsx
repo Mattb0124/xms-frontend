@@ -157,16 +157,16 @@ describe("contract rule words", () => {
 describe("AccountContractsTab", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("fails closed without tickets:view and never reads the contracts", async () => {
+  it("fails closed without contracts:view and never reads the contracts", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["admin:accounts"]) });
     renderDesk(<AccountContractsTab accountId={ACCOUNT_ID} />);
-    await screen.findByText(/Needs the tickets:view permission/);
+    await screen.findByText(/Needs the contracts:view permission/);
     expect(calls.some((call) => call.key === LIST)).toBe(false);
   });
 
   it("lists the contracts with their handling and rules and offers no edit without contracts:manage", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["admin:accounts", "tickets:view"]),
+      "GET /v1/admin/me": me(["admin:accounts", "contracts:view"]),
       [LIST]: () =>
         json([
           aContract(),
@@ -200,7 +200,7 @@ describe("AccountContractsTab", () => {
   it("lists the required technologies by code and saves them through the rules editor", async () => {
     let saved = false;
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["admin:accounts", "tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["admin:accounts", "contracts:view", "contracts:manage"]),
       [LIST]: () => json([aContract(saved ? { technology_codes: ["onestream", "sap"], version: 2 } : { technology_codes: ["onestream"] })]),
       [CARDS]: () => json([]),
       [PATCH]: () => {
@@ -233,7 +233,7 @@ describe("AccountContractsTab", () => {
   it("saves premium rate with its multiplier and the version through PATCH, then shows the new handling", async () => {
     let saved = false;
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["admin:accounts", "tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["admin:accounts", "contracts:view", "contracts:manage"]),
       [LIST]: () => json([saved ? aPremiumContract({ version: 2 }) : aContract()]),
       [CARDS]: () => json([]),
       [PATCH]: () => {
@@ -268,7 +268,7 @@ describe("AccountContractsTab", () => {
     let attempt = 0;
     let reads = 0;
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["contracts:view", "contracts:manage"]),
       [LIST]: () => {
         reads += 1;
         return json([aPremiumContract({ version: reads })]);
@@ -309,7 +309,7 @@ describe("AccountContractsTab", () => {
   it("saves the budget rules with the overage multiplier and the cap only under their rules, wording the refusals", async () => {
     let attempt = 0;
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["contracts:view", "contracts:manage"]),
       [LIST]: () => json([aContract()]),
       [CARDS]: () => json([]),
       [PATCH]: () => {

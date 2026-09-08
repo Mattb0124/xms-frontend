@@ -97,3 +97,129 @@ describe("every gated screen fails closed without asking", () => {
     expect(queriesBesideTheGate(fixed)).toEqual([]);
   });
 });
+
+/**
+ * The second rule, from the 2026-09-08 backend change that moved the
+ * contracts, rate cards, budget, account time and billing period routes off
+ * `tickets:view` and onto the new `contracts:view` (which Consultants and
+ * Dispatchers do not hold): a surface that reads one of those routes may not
+ * gate itself on a weaker permission. A screen that did would ask a question
+ * the browser had already answered, take the 403 and write the security
+ * event, exactly the shape finding 25 objected to.
+ *
+ * The table below is the map, and it is closed at both ends: every hook that
+ * reads a contracts:view route is listed with the route it calls, and every
+ * file outside the API slices that calls one of those hooks must appear with
+ * the permission it gates on, or with the surface whose gate already covers
+ * it. A new screen reading the budget cannot ship gated on tickets:view.
+ */
+const SOURCE_ROOTS = ["app", "components", "lib", "redux"];
+
+/** Each contracts:view route (backend test/golden/routes.json), the hook that reads it and the slice it lives in. */
+const CONTRACTS_VIEW_READS = [
+  { hook: "useListAccountContractsQuery", slice: "redux/ticketsApi.ts", route: "/v1/accounts/${accountId}/contracts" },
+  { hook: "useCompTimeQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/time/comp-time" },
+  { hook: "useAccountBudgetQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/budget" },
+  { hook: "useBudgetEntriesQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${filter.accountId}/budget/entries" },
+  { hook: "useRateCardsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/rate-cards" },
+  { hook: "useBillingPeriodsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/billing-periods" },
+];
+
+/**
+ * Every surface that calls one of those hooks. `permission` is the key its
+ * own gate holds the read behind; `mountedIn` names the surface whose gate
+ * runs first, for a child that is never rendered on its own.
+ */
+const CONTRACT_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/time/budget-view.tsx", permission: "contracts:view" },
+  { file: "components/time/budget-entries.tsx", mountedIn: "components/time/budget-view.tsx" },
+  { file: "components/time/comp-time-panel.tsx", permission: "contracts:view" },
+  { file: "components/admin/billing/billing-periods-tab.tsx", permission: "contracts:view" },
+  { file: "components/admin/contracts/account-contracts-tab.tsx", permission: "contracts:view" },
+  { file: "components/admin/contracts/rate-cards.tsx", mountedIn: "components/admin/contracts/account-contracts-tab.tsx" },
+  { file: "components/admin/finance/finance-tab.tsx", permission: "contracts:view" },
+  { file: "components/tickets/properties-panel.tsx", permission: "contracts:view" },
+  { file: "components/tickets/time-tab.tsx", permission: "contracts:view" },
+  { file: "app/(internal)/tickets/new/page.tsx", permission: "contracts:view" },
+];
+
+/**
+ * The contracts:view routes no client screen reads yet: the account time
+ * list, a contract's periods and its engagements. Nothing may build these
+ * URLs without landing in the table above.
+ */
+const NOT_READ_YET = [
+  { name: "the account time list", pattern: /\/v1\/accounts\/\$\{[^}]+\}\/time[`"'?]/ },
+  { name: "the contract periods", pattern: /\/contracts\/\$\{[^}]+\}\/periods/ },
+  { name: "the account engagements", pattern: /\/v1\/accounts\/\$\{[^}]+\}\/engagements/ },
+];
+
+/** The permission the ticket record's contract card keeps: its route stayed on tickets:view. */
+const TICKETS_VIEW_SURFACE = { file: "components/tickets/contract-card.tsx", hook: "useContractPositionQuery" };
+
+function sources(): string[] {
+  const collect = (directory: string): string[] =>
+    readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) return collect(path);
+      return /\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name) ? [path] : [];
+    });
+  return SOURCE_ROOTS.flatMap((root) => collect(join(process.cwd(), root)));
+}
+
+const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+
+describe("a surface reading a contracts:view route gates on contracts:view", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of CONTRACTS_VIEW_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = CONTRACTS_VIEW_READS.map((entry) => entry.hook);
+    const listed = new Set(CONTRACT_SURFACES.map((surface) => surface.file));
+    const callers = sources()
+      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
+      .map(relative);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+    expect([...listed].filter((file) => !callers.includes(file))).toEqual([]);
+  });
+
+  it("holds each listed surface behind contracts:view and never behind a weaker key", () => {
+    const gates = new Set(CONTRACT_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of CONTRACT_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `hasPermission("${surface.permission}")`,
+      );
+      expect(source, `${surface.file} still gates a contracts:view read on tickets:view`).not.toContain(
+        'hasPermission("tickets:view")',
+      );
+    }
+  });
+
+  it("keeps the contract position, and the card that reads it, on tickets:view", () => {
+    const source = read(TICKETS_VIEW_SURFACE.file);
+    expect(source).toContain(TICKETS_VIEW_SURFACE.hook);
+    expect(read("redux/timeApi.ts")).toContain("/v1/accounts/${accountId}/contracts/${contractId}/position");
+    expect(CONTRACT_SURFACES.map((surface) => surface.file)).not.toContain(TICKETS_VIEW_SURFACE.file);
+  });
+
+  it("reaches no contracts:view route that has no screen yet", () => {
+    const offenders = sources().flatMap((file) => {
+      const source = readFileSync(file, "utf8");
+      return NOT_READ_YET.filter((route) => route.pattern.test(source)).map(
+        (route) => `${relative(file)} reads ${route.name}`,
+      );
+    });
+    expect(offenders).toEqual([]);
+  });
+});

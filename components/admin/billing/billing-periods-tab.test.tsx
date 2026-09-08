@@ -24,16 +24,16 @@ describe("BillingPeriodsTab", () => {
     downloadFile.mockReset();
   });
 
-  it("fails closed without tickets:view and never reads the periods", async () => {
+  it("fails closed without contracts:view and never reads the periods", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["admin:accounts"]) });
     renderDesk(<BillingPeriodsTab accountId="acct-1" />);
-    await screen.findByText(/Needs the tickets:view permission/);
+    await screen.findByText(/Needs the contracts:view permission/);
     expect(calls.some((call) => call.key === PERIODS)).toBe(false);
   });
 
   it("lists the periods with status pills and the summary figures, offering no actions to a plain reader", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [PERIODS]: () => json([aBillingPeriod(), aLockedPeriod()]),
     });
     renderDesk(<BillingPeriodsTab accountId="acct-1" />);
@@ -60,7 +60,7 @@ describe("BillingPeriodsTab", () => {
 
   it("names the automatic lock as System", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [PERIODS]: () => json([aLockedPeriod({ locked_by: null, locked_by_name: "System", locked_at: "2026-09-07T09:00:00Z" })]),
     });
     renderDesk(<BillingPeriodsTab accountId="acct-1" />);
@@ -71,7 +71,7 @@ describe("BillingPeriodsTab", () => {
 
   it("creates a period for the chosen month under time:lock-period", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "time:lock-period"]),
+      "GET /v1/admin/me": me(["contracts:view", "time:lock-period"]),
       [PERIODS]: () => json([]),
       "POST /v1/accounts/acct-1/billing-periods": () =>
         json(aBillingPeriod({ id: "bp-new", starts_on: "2026-10-01", ends_on: "2026-10-31" }), 201),
@@ -91,7 +91,7 @@ describe("BillingPeriodsTab", () => {
   it("offers Submit and Reopen to contracts:manage only, sending the version, and words invalid_transition", async () => {
     let status: "open" | "submitted" = "open";
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["contracts:view", "contracts:manage"]),
       [PERIODS]: () => json([aBillingPeriod({ status, version: status === "open" ? 1 : 2 })]),
       "POST /v1/accounts/acct-1/billing-periods/bp-1/submit": () => {
         status = "submitted";
@@ -116,7 +116,7 @@ describe("BillingPeriodsTab", () => {
 
   it("offers Approve and Lock to time:lock-period behind a confirm and words stale_version", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "time:lock-period"]),
+      "GET /v1/admin/me": me(["contracts:view", "time:lock-period"]),
       [PERIODS]: () => json([aBillingPeriod({ status: "submitted", version: 2 })]),
       "POST /v1/accounts/acct-1/billing-periods/bp-1/approve": () => json({ code: "stale_version" }, 409),
     });
@@ -135,7 +135,7 @@ describe("BillingPeriodsTab", () => {
   it("exports a locked period as CSV or Excel through the bearer download, then lists the export records", async () => {
     downloadFile.mockResolvedValue({ blob: new Blob(), fileName: "finance-2026-08.csv", rowCount: 3 });
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "time:lock-period"]),
+      "GET /v1/admin/me": me(["contracts:view", "time:lock-period"]),
       [PERIODS]: () => json([aLockedPeriod()]),
       "GET /v1/accounts/acct-1/billing-periods/bp-0/exports": () =>
         json([aBillingExport(), aBillingExport({ id: "bx-2", format: "csv", delivered_at: "2026-09-04T10:00:00Z" })]),
@@ -169,7 +169,7 @@ describe("BillingPeriodsTab", () => {
   it("words period_not_locked from the download and offers no export on an open period", async () => {
     downloadFile.mockRejectedValue(new DownloadError(409, "period_not_locked"));
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "time:lock-period"]),
+      "GET /v1/admin/me": me(["contracts:view", "time:lock-period"]),
       [PERIODS]: () => json([aBillingPeriod(), aLockedPeriod({ status: "exported" })]),
     });
     renderDesk(<BillingPeriodsTab accountId="acct-1" />);

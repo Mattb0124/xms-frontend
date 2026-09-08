@@ -238,7 +238,7 @@ function DestinationForm({ accountId }: { accountId: string }) {
 /** Every hand-over of a locked period, newest first, with Deliver now over the locked periods. */
 function DeliveriesPanel({ accountId }: { accountId: string }) {
   const me = useMe();
-  const canReadPeriods = me.hasPermission("tickets:view");
+  const canReadPeriods = me.hasPermission("contracts:view");
   const { data, isLoading, isError } = useFinanceDeliveriesQuery({ account_id: accountId });
   const periods = useBillingPeriodsQuery(accountId, { skip: !canReadPeriods });
   const [deliver, { isLoading: delivering }] = useDeliverPeriodNowMutation();
@@ -263,7 +263,7 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
       <Panel title="Deliver now" caption="A locked or exported period; a re-delivery supersedes the earlier one">
         {!canReadPeriods ? (
           <p className="text-xms-label text-[13px]">
-            The billing periods need the tickets:view permission, so there is nothing to pick here.
+            The billing periods need the contracts:view permission, so there is nothing to pick here.
           </p>
         ) : deliverable.length === 0 ? (
           <p className="text-xms-label text-[13px]">No period is locked yet. Lock one on the Billing tab first.</p>

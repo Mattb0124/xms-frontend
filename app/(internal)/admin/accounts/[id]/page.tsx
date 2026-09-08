@@ -48,21 +48,34 @@ import {
   useUpdateAccountMutation,
   type UserRecord,
 } from "@/redux/adminApi";
+import { useMe } from "@/redux/me";
 
-const TABS = [
+/**
+ * The account record's tabs, each naming the permission its own reads need
+ * where that is not the screen's own admin:accounts. Contracts, Budget and
+ * Billing read the routes the API guards with contracts:view (contracts and
+ * rate cards, the budget with its drill-through, the billing periods), so an
+ * administrator without that permission is not offered them.
+ */
+const TABS: { key: string; label: string; permission?: string }[] = [
   { key: "overview", label: "Overview" },
   { key: "settings", label: "Settings" },
   { key: "access", label: "Access" },
   { key: "calendars", label: "Calendars" },
-  { key: "contracts", label: "Contracts" },
-  { key: "budget", label: "Budget" },
-  { key: "billing", label: "Billing" },
+  { key: "contracts", label: "Contracts", permission: "contracts:view" },
+  { key: "budget", label: "Budget", permission: "contracts:view" },
+  { key: "billing", label: "Billing", permission: "contracts:view" },
   { key: "reports", label: "Report packs" },
   { key: "finance", label: "Finance" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
   { key: "configuration", label: "Configuration" },
 ];
+
+/** The tabs this viewer may open; the rest are not rendered at all. */
+export function accountRecordTabs(permissions: ReadonlySet<string> | undefined): typeof TABS {
+  return TABS.filter((tab) => !tab.permission || (permissions?.has(tab.permission) ?? false));
+}
 
 function OverviewTab({ id }: { id: string }) {
   const { data, refetch } = useGetAccountQuery(id);
@@ -263,9 +276,9 @@ function AccessTab({ id }: { id: string }) {
 }
 
 /** The tab a link opens (`?tab=budget` from the threshold notifications); the overview otherwise. */
-export function initialTab(search: URLSearchParams | null): string {
+export function initialTab(search: URLSearchParams | null, tabs: { key: string }[] = TABS): string {
   const requested = search?.get("tab");
-  return requested && TABS.some((tab) => tab.key === requested) ? requested : "overview";
+  return requested && tabs.some((tab) => tab.key === requested) ? requested : "overview";
 }
 
 function AccountRecordScreen() {
@@ -275,7 +288,12 @@ function AccountRecordScreen() {
   const { data, refetch } = useGetAccountQuery(id);
   const [transition, { isLoading: transitioning }] = useTransitionAccountMutation();
   const onError = useMutationErrors(refetch);
-  const [tab, setTab] = useState(() => initialTab(search));
+  const me = useMe();
+  const tabs = useMemo(() => accountRecordTabs(me.permissions), [me.permissions]);
+  const [tab, setTab] = useState(() => search?.get("tab") ?? "overview");
+  // The permission set arrives after the first render, so the tab in hand is
+  // resolved against the tabs allowed now rather than frozen at mount.
+  const active = tabs.some((row) => row.key === tab) ? tab : "overview";
 
   const act = async (action: "activate" | "suspend" | "offboard") => {
     try {
@@ -312,19 +330,19 @@ function AccountRecordScreen() {
         <Skeleton lines={1} className="mb-4 max-w-sm" />
       )}
       <AccountCoverageChips accountId={id} />
-      <TabBar tabs={TABS} active={tab} onChange={setTab} className="mb-4" />
-      {tab === "overview" ? <OverviewTab id={id} /> : null}
-      {tab === "settings" ? <AccountSettingsTab accountId={id} /> : null}
-      {tab === "access" ? <AccessTab id={id} /> : null}
-      {tab === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
-      {tab === "contracts" ? <AccountContractsTab accountId={id} /> : null}
-      {tab === "budget" ? <AccountBudgetView accountId={id} /> : null}
-      {tab === "billing" ? <BillingPeriodsTab accountId={id} /> : null}
-      {tab === "reports" ? <ReportSchedulesTab accountId={id} /> : null}
-      {tab === "finance" ? <AccountFinanceTab accountId={id} /> : null}
-      {tab === "intake" ? <IntakeTab accountId={id} /> : null}
-      {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
-      {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
+      <TabBar tabs={tabs} active={active} onChange={setTab} className="mb-4" />
+      {active === "overview" ? <OverviewTab id={id} /> : null}
+      {active === "settings" ? <AccountSettingsTab accountId={id} /> : null}
+      {active === "access" ? <AccessTab id={id} /> : null}
+      {active === "calendars" ? <AccountCalendarsTab accountId={id} /> : null}
+      {active === "contracts" ? <AccountContractsTab accountId={id} /> : null}
+      {active === "budget" ? <AccountBudgetView accountId={id} /> : null}
+      {active === "billing" ? <BillingPeriodsTab accountId={id} /> : null}
+      {active === "reports" ? <ReportSchedulesTab accountId={id} /> : null}
+      {active === "finance" ? <AccountFinanceTab accountId={id} /> : null}
+      {active === "intake" ? <IntakeTab accountId={id} /> : null}
+      {active === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
+      {active === "configuration" ? <AccountConfigTab accountId={id} /> : null}
     </>
   );
 }

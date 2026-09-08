@@ -1,6 +1,6 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import AccountPage, { initialAccountTab } from "@/app/(internal)/accounts/[id]/page";
+import AccountPage, { accountTabs, initialAccountTab } from "@/app/(internal)/accounts/[id]/page";
 import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
 import { aBudget } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -26,6 +26,17 @@ describe("initialAccountTab", () => {
     expect(initialAccountTab(new URLSearchParams(""))).toBe("dashboard");
     expect(initialAccountTab(null)).toBe("dashboard");
   });
+
+  it("keeps the Budget tab out of reach without contracts:view", () => {
+    const withoutContracts = accountTabs(new Set(["tickets:view"]));
+    expect(withoutContracts.map((tab) => tab.key)).toEqual(["dashboard", "satisfaction"]);
+    expect(initialAccountTab(new URLSearchParams("tab=budget"), withoutContracts)).toBe("dashboard");
+
+    const withContracts = accountTabs(new Set(["tickets:view", "contracts:view"]));
+    expect(withContracts.map((tab) => tab.key)).toEqual(["dashboard", "budget", "satisfaction"]);
+    expect(initialAccountTab(new URLSearchParams("tab=budget"), withContracts)).toBe("budget");
+    expect(accountTabs(undefined).map((tab) => tab.key)).toEqual(["dashboard", "satisfaction"]);
+  });
 });
 
 describe("AccountPage", () => {
@@ -46,10 +57,10 @@ describe("AccountPage", () => {
     expect(calls.some((call) => call.key === "GET /v1/dashboards/accounts/acct-1")).toBe(false);
   });
 
-  it("resolves ?tab=budget to the Budget view for a reader with tickets:view and no admin:accounts", async () => {
+  it("resolves ?tab=budget to the Budget view for a reader with contracts:view and no admin:accounts", async () => {
     search = "tab=budget";
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["tickets:view", "contracts:view"]),
       "GET /v1/accounts/acct-1/budget": () => json(aBudget()),
       "GET /v1/catalogs": () => json({ resolution_codes: [], activity_types: [], billable_classes: [] }),
     });
@@ -66,7 +77,7 @@ describe("AccountPage", () => {
   it("shows the coverage chips above the tabs for a reader with capacity:view", async () => {
     search = "tab=budget";
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "capacity:view"]),
+      "GET /v1/admin/me": me(["tickets:view", "contracts:view", "capacity:view"]),
       "GET /v1/accounts/acct-1/budget": () => json(aBudget()),
       "GET /v1/catalogs": () => json({ resolution_codes: [], activity_types: [], billable_classes: [] }),
       "GET /v1/capacity/skills-matrix": () =>
@@ -84,7 +95,7 @@ describe("AccountPage", () => {
   it("opens on the dashboard without a tab and switches to the budget on click", async () => {
     search = "";
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["tickets:view", "contracts:view"]),
       "GET /v1/accounts": () => json([{ id: "acct-1", key: "BRK", name: "Brookfield", status: "active" }]),
       "GET /v1/dashboards/accounts/acct-1": () => json(anAccountDashboard()),
       "GET /v1/accounts/acct-1/reports": () => json([]),
@@ -106,5 +117,21 @@ describe("AccountPage", () => {
     renderDesk(<AccountPage />);
     await screen.findByText("Not permitted");
     expect(calls.some((call) => call.key.endsWith("/budget"))).toBe(false);
+  });
+
+  it("offers no Budget tab, and opens the dashboard, for a reader without contracts:view", async () => {
+    search = "tab=budget";
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/accounts": () => json([{ id: "acct-1", key: "BRK", name: "Brookfield", status: "active" }]),
+      "GET /v1/dashboards/accounts/acct-1": () => json(anAccountDashboard()),
+      "GET /v1/accounts/acct-1/reports": () => json([]),
+    });
+    renderDesk(<AccountPage />);
+    await screen.findByTestId("account-dashboard");
+    expect(screen.queryByRole("tab", { name: "Budget" })).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Dashboard" })).toHaveAttribute("aria-selected", "true");
+    expect(calls.some((call) => call.key.endsWith("/budget"))).toBe(false);
+    expect(calls.some((call) => call.key.endsWith("/time/comp-time"))).toBe(false);
   });
 });

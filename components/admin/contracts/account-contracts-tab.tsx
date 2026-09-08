@@ -442,13 +442,14 @@ function ContractRulesEditor({
 
 /**
  * The account record's Contracts tab: the account's contracts (key, name,
- * model, status, after-hours handling, budget rules) under tickets:view,
- * with an inline edit of the rules under contracts:manage, and the rate
- * cards beneath. The API decides either way.
+ * model, status, after-hours handling, budget rules) under contracts:view,
+ * the permission the API puts on /v1/accounts/:id/contracts and on the rate
+ * cards beneath, with an inline edit of the rules under contracts:manage.
+ * The API decides either way.
  */
 export function AccountContractsTab({ accountId }: { accountId: string }) {
   const me = useMe();
-  const canRead = me.hasPermission("tickets:view");
+  const canRead = me.hasPermission("contracts:view");
   const canEdit = me.hasPermission("contracts:manage");
   const contracts = useListAccountContractsQuery(accountId, { skip: !canRead });
   const skillName = useSkillName();
@@ -458,7 +459,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
 
   if (!canRead) {
     return (
-      <Panel title="Contracts" caption="Needs the tickets:view permission">
+      <Panel title="Contracts" caption="Needs the contracts:view permission">
         <p className="text-xms-label text-[13px]">You can see this account but not its contracts.</p>
       </Panel>
     );

@@ -21,11 +21,12 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
  * The comp-time report on the account record (Time & Budget 5.2, TB-13):
  * per person, the minutes and entries the calendar classed non-standard on
  * comp-time contracts over a date range. Every number is the server's.
- * Renders nothing without tickets:view and never asks the API in that case.
+ * The API guards /v1/accounts/:id/time/comp-time with contracts:view, so the
+ * panel renders nothing without that permission and never asks in that case.
  */
 export function CompTimePanel({ accountId, today = localToday() }: { accountId: string; today?: string }) {
   const me = useMe();
-  const allowed = me.hasPermission("tickets:view");
+  const allowed = me.hasPermission("contracts:view");
   const [from, setFrom] = useState(() => daysBefore(today, 30));
   const [to, setTo] = useState(today);
   const valid = DATE.test(from) && DATE.test(to) && from <= to;

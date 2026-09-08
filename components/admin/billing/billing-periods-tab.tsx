@@ -131,11 +131,12 @@ function SummaryCell({ period }: { period: BillingPeriod }) {
  * permissions allow (Submit and Reopen under contracts:manage; Approve
  * and Lock under time:lock-period), the finance file as CSV or Excel for
  * a locked period fetched with the bearer, and the export records with
- * their checksums. Reading needs tickets:view; fails closed.
+ * their checksums. Reading needs contracts:view, the permission the API
+ * puts on /v1/accounts/:id/billing-periods; fails closed.
  */
 export function BillingPeriodsTab({ accountId }: { accountId: string }) {
   const me = useMe();
-  const allowed = me.hasPermission("tickets:view");
+  const allowed = me.hasPermission("contracts:view");
   const canLock = me.hasPermission("time:lock-period");
   const { data, isLoading, isError } = useBillingPeriodsQuery(accountId, { skip: !allowed });
   const [create, { isLoading: creating }] = useCreateBillingPeriodMutation();
@@ -150,7 +151,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
 
   if (!allowed) {
     return (
-      <Panel title="Billing periods" caption="Needs the tickets:view permission">
+      <Panel title="Billing periods" caption="Needs the contracts:view permission">
         <p className="text-xms-label text-[13px]">You can see this account but not its billing periods.</p>
       </Panel>
     );

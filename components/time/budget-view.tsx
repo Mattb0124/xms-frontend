@@ -219,18 +219,20 @@ export function ContractBudgetCard({
 
 /**
  * The account's Budget view (Time & Budget 5.5, TB-07 to TB-09): one card
- * per active contract from /v1/accounts/:id/budget. Fails closed without
- * tickets:view and never asks the API in that case.
+ * per active contract from /v1/accounts/:id/budget. That route and its
+ * drill-through are guarded by contracts:view, which Consultants and
+ * Dispatchers do not hold, so the view fails closed on that permission and
+ * never asks the API without it.
  */
 export function AccountBudgetView({ accountId }: { accountId: string }) {
   const me = useMe();
-  const allowed = me.hasPermission("tickets:view");
+  const allowed = me.hasPermission("contracts:view");
   const { data, isLoading, isError, refetch } = useAccountBudgetQuery(accountId, { skip: !allowed });
   const catalogs = useCatalogs(accountId, { skip: !allowed });
 
   if (!allowed) {
     return (
-      <Panel title="Budget" caption="Needs the tickets:view permission">
+      <Panel title="Budget" caption="Needs the contracts:view permission">
         <p className="text-xms-label text-[13px]">You can see this account but not its budget.</p>
       </Panel>
     );

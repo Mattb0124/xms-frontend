@@ -48,15 +48,15 @@ function overPosition() {
 describe("AccountBudgetView", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("fails closed without tickets:view and never reads the budget", async () => {
+  it("fails closed without contracts:view and never reads the budget", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["admin:accounts"]) });
     renderDesk(<AccountBudgetView accountId="acct-1" />);
-    await screen.findByText(/Needs the tickets:view permission/);
+    await screen.findByText(/Needs the contracts:view permission/);
     expect(calls.some((call) => call.key === BUDGET)).toBe(false);
   });
 
   it("shows an on-track contract: the burn bar, the next threshold and the forecast sentence with its figures", async () => {
-    stubFetch({ "GET /v1/admin/me": me(["tickets:view"]), [BUDGET]: () => json(aBudget()), [CATALOGS]: catalogs });
+    stubFetch({ "GET /v1/admin/me": me(["contracts:view"]), [BUDGET]: () => json(aBudget()), [CATALOGS]: catalogs });
     renderDesk(<AccountBudgetView accountId="acct-1" />);
     const card = await screen.findByLabelText("CT10001 Support retainer");
     expect(within(card).getByText("On track")).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe("AccountBudgetView", () => {
 
   it("turns amber after the first fired threshold and notes unrated minutes", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [BUDGET]: () =>
         json(
           aBudget({
@@ -116,7 +116,7 @@ describe("AccountBudgetView", () => {
 
   it("turns red when the period is over its budget and says the budget is used up", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [BUDGET]: () =>
         json(
           aBudget({
@@ -149,7 +149,7 @@ describe("AccountBudgetView", () => {
 
   it("drills through to the entries with the period as the default range and sends the filters to the API", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [BUDGET]: () => json(aBudget()),
       [CATALOGS]: catalogs,
       [ENTRIES]: () => {
@@ -202,7 +202,7 @@ describe("AccountBudgetView", () => {
   it("says so when a contract has no period and when the account has no contract", async () => {
     let first = true;
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [BUDGET]: () => {
         const body = first
           ? aBudget({ contracts: [aBudgetCard({ period: null, position: null, forecast: null, thresholds: null })] })

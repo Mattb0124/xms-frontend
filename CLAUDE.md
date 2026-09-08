@@ -10,7 +10,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
@@ -93,9 +93,9 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /accounts (granted accounts with open counts from the strip when permitted), /accounts/[id] (one account:
                         the same panels, "View as client" re-fetches as_client=true and shows only what came back, Reports card
                         with runs and "Generate weekly report", Comp time panel over /v1/accounts/:id/time/comp-time by date
-                        range with per-person minutes and entries; tickets:view, left out of the client view) as the Dashboard
+                        range with per-person minutes and entries; contracts:view, left out of the client view) as the Dashboard
                         tab, a Budget tab (`?tab=budget`, the target of the threshold notifications, so a reader with
-                        tickets:view and no admin:accounts reaches the same AccountBudgetView) (TB-13), and a Satisfaction
+                        contracts:view and no admin:accounts reaches the same AccountBudgetView, the tab not offered without it) (TB-13), and a Satisfaction
                         tab (`?tab=satisfaction`, CP-07 results per account; tickets:view, fails closed: the average score,
                         the responses in range, the low-score count, the surveys sent, answered and suppressed, the
                         distribution as five bars from very satisfied down sized against the largest count, and the
@@ -124,7 +124,7 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         account record carries the same skills coverage chips under the record bar (capacity:view; CAP-07)
                         and has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
                         with the default marked, New calendar), a Contracts tab (key, name, model, status, after-hours
-                        handling and the budget rules under tickets:view; under contracts:manage an inline rules editor per
+                        handling and the budget rules under contracts:view; under contracts:manage an inline rules editor per
                         row: handling with its multiplier, overage rule with the multiplier only under allow_rate, rollover
                         rule with the cap only under cap, thresholds as a comma list, notify client, forecast window, the
                         required technology codes as a comma list (lower-cased, deduplicated, the server's code pattern, up
@@ -133,13 +133,13 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         worded; a Rate cards panel beneath with a disclosure per contract listing its versions and an
                         Account default section, New version form under contracts:manage over PUT /v1/accounts/:id/rate-cards
                         with rate_card_exists and duplicate_role worded) (TB-05, TB-09, TB-11, TB-13), a Budget tab
-                        (`?tab=budget` opens it, the target of the threshold notifications; tickets:view, fails closed: one
+                        (`?tab=budget` opens it, the target of the threshold notifications; contracts:view, fails closed: one
                         card per active contract from /v1/accounts/:id/budget with consumed against available, the burn bar
                         amber from the first fired threshold and red once over, a tick per threshold with the fired ones
                         marked and the next named, the fixed forecast sentence, the unrated-minutes note, and a drill-through
                         of the entries filtered by person, activity and billable class over the period with total minutes and
                         amount; Export disabled until an export route exists) (TB-07 to TB-09), a Billing tab (functional 5.7,
-                        TB-14; tickets:view, fails closed: one period per calendar month with the status pill Open, Submitted,
+                        TB-14; contracts:view, fails closed: one period per calendar month with the status pill Open, Submitted,
                         Approved, Locked, Exported, who submitted, approved and locked it by name with the day (System for
                         the automatic lock), the summary the server kept (hours, amount, entries and adjustments, by
                         class, unrated hours) and the checksum prefix; New period from a month picker under time:lock-period;
@@ -176,7 +176,7 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         Delivered, Acknowledged, Failed or Superseded, the acknowledgement reference and time or
                         "Not acknowledged", the response status, the error and the supersedes marker; Deliver now over
                         the account's locked or exported periods posting { period_id } alone, with period_not_locked
-                        naming the status and no_destination worded, and a note when tickets:view is missing so the
+                        naming the status and no_destination worded, and a note when contracts:view is missing so the
                         periods cannot be listed) and a Configuration
                         tab (admin:config, fails closed: the six catalogs with the effective source Default or Override and
                         its version, or "Nothing active" when effective is null with the editor still usable from an empty
@@ -248,9 +248,9 @@ components/time/        Timesheet (the week from /v1/timesheets/me: day rows wit
                         time and the after-hours badge, header totals), TimeTodayCard (My work: today from
                         /v1/timesheets/me/unlogged, hidden without time:log), AfterHoursBadge (class pill, the handling in
                         words when the contract is known, the multiplier when not 1), CompTimePanel (per-person comp time by
-                        range; tickets:view), weekOf and groupByDay helpers; entry-amount (EntryAmount: amount and the frozen
+                        range; contracts:view), weekOf and groupByDay helpers; entry-amount (EntryAmount: amount and the frozen
                         rate, nothing when unrated; OverBudgetPill), budget-view (AccountBudgetView fails closed on
-                        tickets:view, ContractBudgetCard, BurnBar with threshold ticks and legend), budget-entries
+                        contracts:view, ContractBudgetCard, BurnBar with threshold ticks and legend), budget-entries
                         (BudgetEntriesList: person, activity, class and range filters sent to the API, totals, disabled Export)
 lib/time/after-hours    class and handling labels, describeHandling ("Premium 1.5x per contract", "Comp time"),
                         formatMultiplier, hasPremium, startTimeLabel, isStartTime (HH:MM 24-hour)

@@ -74,7 +74,10 @@ function NewTicketForm() {
   // active contract apply until the user chooses otherwise.
   const activeAccounts = useMemo(() => (accounts ?? []).filter((account) => account.status === "active"), [accounts]);
   const accountId = draft.account_id || (activeAccounts.length === 1 ? activeAccounts[0].id : "");
-  const { data: contracts } = useListAccountContractsQuery(accountId, { skip: !accountId });
+  // The contract list is behind contracts:view; a creator without it names no
+  // contract here and takes the server's choices from the refusal instead.
+  const canReadContracts = me.hasPermission("contracts:view");
+  const { data: contracts } = useListAccountContractsQuery(accountId, { skip: !accountId || !canReadContracts });
   const activeContracts = useMemo(
     () => (contracts ?? []).filter((contract) => contract.status === "active"),
     [contracts],
@@ -228,7 +231,13 @@ function NewTicketForm() {
                 className={INPUT}
                 disabled={!accountId}
               >
-                <option value="">{activeContracts.length === 0 ? "No active contract" : "Choose a contract"}</option>
+                <option value="">
+                  {(contractChoices ?? activeContracts).length > 0
+                    ? "Choose a contract"
+                    : canReadContracts
+                      ? "No active contract"
+                      : "Contracts need the contracts:view permission"}
+                </option>
                 {(contractChoices ?? activeContracts).map((contract) => (
                   <option key={contract.id} value={contract.id}>
                     {contract.key} · {contract.name}

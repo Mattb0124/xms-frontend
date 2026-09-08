@@ -119,7 +119,7 @@ describe("TimeTab", () => {
 
   it("badges after-hours entries with the contract's handling and posts performed_start when time is logged", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": viewer(["tickets:view", "time:log"]),
+      "GET /v1/admin/me": viewer(["tickets:view", "contracts:view", "time:log"]),
       "GET /v1/tickets/CS0001001/time": () =>
         json({
           entries: [anAfterHoursEntry({ description: "Late fix" }), anEntry({ id: "e-2", description: "Daytime" })],
@@ -155,7 +155,7 @@ describe("TimeTab", () => {
 
   it("shows the amount and the frozen rate where present, the over-budget pill, and words overage_blocked", async () => {
     stubFetch({
-      "GET /v1/admin/me": viewer(["tickets:view", "time:log"]),
+      "GET /v1/admin/me": viewer(["tickets:view", "contracts:view", "time:log"]),
       "GET /v1/tickets/CS0001001/time": () =>
         json({
           entries: [

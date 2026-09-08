@@ -137,7 +137,7 @@ describe("AccountFinanceTab", () => {
 
   it("lists the deliveries with the status pill, the acknowledgement, the response, the error and the supersedes marker", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["time:lock-period", "tickets:view"]),
+      "GET /v1/admin/me": me(["time:lock-period", "contracts:view"]),
       [PERIODS]: () => json([aPeriod()]),
       [DELIVERIES]: () =>
         json([
@@ -177,7 +177,7 @@ describe("AccountFinanceTab", () => {
 
   it("delivers the chosen locked period with the period id alone", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["time:lock-period", "tickets:view"]),
+      "GET /v1/admin/me": me(["time:lock-period", "contracts:view"]),
       [PERIODS]: () =>
         json([aPeriod(), aPeriod({ id: "p-open", starts_on: "2026-09-01", ends_on: "2026-09-30", status: "open" })]),
       [DELIVERIES]: () => json([]),
@@ -197,7 +197,7 @@ describe("AccountFinanceTab", () => {
   it("words period_not_locked and no_destination", async () => {
     let body: { code: string; status?: string } = { code: "period_not_locked", status: "approved" };
     stubFetch({
-      "GET /v1/admin/me": me(["time:lock-period", "tickets:view"]),
+      "GET /v1/admin/me": me(["time:lock-period", "contracts:view"]),
       [PERIODS]: () => json([aPeriod()]),
       [DELIVERIES]: () => json([]),
       [DELIVER]: () => json(body, 409),
@@ -216,7 +216,7 @@ describe("AccountFinanceTab", () => {
 
   it("says there is nothing to deliver until a period is locked", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["time:lock-period", "tickets:view"]),
+      "GET /v1/admin/me": me(["time:lock-period", "contracts:view"]),
       [PERIODS]: () => json([aPeriod({ status: "open" })]),
       [DELIVERIES]: () => json([]),
     });

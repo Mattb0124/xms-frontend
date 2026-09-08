@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import AdminAccountRecordPage, { initialTab } from "@/app/(internal)/admin/accounts/[id]/page";
+import AdminAccountRecordPage, { accountRecordTabs, initialTab } from "@/app/(internal)/admin/accounts/[id]/page";
 import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
 import { aBudget } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -43,6 +43,24 @@ describe("initialTab", () => {
     expect(initialTab(new URLSearchParams(""))).toBe("overview");
     expect(initialTab(null)).toBe("overview");
   });
+
+  it("keeps Contracts, Budget and Billing out of reach without contracts:view", () => {
+    const keys = (permissions: string[] | undefined) =>
+      accountRecordTabs(permissions ? new Set(permissions) : undefined).map((tab) => tab.key);
+    expect(keys(["admin:accounts"])).not.toContain("budget");
+    expect(keys(["admin:accounts"])).not.toContain("contracts");
+    expect(keys(["admin:accounts"])).not.toContain("billing");
+    expect(keys(["admin:accounts"])).toContain("overview");
+    expect(keys(undefined)).not.toContain("budget");
+
+    const full = keys(["admin:accounts", "contracts:view"]);
+    expect(full).toContain("contracts");
+    expect(full).toContain("budget");
+    expect(full).toContain("billing");
+    expect(initialTab(new URLSearchParams("tab=budget"), accountRecordTabs(new Set(["admin:accounts"])))).toBe(
+      "overview",
+    );
+  });
 });
 
 describe("AdminAccountRecordPage", () => {
@@ -51,7 +69,7 @@ describe("AdminAccountRecordPage", () => {
   it("resolves ?tab=budget (the threshold notification link) to the Budget view", async () => {
     search = "tab=budget";
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["admin:accounts", "tickets:view"]),
+      "GET /v1/admin/me": me(["admin:accounts", "contracts:view"]),
       [`GET /v1/admin/accounts/${ACCOUNT_ID}`]: account,
       [`GET /v1/accounts/${ACCOUNT_ID}/budget`]: () => json(aBudget({ account_id: ACCOUNT_ID })),
     });
@@ -88,15 +106,21 @@ describe("AdminAccountRecordPage", () => {
     expect(calls.some((call) => call.key.startsWith("GET /v1/reporting/"))).toBe(false);
   });
 
-  it("fails closed on the Budget tab without tickets:view and leaves the skills lens alone without capacity:view", async () => {
+  it("offers no Budget, Contracts or Billing tab without contracts:view and leaves the skills lens alone without capacity:view", async () => {
     search = "tab=budget";
     const calls = stubFetch({
       "GET /v1/admin/me": me(["admin:accounts"]),
       [`GET /v1/admin/accounts/${ACCOUNT_ID}`]: account,
     });
     renderDesk(<AdminAccountRecordPage />);
-    await screen.findByText(/Needs the tickets:view permission/);
+    await screen.findByText("Identity and residency");
+    for (const label of ["Budget", "Contracts", "Billing"]) {
+      expect(screen.queryByRole("tab", { name: label })).not.toBeInTheDocument();
+    }
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
     expect(calls.some((call) => call.key.endsWith("/budget"))).toBe(false);
+    expect(calls.some((call) => call.key.endsWith("/contracts"))).toBe(false);
+    expect(calls.some((call) => call.key.endsWith("/billing-periods"))).toBe(false);
     expect(calls.some((call) => call.key === "GET /v1/capacity/skills-matrix")).toBe(false);
     expect(screen.queryByRole("list", { name: "Skills coverage" })).not.toBeInTheDocument();
   });

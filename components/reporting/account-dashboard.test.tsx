@@ -28,7 +28,7 @@ describe("AccountDashboard", () => {
 
   it("shows the internal view, then View as client re-fetches the client subset and hides notable and the synthesis", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": () => json(me(["tickets:view", "admin:accounts"])),
+      "GET /v1/admin/me": () => json(me(["tickets:view", "contracts:view", "admin:accounts"])),
       "GET /v1/accounts": () => json(accounts),
       "GET /v1/dashboards/accounts/acct-1": (body) => {
         void body;

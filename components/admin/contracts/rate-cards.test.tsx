@@ -103,7 +103,7 @@ describe("RateCardsPanel", () => {
 
   it("lists the account defaults, opens a contract's own versions and offers no New version without contracts:manage", async () => {
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [CARDS]: () => cardsFor(calls[calls.length - 1].search),
     });
     renderDesk(<RateCardsPanel accountId={ACCOUNT_ID} contracts={[aContract()]} />);
@@ -132,7 +132,7 @@ describe("RateCardsPanel", () => {
   it("creates a version for a contract through PUT with the exact body, then shows it", async () => {
     let saved = false;
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["contracts:view", "contracts:manage"]),
       [CARDS]: () => {
         const last = calls[calls.length - 1];
         const own = last.search.includes("contract_id") ? (saved ? [contractCard()] : []) : [];
@@ -184,7 +184,7 @@ describe("RateCardsPanel", () => {
   it("words rate_card_exists and duplicate_role on the account default form and keeps it open", async () => {
     let attempt = 0;
     const calls = stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "contracts:manage"]),
+      "GET /v1/admin/me": me(["contracts:view", "contracts:manage"]),
       [CARDS]: () => json([accountDefault()]),
       [PUT]: () => {
         attempt += 1;
@@ -224,7 +224,7 @@ describe("RateCardsPanel", () => {
 
   it("sits on the Contracts tab under the contracts list", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/admin/me": me(["contracts:view"]),
       [CONTRACTS]: () => json([aContract()]),
       [CARDS]: () => json([accountDefault()]),
     });
