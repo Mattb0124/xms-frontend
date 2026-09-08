@@ -109,9 +109,13 @@ describe("batch summary", () => {
         <RunProgress batch={batch} />
       </>,
     );
-    expect(screen.getByText("Unmatched").nextElementSibling).toHaveAttribute("data-tone", "warn");
-    expect(screen.getByText("Errors").nextElementSibling).toHaveAttribute("data-tone", "breach");
-    expect(screen.getByText("Loaded").nextElementSibling).toHaveAttribute("data-tone", "good");
+    // v3 render 08 and 10: a tile's number and its caption share a baseline,
+    // so the tone now sits on the number inside the line rather than on the
+    // line itself.
+    const tone = (label: string) => screen.getByText(label).nextElementSibling?.querySelector("[data-tone]");
+    expect(tone("Unmatched")).toHaveAttribute("data-tone", "warn");
+    expect(tone("Errors")).toHaveAttribute("data-tone", "breach");
+    expect(tone("Loaded")).toHaveAttribute("data-tone", "good");
     expect(screen.getByRole("link", { name: "Brookfield CSM (sn_customerservice_case)" })).toHaveAttribute(
       "href",
       "/admin/connectors/11111111-1111-4111-8111-111111111111",

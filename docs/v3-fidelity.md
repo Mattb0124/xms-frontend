@@ -1,0 +1,242 @@
+# The v3 fidelity pass
+
+What changed, screen by screen, against `01-architecture/wireframes/v3/` and
+`01-architecture/WIREFRAMES.md` sections 2, 4 and 8, and what still differs.
+
+Screenshots are outside git, in `C:/Users/matt.brown/Documents/repos/xms-work/shots-v3/`,
+at the prototype's own 1500 by 1020. Before shots are the stack as the reviewer
+was running it; after shots are this branch on a dev server of its own.
+
+## How the measurements were taken
+
+Band geometry was read off the pixels rather than eyeballed, by walking a
+column down each PNG and recording where the colour changes. The renders carry
+the prototype's own page chrome, a 20px margin and a 60px title strip, so every
+render coordinate below is quoted in the render's own space and the app
+coordinate in the app's.
+
+| Band                        | Render                                                 | App, after                                |
+| --------------------------- | ------------------------------------------------------ | ----------------------------------------- |
+| Navy finder bar             | y 60 to 115, so 56px                                   | y 0 to 55, so 56px                        |
+| Toolbar band, rule included | y 116 to 167, so 52px                                  | y 56 to 107, so 52px                      |
+| Toolbar pills               | y 126 to 157, so 32px, 10px above and below            | y 66 to 97, so 32px, 10px above and below |
+| Gap between pills           | 8px                                                    | 8px                                       |
+| Sidebar                     | 238px                                                  | 238px                                     |
+| Page padding                | 20px, card left edge x 278 with the sidebar ending 258 | 20px                                      |
+
+## The whole-product changes
+
+These land on every screen, including the roughly 33 screens with no render at
+all, which is what keeps them reading as one product.
+
+- **The shell.** Finder bar, sidebar, toolbar and overlay, below.
+- **One focus treatment.** The vendored `aiinnovation-tokens.css` sets a global
+  `:focus-visible` outline with a 2px offset, and nine components were adding a
+  Tailwind ring over it, which is the doubled border the user saw. The vendored
+  file is untouched. `styles/tokens/xms-scope.css` now states the treatment
+  once, a 2px cobalt outline on the control's own radius with no offset, and
+  every `focus-visible:ring-*`, `focus-visible:outline-*`, `focus:border-*` and
+  `focus-within:border-*` class was removed with it.
+  `components/xms/surfaces.test.tsx` scans `components/` and fails if one comes
+  back.
+- **The fonts were not loading.** `next/font/google` fetches at build time and
+  falls back to the bare family name when it cannot. The computed body font in
+  the running app was `Inter, sans-serif` with no generated fallback face, so
+  every screen was drawn in the platform sans; IBM Plex Mono, whose fetch had
+  succeeded, was real. Both are self-hosted now from `public/fonts` through
+  `styles/tokens/fonts.css`, verified with `document.fonts.check`.
+- **The page padding** is 20px, from the shell, and the primary blocks on the
+  Queue, My work and the ticket record sit 20px apart.
+- **No tile strip where the render has none.** The Queue's four KPI cards are
+  gone. My work (08) and Operations (10) keep theirs, because both renders have
+  them.
+- **The development indicator is off** (`devIndicators: false`): it is a fixed
+  circle in the bottom left, exactly over the sidebar's own footer control.
+
+## 1. Shell
+
+`before-tickets.png` / `after-tickets.png` (the bar is the top 56px of both).
+
+Changed:
+
+- The bar was rendering at about 32px. It carried `height: 56px` but, as a flex
+  child of a column, was being squeezed; it is `shrink-0` now. The toolbar had
+  the same bug.
+- The real logo replaced the drawn four-square mark and the text wordmark:
+  `public/thehackettgroup_logo.svg`, 196 by 24, white paths, rendered at its
+  native size and linking home. It carries the words itself, so there is no
+  second wordmark.
+- Finders at 14px medium; scope pill a fixed 320px rounded pill with the
+  instance, the view, a chevron onto the Favourites overlay and the star;
+  search a white rounded field with a magnifier and the "/" hint; Axel a pill
+  with its sparkle; a bell with a red count badge; a round avatar.
+- **No layout shift.** Every zone in the bar is a fixed width and the badge is
+  absolutely positioned on the bell, so `me`, the unread count and the screen
+  label arriving move nothing. The sidebar's count column is a reserved 18px
+  for the same reason.
+- Sidebar: an icon per screen, counts right-aligned, the starred views section,
+  and a footer naming the tree count beside "Browse all screens". Counts come
+  from the routes the screens read (`stats.open`, `stats.unassigned`, the
+  held-email list), each skipped unless the reader holds that screen's
+  permission. The selected row is the render's tinted fill, cobalt left bar and
+  500 ink.
+- Toolbar: line icons for the hamburger, funnel and gear; the title as text
+  with a chevron over a transparent select rather than a native dropdown; a
+  search slot; the band at the measured 52px.
+
+Still differs:
+
+- The scope pill reads "THG PROD · Queue" where the render reads
+  "THG PROD — Queue: my group, open". The separator is a middot because the
+  house rule bans em-dashes in copy, and the view qualifier is the current
+  screen label, since nothing on the API names the scope as a sentence yet.
+- The sidebar shows Solutions and not My timesheet, and the starred views
+  section is empty: both are the route registry and this browser's stars, not
+  layout.
+- Quarantine reads 0 and Queue 26 against the render's 3 and 42. Seed data.
+
+## 2. Queue (render 01)
+
+`before-tickets.png` / `after-tickets.png`, overlay `diff-01-queue.png`.
+
+Changed: the KPI strip removed; the Show dimension a real dropdown wearing the
+blue outline pill; the four standing dimensions (Account, State, Priority,
+Type) always drawn, reading "all" until chosen and growing a clear mark once
+carrying a criterion, each a real menu over the same chip grammar so the URL is
+still the state; the condition trail, the count and Save as view on one line
+instead of three rows; the card carrying Count, the centred search and the
+funnel and column controls; the table ending at Assignee so it fits 1500 with
+no horizontal scroll, with SLA and Updated kept as hidden columns behind the
+column control so the list still opens on the tightest clock; Assignee as
+"M. Brown" with no avatar circle; P2 no longer lighting up amber; the selection
+bar carrying the render's Assign, Change state, Add tag and Export.
+
+Still differs:
+
+- Add tag is drawn disabled: nothing on the API takes a tag. Assign and Change
+  state loop the per-ticket routes, because `POST /v1/tickets/bulk` does not
+  exist yet; when it does they become one call and the bar does not change
+  shape.
+- The chips read the URL, so on a first visit all four say "all" where the
+  render shows "State: open". The render is showing a saved view.
+
+## 3. Ticket record (renders 02 to 07)
+
+`before-tickets-CS1000016.png` / `after-tickets-CS1000016.png`, overlay
+`diff-02-ticket-conversation.png`.
+
+Changed: the key in mono beside the title as text, not a bordered input, still
+editable on click; the "← Queue" link dropped (it is in the more menu); the
+pill row state, priority and clock at 32px with the chevron inside the state
+pill; Ask Axel and a more menu on the right, Ask Axel opening the shell's Axel
+panel through the address; Properties a flush card with an ALL-CAPS caption
+over a hairline-ruled label-above-value list with no bordered boxes at rest;
+the tabs as the card header with no "Work area" title; Sync promoted from a
+rail card to its own tab; the composer saying Public reply with Draft with Axel
+and Template beside it; Activity gaining the actor filter pills.
+
+Still differs:
+
+- Draft with Axel and Template are disabled with the reason on them: the Axel
+  turn surface is held and there is no template catalog on the API.
+- Email is a seventh tab after the render's six. The built record has an email
+  surface the prototype does not carry, and dropping the tab would drop it.
+- The rail carries Scope, Attachments, Solutions, Contract, Requester and
+  Watching where the render carries Service levels, Contract and Similar
+  solutions. Those extra cards are built behaviour, not drift.
+- The Axel panel body is held, as briefed: the frame matches render 15 and the
+  body says the suggestions and tool calls appear there.
+
+## 4. My work (08), Dispatch (09), Operations (10), Quarantine (11)
+
+`before-my-work.png` / `after-home.png`, overlay `diff-08-mywork.png`;
+`before-tickets-dispatch.png` / `after-tickets-dispatch.png`, overlay
+`diff-09-dispatch.png`; `before-dashboard.png` / `after-operations.png`,
+overlay `diff-10-dashboard.png`; `before-tickets-quarantine.png` /
+`after-tickets-quarantine.png`.
+
+Changed: the scorecards keep their place, gain the render's caption beside the
+number and the render's 26px on a shared baseline; My work takes the render's
+two columns with Time today and Waiting on me in a 320px rail; Needs attention
+takes a lean five-column set; Time today stacks rather than folding into four
+wrapping columns in the rail; the Axel brief takes the sparkle and a worded
+Dismiss; the Dispatch card reads key, title, account and age, then the pickers,
+the suggestion and the two actions, which is the render's two rows for what the
+built card said in three.
+
+Still differs:
+
+- Quarantine is left alone: render 11 is a "not restyled yet" placeholder, so
+  the built screen is ahead of it and takes only the shared chrome.
+- Operations keeps its six tiles and four panels; the render's synthesis line
+  and the panel set already match.
+- The Dispatch group and assignee pickers keep native select chrome where the
+  render draws its own chevron.
+
+## 5. The overlays (12 to 14) and the Axel panel (15)
+
+Changed: the All overlay takes the render's anchor under the finders, its
+640px width, its lighter navy ground, a filter field with a magnifier, a drawn
+pin glyph in place of the emoji, and count badges on the rows. The Axel panel
+frame is built to render 15, docked right at 340px, pushing the content rather
+than overlaying it, with the sparkle header, the ask field and the standing
+footer rule.
+
+Still differs: the All overlay keeps each screen's purpose line beside its
+label, which the render does not draw; it is useful and additive. The Axel
+panel body is held.
+
+## 6. Screens with no render, grammar applied
+
+Fifteen renders exist against roughly forty-eight registered screens. Every
+screen with no render takes the same grammar through the shared components
+rather than through a copy: the shell (finder bar, sidebar, toolbar band, page
+padding), the card (`xms-card`, `Panel`, `RailCard`), the table (`DenseTable`,
+no striping, hairline rows, mono keys, the paired sort caret), the pills
+(`StatePill` on the v3 ramp, `PriorityPill`, `TypeBar`, `AccountDot`,
+`FilterSelect`, `FilterChip`), the forms (`RecordForm`, both layouts) and the
+single focus treatment. They are: Groups, Change calendar, New ticket,
+Solutions and the knowledge screens, My timesheet and Team time, Billing
+periods, Accounts and the account record tabs, Contracts, Roster, Capacity,
+Allocation grid, Skills matrix, Demand, Reports and report runs, Audit,
+Security, and the admin console and its tabs, plus the portal, which is
+client-branded and deliberately not on this system.
+
+## 7. The overlay diffs, and why the percentage is not the score
+
+`diff-*.png` in the shots directory are `pixelmatch` overlays of the after
+screenshot against the render, cropped to the app frame (x 20, y 60, 1460 wide,
+660 tall, which is the band every render shares above its notes panel).
+
+| Screen           | Differing pixels |
+| ---------------- | ---------------- |
+| 01 Queue         | 7.4%             |
+| 02 Ticket record | 7.4%             |
+| 08 My work       | 9.7%             |
+| 09 Dispatch      | 7.1%             |
+| 10 Operations    | 14.9%            |
+
+The residual is almost entirely **data**, not layout: the local stack is seeded
+with different accounts (Brookfield and Austral Mining against the render's
+Brookfield UK, Kestrel Retail, Northwind Group and Aldergate Energy), different
+keys (CS1000008 against CS0001203), different counts, and states the seed does
+not produce. Render 01 also shows three rows selected and its selection bar
+open, which the app cannot show without a click, and render 08's numbers are
+non-zero where the seeded reader has nothing assigned. Every band that can be
+measured independently of the data is measured in the table at the top of this
+document and matches.
+
+Reading the overlay rather than the number: the sidebar rows, the toolbar band,
+the table header row and the card edges all land on the render's own lines. The
+text inside them is different text.
+
+## 8. Known gaps
+
+- No `POST /v1/tickets/bulk`, so Assign and Change state loop; no tag route, so
+  Add tag is disabled.
+- No Axel turn surface, so Draft with Axel, Template and the Axel panel body
+  are held.
+- The scope pill cannot say "my group, open" until something names the scope.
+- The prototype source (`XMS-v3-standalone.html`) is a base64 bundle rather
+  than readable markup, so every measurement here comes from the rendered PNGs
+  and from WIREFRAMES sections 4 and 8, not from the prototype's CSS.
