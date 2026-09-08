@@ -120,7 +120,11 @@ const CONTRACTS_VIEW_READS = [
   { hook: "useListAccountContractsQuery", slice: "redux/ticketsApi.ts", route: "/v1/accounts/${accountId}/contracts" },
   { hook: "useCompTimeQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/time/comp-time" },
   { hook: "useAccountBudgetQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/budget" },
-  { hook: "useBudgetEntriesQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${filter.accountId}/budget/entries" },
+  {
+    hook: "useBudgetEntriesQuery",
+    slice: "redux/timeApi.ts",
+    route: "/v1/accounts/${filter.accountId}/budget/entries",
+  },
   { hook: "useRateCardsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/rate-cards" },
   { hook: "useBillingPeriodsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/billing-periods" },
 ];
@@ -136,7 +140,10 @@ const CONTRACT_SURFACES: { file: string; permission?: string; mountedIn?: string
   { file: "components/time/comp-time-panel.tsx", permission: "contracts:view" },
   { file: "components/admin/billing/billing-periods-tab.tsx", permission: "contracts:view" },
   { file: "components/admin/contracts/account-contracts-tab.tsx", permission: "contracts:view" },
-  { file: "components/admin/contracts/rate-cards.tsx", mountedIn: "components/admin/contracts/account-contracts-tab.tsx" },
+  {
+    file: "components/admin/contracts/rate-cards.tsx",
+    mountedIn: "components/admin/contracts/account-contracts-tab.tsx",
+  },
   { file: "components/admin/finance/finance-tab.tsx", permission: "contracts:view" },
   { file: "components/tickets/properties-panel.tsx", permission: "contracts:view" },
   { file: "components/tickets/time-tab.tsx", permission: "contracts:view" },

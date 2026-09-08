@@ -48,8 +48,12 @@ describe("schedule vocabulary", () => {
     expect(validateSchedule({ ...weekly, distribution: [emptyRecipient("contact")] })).toBe(
       "Each contact needs an email address.",
     );
-    expect(validateSchedule({ ...weekly, distribution: [emptyRecipient("internal")] })).toBe("Choose the internal user.");
-    expect(validateSchedule({ ...weekly, distribution: [emptyRecipient("portal_user")] })).toBe("Choose the portal user.");
+    expect(validateSchedule({ ...weekly, distribution: [emptyRecipient("internal")] })).toBe(
+      "Choose the internal user.",
+    );
+    expect(validateSchedule({ ...weekly, distribution: [emptyRecipient("portal_user")] })).toBe(
+      "Choose the portal user.",
+    );
   });
 
   it("builds the create body and the patch with the version, dropping empty recipient fields", () => {
@@ -133,6 +137,8 @@ describe("schedule vocabulary", () => {
     expect(describeScheduleError(scheduleError({ status: 400, data: { code: "invalid_range" } }))).toBe(
       "The period end must not be before its start.",
     );
-    expect(describeScheduleError(scheduleError({ status: 404, data: { code: "not_found" } }))).toMatch(/no longer exists/);
+    expect(describeScheduleError(scheduleError({ status: 404, data: { code: "not_found" } }))).toMatch(
+      /no longer exists/,
+    );
   });
 });

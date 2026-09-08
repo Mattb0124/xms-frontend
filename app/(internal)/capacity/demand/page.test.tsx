@@ -34,7 +34,14 @@ const ACCOUNTS = [
 
 describe("demand form helpers", () => {
   it("builds the POST body with the subject once and the probability only for pipeline", () => {
-    const draft = { ...emptyDemandDraft("2026-12"), prospect: " Acme Corp ", hours: "200", probability: "50", role: "architect", note: " Two pursuits " };
+    const draft = {
+      ...emptyDemandDraft("2026-12"),
+      prospect: " Acme Corp ",
+      hours: "200",
+      probability: "50",
+      role: "architect",
+      note: " Two pursuits ",
+    };
     expect(validateDemand(draft)).toBeNull();
     expect(demandBody(draft)).toEqual({
       source: "pipeline",
@@ -46,12 +53,14 @@ describe("demand form helpers", () => {
       note: "Two pursuits",
     });
     // An account wins over a prospect; project demand carries no probability, role or note unless given.
-    expect(demandBody({ ...draft, source: "project", accountId: ACCOUNT_ID, hours: "40", role: "", note: "" })).toEqual({
-      source: "project",
-      account_id: ACCOUNT_ID,
-      month: "2026-12",
-      hours: 40,
-    });
+    expect(demandBody({ ...draft, source: "project", accountId: ACCOUNT_ID, hours: "40", role: "", note: "" })).toEqual(
+      {
+        source: "project",
+        account_id: ACCOUNT_ID,
+        month: "2026-12",
+        hours: 40,
+      },
+    );
   });
 
   it("refuses a draft without a subject, a bad month, bad hours or a pipeline probability off the scale", () => {
@@ -59,7 +68,9 @@ describe("demand form helpers", () => {
     expect(validateDemand(draft)).toBe("Name an account or a prospect.");
     expect(validateDemand({ ...draft, prospect: "X", month: "2026-13" })).toBe("The month must be written as YYYY-MM.");
     expect(validateDemand({ ...draft, prospect: "X", hours: "-1" })).toBe("Hours must be a number of 0 or more.");
-    expect(validateDemand({ ...draft, prospect: "X", probability: "0" })).toBe("The probability is a whole percentage from 1 to 100.");
+    expect(validateDemand({ ...draft, prospect: "X", probability: "0" })).toBe(
+      "The probability is a whole percentage from 1 to 100.",
+    );
     expect(validateDemand({ ...draft, prospect: "X", probability: "101" })).toMatch(/from 1 to 100/);
     expect(validateDemand({ ...draft, source: "project", accountId: ACCOUNT_ID, probability: "" })).toBeNull();
   });
@@ -70,7 +81,11 @@ describe("demand form helpers", () => {
       pipeline: "29.41%",
       project: "11.76%",
     });
-    expect(overlayWidths({ allocated: 0, pipeline: 0, project: 0, scale: 0 })).toEqual({ allocated: "0%", pipeline: "0%", project: "0%" });
+    expect(overlayWidths({ allocated: 0, pipeline: 0, project: 0, scale: 0 })).toEqual({
+      allocated: "0%",
+      pipeline: "0%",
+      project: "0%",
+    });
   });
 });
 
@@ -262,7 +277,9 @@ describe("CapacityDemandPage", () => {
     });
     renderDesk(<CapacityDemandPage />);
     const form = await screen.findByRole("form", { name: "Import demand" });
-    expect(form.querySelector("[data-template-columns]")).toHaveTextContent("source, account, prospect, month, hours, probability, role");
+    expect(form.querySelector("[data-template-columns]")).toHaveTextContent(
+      "source, account, prospect, month, hours, probability, role",
+    );
     fireEvent.click(within(form).getByRole("button", { name: "Import" }));
     expect(within(form).getByRole("alert")).toHaveTextContent("Paste the template or pick a file first.");
     expect(calls.some((call) => call.key === "POST /v1/demand/import")).toBe(false);
@@ -271,7 +288,11 @@ describe("CapacityDemandPage", () => {
     fireEvent.click(within(form).getByRole("button", { name: "Import" }));
     await within(form).findByText("The file has 3 problems; nothing was imported.");
     const problems = within(form).getByRole("list", { name: "Import problems" });
-    expect(within(problems).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+    expect(
+      within(problems)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual([
       'line 2month must be YYYY-MM, got "2026-13"',
       "line 2an account key or a prospect name is required",
       'line 3source must be pipeline or project, got "maybe"',
@@ -282,7 +303,8 @@ describe("CapacityDemandPage", () => {
     fireEvent.click(within(form).getByRole("button", { name: "Import" }));
     await within(form).findByText("Unknown or not granted account key: ZZZ. Nothing was imported.");
     expect(within(form).queryByRole("list", { name: "Import problems" })).not.toBeInTheDocument();
-    const good = "source,account,prospect,month,hours,probability,role\nproject,brk,,2027-01,40,,\npipeline,,Globex,2027-01,100,25%,architect";
+    const good =
+      "source,account,prospect,month,hours,probability,role\nproject,brk,,2027-01,40,,\npipeline,,Globex,2027-01,100,25%,architect";
     fireEvent.change(within(form).getByLabelText("CSV content"), { target: { value: good } });
     fireEvent.click(within(form).getByRole("button", { name: "Import" }));
     await screen.findByText("Imported 2 lines");

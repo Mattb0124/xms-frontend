@@ -6,7 +6,14 @@ import { INPUT } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
-import { defaultCsatRange, distributionRows, formatAverage, isDay, respondentLabel, scoreTone } from "@/lib/reporting/csat";
+import {
+  defaultCsatRange,
+  distributionRows,
+  formatAverage,
+  isDay,
+  respondentLabel,
+  scoreTone,
+} from "@/lib/reporting/csat";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useAccountCsatQuery, type AccountCsat } from "@/redux/reportingApi";
@@ -83,7 +90,11 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
         title="Satisfaction"
         caption="CSAT on ticket close"
         actions={
-          <form className="flex items-center gap-2 text-[12px]" aria-label="Date range" onSubmit={(event) => event.preventDefault()}>
+          <form
+            className="flex items-center gap-2 text-[12px]"
+            aria-label="Date range"
+            onSubmit={(event) => event.preventDefault()}
+          >
             <label className="text-xms-label flex items-center gap-1">
               From
               <input
@@ -113,7 +124,11 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
           <div className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Figure label="Average score" value={formatAverage(data.summary.average)} />
-              <Figure label="Responses in range" value={String(data.summary.responses)} detail={`${data.from} to ${data.to}`} />
+              <Figure
+                label="Responses in range"
+                value={String(data.summary.responses)}
+                detail={`${data.from} to ${data.to}`}
+              />
               <Figure label="Low scores" value={String(data.summary.low)} detail="Scores of 1 or 2" />
               <Figure
                 label="Surveys"
@@ -160,7 +175,9 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
                     )}
                   </td>
                   <td className={CELL}>{respondentLabel(response)}</td>
-                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>{response.created_at.slice(0, 10)}</td>
+                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>
+                    {response.created_at.slice(0, 10)}
+                  </td>
                 </tr>
               ))}
               {data.responses.length === 0 ? (

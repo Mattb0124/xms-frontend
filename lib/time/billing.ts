@@ -35,7 +35,8 @@ export const BILLING_ACTIONS: BillingAction[] = ["submit", "reopen", "approve", 
 /** The moves this status allows that the viewer may make, in the table's order. */
 export function allowedActions(status: BillingStatus, hasPermission: (key: string) => boolean): BillingAction[] {
   return BILLING_ACTIONS.filter(
-    (action) => BILLING_TRANSITIONS[action].from.includes(status) && hasPermission(BILLING_TRANSITIONS[action].permission),
+    (action) =>
+      BILLING_TRANSITIONS[action].from.includes(status) && hasPermission(BILLING_TRANSITIONS[action].permission),
   );
 }
 

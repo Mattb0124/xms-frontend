@@ -161,8 +161,14 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
     [catalog.data, draft],
   );
   const dirty = useMemo(() => {
-    const before = skills.map((s) => `${s.skill_id}:${s.level}`).sort().join(",");
-    const after = draft.map((s) => `${s.skill_id}:${s.level}`).sort().join(",");
+    const before = skills
+      .map((s) => `${s.skill_id}:${s.level}`)
+      .sort()
+      .join(",");
+    const after = draft
+      .map((s) => `${s.skill_id}:${s.level}`)
+      .sort()
+      .join(",");
     return before !== after;
   }, [skills, draft]);
 
@@ -179,7 +185,11 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
         {draft.length === 0 ? <p className="text-xms-label text-[13px]">No skills recorded.</p> : null}
         <ul className="divide-xms-line divide-y" aria-label="Skills">
           {draft.map((entry) => (
-            <li key={entry.skill_id} className="flex flex-wrap items-center gap-3 py-2 text-[13px]" data-skill={entry.code}>
+            <li
+              key={entry.skill_id}
+              className="flex flex-wrap items-center gap-3 py-2 text-[13px]"
+              data-skill={entry.code}
+            >
               <span className="text-xms-ink min-w-[160px] font-medium">{entry.name}</span>
               <span className="text-xms-label text-[12px]">{SKILL_KIND_LABEL[entry.kind] ?? entry.kind}</span>
               <span className="ml-auto flex items-center gap-2">
@@ -195,7 +205,8 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
                   />
                 ) : (
                   <span className="text-xms-body">
-                    <span className="xms-mono text-xms-accent font-semibold">{entry.level}</span> {levelLabel(entry.level)}
+                    <span className="xms-mono text-xms-accent font-semibold">{entry.level}</span>{" "}
+                    {levelLabel(entry.level)}
                   </span>
                 )}
                 {canEdit ? (

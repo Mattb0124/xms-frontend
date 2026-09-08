@@ -179,7 +179,8 @@ export const SCREENS: Screen[] = [
     label: "Skills matrix",
     section: "Capacity",
     permission: "capacity:view",
-    purpose: "People against skills as a heat map; per account, the required technologies with single points of failure and gaps.",
+    purpose:
+      "People against skills as a heat map; per account, the required technologies with single points of failure and gaps.",
   },
   {
     path: "/capacity/demand",

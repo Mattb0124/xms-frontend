@@ -61,7 +61,9 @@ export function FindingsSheet({ findings, onClose }: { findings: Finding[]; onCl
       <ul className="divide-xms-line divide-y" aria-label="Findings">
         {findings.map((finding, index) => (
           <li key={index} className="flex items-center gap-3 py-1.5" data-kind={finding.kind}>
-            <span className="text-xms-label w-[150px]">{SECTION_LABEL[finding.section as VersionSection] ?? finding.section}</span>
+            <span className="text-xms-label w-[150px]">
+              {SECTION_LABEL[finding.section as VersionSection] ?? finding.section}
+            </span>
             <span className="text-xms-body w-[150px]">{FINDING_LABEL[finding.kind] ?? finding.kind}</span>
             <span className="xms-mono text-xms-ink">{finding.value}</span>
           </li>
@@ -116,7 +118,12 @@ export function ArticleActions({ article }: { article: ArticleView }) {
           <button
             type="button"
             disabled={submitting.isLoading}
-            onClick={() => void run(() => submit({ key: article.display_key, version: article.version }).unwrap(), "Submitted for review")}
+            onClick={() =>
+              void run(
+                () => submit({ key: article.display_key, version: article.version }).unwrap(),
+                "Submitted for review",
+              )
+            }
             className={SECONDARY_BUTTON}
           >
             Submit for review
@@ -170,7 +177,8 @@ export function ArticleActions({ article }: { article: ArticleView }) {
           onSubmit={(event) => {
             event.preventDefault();
             void run(
-              () => retire({ key: article.display_key, version: article.version, reason: retireReason.trim() }).unwrap(),
+              () =>
+                retire({ key: article.display_key, version: article.version, reason: retireReason.trim() }).unwrap(),
               `${article.display_key} retired`,
             ).then(() => setRetireOpen(false));
           }}
@@ -191,7 +199,8 @@ export function ArticleActions({ article }: { article: ArticleView }) {
             disabled={retireReason.trim().length < 3 || retiring.isLoading}
             onConfirm={() =>
               run(
-                () => retire({ key: article.display_key, version: article.version, reason: retireReason.trim() }).unwrap(),
+                () =>
+                  retire({ key: article.display_key, version: article.version, reason: retireReason.trim() }).unwrap(),
                 `${article.display_key} retired`,
               ).then(() => setRetireOpen(false))
             }

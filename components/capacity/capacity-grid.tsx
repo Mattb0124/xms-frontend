@@ -211,7 +211,12 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
             </th>
             <th className={HEAD}>Status</th>
             {columns.map((accountId) => (
-              <th key={accountId} className={cn(HEAD, "xms-mono text-right")} title={title(accountId)} data-account={accountId}>
+              <th
+                key={accountId}
+                className={cn(HEAD, "xms-mono text-right")}
+                title={title(accountId)}
+                data-account={accountId}
+              >
                 {label(accountId)}
               </th>
             ))}

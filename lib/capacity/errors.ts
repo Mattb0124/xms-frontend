@@ -63,7 +63,8 @@ export function describeCapacityError(error: CapacityError): string {
       return "Someone else changed the allocations. They have been reloaded.";
     case "forbidden":
       if (error.accountId) return "You are not granted that account, so its cells cannot be written.";
-      if (error.permission === "capacity:manage") return "Only the person themselves or a capacity manager may change this.";
+      if (error.permission === "capacity:manage")
+        return "Only the person themselves or a capacity manager may change this.";
       return describeError(error);
     case "not_found":
       if (error.entity === "pto") return "That time off has already been removed.";

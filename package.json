@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "pnpm lint && pnpm typecheck && pnpm check:config && pnpm test",
+    "check": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm check:config && pnpm test",
     "generate:api-types": "openapi-typescript ${XMS_OPENAPI_PATH:-../backend/openapi.json} -o src/api-types/index.ts"
   },
   "dependencies": {

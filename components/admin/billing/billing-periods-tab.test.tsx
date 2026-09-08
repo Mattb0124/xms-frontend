@@ -61,7 +61,8 @@ describe("BillingPeriodsTab", () => {
   it("names the automatic lock as System", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["contracts:view"]),
-      [PERIODS]: () => json([aLockedPeriod({ locked_by: null, locked_by_name: "System", locked_at: "2026-09-07T09:00:00Z" })]),
+      [PERIODS]: () =>
+        json([aLockedPeriod({ locked_by: null, locked_by_name: "System", locked_at: "2026-09-07T09:00:00Z" })]),
     });
     renderDesk(<BillingPeriodsTab accountId="acct-1" />);
     const locked = await screen.findByRole("row", { name: /August 2026/ });

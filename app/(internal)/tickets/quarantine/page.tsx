@@ -12,7 +12,13 @@ import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
-import { useDecideQuarantineMutation, useListQuarantineQuery, type QuarantineDecision, type QuarantineItem, type QuarantineReason } from "@/redux/emailApi";
+import {
+  useDecideQuarantineMutation,
+  useListQuarantineQuery,
+  type QuarantineDecision,
+  type QuarantineItem,
+  type QuarantineReason,
+} from "@/redux/emailApi";
 
 export function reasonCopy(reason: QuarantineReason): string {
   switch (reason) {
@@ -43,7 +49,14 @@ export function decisionCopy(decision: QuarantineDecision | null): string {
 }
 
 const COLUMNS: DenseColumn<QuarantineItem>[] = [
-  { key: "received", title: "Received", sortValue: (row) => row.received_at, render: (row) => formatStamp(row.received_at), mono: true, width: "150px" },
+  {
+    key: "received",
+    title: "Received",
+    sortValue: (row) => row.received_at,
+    render: (row) => formatStamp(row.received_at),
+    mono: true,
+    width: "150px",
+  },
   {
     key: "from",
     title: "From",
@@ -60,14 +73,22 @@ const COLUMNS: DenseColumn<QuarantineItem>[] = [
     key: "reason",
     title: "Reason",
     sortValue: (row) => row.reason,
-    render: (row) => <StatePill state={row.reason === "scan_quarantined" ? "awaiting-client" : "new"} label={reasonCopy(row.reason)} />,
+    render: (row) => (
+      <StatePill state={row.reason === "scan_quarantined" ? "awaiting-client" : "new"} label={reasonCopy(row.reason)} />
+    ),
     width: "160px",
   },
 ];
 
 const DECIDED_COLUMNS: DenseColumn<QuarantineItem>[] = [
   ...COLUMNS,
-  { key: "decision", title: "Decision", sortValue: (row) => row.decision ?? "", render: (row) => decisionCopy(row.decision), width: "200px" },
+  {
+    key: "decision",
+    title: "Decision",
+    sortValue: (row) => row.decision ?? "",
+    render: (row) => decisionCopy(row.decision),
+    width: "200px",
+  },
 ];
 
 /** The reviewer drawer: the stripped body and the four decisions (Email Intake functional 5.6). */
@@ -83,7 +104,10 @@ export function QuarantineDecisionPanel({
   onClose: () => void;
 }) {
   return (
-    <Panel title={item.subject || "(no subject)"} caption={`${item.from_name || item.from_address} · ${formatStamp(item.received_at)}`}>
+    <Panel
+      title={item.subject || "(no subject)"}
+      caption={`${item.from_name || item.from_address} · ${formatStamp(item.received_at)}`}
+    >
       <div className="flex flex-col gap-3">
         <p className="text-xms-label text-[12px]">
           {reasonCopy(item.reason)}. <span className="xms-mono">{item.from_address}</span>
@@ -93,10 +117,20 @@ export function QuarantineDecisionPanel({
         </pre>
         {item.state === "open" ? (
           <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Decision">
-            <button type="button" className={PRIMARY_BUTTON} disabled={deciding} onClick={() => onDecide("create_contact_and_ticket")}>
+            <button
+              type="button"
+              className={PRIMARY_BUTTON}
+              disabled={deciding}
+              onClick={() => onDecide("create_contact_and_ticket")}
+            >
               Create contact and ticket
             </button>
-            <button type="button" className={SECONDARY_BUTTON} disabled={deciding} onClick={() => onDecide("create_ticket_once")}>
+            <button
+              type="button"
+              className={SECONDARY_BUTTON}
+              disabled={deciding}
+              onClick={() => onDecide("create_ticket_once")}
+            >
               Create ticket once
             </button>
             <ConfirmButton label="Discard" onConfirm={() => onDecide("discard")} disabled={deciding} danger />
@@ -118,7 +152,10 @@ export function QuarantineDecisionPanel({
 
 function QuarantineScreen() {
   const [showDecided, setShowDecided] = useState(false);
-  const { data, isLoading } = useListQuarantineQuery({ state: showDecided ? "decided" : "open" }, { pollingInterval: 60_000 });
+  const { data, isLoading } = useListQuarantineQuery(
+    { state: showDecided ? "decided" : "open" },
+    { pollingInterval: 60_000 },
+  );
   const [decide, { isLoading: deciding }] = useDecideQuarantineMutation();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { push } = useToast();
@@ -139,7 +176,11 @@ function QuarantineScreen() {
       setSelectedId(null);
     } catch (error) {
       const parsed = apiError(error);
-      push({ title: "Not decided", detail: parsed.code === "already_decided" ? "Someone already decided this item." : describeError(parsed), tone: "error" });
+      push({
+        title: "Not decided",
+        detail: parsed.code === "already_decided" ? "Someone already decided this item." : describeError(parsed),
+        tone: "error",
+      });
     }
   };
 
@@ -173,7 +214,14 @@ function QuarantineScreen() {
           onRowClick={(row) => setSelectedId(row.id)}
           emptyState="Nothing to review."
         />
-        {selected ? <QuarantineDecisionPanel item={selected} onDecide={onDecide} deciding={deciding} onClose={() => setSelectedId(null)} /> : null}
+        {selected ? (
+          <QuarantineDecisionPanel
+            item={selected}
+            onDecide={onDecide}
+            deciding={deciding}
+            onClose={() => setSelectedId(null)}
+          />
+        ) : null}
       </div>
     </div>
   );

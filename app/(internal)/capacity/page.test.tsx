@@ -96,7 +96,9 @@ describe("CapacityPage", () => {
     renderDesk(<CapacityPage />);
     const table = await screen.findByRole("table", { name: "Capacity by person" });
     const view = calls.find((call) => call.key === "GET /v1/capacity");
-    expect(decodeURIComponent(view?.search ?? "")).toBe(`?month=2026-09&role=consultant&group=g-1&account=${ACCOUNT_ID}`);
+    expect(decodeURIComponent(view?.search ?? "")).toBe(
+      `?month=2026-09&role=consultant&group=g-1&account=${ACCOUNT_ID}`,
+    );
     expect(calls.some((call) => call.key === "GET /v1/accounts" || call.key === "GET /v1/groups")).toBe(false);
     const ana = within(table).getByRole("row", { name: /Ana Silva/ });
     expect(ana.querySelector("[data-available]")).toHaveTextContent("136.8 h");
@@ -144,10 +146,11 @@ describe("CapacityPage", () => {
     expect(overlay.querySelector("[data-overlay-available]")).toHaveTextContent("263.5 h");
     expect(overlay).toHaveTextContent("140 h of demand against 76.8 h remaining");
     const subjects = within(overlay).getByRole("list", { name: "Demand by subject" });
-    expect(within(subjects).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
-      "BRK Project 40 h",
-      "Acme Corp Pipeline 200 h at 50%, 100 h weighted",
-    ]);
+    expect(
+      within(subjects)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["BRK Project 40 h", "Acme Corp Pipeline 200 h at 50%, 100 h weighted"]);
     const bar = within(overlay).getByRole("img", { name: /Allocated 200 h/ });
     expect(bar.querySelector("[data-segment='allocated']")).toHaveStyle({ width: "58.82%" });
     expect(bar.querySelector("[data-segment='pipeline']")).toHaveStyle({ width: "29.41%" });
@@ -168,10 +171,12 @@ describe("CapacityPage", () => {
     renderDesk(<CapacityPage />);
     const overlay = await screen.findByTestId("demand-overlay");
     expect(overlay).toHaveTextContent("No demand entered for September 2026.");
-    expect(within(overlay).getByRole("link", { name: "Enter demand" })).toHaveAttribute("href", "/capacity/demand?from=2026-09");
+    expect(within(overlay).getByRole("link", { name: "Enter demand" })).toHaveAttribute(
+      "href",
+      "/capacity/demand?from=2026-09",
+    );
     expect(within(overlay).queryByRole("list", { name: "Demand by subject" })).not.toBeInTheDocument();
   });
-
 
   it("rewrites the URL when the month or a filter changes", async () => {
     stubFetch({
@@ -264,7 +269,11 @@ describe("CapacityPage", () => {
     await screen.findByRole("columnheader", { name: "AUS" });
     expect(screen.queryByRole("columnheader", { name: "NOR" })).not.toBeInTheDocument();
     const chooser = screen.getByLabelText("Add account");
-    expect(within(chooser).getAllByRole("option").map((option) => option.textContent)).toEqual(["Add account", "NOR Northwind"]);
+    expect(
+      within(chooser)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Add account", "NOR Northwind"]);
     fireEvent.change(chooser, { target: { value: THIRD_ACCOUNT_ID } });
     expect(screen.getByRole("columnheader", { name: "NOR" })).toBeInTheDocument();
     expect(screen.getByLabelText("Ben Ito on NOR")).toHaveValue(null);

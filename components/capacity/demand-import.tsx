@@ -107,10 +107,15 @@ export function ImportDemandPanel() {
         </div>
         <InlineError message={problem} />
         {problems.length > 0 ? (
-          <ul className="divide-xms-line divide-y rounded-[4px] border border-[color:var(--state-overdue-border)]" aria-label="Import problems">
+          <ul
+            className="divide-xms-line divide-y rounded-[4px] border border-[color:var(--state-overdue-border)]"
+            aria-label="Import problems"
+          >
             {problems.map((row, index) => (
               <li key={`${row.line}:${index}`} className="flex gap-3 px-3 py-1.5" data-problem-line={row.line}>
-                <span className="xms-mono text-xms-label w-[64px] shrink-0">{row.line === 0 ? "file" : `line ${row.line}`}</span>
+                <span className="xms-mono text-xms-label w-[64px] shrink-0">
+                  {row.line === 0 ? "file" : `line ${row.line}`}
+                </span>
                 <span className="text-[color:var(--state-overdue-text)]">{row.problem}</span>
               </li>
             ))}

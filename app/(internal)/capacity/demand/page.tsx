@@ -52,7 +52,11 @@ function DemandScreen() {
     try {
       await remove(row.id).unwrap();
       track({ demand_id: row.id, source: row.source });
-      push({ title: "Demand removed", detail: `${demandSubject(row)}, ${monthLabel(row.period_month)}.`, tone: "success" });
+      push({
+        title: "Demand removed",
+        detail: `${demandSubject(row)}, ${monthLabel(row.period_month)}.`,
+        tone: "success",
+      });
     } catch (caught) {
       push({ title: "Not removed", detail: describeCapacityError(capacityError(caught)), tone: "error" });
     } finally {
@@ -83,7 +87,11 @@ function DemandScreen() {
               value={filter.from}
               onChange={(event) => {
                 if (event.target.value)
-                  apply({ ...filter, from: event.target.value, to: filter.to < event.target.value ? event.target.value : filter.to });
+                  apply({
+                    ...filter,
+                    from: event.target.value,
+                    to: filter.to < event.target.value ? event.target.value : filter.to,
+                  });
               }}
             />
           </label>
@@ -96,7 +104,8 @@ function DemandScreen() {
               className={cn(CONTROL, "xms-mono w-[160px]")}
               value={filter.to}
               onChange={(event) => {
-                if (event.target.value && event.target.value >= filter.from) apply({ ...filter, to: event.target.value });
+                if (event.target.value && event.target.value >= filter.from)
+                  apply({ ...filter, to: event.target.value });
               }}
             />
           </label>
@@ -126,7 +135,9 @@ function DemandScreen() {
             action={{ label: "Retry", onClick: () => void list.refetch() }}
           />
         ) : null}
-        {list.data ? <DemandTable list={list.data} canManage={canManage} onRemove={onRemove} removing={removing} /> : null}
+        {list.data ? (
+          <DemandTable list={list.data} canManage={canManage} onRemove={onRemove} removing={removing} />
+        ) : null}
         {canManage ? (
           <div className="grid gap-4 xl:grid-cols-2">
             <AddDemandForm accounts={accounts.data} defaultMonth={filter.from} />

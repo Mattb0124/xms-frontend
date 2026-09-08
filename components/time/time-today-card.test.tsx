@@ -8,7 +8,12 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 const me = (permissions: string[]) => () =>
   json({ principal: { kind: "internal", userId: "u1", accountIds: [], permissions } });
 
-function unlogged(day: { expected_minutes: number; logged_minutes: number; unlogged_minutes: number; holiday?: boolean }) {
+function unlogged(day: {
+  expected_minutes: number;
+  logged_minutes: number;
+  unlogged_minutes: number;
+  holiday?: boolean;
+}) {
   return () =>
     json({
       from: "2026-09-07",
@@ -52,7 +57,12 @@ describe("TimeTodayCard", () => {
   it("mutes a day with nothing expected and turns green once fully logged", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["time:log"]),
-      "GET /v1/timesheets/me/unlogged": unlogged({ expected_minutes: 0, logged_minutes: 0, unlogged_minutes: 0, holiday: true }),
+      "GET /v1/timesheets/me/unlogged": unlogged({
+        expected_minutes: 0,
+        logged_minutes: 0,
+        unlogged_minutes: 0,
+        holiday: true,
+      }),
     });
     const { unmount } = renderDesk(<TimeTodayCard today="2026-09-07" />);
     await screen.findByText("Holiday");

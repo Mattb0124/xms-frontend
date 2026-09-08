@@ -9,7 +9,14 @@ import { SignalPill } from "@/components/xms/signal-pill";
 import { useToast } from "@/components/xms/toast";
 import { useMutationErrors } from "@/lib/admin/use-mutation-errors";
 import { describeCalendarError, calendarError } from "@/lib/calendars/errors";
-import { formatDuration, gridToHours, hoursToGrid, standardGrid, weeklyMinutes, type WeekGrid } from "@/lib/calendars/hours";
+import {
+  formatDuration,
+  gridToHours,
+  hoursToGrid,
+  standardGrid,
+  weeklyMinutes,
+  type WeekGrid,
+} from "@/lib/calendars/hours";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
   useCreateCalendarMutation,
@@ -45,7 +52,8 @@ export function calendarPatch(
 ): PatchCalendarBody {
   const body: PatchCalendarBody = { version: calendar.version };
   if (draft.name.trim() !== calendar.name && draft.name.trim() !== "") body.name = draft.name.trim();
-  if (draft.time_zone.trim() !== calendar.time_zone && draft.time_zone.trim() !== "") body.time_zone = draft.time_zone.trim();
+  if (draft.time_zone.trim() !== calendar.time_zone && draft.time_zone.trim() !== "")
+    body.time_zone = draft.time_zone.trim();
   if ((draft.holiday_calendar_id || null) !== calendar.holiday_calendar_id)
     body.holiday_calendar_id = draft.holiday_calendar_id || null;
   if (!sameHours(hours, calendar.hours)) body.hours = hours;
@@ -91,7 +99,8 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
     () => (libraries.data ?? []).find((row) => row.id === holidayId),
     [libraries.data, holidayId],
   );
-  const holidays = library?.holidays ?? (calendar && calendar.holiday_calendar_id === holidayId ? calendar.holidays : []);
+  const holidays =
+    library?.holidays ?? (calendar && calendar.holiday_calendar_id === holidayId ? calendar.holidays : []);
 
   const submit = async () => {
     setError(null);
@@ -102,13 +111,22 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
     }
     try {
       if (calendar) {
-        const body = calendarPatch(calendar, { name, time_zone: timeZone, holiday_calendar_id: holidayId, make_default: makeDefault }, conversion.hours);
+        const body = calendarPatch(
+          calendar,
+          { name, time_zone: timeZone, holiday_calendar_id: holidayId, make_default: makeDefault },
+          conversion.hours,
+        );
         if (Object.keys(body).length === 1) {
           push({ title: "Nothing to save", tone: "info" });
           return;
         }
         await patch({ id: calendar.id, body }).unwrap();
-        track({ calendar_id: calendar.id, account_id: accountId, fields: Object.keys(body).length - 1, created: false });
+        track({
+          calendar_id: calendar.id,
+          account_id: accountId,
+          fields: Object.keys(body).length - 1,
+          created: false,
+        });
         push({ title: "Calendar saved", tone: "success" });
       } else {
         const created = await create({
@@ -123,7 +141,11 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
           },
         }).unwrap();
         track({ calendar_id: created.id, account_id: accountId, intervals: conversion.hours.length, created: true });
-        push({ title: "Calendar created", detail: created.is_default ? "It is the account default." : undefined, tone: "success" });
+        push({
+          title: "Calendar created",
+          detail: created.is_default ? "It is the account default." : undefined,
+          tone: "success",
+        });
         onCreated?.(created);
       }
     } catch (caught) {
@@ -146,12 +168,20 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
       <div className="flex flex-col gap-4">
         <Panel
           title="Calendar"
-          caption={calendar ? `version ${calendar.version}, effective from ${calendar.effective_from}` : "Working hours in a named zone"}
+          caption={
+            calendar
+              ? `version ${calendar.version}, effective from ${calendar.effective_from}`
+              : "Working hours in a named zone"
+          }
           actions={
             calendar ? (
               <>
                 {calendar.is_default ? <SignalPill tone="ready" label="Default" /> : null}
-                {retired ? <SignalPill tone="blocked" label="Retired" /> : <SignalPill tone="complete" label="Active" />}
+                {retired ? (
+                  <SignalPill tone="blocked" label="Retired" />
+                ) : (
+                  <SignalPill tone="complete" label="Active" />
+                )}
               </>
             ) : null
           }
@@ -169,7 +199,13 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
               />
             </FieldRow>
             <FieldRow label="Time zone" htmlFor="calendar-tz">
-              <TimeZoneField id="calendar-tz" value={timeZone} onChange={setTimeZone} required disabled={busy || retired} />
+              <TimeZoneField
+                id="calendar-tz"
+                value={timeZone}
+                onChange={setTimeZone}
+                required
+                disabled={busy || retired}
+              />
             </FieldRow>
             <FieldRow label="Holiday library" htmlFor="calendar-holidays">
               <select
@@ -215,7 +251,11 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
         >
           <HoursGrid value={grid} onChange={setGrid} disabled={busy || retired} />
           {problems.length > 0 ? (
-            <ul role="alert" className="mt-3 list-disc pl-5 text-[12px] text-[color:var(--state-overdue-text)]" data-testid="hour-problems">
+            <ul
+              role="alert"
+              className="mt-3 list-disc pl-5 text-[12px] text-[color:var(--state-overdue-text)]"
+              data-testid="hour-problems"
+            >
               {problems.map((problem) => (
                 <li key={problem}>{problem}</li>
               ))}
@@ -237,7 +277,11 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
                 try {
                   await patch({ id: calendar.id, body: { version: calendar.version, status: "retired" } }).unwrap();
                   track({ calendar_id: calendar.id, account_id: accountId, retired: true });
-                  push({ title: "Calendar retired", detail: calendar.is_default ? "The account has no default until another is chosen." : undefined, tone: "info" });
+                  push({
+                    title: "Calendar retired",
+                    detail: calendar.is_default ? "The account has no default until another is chosen." : undefined,
+                    tone: "info",
+                  });
                 } catch (caught) {
                   onError(caught);
                 }
@@ -248,7 +292,10 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
           <InlineError message={error} />
         </div>
       </div>
-      <Panel title="Holidays" caption={library ? `${library.country} ${library.name}` : "From the chosen library, read only"}>
+      <Panel
+        title="Holidays"
+        caption={library ? `${library.country} ${library.name}` : "From the chosen library, read only"}
+      >
         {holidays.length === 0 ? <p className="text-xms-label text-[13px]">No holidays on this calendar.</p> : null}
         <ul className="divide-xms-line max-h-[420px] divide-y overflow-auto text-[13px]" aria-label="Holiday dates">
           {holidays.map((holiday) => (

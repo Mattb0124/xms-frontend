@@ -2,7 +2,13 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CapacitySkillsPage from "@/app/(internal)/capacity/skills/page";
 import { heatMapRows } from "@/components/capacity/skills-heat-map";
-import { ACCOUNT_ID, aSkillsMatrixAccount, aSkillsMatrixPeople, OTHER_ACCOUNT_ID, OTHER_PERSON_ID } from "@/redux/capacityApi.test";
+import {
+  ACCOUNT_ID,
+  aSkillsMatrixAccount,
+  aSkillsMatrixPeople,
+  OTHER_ACCOUNT_ID,
+  OTHER_PERSON_ID,
+} from "@/redux/capacityApi.test";
 import { PERSON_ID } from "@/redux/rosterApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 

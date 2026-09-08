@@ -56,7 +56,11 @@ describe("SkillsTab", () => {
   it("saves the whole set: a changed level, a catalog addition and a removal in one PUT", async () => {
     const calls = stubFetch({
       "GET /v1/roster/skills": () =>
-        json([aSkill(), aSkill({ id: "s-coupa", code: "coupa", name: "Coupa" }), aSkill({ id: "s-close", code: "close", name: "Close", kind: "process" })]),
+        json([
+          aSkill(),
+          aSkill({ id: "s-coupa", code: "coupa", name: "Coupa" }),
+          aSkill({ id: "s-close", code: "close", name: "Close", kind: "process" }),
+        ]),
       [`PUT /v1/roster/people/${PERSON_ID}/skills`]: () => json([aPersonSkill({ level: 4 })]),
     });
     renderDesk(
@@ -90,7 +94,8 @@ describe("SkillsTab", () => {
   it("creates a new catalog skill and adds it to the draft; read only without capacity:manage", async () => {
     const calls = stubFetch({
       "GET /v1/roster/skills": () => json([aSkill()]),
-      "POST /v1/roster/skills": () => json(aSkill({ id: "s-new", code: "planning", name: "Planning", kind: "process" }), 201),
+      "POST /v1/roster/skills": () =>
+        json(aSkill({ id: "s-new", code: "planning", name: "Planning", kind: "process" }), 201),
     });
     const { unmount } = renderDesk(<SkillsTab personId={PERSON_ID} canEdit skills={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "Add a new skill" }));
@@ -166,32 +171,36 @@ describe("DetailsTab", () => {
 
   it("computes only the changed fields, typed for the API", () => {
     const person = aPersonDetail();
-    expect(changedFields(person, {
-      display_name: person.display_name,
-      role: person.role,
-      fte_percent: "100",
-      hours_base_per_week: "40",
-      admin_overhead_percent: "15",
-      currency: "GBP",
-      country: "GB",
-      time_zone: "Europe/London",
-      start_date: "2024-01-08",
-      end_date: "",
-      assignment_group_ids: [...person.assignment_group_ids],
-    })).toEqual({});
-    expect(changedFields(person, {
-      display_name: person.display_name,
-      role: "team_lead",
-      fte_percent: "60",
-      hours_base_per_week: "40",
-      admin_overhead_percent: "",
-      currency: "gbp",
-      country: "",
-      time_zone: "Europe/Lisbon",
-      start_date: "2024-01-08",
-      end_date: "2026-12-31",
-      assignment_group_ids: [],
-    })).toEqual({
+    expect(
+      changedFields(person, {
+        display_name: person.display_name,
+        role: person.role,
+        fte_percent: "100",
+        hours_base_per_week: "40",
+        admin_overhead_percent: "15",
+        currency: "GBP",
+        country: "GB",
+        time_zone: "Europe/London",
+        start_date: "2024-01-08",
+        end_date: "",
+        assignment_group_ids: [...person.assignment_group_ids],
+      }),
+    ).toEqual({});
+    expect(
+      changedFields(person, {
+        display_name: person.display_name,
+        role: "team_lead",
+        fte_percent: "60",
+        hours_base_per_week: "40",
+        admin_overhead_percent: "",
+        currency: "gbp",
+        country: "",
+        time_zone: "Europe/Lisbon",
+        start_date: "2024-01-08",
+        end_date: "2026-12-31",
+        assignment_group_ids: [],
+      }),
+    ).toEqual({
       role: "team_lead",
       fte_percent: 60,
       admin_overhead_percent: null,

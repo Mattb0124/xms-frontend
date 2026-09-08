@@ -67,7 +67,8 @@ export function changedFields(person: PersonDetail, draft: Draft): Omit<PatchPer
     body.currency = draft.currency.trim().toUpperCase();
   if (draft.country.trim().toUpperCase() !== base.country)
     body.country = draft.country.trim() === "" ? null : draft.country.trim().toUpperCase();
-  if (draft.time_zone.trim() !== base.time_zone && draft.time_zone.trim() !== "") body.time_zone = draft.time_zone.trim();
+  if (draft.time_zone.trim() !== base.time_zone && draft.time_zone.trim() !== "")
+    body.time_zone = draft.time_zone.trim();
   if (draft.start_date !== base.start_date) body.start_date = draft.start_date === "" ? null : draft.start_date;
   if (draft.end_date !== base.end_date) body.end_date = draft.end_date === "" ? null : draft.end_date;
   const groups = [...draft.assignment_group_ids].sort();

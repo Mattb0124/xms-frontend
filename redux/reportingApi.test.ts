@@ -63,7 +63,9 @@ describe("reportingApi", () => {
     const calls = stubFetch({ "GET /v1/accounts/acct-1/csat": () => json(aCsatSummary()) });
     const store = makeStore();
     const view = await store
-      .dispatch(reportingApi.endpoints.accountCsat.initiate({ accountId: "acct-1", from: "2026-06-09", to: "2026-09-07" }))
+      .dispatch(
+        reportingApi.endpoints.accountCsat.initiate({ accountId: "acct-1", from: "2026-06-09", to: "2026-09-07" }),
+      )
       .unwrap();
     expect(view.summary.average).toBe(3.5);
     await store.dispatch(reportingApi.endpoints.accountCsat.initiate({ accountId: "acct-1" })).unwrap();

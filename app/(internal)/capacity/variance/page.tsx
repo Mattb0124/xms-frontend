@@ -32,7 +32,9 @@ export function sortByVariance(lines: VarianceLine[]): VarianceLine[] {
 }
 
 /** The tone of a variance cell: ink within 10 percent, amber beyond, red past 25 percent or with nothing planned. */
-export function varianceTone(line: Pick<VarianceLine, "variance_ratio" | "variance_minutes">): "calm" | "warn" | "breach" {
+export function varianceTone(
+  line: Pick<VarianceLine, "variance_ratio" | "variance_minutes">,
+): "calm" | "warn" | "breach" {
   if (line.variance_minutes === 0) return "calm";
   if (line.variance_ratio === null) return "breach";
   const size = Math.abs(line.variance_ratio);

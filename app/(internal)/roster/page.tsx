@@ -51,7 +51,8 @@ function RosterScreen() {
   const apply = (next: PeopleFilter) => router.replace(`${pathname}${filterToSearch(next)}`);
   const criteria: FilterCriterion[] = [];
   if (filter.role) criteria.push({ key: "role", label: "Role", value: roleLabel(filter.role) });
-  if (filter.group) criteria.push({ key: "group", label: "Group", value: groupNames?.[filter.group] ?? filter.group.slice(0, 8) });
+  if (filter.group)
+    criteria.push({ key: "group", label: "Group", value: groupNames?.[filter.group] ?? filter.group.slice(0, 8) });
   if (filter.skill)
     criteria.push({
       key: "skill",

@@ -18,7 +18,9 @@ describe("capacity filters", () => {
       group: undefined,
       account: undefined,
     });
-    expect(capacityFilterFromSearch(new URLSearchParams("month=2026-11&role=consultant&group=g-1&account=a-1"), "2026-09")).toEqual({
+    expect(
+      capacityFilterFromSearch(new URLSearchParams("month=2026-11&role=consultant&group=g-1&account=a-1"), "2026-09"),
+    ).toEqual({
       month: "2026-11",
       role: "consultant",
       group: "g-1",
@@ -48,7 +50,11 @@ describe("capacity filters", () => {
   });
 
   it("reads the demand range with the three-month default and writes only what leaves it", () => {
-    expect(demandFilterFromSearch(new URLSearchParams(""), "2026-09")).toEqual({ from: "2026-09", to: "2026-12", account: undefined });
+    expect(demandFilterFromSearch(new URLSearchParams(""), "2026-09")).toEqual({
+      from: "2026-09",
+      to: "2026-12",
+      account: undefined,
+    });
     expect(demandFilterFromSearch(new URLSearchParams("from=2026-11&to=2027-02&account=a-1"), "2026-09")).toEqual({
       from: "2026-11",
       to: "2027-02",
@@ -59,12 +65,18 @@ describe("capacity filters", () => {
     expect(demandFilterFromSearch(new URLSearchParams("to=nope"), "2026-09").to).toBe("2026-12");
     expect(demandFilterToSearch({ from: "2026-09", to: "2026-12" }, "2026-09")).toBe("");
     expect(demandFilterToSearch({ from: "2026-09", to: "2026-10" }, "2026-09")).toBe("?to=2026-10");
-    expect(demandFilterToSearch({ from: "2026-11", to: "2027-02", account: "a-1" }, "2026-09")).toBe("?from=2026-11&account=a-1");
+    expect(demandFilterToSearch({ from: "2026-11", to: "2027-02", account: "a-1" }, "2026-09")).toBe(
+      "?from=2026-11&account=a-1",
+    );
     expect(demandFilterToSearch({ from: "2026-11", to: "2026-11" }, "2026-09")).toBe("?from=2026-11&to=2026-11");
   });
 
   it("reads the skills lens with its own filter only, and writes the account lens but not the people one", () => {
-    expect(skillsFilterFromSearch(new URLSearchParams(""))).toEqual({ lens: "people", role: undefined, account: undefined });
+    expect(skillsFilterFromSearch(new URLSearchParams(""))).toEqual({
+      lens: "people",
+      role: undefined,
+      account: undefined,
+    });
     expect(skillsFilterFromSearch(new URLSearchParams("role=consultant&account=a-1"))).toEqual({
       lens: "people",
       role: "consultant",
@@ -79,6 +91,8 @@ describe("capacity filters", () => {
     expect(skillsFilterToSearch({ lens: "people" })).toBe("");
     expect(skillsFilterToSearch({ lens: "people", role: "architect" })).toBe("?role=architect");
     expect(skillsFilterToSearch({ lens: "account" })).toBe("?lens=account");
-    expect(skillsFilterToSearch({ lens: "account", account: "a-1", role: "architect" })).toBe("?lens=account&account=a-1");
+    expect(skillsFilterToSearch({ lens: "account", account: "a-1", role: "architect" })).toBe(
+      "?lens=account&account=a-1",
+    );
   });
 });

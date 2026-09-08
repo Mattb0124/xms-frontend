@@ -37,7 +37,9 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
               </td>
               <td className="py-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  {intervals.length === 0 ? <span className="text-xms-muted text-[12px]">Not a working day</span> : null}
+                  {intervals.length === 0 ? (
+                    <span className="text-xms-muted text-[12px]">Not a working day</span>
+                  ) : null}
                   {intervals.map((interval, index) => (
                     <span key={index} className="inline-flex items-center gap-1">
                       <input
@@ -88,7 +90,10 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
                     disabled={disabled}
                     onClick={() => {
                       const last = intervals[intervals.length - 1];
-                      update(day.value, [...intervals, last ? { start: last.end, end: "" } : { start: "09:00", end: "17:00" }]);
+                      update(day.value, [
+                        ...intervals,
+                        last ? { start: last.end, end: "" } : { start: "09:00", end: "17:00" },
+                      ]);
                     }}
                     className="text-xms-accent text-[12px] disabled:opacity-50"
                   >

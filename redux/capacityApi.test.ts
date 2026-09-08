@@ -115,7 +115,14 @@ export function aCapacityDemand(overrides: Partial<CapacityDemand> = {}): Capaci
     total_minutes: 8400,
     by_subject: [
       { account_id: ACCOUNT_ID, account_key: "BRK", prospect_name: null, source: "project", hours: 40, probability: 1 },
-      { account_id: null, account_key: null, prospect_name: "Acme Corp", source: "pipeline", hours: 200, probability: 0.5 },
+      {
+        account_id: null,
+        account_key: null,
+        prospect_name: "Acme Corp",
+        source: "pipeline",
+        hours: 200,
+        probability: 0.5,
+      },
     ],
     ...overrides,
   };
@@ -219,7 +226,12 @@ export function aSkillsMatrixPeople(overrides: Partial<SkillsMatrixPeople> = {})
       { id: "s-onestream", code: "onestream", name: "OneStream", kind: "technology" },
     ],
     people: [
-      { id: PERSON_ID, display_name: "Ana Silva", role: "senior_consultant", levels: { onestream: 4, anaplan: 3, close: 2 } },
+      {
+        id: PERSON_ID,
+        display_name: "Ana Silva",
+        role: "senior_consultant",
+        levels: { onestream: 4, anaplan: 3, close: 2 },
+      },
       { id: OTHER_PERSON_ID, display_name: "Ben Ito", role: "consultant", levels: { onestream: 2, anaplan: 3 } },
     ],
     ...overrides,
@@ -354,12 +366,18 @@ describe("capacityApi", () => {
       .unwrap();
     expect(view.totals.allocated_minutes).toBe(12000);
     await store
-      .dispatch(capacityApi.endpoints.capacityCheck.initiate({ personIds: [PERSON_ID, OTHER_PERSON_ID], month: "2026-09" }))
+      .dispatch(
+        capacityApi.endpoints.capacityCheck.initiate({ personIds: [PERSON_ID, OTHER_PERSON_ID], month: "2026-09" }),
+      )
       .unwrap();
     await store
-      .dispatch(capacityApi.endpoints.capacityVariance.initiate({ month: "2026-09", account: ACCOUNT_ID, person: PERSON_ID }))
+      .dispatch(
+        capacityApi.endpoints.capacityVariance.initiate({ month: "2026-09", account: ACCOUNT_ID, person: PERSON_ID }),
+      )
       .unwrap();
-    await store.dispatch(capacityApi.endpoints.listAllocations.initiate({ account: ACCOUNT_ID, from: "2026-09", to: "2026-11" })).unwrap();
+    await store
+      .dispatch(capacityApi.endpoints.listAllocations.initiate({ account: ACCOUNT_ID, from: "2026-09", to: "2026-11" }))
+      .unwrap();
     expect(calls.map((call) => `${call.key}${decodeURIComponent(call.search)}`)).toEqual([
       `GET /v1/roster/people/${PERSON_ID}/pto`,
       "GET /v1/capacity",
@@ -543,7 +561,6 @@ describe("capacityApi", () => {
   });
 
   it("reloads the view after PTO is entered and after cells are written, even when the write is refused as stale", async () => {
-
     let views = 0;
     stubFetch({
       "GET /v1/capacity": () => {
@@ -569,7 +586,9 @@ describe("capacityApi", () => {
       store
         .dispatch(
           capacityApi.endpoints.putAllocations.initiate({
-            cells: [{ person_id: PERSON_ID, account_id: ACCOUNT_ID, month: "2026-09-01", planned_minutes: 60, version: 1 }],
+            cells: [
+              { person_id: PERSON_ID, account_id: ACCOUNT_ID, month: "2026-09-01", planned_minutes: 60, version: 1 },
+            ],
           }),
         )
         .unwrap(),

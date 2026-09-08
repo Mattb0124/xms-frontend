@@ -75,7 +75,11 @@ async function readError(response: Response): Promise<UploadRefusal> {
 }
 
 /** Presigns, uploads and confirms one file; resolves with the confirmed row. */
-export async function uploadAttachment(ticketKey: string, file: File, options: UploadOptions = {}): Promise<Attachment> {
+export async function uploadAttachment(
+  ticketKey: string,
+  file: File,
+  options: UploadOptions = {},
+): Promise<Attachment> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const base = `${API_BASE_URL}/v1${options.portal ? "/portal" : ""}`;
   const report = (stage: UploadStage, percent: number) => options.onProgress?.({ stage, percent });
@@ -119,6 +123,9 @@ export async function uploadAttachment(ticketKey: string, file: File, options: U
   });
   if (!confirm.ok) throw await readError(confirm);
   const confirmed = (await confirm.json()) as Attachment;
-  report(confirmed.scan_state === "quarantined" ? "quarantined" : confirmed.scan_state === "clean" ? "clean" : "scanning", 100);
+  report(
+    confirmed.scan_state === "quarantined" ? "quarantined" : confirmed.scan_state === "clean" ? "clean" : "scanning",
+    100,
+  );
   return confirmed;
 }

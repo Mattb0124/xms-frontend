@@ -91,7 +91,6 @@ describe("AccountPage", () => {
     );
   });
 
-
   it("opens on the dashboard without a tab and switches to the budget on click", async () => {
     search = "";
     const calls = stubFetch({
@@ -99,7 +98,8 @@ describe("AccountPage", () => {
       "GET /v1/accounts": () => json([{ id: "acct-1", key: "BRK", name: "Brookfield", status: "active" }]),
       "GET /v1/dashboards/accounts/acct-1": () => json(anAccountDashboard()),
       "GET /v1/accounts/acct-1/reports": () => json([]),
-      "GET /v1/accounts/acct-1/time/comp-time": () => json({ from: "", to: "", entries: [], total_minutes: 0, by_person: [] }),
+      "GET /v1/accounts/acct-1/time/comp-time": () =>
+        json({ from: "", to: "", entries: [], total_minutes: 0, by_person: [] }),
       "GET /v1/accounts/acct-1/budget": () => json(aBudget()),
       "GET /v1/catalogs": () => json({ resolution_codes: [], activity_types: [], billable_classes: [] }),
     });

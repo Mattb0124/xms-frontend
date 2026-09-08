@@ -92,7 +92,11 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
         </thead>
         <tbody>
           {rows.map((person) => (
-            <tr key={person.id} className="border-xms-line hover:bg-xms-row-hover h-[40px] border-b" data-person={person.id}>
+            <tr
+              key={person.id}
+              className="border-xms-line hover:bg-xms-row-hover h-[40px] border-b"
+              data-person={person.id}
+            >
               <td className="text-xms-ink px-2 align-middle whitespace-nowrap">
                 <span className="flex flex-col">
                   <Link href={`/roster/${person.id}`} className="text-xms-accent font-medium">

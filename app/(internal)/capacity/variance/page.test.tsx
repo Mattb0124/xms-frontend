@@ -2,7 +2,13 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CapacityVariancePage, { sortByVariance, varianceTone } from "@/app/(internal)/capacity/variance/page";
 import { varianceFilterToSearch } from "@/lib/capacity/filters";
-import { ACCOUNT_ID, aVarianceLine, aVarianceReport, OTHER_ACCOUNT_ID, OTHER_PERSON_ID } from "@/redux/capacityApi.test";
+import {
+  ACCOUNT_ID,
+  aVarianceLine,
+  aVarianceReport,
+  OTHER_ACCOUNT_ID,
+  OTHER_PERSON_ID,
+} from "@/redux/capacityApi.test";
 import { aPerson, PERSON_ID } from "@/redux/rosterApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
@@ -24,9 +30,23 @@ const ACCOUNTS = [
 
 describe("variance helpers", () => {
   it("orders the largest variances first and tones them by size", () => {
-    const small = aVarianceLine({ person_id: "p-small", display_name: "Cara", variance_minutes: 30, variance_ratio: 0.05 });
-    const large = aVarianceLine({ person_id: "p-large", display_name: "Dev", variance_minutes: -1500, variance_ratio: -0.4 });
-    expect(sortByVariance([small, aVarianceLine(), large]).map((line) => line.display_name)).toEqual(["Dev", "Ana Silva", "Cara"]);
+    const small = aVarianceLine({
+      person_id: "p-small",
+      display_name: "Cara",
+      variance_minutes: 30,
+      variance_ratio: 0.05,
+    });
+    const large = aVarianceLine({
+      person_id: "p-large",
+      display_name: "Dev",
+      variance_minutes: -1500,
+      variance_ratio: -0.4,
+    });
+    expect(sortByVariance([small, aVarianceLine(), large]).map((line) => line.display_name)).toEqual([
+      "Dev",
+      "Ana Silva",
+      "Cara",
+    ]);
     expect(varianceTone(small)).toBe("calm");
     expect(varianceTone(aVarianceLine({ variance_ratio: 0.2 }))).toBe("warn");
     expect(varianceTone(large)).toBe("breach");
@@ -73,7 +93,9 @@ describe("CapacityVariancePage", () => {
     expect(ben.querySelector("[data-variance]")).toHaveTextContent("+1.5 h");
     expect(ben.querySelector("[data-percent]")).toHaveTextContent("n/a");
     // Largest variance first.
-    const rows = within(table).getAllByRole("row").filter((row) => row.hasAttribute("data-line"));
+    const rows = within(table)
+      .getAllByRole("row")
+      .filter((row) => row.hasAttribute("data-line"));
     expect(rows[0]).toHaveAttribute("data-line", `${PERSON_ID}:${ACCOUNT_ID}`);
     const totals = screen.getByTestId("variance-totals");
     expect(totals.querySelector("[data-total-planned]")).toHaveTextContent("40 h");

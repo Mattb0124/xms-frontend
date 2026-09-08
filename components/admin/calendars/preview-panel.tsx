@@ -52,7 +52,9 @@ export function PreviewResultView({
       </dd>
       <dt className="text-xms-label">Start</dt>
       <dd className="text-xms-body">
-        {result.starts_in_working_time ? "Inside working hours" : "Outside working hours; the clock starts at the next working minute"}
+        {result.starts_in_working_time
+          ? "Inside working hours"
+          : "Outside working hours; the clock starts at the next working minute"}
       </dd>
     </dl>
   );
@@ -88,7 +90,11 @@ export function PreviewPanel({ calendarId, timeZone, viewerZone }: PreviewPanelP
           try {
             const answer = await preview({ id: calendarId, body: { start: iso, minutes: Number(minutes) } }).unwrap();
             setResult(answer);
-            track({ calendar_id: calendarId, minutes: Number(minutes), starts_in_working_time: answer.starts_in_working_time });
+            track({
+              calendar_id: calendarId,
+              minutes: Number(minutes),
+              starts_in_working_time: answer.starts_in_working_time,
+            });
           } catch (caught) {
             setError(describeCalendarError(calendarError(caught)));
           }

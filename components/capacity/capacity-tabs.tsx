@@ -30,7 +30,9 @@ export function CapacityTabs({ active, search = "" }: CapacityTabsProps) {
             aria-current={selected ? "page" : undefined}
             className={cn(
               "-mb-px flex h-[36px] items-center border-b-2 px-3 text-[13px] hover:no-underline",
-              selected ? "border-xms-accent text-xms-ink font-medium" : "text-xms-label hover:text-xms-ink border-transparent",
+              selected
+                ? "border-xms-accent text-xms-ink font-medium"
+                : "text-xms-label hover:text-xms-ink border-transparent",
             )}
           >
             {tab.label}

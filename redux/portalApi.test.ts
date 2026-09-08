@@ -78,12 +78,18 @@ describe("portalApi", () => {
     expect(list.pending[0].ticket_key).toBe("CS0001001");
     expect(list.answered[0].score).toBe(4);
     const answered = await store
-      .dispatch(portalApi.endpoints.answerPortalSurvey.initiate({ id: survey.id, body: { score: 4, comment: "Quick" } }))
+      .dispatch(
+        portalApi.endpoints.answerPortalSurvey.initiate({ id: survey.id, body: { score: 4, comment: "Quick" } }),
+      )
       .unwrap();
     expect(answered.score).toBe(4);
     await store
       .dispatch(
-        portalApi.endpoints.answerSurveyLink.initiate({ id: survey.id, token: "tok-1234567890abcdefghij", body: { score: 2 } }),
+        portalApi.endpoints.answerSurveyLink.initiate({
+          id: survey.id,
+          token: "tok-1234567890abcdefghij",
+          body: { score: 2 },
+        }),
       )
       .unwrap();
     expect(calls.map((call) => [call.key, call.body])).toEqual([

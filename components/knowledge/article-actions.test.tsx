@@ -27,9 +27,9 @@ describe("article actions", () => {
     expect(describeArticleError({ status: 409, code: "reviewer_must_differ" })).toBe(
       "The reviewer must be someone other than the author of this draft.",
     );
-    expect(describeArticleError({ status: 409, code: "missing_requirements", items: ["problem_statement", "steps"] })).toBe(
-      "Fill in Problem statement and Steps before publishing.",
-    );
+    expect(
+      describeArticleError({ status: 409, code: "missing_requirements", items: ["problem_statement", "steps"] }),
+    ).toBe("Fill in Problem statement and Steps before publishing.");
   });
 
   it("renders the reviewer refusal inline after a 409 on publish", async () => {
@@ -41,7 +41,9 @@ describe("article actions", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Publish" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Publish" }));
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("The reviewer must be someone other than the author of this draft."),
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "The reviewer must be someone other than the author of this draft.",
+      ),
     );
   });
 

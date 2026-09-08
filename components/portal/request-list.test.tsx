@@ -36,9 +36,7 @@ describe("My requests, when the list does not fully load", () => {
     renderPortal(<PortalRequestsPage />);
     expect(await screen.findByRole("link", { name: /CS0001001/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /CS0001002/ })).toBeInTheDocument();
-    expect(
-      screen.getByText(/2 requests could not be loaded and are not shown/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/2 requests could not be loaded and are not shown/)).toBeInTheDocument();
     expect(screen.queryByText(/No open requests/)).not.toBeInTheDocument();
   });
 

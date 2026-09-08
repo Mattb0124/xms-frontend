@@ -25,7 +25,10 @@ export function ImportFromDirectoryButton() {
           const result = await importRoster().unwrap();
           track({ created: result.created });
           push({
-            title: result.created === 0 ? "Roster up to date" : `${result.created} ${result.created === 1 ? "person" : "people"} created`,
+            title:
+              result.created === 0
+                ? "Roster up to date"
+                : `${result.created} ${result.created === 1 ? "person" : "people"} created`,
             detail:
               result.created === 0
                 ? "Every active internal user is already on the roster."

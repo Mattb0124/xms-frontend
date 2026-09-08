@@ -96,9 +96,7 @@ describe("local countdown", () => {
     expect(pauseCaption(clock({ pausedTotalMinutes: 130, paused: true }), "Awaiting client")).toBe(
       "Grey segment is 2h 10m paused, awaiting client.",
     );
-    expect(pauseCaption(clock({ pausedTotalMinutes: 130 }), "Awaiting client")).toBe(
-      "Grey segment is 2h 10m paused.",
-    );
+    expect(pauseCaption(clock({ pausedTotalMinutes: 130 }), "Awaiting client")).toBe("Grey segment is 2h 10m paused.");
     expect(pauseCaption(clock({ pausedTotalMinutes: 130, paused: true }))).toBe("Grey segment is 2h 10m paused.");
   });
 

@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UploadRefusal, describeRefusal, formatBytes, uploadAttachment, type UploadProgress } from "@/lib/attachments/upload";
+import {
+  UploadRefusal,
+  describeRefusal,
+  formatBytes,
+  uploadAttachment,
+  type UploadProgress,
+} from "@/lib/attachments/upload";
 import { scanChip } from "@/lib/attachments/scan";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -53,7 +59,12 @@ describe("uploadAttachment", () => {
       if (call.url.endsWith("/presign")) {
         return jsonResponse({
           attachment: attachment("pending"),
-          upload: { url: "http://api.test/v1/storage/upload?key=k&signature=s", method: "PUT", fields: {}, expiresAt: "x" },
+          upload: {
+            url: "http://api.test/v1/storage/upload?key=k&signature=s",
+            method: "PUT",
+            fields: {},
+            expiresAt: "x",
+          },
         });
       }
       if (call.url.includes("/storage/upload")) return jsonResponse({ ok: true, size: 5 });
@@ -76,7 +87,11 @@ describe("uploadAttachment", () => {
     expect(calls[1]).toMatchObject({ method: "PUT", url: "http://api.test/v1/storage/upload?key=k&signature=s" });
     expect(calls[1].headers).toMatchObject({ "content-type": "text/plain" });
     expect(calls[1].body).toBe(file);
-    expect(calls[2]).toMatchObject({ method: "POST", url: "http://localhost:3001/v1/tickets/CS0001001/attachments/att-1/confirm", body: { visibility: "public" } });
+    expect(calls[2]).toMatchObject({
+      method: "POST",
+      url: "http://localhost:3001/v1/tickets/CS0001001/attachments/att-1/confirm",
+      body: { visibility: "public" },
+    });
     expect(stages.map((stage) => stage.stage)).toEqual(["presigning", "uploading", "uploading", "scanning", "clean"]);
   });
 
@@ -92,7 +107,10 @@ describe("uploadAttachment", () => {
       if (call.url.endsWith("/confirm")) return jsonResponse(attachment("quarantined"));
       return jsonResponse({ code: "not_found" }, 404);
     });
-    const result = await uploadAttachment("CS0001001", new File(["x"], "eicar.txt", { type: "text/plain" }), { fetchImpl: impl, portal: true });
+    const result = await uploadAttachment("CS0001001", new File(["x"], "eicar.txt", { type: "text/plain" }), {
+      fetchImpl: impl,
+      portal: true,
+    });
     expect(result.scan_state).toBe("quarantined");
     expect(calls[0].url).toBe("http://localhost:3001/v1/portal/tickets/CS0001001/attachments/presign");
     const form = calls[1].body as FormData;
@@ -105,9 +123,13 @@ describe("uploadAttachment", () => {
 
   it("turns a too_large refusal into a typed error with the limit and never uploads", async () => {
     const { calls, impl } = fetchStub(() => jsonResponse({ code: "too_large", max_bytes: 26214400 }, 400));
-    await expect(uploadAttachment("CS0001001", new File(["x"], "big.pdf", { type: "application/pdf" }), { fetchImpl: impl })).rejects.toMatchObject({ code: "too_large" });
+    await expect(
+      uploadAttachment("CS0001001", new File(["x"], "big.pdf", { type: "application/pdf" }), { fetchImpl: impl }),
+    ).rejects.toMatchObject({ code: "too_large" });
     expect(calls).toHaveLength(1);
-    expect(describeRefusal(new UploadRefusal("too_large", { max_bytes: 26214400 }))).toBe("The file is larger than the 25.0 MB limit.");
+    expect(describeRefusal(new UploadRefusal("too_large", { max_bytes: 26214400 }))).toBe(
+      "The file is larger than the 25.0 MB limit.",
+    );
     expect(describeRefusal(new UploadRefusal("unsupported_type"))).toBe("That file type is not accepted.");
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(4096)).toBe("4 KB");

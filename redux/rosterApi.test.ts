@@ -152,7 +152,10 @@ describe("rosterApi", () => {
     await store.dispatch(rosterApi.endpoints.importRoster.initiate()).unwrap();
     await store
       .dispatch(
-        rosterApi.endpoints.patchPerson.initiate({ id: PERSON_ID, body: { version: 2, fte_percent: 60, country: "PT" } }),
+        rosterApi.endpoints.patchPerson.initiate({
+          id: PERSON_ID,
+          body: { version: 2, fte_percent: 60, country: "PT" },
+        }),
       )
       .unwrap();
     await store
@@ -230,7 +233,8 @@ describe("rosterApi", () => {
         lists += 1;
         return json([aPerson()]);
       },
-      "POST /v1/roster/import": () => json({ created: 1, people: [{ id: "p2", email: "b@x.com", role: "consultant" }] }),
+      "POST /v1/roster/import": () =>
+        json({ created: 1, people: [{ id: "p2", email: "b@x.com", role: "consultant" }] }),
       [`PUT /v1/roster/people/${PERSON_ID}/skills`]: () => json([aPersonSkill()]),
     });
     const store = makeStore();
@@ -239,7 +243,9 @@ describe("rosterApi", () => {
     await store.dispatch(rosterApi.endpoints.importRoster.initiate()).unwrap();
     await vi.waitFor(() => expect(lists).toBe(2));
     await store
-      .dispatch(rosterApi.endpoints.setPersonSkills.initiate({ id: PERSON_ID, skills: [{ skill_id: SKILL_ID, level: 1 }] }))
+      .dispatch(
+        rosterApi.endpoints.setPersonSkills.initiate({ id: PERSON_ID, skills: [{ skill_id: SKILL_ID, level: 1 }] }),
+      )
       .unwrap();
     await vi.waitFor(() => expect(lists).toBe(3));
     subscription.unsubscribe();

@@ -22,7 +22,9 @@ describe("PTO rules and bodies", () => {
   });
 
   it("sends the fraction only for half days and the note only when given; a missing end is the start", () => {
-    expect(ptoBody({ starts_on: "2026-09-14", ends_on: "2026-09-16", kind: "vacation", length: "full", note: " " })).toEqual({
+    expect(
+      ptoBody({ starts_on: "2026-09-14", ends_on: "2026-09-16", kind: "vacation", length: "full", note: " " }),
+    ).toEqual({
       starts_on: "2026-09-14",
       ends_on: "2026-09-16",
       kind: "vacation",
@@ -45,7 +47,11 @@ describe("PtoTab", () => {
   it("lets the person themselves list and add their own time off without capacity:manage", async () => {
     const calls = stubFetch({
       "GET /v1/admin/me": me("u-ana", ["time:log", "capacity:view"]),
-      [PTO]: () => json([aPto(), aPto({ id: "pto-2", starts_on: "2026-09-21", ends_on: "2026-09-21", kind: "sick", fraction: "0.50" })]),
+      [PTO]: () =>
+        json([
+          aPto(),
+          aPto({ id: "pto-2", starts_on: "2026-09-21", ends_on: "2026-09-21", kind: "sick", fraction: "0.50" }),
+        ]),
       [`POST /v1/roster/people/${PERSON_ID}/pto`]: () => json(aPto({ id: "pto-3" }), 201),
     });
     renderDesk(<PtoTab personId={PERSON_ID} userId="u-ana" canManage={false} />);
@@ -109,6 +115,8 @@ describe("PtoTab", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(calls.some((call) => call.key.startsWith("DELETE"))).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Confirm remove" }));
-    await waitFor(() => expect(calls.some((call) => call.key === `DELETE /v1/roster/people/${PERSON_ID}/pto/${PTO_ID}`)).toBe(true));
+    await waitFor(() =>
+      expect(calls.some((call) => call.key === `DELETE /v1/roster/people/${PERSON_ID}/pto/${PTO_ID}`)).toBe(true),
+    );
   });
 });

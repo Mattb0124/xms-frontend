@@ -20,10 +20,24 @@ const directories = {
   "GET /v1/admin/users": () =>
     json([
       { id: INTERNAL_USER_ID, email: "cara@example.test", first_name: "Cara", last_name: "Lee", status: "active" },
-      { id: "99999999-9999-4999-8999-999999999999", email: "old@example.test", first_name: "Old", last_name: "Hand", status: "deactivated" },
+      {
+        id: "99999999-9999-4999-8999-999999999999",
+        email: "old@example.test",
+        first_name: "Old",
+        last_name: "Hand",
+        status: "deactivated",
+      },
     ]),
   "GET /v1/admin/accounts/acct-1/portal-users": () =>
-    json([{ id: "88888888-8888-4888-8888-888888888888", email: "pat@client.test", first_name: "Pat", last_name: "Client", status: "active" }]),
+    json([
+      {
+        id: "88888888-8888-4888-8888-888888888888",
+        email: "pat@client.test",
+        first_name: "Pat",
+        last_name: "Client",
+        status: "active",
+      },
+    ]),
 };
 
 describe("ReportSchedulesTab", () => {
@@ -39,8 +53,36 @@ describe("ReportSchedulesTab", () => {
   it("lists the schedules with cadence, day, time, next run and enabled, and the runs with their delivery and pack", async () => {
     const calls = stubFetch({
       "GET /v1/admin/me": me(["reports:manage"]),
-      [SCHEDULES]: () => json([aSchedule(), aSchedule({ id: "s-2", name: "Quarter review", cadence: "quarterly", run_day: 3, run_time: "09:15:00", period_kind: "previous_quarter", enabled: false, next_run_at: null, distribution: [] })]),
-      [RUNS]: () => json([aRun(), aRun({ id: "run-9", schedule_id: null, status: "failed", error: "template missing", pack_id: null, delivery: null, requested_by: "u1", period_start: "2026-08-24", period_end: "2026-08-30" })]),
+      [SCHEDULES]: () =>
+        json([
+          aSchedule(),
+          aSchedule({
+            id: "s-2",
+            name: "Quarter review",
+            cadence: "quarterly",
+            run_day: 3,
+            run_time: "09:15:00",
+            period_kind: "previous_quarter",
+            enabled: false,
+            next_run_at: null,
+            distribution: [],
+          }),
+        ]),
+      [RUNS]: () =>
+        json([
+          aRun(),
+          aRun({
+            id: "run-9",
+            schedule_id: null,
+            status: "failed",
+            error: "template missing",
+            pack_id: null,
+            delivery: null,
+            requested_by: "u1",
+            period_start: "2026-08-24",
+            period_end: "2026-08-30",
+          }),
+        ]),
     });
     renderDesk(<ReportSchedulesTab accountId="acct-1" />);
     const table = await screen.findByRole("table", { name: "Report schedules" });
@@ -214,7 +256,10 @@ describe("ReportSchedulesTab", () => {
     fireEvent.change(within(form).getByLabelText("Period end"), { target: { value: "2026-08-30" } });
     fireEvent.click(within(form).getByRole("button", { name: "Run" }));
     const result = await screen.findByTestId("run-now-result");
-    expect(calls.filter((call) => call.key === RUN_NOW)[1].body).toEqual({ period_start: "2026-08-24", period_end: "2026-08-30" });
+    expect(calls.filter((call) => call.key === RUN_NOW)[1].body).toEqual({
+      period_start: "2026-08-24",
+      period_end: "2026-08-30",
+    });
     expect(result).toHaveTextContent("2026-08-24 to 2026-08-30");
     expect(within(result).getByRole("link", { name: "Open pack" })).toHaveAttribute("href", "/reports/packs/pack-11");
     const outcomes = within(within(result).getByRole("list", { name: "Delivery outcomes" })).getAllByRole("listitem");

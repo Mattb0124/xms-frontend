@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { describeSurveyError, expiryLabel, isSurveyLink, scoreLabel, surveyError, surveyQuestion } from "@/lib/portal/csat";
+import {
+  describeSurveyError,
+  expiryLabel,
+  isSurveyLink,
+  scoreLabel,
+  surveyError,
+  surveyQuestion,
+} from "@/lib/portal/csat";
 
 describe("csat vocabulary", () => {
   it("labels the five scores from very dissatisfied to very satisfied", () => {
@@ -35,9 +42,9 @@ describe("csat vocabulary", () => {
     expect(describeSurveyError(surveyError({ status: 409, data: { code: "survey_closed", status: "expired" } }))).toBe(
       "This survey has expired and can no longer be answered.",
     );
-    expect(describeSurveyError(surveyError({ status: 409, data: { code: "survey_closed", status: "suppressed" } }))).toBe(
-      "This survey is closed and can no longer be answered.",
-    );
+    expect(
+      describeSurveyError(surveyError({ status: 409, data: { code: "survey_closed", status: "suppressed" } })),
+    ).toBe("This survey is closed and can no longer be answered.");
     expect(describeSurveyError(surveyError({ status: 404, data: { code: "not_found", entity: "survey" } }))).toMatch(
       /link is not valid/,
     );

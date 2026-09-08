@@ -22,13 +22,11 @@ describe("portal surveys page", () => {
     expect(card).toHaveTextContent("Open until 2026-09-15");
     expect(within(card).getByText("How satisfied are you with the handling of CS0001001?")).toBeInTheDocument();
     const group = within(card).getByRole("group", { name: "Score" });
-    expect(within(group).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
-      "1, Very dissatisfied",
-      "2, Dissatisfied",
-      "3, Neutral",
-      "4, Satisfied",
-      "5, Very satisfied",
-    ]);
+    expect(
+      within(group)
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-label")),
+    ).toEqual(["1, Very dissatisfied", "2, Dissatisfied", "3, Neutral", "4, Satisfied", "5, Very satisfied"]);
     expect(within(card).getByRole("button", { name: "Send my answer" })).toBeDisabled();
     const completed = screen.getByRole("list", { name: "Completed surveys" });
     const row = within(completed).getByRole("listitem");
@@ -42,7 +40,11 @@ describe("portal surveys page", () => {
     let answered = false;
     const calls = stubFetch({
       "GET /v1/portal/surveys": () =>
-        json(answered ? { pending: [], answered: [aSurvey({ status: "answered", score: 4 })] } : { pending: [survey], answered: [] }),
+        json(
+          answered
+            ? { pending: [], answered: [aSurvey({ status: "answered", score: 4 })] }
+            : { pending: [survey], answered: [] },
+        ),
       [ANSWER]: () => {
         answered = true;
         return json({ survey_id: survey.id, score: 4, answered_at: "2026-09-07T10:00:00Z" }, 201);
@@ -85,7 +87,9 @@ describe("portal surveys page", () => {
     const card = await screen.findByRole("region", { name: "CS0001001" });
     fireEvent.click(within(card).getByRole("button", { name: "5, Very satisfied" }));
     fireEvent.click(within(card).getByRole("button", { name: "Send my answer" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("This survey has expired and can no longer be answered.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This survey has expired and can no longer be answered.",
+    );
   });
 
   it("shows the empty state when nothing is pending", async () => {
@@ -104,6 +108,8 @@ describe("portal surveys page", () => {
     expect(cards[0]).toHaveAttribute("aria-label", "CS0001001");
     first.unmount();
     renderPortal(<SurveysPage focusId={anAnsweredSurvey().id} />);
-    expect(await screen.findByText("You have already answered the survey for CS0000990. Thank you.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("You have already answered the survey for CS0000990. Thank you."),
+    ).toBeInTheDocument();
   });
 });

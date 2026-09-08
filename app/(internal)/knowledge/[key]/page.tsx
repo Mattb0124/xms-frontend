@@ -80,7 +80,13 @@ function PropertiesRail({
           },
           { key: "owner", label: "Owner", value: article.owner_name, readOnly: true },
           { key: "reviewer", label: "Reviewer", value: article.reviewer_name ?? "", readOnly: true },
-          { key: "verified", label: "Last verified", value: formatDate(article.last_verified_at), readOnly: true, mono: true },
+          {
+            key: "verified",
+            label: "Last verified",
+            value: formatDate(article.last_verified_at),
+            readOnly: true,
+            mono: true,
+          },
         ]}
         onCommit={async (key, value) => {
           if (key === "categories") {
@@ -101,7 +107,9 @@ function PropertiesRail({
       {article.generalized_from_id ? (
         <p className="text-xms-label mt-1 text-[12px]">Generalized from an account article.</p>
       ) : null}
-      {article.retired_reason ? <p className="text-xms-label mt-1 text-[12px]">Retired: {article.retired_reason}</p> : null}
+      {article.retired_reason ? (
+        <p className="text-xms-label mt-1 text-[12px]">Retired: {article.retired_reason}</p>
+      ) : null}
     </RailCard>
   );
 }

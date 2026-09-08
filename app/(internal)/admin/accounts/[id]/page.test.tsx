@@ -133,7 +133,9 @@ describe("AdminAccountRecordPage", () => {
       "GET /v1/capacity/skills-matrix": () =>
         json(aSkillsMatrixAccount({ accounts: [{ ...aSkillsMatrixAccount().accounts[0], account_id: ACCOUNT_ID }] })),
       "GET /v1/roster/skills": () =>
-        json([{ id: "s-1", kind: "technology", code: "onestream", name: "OneStream", account_id: null, is_active: true }]),
+        json([
+          { id: "s-1", kind: "technology", code: "onestream", name: "OneStream", account_id: null, is_active: true },
+        ]),
     });
     renderDesk(<AdminAccountRecordPage />);
     await screen.findByText("Single point of failure: OneStream");

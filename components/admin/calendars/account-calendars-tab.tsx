@@ -22,7 +22,10 @@ export function AccountCalendarsTab({ accountId }: { accountId: string }) {
       caption="SLA clocks start on the account default; contracts may name a regional calendar"
       actions={
         canWrite ? (
-          <Link href={`/admin/accounts/${accountId}/calendars/new`} className={`${PRIMARY_BUTTON} inline-flex items-center hover:no-underline`}>
+          <Link
+            href={`/admin/accounts/${accountId}/calendars/new`}
+            className={`${PRIMARY_BUTTON} inline-flex items-center hover:no-underline`}
+          >
             New calendar
           </Link>
         ) : null
@@ -39,7 +42,11 @@ export function AccountCalendarsTab({ accountId }: { accountId: string }) {
       ) : null}
       <ul className="divide-xms-line divide-y" aria-label="Calendars">
         {[...active, ...retired].map((calendar) => (
-          <li key={calendar.id} className="flex flex-wrap items-center gap-3 py-2 text-[13px]" data-calendar={calendar.id}>
+          <li
+            key={calendar.id}
+            className="flex flex-wrap items-center gap-3 py-2 text-[13px]"
+            data-calendar={calendar.id}
+          >
             <Link href={`/admin/calendars/${calendar.id}`} className="text-xms-accent font-medium">
               {calendar.name}
             </Link>

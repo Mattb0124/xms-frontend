@@ -32,7 +32,10 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
     try {
       await answer({ id: survey.id, body: comment ? { score, comment } : { score } }).unwrap();
       track({ survey_id: survey.id, score, has_comment: Boolean(comment) });
-      setNotice({ tone: "info", text: `Thank you. Your answer for ${survey.ticket_key ?? "the request"} has been recorded.` });
+      setNotice({
+        tone: "info",
+        text: `Thank you. Your answer for ${survey.ticket_key ?? "the request"} has been recorded.`,
+      });
     } catch (caught) {
       setNotice({ tone: "error", text: describeSurveyError(surveyError(caught)) });
     }
@@ -51,7 +54,9 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
             : "That survey is no longer open. It may have expired, or it may not be yours."}
         </PortalNotice>
       ) : null}
-      {isError ? <PortalNotice tone="error">Your surveys could not be loaded. Try again in a moment.</PortalNotice> : null}
+      {isError ? (
+        <PortalNotice tone="error">Your surveys could not be loaded. Try again in a moment.</PortalNotice>
+      ) : null}
       <section aria-label="Pending surveys" className="flex flex-col gap-3">
         <h2 className="text-xms-ink text-[16px] font-semibold">Pending</h2>
         {isLoading && !data ? <Skeleton lines={4} /> : null}
@@ -88,7 +93,11 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
           {answered.length > 0 ? (
             <ul className="divide-xms-line divide-y" aria-label="Completed surveys">
               {answered.map((survey) => (
-                <li key={survey.id} className="flex flex-wrap items-center gap-3 py-2 text-[14px]" data-survey={survey.id}>
+                <li
+                  key={survey.id}
+                  className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
+                  data-survey={survey.id}
+                >
                   {survey.ticket_key ? (
                     <Link
                       href={`/portal/requests/${survey.ticket_key}`}

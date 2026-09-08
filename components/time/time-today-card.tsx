@@ -35,14 +35,22 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
   return (
     <Link
       href="/time"
-      className={cn("xms-card hover:border-xms-accent-border flex items-center gap-4 p-4 hover:no-underline", className)}
+      className={cn(
+        "xms-card hover:border-xms-accent-border flex items-center gap-4 p-4 hover:no-underline",
+        className,
+      )}
       data-testid="time-today"
       data-tone={day ? tone : undefined}
       aria-busy={isLoading || undefined}
     >
       <div>
         <p className="xms-caption">Time today</p>
-        <p className={cn("xms-mono mt-1 text-[24px] leading-none font-semibold", day ? TONE_VALUE[tone] : "text-xms-ink")}>
+        <p
+          className={cn(
+            "xms-mono mt-1 text-[24px] leading-none font-semibold",
+            day ? TONE_VALUE[tone] : "text-xms-ink",
+          )}
+        >
           {day ? formatMinutes(day.logged_minutes) : "…"}
         </p>
       </div>

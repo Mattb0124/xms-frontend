@@ -100,7 +100,12 @@ export function AccountCoverageCards({ view }: { view: SkillsMatrixAccount }) {
   return (
     <div className="flex flex-col gap-4" data-testid="account-coverage">
       {view.accounts.map((account) => (
-        <AccountCoverageCard key={account.account_id} account={account} requiredLevel={view.required_level} skillName={skillName} />
+        <AccountCoverageCard
+          key={account.account_id}
+          account={account}
+          requiredLevel={view.required_level}
+          skillName={skillName}
+        />
       ))}
     </div>
   );

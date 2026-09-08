@@ -38,7 +38,9 @@ describe("capacity vocab", () => {
     expect(DEMAND_SOURCE.project.tone).toBe("complete");
     expect(demandSubject(aDemandRow())).toBe("Acme Corp");
     expect(demandSubject(aProjectDemandRow())).toBe("BRK");
-    expect(demandSubject({ account_key: null, prospect_name: null, account_id: "55555555-5555-4555-8555-555555555555" })).toBe("55555555");
+    expect(
+      demandSubject({ account_key: null, prospect_name: null, account_id: "55555555-5555-4555-8555-555555555555" }),
+    ).toBe("55555555");
     expect(addMonths("2026-09", 3)).toBe("2026-12");
     expect(addMonths("2026-11", 3)).toBe("2027-02");
     expect(addMonths("2026-01", -1)).toBe("2025-12");
@@ -88,7 +90,9 @@ describe("capacity vocab", () => {
   it("words the picker hint from the check: room left, over by, no calendar", () => {
     expect(remainingLabel(aCapacityCheck())).toBe("76.8 h left");
     expect(
-      remainingLabel(aCapacityCheck({ status: "over", remaining_minutes: 0, allocated_minutes: 8400, available_minutes: 7603 })),
+      remainingLabel(
+        aCapacityCheck({ status: "over", remaining_minutes: 0, allocated_minutes: 8400, available_minutes: 7603 }),
+      ),
     ).toBe("Over by 13.3 h");
     expect(remainingLabel(aCapacityCheck({ status: "no_calendar", available_minutes: 0, remaining_minutes: 0 }))).toBe(
       "No calendar",
@@ -151,7 +155,13 @@ describe("demand errors", () => {
     );
     const invalid = capacityError({
       status: 400,
-      data: { code: "invalid_import", problems: [{ line: 2, problem: "month must be YYYY-MM" }, { line: 3, problem: "x" }] },
+      data: {
+        code: "invalid_import",
+        problems: [
+          { line: 2, problem: "month must be YYYY-MM" },
+          { line: 3, problem: "x" },
+        ],
+      },
     });
     expect(invalid.problems).toEqual([
       { line: 2, problem: "month must be YYYY-MM" },

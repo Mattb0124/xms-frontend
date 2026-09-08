@@ -31,8 +31,9 @@ function renderAll() {
 
 describe("navigableHref", () => {
   it("gives a concrete screen its own path", () => {
-    expect(navigableHref({ path: "/tickets", screen: "queue", label: "Queue", section: "Tickets", permission: null }))
-      .toBe("/tickets");
+    expect(
+      navigableHref({ path: "/tickets", screen: "queue", label: "Queue", section: "Tickets", permission: null }),
+    ).toBe("/tickets");
   });
 
   it("sends a record screen to its list parent when the viewer may see it", () => {

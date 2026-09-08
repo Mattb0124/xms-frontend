@@ -103,7 +103,12 @@ describe("CalendarEditor", () => {
     expect(
       calendarPatch(
         calendar,
-        { name: calendar.name, time_zone: calendar.time_zone, holiday_calendar_id: HOLIDAY_LIBRARY_ID, make_default: true },
+        {
+          name: calendar.name,
+          time_zone: calendar.time_zone,
+          holiday_calendar_id: HOLIDAY_LIBRARY_ID,
+          make_default: true,
+        },
         calendar.hours,
       ),
     ).toEqual({ version: 1 });

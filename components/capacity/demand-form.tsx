@@ -138,7 +138,9 @@ export function AddDemandForm({ accounts, defaultMonth }: AddDemandFormProps) {
               className={cn(CONTROL, "w-[220px]")}
               value={draft.accountId}
               disabled={!accounts}
-              onChange={(event) => set({ accountId: event.target.value, prospect: event.target.value ? "" : draft.prospect })}
+              onChange={(event) =>
+                set({ accountId: event.target.value, prospect: event.target.value ? "" : draft.prospect })
+              }
             >
               <option value="">{accounts ? "No account (a prospect)" : "Accounts need tickets:view"}</option>
               {(accounts ?? []).map((account) => (

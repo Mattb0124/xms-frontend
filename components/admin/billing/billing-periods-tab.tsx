@@ -103,16 +103,23 @@ function SummaryCell({ period }: { period: BillingPeriod }) {
         <span className="xms-mono" data-summary-hours>
           {formatHours(summary.minutes)}
         </span>
-        , <span className="xms-mono" data-summary-amount>{formatMoney(summary.amount)}</span>
+        ,{" "}
+        <span className="xms-mono" data-summary-amount>
+          {formatMoney(summary.amount)}
+        </span>
         <span className="text-xms-label text-[12px]">
           {" "}
           from {summary.entries} entr{summary.entries === 1 ? "y" : "ies"}
-          {summary.adjustments > 0 ? ` and ${summary.adjustments} adjustment${summary.adjustments === 1 ? "" : "s"}` : ""}
+          {summary.adjustments > 0
+            ? ` and ${summary.adjustments} adjustment${summary.adjustments === 1 ? "" : "s"}`
+            : ""}
         </span>
       </span>
       {classes.length > 0 ? (
         <span className="text-xms-label text-[12px]">
-          {classes.map(([key, value]) => `${key} ${formatHours(value.minutes)} (${formatMoney(value.amount)})`).join(", ")}
+          {classes
+            .map(([key, value]) => `${key} ${formatHours(value.minutes)} (${formatMoney(value.amount)})`)
+            .join(", ")}
         </span>
       ) : null}
       {summary.unrated_minutes > 0 ? (
@@ -161,7 +168,11 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
     try {
       const after = await transition({ accountId, periodId: period.id, action, version: period.version }).unwrap();
       trackMove({ account_id: accountId, period_id: period.id, action, to: after.status });
-      push({ title: `Period ${BILLING_STATUS[after.status].label.toLowerCase()}`, detail: periodLabel(after), tone: "success" });
+      push({
+        title: `Period ${BILLING_STATUS[after.status].label.toLowerCase()}`,
+        detail: periodLabel(after),
+        tone: "success",
+      });
     } catch (caught) {
       const error = billingError(caught);
       push({
@@ -181,7 +192,10 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
       });
       trackExport({ kind: "finance", format, rows: file.rowCount ?? -1, period_id: period.id });
       push({
-        title: file.rowCount === null ? "Finance file ready" : `Exported ${file.rowCount} row${file.rowCount === 1 ? "" : "s"}`,
+        title:
+          file.rowCount === null
+            ? "Finance file ready"
+            : `Exported ${file.rowCount} row${file.rowCount === 1 ? "" : "s"}`,
         detail: file.fileName,
         tone: "success",
       });
@@ -285,7 +299,10 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
                     <td className={CELL}>
                       <SummaryCell period={period} />
                     </td>
-                    <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")} title={period.checksum ?? undefined}>
+                    <td
+                      className={cn(CELL, "xms-mono text-xms-label text-[12px]")}
+                      title={period.checksum ?? undefined}
+                    >
                       {checksumPrefix(period.checksum)}
                     </td>
                     <td className={cn(CELL, "text-right")}>

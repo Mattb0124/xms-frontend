@@ -33,7 +33,7 @@ authentication. Security review 2026-09-08, findings 25 and 26.
 ## Commands
 
 - `pnpm dev`, `pnpm build`, `pnpm start`
-- `pnpm check` runs lint, type-check, the config check and unit tests (the pre-PR gate)
+- `pnpm check` runs lint, type-check, the Prettier check, the config check and unit tests (the pre-PR gate). `pnpm format` writes what `format:check` reads; a gate that skipped formatting was a gate that lied about being green.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 

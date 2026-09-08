@@ -132,7 +132,15 @@ export function addMonths(month: string, count: number): string {
 }
 
 /** The spreadsheet template's header, in any order; source, month and hours are required. */
-export const DEMAND_TEMPLATE_COLUMNS = ["source", "account", "prospect", "month", "hours", "probability", "role"] as const;
+export const DEMAND_TEMPLATE_COLUMNS = [
+  "source",
+  "account",
+  "prospect",
+  "month",
+  "hours",
+  "probability",
+  "role",
+] as const;
 
 export const DEMAND_TEMPLATE_EXAMPLE = [
   DEMAND_TEMPLATE_COLUMNS.join(","),
@@ -158,7 +166,9 @@ export function formatVariancePercent(ratio: number | null): string {
  * The picker's hint (5.9): "76.8 h left", "Over by 13.3 h" (allocated past
  * available, since the server clamps remaining at 0), "No calendar".
  */
-export function remainingLabel(check: Pick<CapacityCheck, "status" | "remaining_minutes" | "allocated_minutes" | "available_minutes">): string {
+export function remainingLabel(
+  check: Pick<CapacityCheck, "status" | "remaining_minutes" | "allocated_minutes" | "available_minutes">,
+): string {
   if (check.status === "no_calendar") return "No calendar";
   if (check.status === "over") return `Over by ${formatHours(check.allocated_minutes - check.available_minutes)}`;
   return `${formatHours(check.remaining_minutes)} left`;

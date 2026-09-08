@@ -119,7 +119,15 @@ describe("the / shortcut", () => {
   const desk = () => {
     stubFetch({
       "GET /v1/admin/me": () =>
-        json({ principal: { kind: "internal", userId: "u1", displayName: "Ana Silva", accountIds: [], permissions: ["tickets:view"] } }),
+        json({
+          principal: {
+            kind: "internal",
+            userId: "u1",
+            displayName: "Ana Silva",
+            accountIds: [],
+            permissions: ["tickets:view"],
+          },
+        }),
       "GET /v1/notifications/unread-count": () => json({ count: 0 }),
     });
     return renderDesk(

@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FieldRow, INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON, fullName } from "@/components/admin/primitives";
+import {
+  FieldRow,
+  INPUT,
+  InlineError,
+  PRIMARY_BUTTON,
+  SECONDARY_BUTTON,
+  fullName,
+} from "@/components/admin/primitives";
 import { RunStatusPill } from "@/components/reporting/reports-card";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
@@ -63,7 +70,11 @@ export function DeliveryList({ delivery }: { delivery: DeliveryOutcome[] }) {
   return (
     <ul className="divide-xms-line divide-y text-[12px]" aria-label="Delivery outcomes">
       {delivery.map((row, index) => (
-        <li key={`${row.kind}-${row.to}-${index}`} className="flex flex-wrap items-center gap-3 py-1.5" data-outcome={row.outcome}>
+        <li
+          key={`${row.kind}-${row.to}-${index}`}
+          className="flex flex-wrap items-center gap-3 py-1.5"
+          data-outcome={row.outcome}
+        >
           <span className="text-xms-label w-[90px]">{recipientKindLabel(row.kind)}</span>
           <span className="xms-mono text-xms-body">{row.to || "(no address)"}</span>
           <SignalPill tone={outcomeTone(row.outcome)} label={OUTCOME_LABELS[row.outcome]} />
@@ -150,7 +161,12 @@ function RecipientRow({
           ))}
         </select>
       )}
-      <button type="button" className={cn(SECONDARY_BUTTON, SMALL)} onClick={onRemove} aria-label={`Remove recipient ${n}`}>
+      <button
+        type="button"
+        className={cn(SECONDARY_BUTTON, SMALL)}
+        onClick={onRemove}
+        aria-label={`Remove recipient ${n}`}
+      >
         Remove
       </button>
     </div>
@@ -246,7 +262,9 @@ function ScheduleForm({
             id="sched-period"
             className={INPUT}
             value={draft.period_kind}
-            onChange={(event) => onChange({ ...draft, period_kind: event.target.value as ScheduleDraft["period_kind"] })}
+            onChange={(event) =>
+              onChange({ ...draft, period_kind: event.target.value as ScheduleDraft["period_kind"] })
+            }
           >
             {PERIOD_KINDS.map((kind) => (
               <option key={kind.value} value={kind.value}>
@@ -307,7 +325,15 @@ function ScheduleForm({
 }
 
 /** An off-cycle run: the schedule's own period, or the one given; the outcome per recipient afterwards. */
-function RunNowPanel({ schedule, accountId, onClose }: { schedule: ReportSchedule; accountId: string; onClose: () => void }) {
+function RunNowPanel({
+  schedule,
+  accountId,
+  onClose,
+}: {
+  schedule: ReportSchedule;
+  accountId: string;
+  onClose: () => void;
+}) {
   const [runNow, { isLoading }] = useRunScheduleNowMutation();
   const { push } = useToast();
   const track = useTrack("report.schedule.run");
@@ -584,7 +610,9 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
             <Skeleton lines={3} />
           </div>
         ) : null}
-        {schedules.isError ? <p className="text-xms-muted p-4 text-[13px]">The schedules could not be loaded.</p> : null}
+        {schedules.isError ? (
+          <p className="text-xms-muted p-4 text-[13px]">The schedules could not be loaded.</p>
+        ) : null}
         {schedules.data ? (
           <table className="w-full border-collapse" aria-label="Report schedules">
             <thead className="bg-xms-card">
@@ -613,7 +641,10 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
                     )}
                   </td>
                   <td className={CELL}>
-                    <SignalPill tone={schedule.enabled ? "ready" : "blocked"} label={schedule.enabled ? "Enabled" : "Disabled"} />
+                    <SignalPill
+                      tone={schedule.enabled ? "ready" : "blocked"}
+                      label={schedule.enabled ? "Enabled" : "Disabled"}
+                    />
                   </td>
                   <td className={cn(CELL, "text-right")}>
                     <div className="flex flex-wrap justify-end gap-2">
@@ -623,7 +654,11 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
                         aria-label={`Edit ${schedule.name}`}
                         onClick={() => {
                           setFormError(null);
-                          setEditing({ id: schedule.id, version: schedule.version, draft: draftFromSchedule(schedule) });
+                          setEditing({
+                            id: schedule.id,
+                            version: schedule.version,
+                            draft: draftFromSchedule(schedule),
+                          });
                         }}
                       >
                         Edit
@@ -663,7 +698,9 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
           error={formError}
         />
       ) : null}
-      {running ? <RunNowPanel key={running.id} schedule={running} accountId={accountId} onClose={() => setRunNowFor(null)} /> : null}
+      {running ? (
+        <RunNowPanel key={running.id} schedule={running} accountId={accountId} onClose={() => setRunNowFor(null)} />
+      ) : null}
       <RunsHistory accountId={accountId} schedules={schedules.data ?? []} />
     </div>
   );

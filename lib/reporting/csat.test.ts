@@ -35,9 +35,9 @@ describe("csat view helpers", () => {
       [2, "Dissatisfied", 1, 25],
       [1, "Very dissatisfied", 0, 0],
     ]);
-    expect(distributionRows({ distribution: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 } }).every((row) => row.percent === 0)).toBe(
-      true,
-    );
+    expect(
+      distributionRows({ distribution: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 } }).every((row) => row.percent === 0),
+    ).toBe(true);
     expect([1, 2, 3, 4, 5].map(scoreTone)).toEqual(["overdue", "overdue", "needs-input", "complete", "complete"]);
   });
 });

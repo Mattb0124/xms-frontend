@@ -130,7 +130,9 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
                   aria-label={`Holiday ${index + 1} date`}
                   className={`${INPUT} xms-mono w-[170px]`}
                   value={row.date}
-                  onChange={(event) => setRows(rows.map((r, i) => (i === index ? { ...r, date: event.target.value } : r)))}
+                  onChange={(event) =>
+                    setRows(rows.map((r, i) => (i === index ? { ...r, date: event.target.value } : r)))
+                  }
                 />
                 <input
                   aria-label={`Holiday ${index + 1} label`}
@@ -138,20 +140,28 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
                   maxLength={120}
                   className={INPUT}
                   value={row.label}
-                  onChange={(event) => setRows(rows.map((r, i) => (i === index ? { ...r, label: event.target.value } : r)))}
+                  onChange={(event) =>
+                    setRows(rows.map((r, i) => (i === index ? { ...r, label: event.target.value } : r)))
+                  }
                 />
                 <button
                   type="button"
                   aria-label={`Remove holiday ${index + 1}`}
                   className="text-xms-muted hover:text-xms-ink text-[14px] leading-none"
-                  onClick={() => setRows(rows.length === 1 ? [{ date: "", label: "" }] : rows.filter((_, i) => i !== index))}
+                  onClick={() =>
+                    setRows(rows.length === 1 ? [{ date: "", label: "" }] : rows.filter((_, i) => i !== index))
+                  }
                 >
                   ×
                 </button>
               </div>
             ))}
             <div>
-              <button type="button" className={SECONDARY_BUTTON} onClick={() => setRows([...rows, { date: "", label: "" }])}>
+              <button
+                type="button"
+                className={SECONDARY_BUTTON}
+                onClick={() => setRows([...rows, { date: "", label: "" }])}
+              >
                 Add date
               </button>
             </div>
@@ -178,7 +188,9 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
           <button type="submit" className={PRIMARY_BUTTON} disabled={isLoading}>
             Create library
           </button>
-          <span className="text-xms-label text-[12px]">{valid.length} valid date{valid.length === 1 ? "" : "s"}</span>
+          <span className="text-xms-label text-[12px]">
+            {valid.length} valid date{valid.length === 1 ? "" : "s"}
+          </span>
         </div>
       </form>
     </Panel>

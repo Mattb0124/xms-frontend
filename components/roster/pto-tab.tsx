@@ -8,7 +8,13 @@ import { useToast } from "@/components/xms/toast";
 import { capacityError, describeCapacityError } from "@/lib/capacity/errors";
 import { fractionLabel, PTO_KIND_LABEL, PTO_KINDS } from "@/lib/capacity/vocab";
 import { useTrack } from "@/lib/telemetry/provider";
-import { useAddPtoMutation, useListPtoQuery, useRemovePtoMutation, type CreatePtoBody, type PtoKind } from "@/redux/capacityApi";
+import {
+  useAddPtoMutation,
+  useListPtoQuery,
+  useRemovePtoMutation,
+  type CreatePtoBody,
+  type PtoKind,
+} from "@/redux/capacityApi";
 import { useMe } from "@/redux/me";
 
 export interface PtoTabProps {
@@ -20,7 +26,11 @@ export interface PtoTabProps {
 }
 
 /** The server's rule (CAP-02): the person themselves, or capacity:manage. */
-export function canWritePto(viewerUserId: string | undefined, personUserId: string | null, canManage: boolean): boolean {
+export function canWritePto(
+  viewerUserId: string | undefined,
+  personUserId: string | null,
+  canManage: boolean,
+): boolean {
   if (canManage) return true;
   return !!viewerUserId && !!personUserId && viewerUserId === personUserId;
 }
@@ -38,7 +48,11 @@ const EMPTY: PtoDraft = { starts_on: "", ends_on: "", kind: "vacation", length: 
 
 /** The POST body: the fraction only for half days, the note only when given. */
 export function ptoBody(draft: PtoDraft): CreatePtoBody {
-  const body: CreatePtoBody = { starts_on: draft.starts_on, ends_on: draft.ends_on || draft.starts_on, kind: draft.kind };
+  const body: CreatePtoBody = {
+    starts_on: draft.starts_on,
+    ends_on: draft.ends_on || draft.starts_on,
+    kind: draft.kind,
+  };
   if (draft.length === "half") body.fraction = 0.5;
   const note = draft.note.trim();
   if (note) body.note = note;
@@ -103,7 +117,11 @@ export function PtoTab({ personId, userId, canManage }: PtoTabProps) {
                       try {
                         await remove({ personId, ptoId: pto.id }).unwrap();
                       } catch (caught) {
-                        push({ title: "Not removed", detail: describeCapacityError(capacityError(caught)), tone: "error" });
+                        push({
+                          title: "Not removed",
+                          detail: describeCapacityError(capacityError(caught)),
+                          tone: "error",
+                        });
                       }
                     }}
                   />

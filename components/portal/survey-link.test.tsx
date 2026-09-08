@@ -61,7 +61,9 @@ describe("survey email link", () => {
     fireEvent.click(screen.getByRole("button", { name: "5, Very satisfied" }));
     fireEvent.change(screen.getByLabelText("Comment (optional)"), { target: { value: "Great" } });
     fireEvent.click(screen.getByRole("button", { name: "Send my answer" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("Thank you. Your answer, 5 of 5 (Very satisfied), has been recorded.");
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Thank you. Your answer, 5 of 5 (Very satisfied), has been recorded.",
+    );
     expect(calls.map((call) => [call.key, call.body])).toEqual([[LINK, { token: TOKEN, score: 5, comment: "Great" }]]);
     expect(screen.queryByRole("button", { name: "Send my answer" })).not.toBeInTheDocument();
   });
@@ -78,6 +80,8 @@ describe("survey email link", () => {
     renderPortal(<SurveyLinkAnswer surveyId={survey.id} token={TOKEN} />);
     fireEvent.click(screen.getByRole("button", { name: "3, Neutral" }));
     fireEvent.click(screen.getByRole("button", { name: "Send my answer" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("This survey has expired and can no longer be answered.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This survey has expired and can no longer be answered.",
+    );
   });
 });

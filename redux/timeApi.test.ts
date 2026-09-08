@@ -692,7 +692,9 @@ describe("timeApi billing", () => {
       "GET /v1/accounts/acct-1/billing-periods",
       "GET /v1/accounts/acct-1/billing-periods/bp-0/exports",
     ]);
-    expect(billingExportPath("acct-1", "bp-0", "csv")).toBe("/v1/accounts/acct-1/billing-periods/bp-0/export?format=csv");
+    expect(billingExportPath("acct-1", "bp-0", "csv")).toBe(
+      "/v1/accounts/acct-1/billing-periods/bp-0/export?format=csv",
+    );
     expect(billingExportPath("acct-1", "bp-0", "xlsx")).toBe(
       "/v1/accounts/acct-1/billing-periods/bp-0/export?format=xlsx",
     );
@@ -720,7 +722,14 @@ describe("timeApi billing", () => {
       .unwrap();
     const step = (action: "submit" | "reopen" | "approve" | "lock", version: number) =>
       store
-        .dispatch(timeApi.endpoints.transitionBillingPeriod.initiate({ accountId: "acct-1", periodId: "bp-1", action, version }))
+        .dispatch(
+          timeApi.endpoints.transitionBillingPeriod.initiate({
+            accountId: "acct-1",
+            periodId: "bp-1",
+            action,
+            version,
+          }),
+        )
         .unwrap();
     expect((await step("submit", 1)).status).toBe("submitted");
     await step("reopen", 2);

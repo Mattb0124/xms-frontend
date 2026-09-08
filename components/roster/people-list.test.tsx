@@ -24,10 +24,7 @@ describe("PeopleList", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("link", { name: "Ana Silva" })).toHaveAttribute(
-      "href",
-      `/roster/${aPerson().id}`,
-    );
+    expect(screen.getByRole("link", { name: "Ana Silva" })).toHaveAttribute("href", `/roster/${aPerson().id}`);
     expect(screen.getByText("Senior Consultant")).toBeInTheDocument();
     expect(screen.getByText("Team Lead")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();

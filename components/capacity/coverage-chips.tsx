@@ -24,7 +24,12 @@ export function AccountCoverageChips({ accountId }: { accountId: string }) {
   const account = lens.data?.accounts.find((row) => row.account_id === accountId);
   if (!account || (account.single_points_of_failure.length === 0 && account.gaps.length === 0)) return null;
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2" role="list" aria-label="Skills coverage" data-testid="coverage-chips">
+    <div
+      className="mb-4 flex flex-wrap items-center gap-2"
+      role="list"
+      aria-label="Skills coverage"
+      data-testid="coverage-chips"
+    >
       {account.single_points_of_failure.map((code) => (
         <span key={`spof:${code}`} role="listitem" data-chip={`spof:${code}`}>
           <SignalPill
@@ -36,7 +41,11 @@ export function AccountCoverageChips({ accountId }: { accountId: string }) {
       ))}
       {account.gaps.map((code) => (
         <span key={`gap:${code}`} role="listitem" data-chip={`gap:${code}`}>
-          <SignalPill tone="overdue" label={coverageChipLabel("gap", skillName(code))} title="Nobody is at the required level" />
+          <SignalPill
+            tone="overdue"
+            label={coverageChipLabel("gap", skillName(code))}
+            title="Nobody is at the required level"
+          />
         </span>
       ))}
       <Link

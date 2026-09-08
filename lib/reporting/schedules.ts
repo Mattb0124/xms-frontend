@@ -146,7 +146,8 @@ export function validateSchedule(draft: ScheduleDraft): string | null {
   for (const recipient of draft.distribution) {
     if (recipient.kind === "contact" && !EMAIL.test(recipient.email.trim()))
       return "Each contact needs an email address.";
-    if (recipient.kind !== "contact" && !recipient.id) return `Choose the ${recipientKindLabel(recipient.kind).toLowerCase()}.`;
+    if (recipient.kind !== "contact" && !recipient.id)
+      return `Choose the ${recipientKindLabel(recipient.kind).toLowerCase()}.`;
   }
   return null;
 }

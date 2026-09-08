@@ -78,9 +78,13 @@ describe("contract rule words", () => {
       forecastWindow: "10",
       technologies: "",
     });
-    expect(draftFromContract(aContract({ technology_codes: ["onestream", "sap"] })).technologies).toBe("onestream, sap");
+    expect(draftFromContract(aContract({ technology_codes: ["onestream", "sap"] })).technologies).toBe(
+      "onestream, sap",
+    );
     expect(validateRules(draft)).toBeNull();
-    expect(validateRules({ ...draft, technologies: "OneStream, bad code" })).toMatch(/^Technology codes are lower-case/);
+    expect(validateRules({ ...draft, technologies: "OneStream, bad code" })).toMatch(
+      /^Technology codes are lower-case/,
+    );
     expect(validateRules({ ...draft, thresholds: "50, x" })).toMatch(/^Thresholds are whole percentages/);
     expect(validateRules({ ...draft, overageRule: "allow_rate", overageMultiplier: "" })).toBe(
       "Allow at overage rate needs a multiplier, for example 1.25.",
@@ -201,7 +205,12 @@ describe("AccountContractsTab", () => {
     let saved = false;
     const calls = stubFetch({
       "GET /v1/admin/me": me(["admin:accounts", "contracts:view", "contracts:manage"]),
-      [LIST]: () => json([aContract(saved ? { technology_codes: ["onestream", "sap"], version: 2 } : { technology_codes: ["onestream"] })]),
+      [LIST]: () =>
+        json([
+          aContract(
+            saved ? { technology_codes: ["onestream", "sap"], version: 2 } : { technology_codes: ["onestream"] },
+          ),
+        ]),
       [CARDS]: () => json([]),
       [PATCH]: () => {
         saved = true;
@@ -209,7 +218,9 @@ describe("AccountContractsTab", () => {
       },
     });
     renderDesk(<AccountContractsTab accountId={ACCOUNT_ID} />);
-    await waitFor(() => expect(document.querySelector(`[data-technologies="${CONTRACT_ID}"]`)).toHaveTextContent("onestream"));
+    await waitFor(() =>
+      expect(document.querySelector(`[data-technologies="${CONTRACT_ID}"]`)).toHaveTextContent("onestream"),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Edit rules for CT10001" }));
     const editor = screen.getByLabelText("Contract rules for CT10001");
     const codes = within(editor).getByLabelText("Technology codes");
@@ -227,7 +238,9 @@ describe("AccountContractsTab", () => {
       ...DEFAULT_RULES,
       technology_codes: ["onestream", "sap"],
     });
-    await waitFor(() => expect(document.querySelector(`[data-technologies="${CONTRACT_ID}"]`)).toHaveTextContent("onestream, sap"));
+    await waitFor(() =>
+      expect(document.querySelector(`[data-technologies="${CONTRACT_ID}"]`)).toHaveTextContent("onestream, sap"),
+    );
   });
 
   it("saves premium rate with its multiplier and the version through PATCH, then shows the new handling", async () => {

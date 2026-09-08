@@ -4,7 +4,14 @@ import Link from "next/link";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { demandFilterToSearch } from "@/lib/capacity/filters";
-import { addMonths, DEMAND_SOURCE, demandSubject, formatProbability, monthLabel, weightedMinutes } from "@/lib/capacity/vocab";
+import {
+  addMonths,
+  DEMAND_SOURCE,
+  demandSubject,
+  formatProbability,
+  monthLabel,
+  weightedMinutes,
+} from "@/lib/capacity/vocab";
 import { formatHours } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import type { CapacityView } from "@/redux/capacityApi";
@@ -25,8 +32,13 @@ export interface OverlaySegments {
 
 /** The stacked bar's segments as percentages of the scale, two decimals. */
 export function overlayWidths(segments: OverlaySegments): Record<"allocated" | "pipeline" | "project", string> {
-  const percent = (minutes: number) => (segments.scale > 0 ? `${(Math.round((minutes / segments.scale) * 10000) / 100).toFixed(2)}%` : "0%");
-  return { allocated: percent(segments.allocated), pipeline: percent(segments.pipeline), project: percent(segments.project) };
+  const percent = (minutes: number) =>
+    segments.scale > 0 ? `${(Math.round((minutes / segments.scale) * 10000) / 100).toFixed(2)}%` : "0%";
+  return {
+    allocated: percent(segments.allocated),
+    pipeline: percent(segments.pipeline),
+    project: percent(segments.project),
+  };
 }
 
 const SEGMENT_CLASS = {
@@ -64,7 +76,10 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
         {demand.by_subject.length === 0 && demand.total_minutes === 0 ? (
           <p className="text-xms-label">
             No demand entered for {label}.{" "}
-            <Link href={`/capacity/demand${demandFilterToSearch({ from: month, to: addMonths(month, 3) }, "")}`} className="text-xms-accent">
+            <Link
+              href={`/capacity/demand${demandFilterToSearch({ from: month, to: addMonths(month, 3) }, "")}`}
+              className="text-xms-accent"
+            >
               Enter demand
             </Link>
           </p>
@@ -87,21 +102,30 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
             </div>
             <dl className="flex flex-wrap gap-x-6 gap-y-1">
               <div className="flex items-center gap-2">
-                <span className={cn("inline-block h-[10px] w-[10px] rounded-[2px]", SEGMENT_CLASS.allocated)} aria-hidden />
+                <span
+                  className={cn("inline-block h-[10px] w-[10px] rounded-[2px]", SEGMENT_CLASS.allocated)}
+                  aria-hidden
+                />
                 <dt className="text-xms-label">Allocated</dt>
                 <dd className="xms-mono text-xms-ink font-semibold" data-overlay-allocated>
                   {formatHours(segments.allocated)}
                 </dd>
               </div>
               <div className="flex items-center gap-2">
-                <span className={cn("inline-block h-[10px] w-[10px] rounded-[2px]", SEGMENT_CLASS.pipeline)} aria-hidden />
+                <span
+                  className={cn("inline-block h-[10px] w-[10px] rounded-[2px]", SEGMENT_CLASS.pipeline)}
+                  aria-hidden
+                />
                 <dt className="text-xms-label">Pipeline, weighted</dt>
                 <dd className="xms-mono text-xms-ink font-semibold" data-overlay-pipeline>
                   {formatHours(segments.pipeline)}
                 </dd>
               </div>
               <div className="flex items-center gap-2">
-                <span className={cn("inline-block h-[10px] w-[10px] rounded-[2px]", SEGMENT_CLASS.project)} aria-hidden />
+                <span
+                  className={cn("inline-block h-[10px] w-[10px] rounded-[2px]", SEGMENT_CLASS.project)}
+                  aria-hidden
+                />
                 <dt className="text-xms-label">Project</dt>
                 <dd className="xms-mono text-xms-ink font-semibold" data-overlay-project>
                   {formatHours(segments.project)}
@@ -123,11 +147,14 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
             <p
               className={cn(
                 "text-[12px]",
-                demand.total_minutes > totals.remaining_minutes ? "text-[color:var(--state-overdue-text)]" : "text-xms-body",
+                demand.total_minutes > totals.remaining_minutes
+                  ? "text-[color:var(--state-overdue-text)]"
+                  : "text-xms-body",
               )}
               data-overlay-verdict
             >
-              {formatHours(demand.total_minutes)} of demand against {formatHours(totals.remaining_minutes)} remaining in {label}.
+              {formatHours(demand.total_minutes)} of demand against {formatHours(totals.remaining_minutes)} remaining in{" "}
+              {label}.
             </p>
             <ul className="flex flex-wrap gap-2" aria-label="Demand by subject">
               {demand.by_subject.map((row, index) => (
@@ -136,7 +163,9 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
                   className="border-xms-line flex items-center gap-2 rounded-[4px] border px-2 py-1"
                   data-subject={demandSubject(row)}
                 >
-                  <span className={cn("text-xms-ink font-medium", row.account_key && "xms-mono")}>{demandSubject(row)}</span>{" "}
+                  <span className={cn("text-xms-ink font-medium", row.account_key && "xms-mono")}>
+                    {demandSubject(row)}
+                  </span>{" "}
                   <SignalPill tone={DEMAND_SOURCE[row.source].tone} label={DEMAND_SOURCE[row.source].label} />{" "}
                   <span className="xms-mono text-xms-body">
                     {row.source === "project"

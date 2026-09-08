@@ -405,7 +405,9 @@ export const reportingApi = xmsApi.injectEndpoints({
     runScheduleNow: build.mutation<RunNowResult, { id: string; accountId: string; body: RunNowBody }>({
       query: ({ id, body }) => ({ url: `/v1/reporting/schedules/${id}/run-now`, method: "POST", body }),
       invalidatesTags: (_result, error, { accountId }) =>
-        error ? [] : [schedulesTag(accountId), runsTag(accountId), runsTag(undefined), { type: "Reports", id: accountId }],
+        error
+          ? []
+          : [schedulesTag(accountId), runsTag(accountId), runsTag(undefined), { type: "Reports", id: accountId }],
     }),
     scheduleRuns: build.query<ScheduleRun[], RunsFilter>({
       query: (filter) => ({
