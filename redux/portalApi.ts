@@ -1,3 +1,4 @@
+import type { PortalFormView } from "@/lib/portal/forms";
 import { xmsApi } from "@/redux/api";
 
 /**
@@ -62,11 +63,18 @@ export interface PortalListParams {
 
 export interface CreatePortalTicketBody {
   type: PortalTicketType;
-  short_description: string;
+  /** The fixed shape, still posted where the account has published no form. */
+  short_description?: string;
   description?: string;
   category?: string;
   impact?: PortalLevel;
   urgency?: PortalLevel;
+  /**
+   * The answers to a published form's fields, keyed by field key (CP-03).
+   * Required once the account publishes a form for this type: the API answers
+   * form_answers_required to the flat shape rather than dropping a question.
+   */
+  answers?: Record<string, unknown>;
 }
 
 export interface PortalComment {
@@ -257,6 +265,19 @@ export const portalApi = xmsApi.injectEndpoints({
     searchArticles: build.query<PortalArticle[], string>({
       queryFn: async () => ({ data: [] }),
     }),
+    /**
+     * The request types this account offers and the form behind each (CP-03).
+     * A type the account has authored no form for still answers, with the
+     * fixed default definition, so the portal keeps working either way.
+     */
+    portalForms: build.query<{ items: PortalFormView[] }, void>({
+      query: () => "/v1/portal/forms",
+      providesTags: ["PortalForms"],
+    }),
+    portalForm: build.query<PortalFormView, string>({
+      query: (type) => `/v1/portal/forms/${encodeURIComponent(type)}`,
+      providesTags: (_result, _error, type) => [{ type: "PortalForms" as const, id: type }],
+    }),
     portalSurveys: build.query<SurveyList, void>({
       query: () => "/v1/portal/surveys",
       providesTags: ["PortalSurveys"],
@@ -296,6 +317,8 @@ export const {
   usePortalTicketQuery,
   usePortalTimelineQuery,
   usePortalTransitionsQuery,
+  usePortalFormsQuery,
+  usePortalFormQuery,
   useCreatePortalTicketMutation,
   useAddPortalCommentMutation,
   usePortalTransitionMutation,

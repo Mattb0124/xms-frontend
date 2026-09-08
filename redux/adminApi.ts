@@ -1,3 +1,5 @@
+import type { TicketForm, TicketFormVersion } from "@/lib/admin/ticket-forms";
+import type { FormDefinition, FormTicketType } from "@/lib/portal/forms";
 import { xmsApi } from "@/redux/api";
 
 /**
@@ -239,6 +241,24 @@ export interface SetContactFlagsBody {
 }
 
 const contactsTag = (accountId: string) => ({ type: "Contacts" as const, id: accountId });
+const ticketFormsTag = (accountId: string) => ({ type: "TicketForms" as const, id: accountId });
+
+/** The body POST /v1/accounts/:id/forms takes; the definition is the first draft. */
+export interface CreateTicketFormBody {
+  ticket_type: FormTicketType;
+  name: string;
+  description?: string;
+  client_visible?: boolean;
+  definition?: FormDefinition;
+}
+
+export interface PatchTicketFormBody {
+  version: number;
+  name?: string;
+  description?: string;
+  client_visible?: boolean;
+  is_active?: boolean;
+}
 
 export const adminApi = xmsApi.injectEndpoints({
   endpoints: (build) => ({
@@ -418,6 +438,60 @@ export const adminApi = xmsApi.injectEndpoints({
       invalidatesTags: (_result, _error, key) => [accountConfigTag(key)],
     }),
 
+    /**
+     * Per-account request forms (CP-03). Authoring is configuration, so the
+     * API answers all six routes to `admin:config` alone. A version is a
+     * draft until it is published and then frozen, so the list is the whole
+     * record: it carries every version, and each write reloads it.
+     */
+    listTicketForms: build.query<TicketForm[], string>({
+      query: (accountId) => `/v1/accounts/${accountId}/forms`,
+      providesTags: (_result, _error, accountId) => [ticketFormsTag(accountId)],
+    }),
+    createTicketForm: build.mutation<TicketForm, { accountId: string; body: CreateTicketFormBody }>({
+      query: ({ accountId, body }) => ({ url: `/v1/accounts/${accountId}/forms`, method: "POST", body }),
+      invalidatesTags: (_result, _error, { accountId }) => [ticketFormsTag(accountId)],
+    }),
+    patchTicketForm: build.mutation<TicketForm, { accountId: string; formId: string; body: PatchTicketFormBody }>({
+      query: ({ accountId, formId, body }) => ({
+        url: `/v1/accounts/${accountId}/forms/${formId}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { accountId }) => [ticketFormsTag(accountId)],
+    }),
+    /** A new draft on top of whatever the form serves today. */
+    addFormVersion: build.mutation<
+      TicketFormVersion,
+      { accountId: string; formId: string; definition: FormDefinition }
+    >({
+      query: ({ accountId, formId, definition }) => ({
+        url: `/v1/accounts/${accountId}/forms/${formId}/versions`,
+        method: "POST",
+        body: { definition },
+      }),
+      invalidatesTags: (_result, _error, { accountId }) => [ticketFormsTag(accountId)],
+    }),
+    editFormVersion: build.mutation<
+      TicketFormVersion,
+      { accountId: string; formId: string; versionId: string; definition: FormDefinition }
+    >({
+      query: ({ accountId, formId, versionId, definition }) => ({
+        url: `/v1/accounts/${accountId}/forms/${formId}/versions/${versionId}`,
+        method: "PUT",
+        body: { definition },
+      }),
+      invalidatesTags: (_result, _error, { accountId }) => [ticketFormsTag(accountId)],
+    }),
+    /** Freezes the version and points the form at it; there is no way back. */
+    publishFormVersion: build.mutation<TicketForm, { accountId: string; formId: string; versionId: string }>({
+      query: ({ accountId, formId, versionId }) => ({
+        url: `/v1/accounts/${accountId}/forms/${formId}/versions/${versionId}/publish`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, { accountId }) => [ticketFormsTag(accountId)],
+    }),
+
     listAssignableUsers: build.query<AssignableUser[], void>({
       query: () => "/v1/users",
       providesTags: ["Users"],
@@ -460,5 +534,11 @@ export const {
   useGetAccountConfigQuery,
   useSetAccountOverrideMutation,
   useRemoveAccountOverrideMutation,
+  useListTicketFormsQuery,
+  useCreateTicketFormMutation,
+  usePatchTicketFormMutation,
+  useAddFormVersionMutation,
+  useEditFormVersionMutation,
+  usePublishFormVersionMutation,
   useListAssignableUsersQuery,
 } = adminApi;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { EffectivePill, OverrideEditor } from "@/components/admin/config/override-editor";
 import { RoutingRulesPanel } from "@/components/admin/config/routing-rules";
+import { TicketFormsPanel } from "@/components/admin/forms/ticket-forms-panel";
 import { Panel } from "@/components/xms/panel";
 import { CATALOG_KINDS, defaultScope, type CatalogKind } from "@/lib/admin/config-catalog";
 import { cn } from "@/lib/utils";
@@ -84,6 +85,11 @@ function CatalogOverrides({ accountId }: { accountId: string }) {
  * and they are written with `admin:config` like the catalogs, but the API
  * answers the read to `tickets:view`, so they are their own panel with its
  * own gate rather than being hidden behind the write key.
+ *
+ * Last, the request forms (CP-03): what a client is asked for each kind of
+ * request. The API answers every one of those routes to `admin:config`, read
+ * and write alike, so the panel holds its own gate and asks nothing without
+ * it.
  */
 export function AccountConfigTab({ accountId }: { accountId: string }) {
   const me = useMe();
@@ -98,6 +104,7 @@ export function AccountConfigTab({ accountId }: { accountId: string }) {
         </Panel>
       )}
       <RoutingRulesPanel accountId={accountId} />
+      <TicketFormsPanel accountId={accountId} />
     </div>
   );
 }

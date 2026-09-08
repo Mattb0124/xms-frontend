@@ -757,3 +757,83 @@ describe("the non-ticket buckets are read behind time:log and edited behind cont
     expect(slice).not.toContain("/v1/accounts/${accountId}/buckets/${bucketId}/time`");
   });
 });
+
+/**
+ * The same map for the account's request forms (CP-03, backend 63329e3).
+ * All six routes answer to `admin:config` alone: a form decides what a
+ * client is asked and where each answer lands on the ticket, and publishing
+ * one freezes it, so the surface authoring them may not ship behind a
+ * weaker key. The account record's own gate is `admin:accounts`, which does
+ * not imply `admin:config`, which is why the panel holds its own guard and
+ * asks the API nothing before that guard decides.
+ */
+const TICKET_FORM_READS = [
+  { hook: "useListTicketFormsQuery", slice: "redux/adminApi.ts", route: "/v1/accounts/${accountId}/forms" },
+  {
+    hook: "useCreateTicketFormMutation",
+    slice: "redux/adminApi.ts",
+    route: 'url: `/v1/accounts/${accountId}/forms`, method: "POST"',
+  },
+  {
+    hook: "usePatchTicketFormMutation",
+    slice: "redux/adminApi.ts",
+    route: "/v1/accounts/${accountId}/forms/${formId}",
+  },
+  {
+    hook: "useAddFormVersionMutation",
+    slice: "redux/adminApi.ts",
+    route: "/v1/accounts/${accountId}/forms/${formId}/versions",
+  },
+  {
+    hook: "useEditFormVersionMutation",
+    slice: "redux/adminApi.ts",
+    route: "/v1/accounts/${accountId}/forms/${formId}/versions/${versionId}",
+  },
+  {
+    hook: "usePublishFormVersionMutation",
+    slice: "redux/adminApi.ts",
+    route: "/v1/accounts/${accountId}/forms/${formId}/versions/${versionId}/publish",
+  },
+];
+
+const TICKET_FORM_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/admin/forms/ticket-forms-panel.tsx", permission: "admin:config" },
+];
+
+describe("the account's request forms are authored behind admin:config", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of TICKET_FORM_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = TICKET_FORM_READS.map((entry) => entry.hook);
+    const listed = new Set(TICKET_FORM_SURFACES.map((surface) => surface.file));
+    const callers = callersOf(hooks);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+    expect([...listed].filter((file) => !callers.includes(file))).toEqual([]);
+  });
+
+  it("gates the builder on admin:config by its own guard", () => {
+    for (const surface of TICKET_FORM_SURFACES) {
+      const source = read(surface.file);
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `hasPermission("${surface.permission}")`,
+      );
+    }
+  });
+
+  it("keeps the client's own read on the portal routes, which take portal:submit", () => {
+    // The portal reads the published form through its own mirror; nothing on
+    // the desk reads /v1/portal/forms, and nothing on the portal reads the
+    // admin:config routes.
+    const slice = read("redux/portalApi.ts");
+    expect(slice).toContain('"/v1/portal/forms"');
+    expect(slice).toContain("/v1/portal/forms/${encodeURIComponent(type)}");
+    expect(read("components/admin/forms/ticket-forms-panel.tsx")).not.toContain("/v1/portal/");
+  });
+});

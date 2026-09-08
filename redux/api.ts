@@ -138,6 +138,8 @@ export const xmsApi = createApi({
     "SavedViews",
     "AuditSavedQueries",
     "TicketGroups",
+    "TicketForms",
+    "PortalForms",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({
