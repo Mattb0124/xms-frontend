@@ -1,6 +1,8 @@
 "use client";
 
-import { BellIcon, ChevronDownIcon, HackettMark, SearchIcon, SparkleIcon, StarIcon } from "@/components/xms/icons";
+import Image from "next/image";
+import Link from "next/link";
+import { BellIcon, ChevronDownIcon, SearchIcon, SparkleIcon, StarIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type FinderKind = "all" | "favourites" | "history";
@@ -36,7 +38,7 @@ const FINDERS: Array<{ kind: FinderKind; label: string }> = [
  *
  * Every zone carries a fixed size rather than one derived from its content, so
  * nothing in the bar moves when `me`, the unread count or the current screen
- * label arrive: the mark is 22px, the scope pill a fixed 320px, the search
+ * label arrive: the logo is its native 196 by 24, the scope pill a fixed 320px, the search
  * field 330px, and the Axel pill, bell and avatar are sized in the class list
  * rather than by their text. The bar itself is `shrink-0`, which the built bar
  * was not: as a flex child of a column it was squeezed from 56px to about
@@ -51,10 +53,13 @@ export function FinderBar(props: FinderBarProps) {
       role="banner"
     >
       <div className="flex h-full items-center gap-2 px-4">
-        <div className="flex shrink-0 items-center gap-[10px]">
-          <HackettMark size={22} className="text-white" />
-          <span className="text-[15px] font-semibold tracking-[-0.01em] whitespace-nowrap">The Hackett Group</span>
-        </div>
+        {/* The real logo, white paths on transparent at its native 24px, which
+            already carries the words: there is no text wordmark beside it. It
+            is the way back to the home screen, which is what the mark it
+            replaced was. */}
+        <Link href="/" className="flex shrink-0 items-center" aria-label="The Hackett Group, home">
+          <Image src="/thehackettgroup_logo.svg" alt="The Hackett Group" width={196} height={24} priority unoptimized />
+        </Link>
         <nav aria-label="Finders" className="ml-5 flex shrink-0 items-center gap-1">
           {FINDERS.map((finder) => (
             <button

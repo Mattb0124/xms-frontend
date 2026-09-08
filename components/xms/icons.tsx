@@ -35,18 +35,6 @@ function Icon({ size = 16, title, children, ...rest }: IconProps & { children: R
   );
 }
 
-/** The four-square Hackett mark in the finder bar: two light squares, two accent. */
-export function HackettMark({ size = 22, ...rest }: Omit<IconProps, "title">) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden focusable="false" {...rest}>
-      <rect width="10" height="10" rx="2" fill="currentColor" />
-      <rect x="14" width="10" height="10" rx="2" fill="currentColor" opacity="0.55" />
-      <rect y="14" width="10" height="10" rx="2" fill="currentColor" opacity="0.55" />
-      <rect x="14" y="14" width="10" height="10" rx="2" fill="currentColor" />
-    </svg>
-  );
-}
-
 /** My work. */
 export function GridIcon(props: IconProps) {
   return (

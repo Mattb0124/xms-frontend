@@ -11,6 +11,9 @@ const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
   usePathname: () => "/tickets",
+  // The shell reads ?axel=1, which is how the ticket record's Ask Axel opens
+  // the panel (render 15).
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("FinderBar", () => {
