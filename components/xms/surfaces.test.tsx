@@ -201,7 +201,7 @@ describe("SuggestionCard and ToolCallRow", () => {
 });
 
 describe("Skeleton and EmptyBanner", () => {
-  it("render placeholders and the ink banner with a link", () => {
+  it("render placeholders, and the empty state as a card rather than an ink slab", () => {
     const { container } = render(
       <>
         <Skeleton lines={3} />
@@ -212,7 +212,11 @@ describe("Skeleton and EmptyBanner", () => {
       </>,
     );
     expect(container.querySelectorAll(".animate-pulse")).toHaveLength(3);
-    expect(screen.getByRole("status")).toHaveClass("bg-xms-navy");
+    // No v3 render draws a black block in the content area; render 11 draws
+    // this state as the prototype's own white card.
+    const banner = screen.getByRole("status");
+    expect(banner).toHaveClass("xms-card");
+    expect(banner.className).not.toContain("bg-xms-navy");
     expect(screen.getByRole("link", { name: "Contracts" })).toHaveAttribute("href", "/accounts");
   });
 });
