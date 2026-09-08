@@ -20,7 +20,9 @@ export function aPortalMe(overrides: Partial<PortalMe["principal"]> = {}, accoun
       permissions: ["portal:kb", "portal:submit"],
       ...overrides,
     },
-    account: account ?? { id: "acct-1", key: "BRK", name: "Brookfield", branding: {} },
+    // An explicit null is a portal user whose account did not come back; only
+    // an omitted argument takes the default account.
+    account: account === undefined ? { id: "acct-1", key: "BRK", name: "Brookfield", branding: {} } : account,
   };
 }
 

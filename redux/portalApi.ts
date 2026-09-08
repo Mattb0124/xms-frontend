@@ -119,6 +119,20 @@ export interface PortalArticle {
   summary: string;
 }
 
+/**
+ * The list envelope. `unavailable` is the number of the client's requests the
+ * API could read but could not build a view for; it is optional because the
+ * API only started counting them after one unreadable row was found to empty
+ * a whole client's list (frontend review finding 2). The client renders the
+ * rows it was given and words the rest; it never turns a partial answer into
+ * "you have no requests".
+ */
+export interface PortalTicketPage {
+  items: PortalTicket[];
+  next_cursor: string | null;
+  unavailable?: number;
+}
+
 function listQuery(params: PortalListParams): string {
   const search = new URLSearchParams();
   if (params.scope) search.set("scope", params.scope);
@@ -133,8 +147,15 @@ export const portalApi = xmsApi.injectEndpoints({
       query: () => "/v1/portal/me",
       providesTags: ["PortalMe"],
     }),
-    portalTickets: build.query<{ items: PortalTicket[]; next_cursor: string | null }, PortalListParams>({
+    portalTickets: build.query<PortalTicketPage, PortalListParams>({
       query: (params) => listQuery(params),
+      transformResponse: (response: Partial<PortalTicketPage> | null): PortalTicketPage => ({
+        items: Array.isArray(response?.items) ? response.items : [],
+        next_cursor: response?.next_cursor ?? null,
+        ...(typeof response?.unavailable === "number" && response.unavailable > 0
+          ? { unavailable: response.unavailable }
+          : {}),
+      }),
       providesTags: (result) => [
         "PortalTickets",
         ...(result?.items.map((item) => ({ type: "PortalTicket" as const, id: item.key })) ?? []),

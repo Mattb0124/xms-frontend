@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SearchHome } from "@/components/portal/search-home";
-import { aPortalTicket, json, renderPortal, stubFetch } from "@/test-kit/portal";
+import { aPortalMe, aPortalTicket, json, renderPortal, stubFetch } from "@/test-kit/portal";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/portal", useRouter: () => ({ push: vi.fn() }) }));
 
@@ -10,6 +10,7 @@ describe("portal search home", () => {
 
   it("shows the dashboard strip in client language, and searches own requests plus the knowledge placeholder once two characters are typed", async () => {
     const calls = stubFetch({
+      "GET /v1/portal/me": () => json(aPortalMe()),
       "GET /v1/portal/tickets": (body) => {
         void body;
         return json({ items: [aPortalTicket()], next_cursor: null });
@@ -48,6 +49,7 @@ describe("portal search home", () => {
 
   it("links to My requests and New request", async () => {
     stubFetch({
+      "GET /v1/portal/me": () => json(aPortalMe()),
       "GET /v1/portal/tickets": () => json({ items: [], next_cursor: null }),
       "GET /v1/portal/dashboard": () => json({ period: {}, measures: { consumption_minutes: 90 } }),
     });
