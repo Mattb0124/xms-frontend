@@ -145,7 +145,8 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
   return (
     <Panel
       title="People"
-      caption={`${view.people.length} in the month; hours are the server's`}
+      caption="This month"
+      subtitle={`${view.people.length} ${view.people.length === 1 ? "person" : "people"}, with the available, allocated, actual and remaining hours for the month.`}
       flush
       actions={
         <>

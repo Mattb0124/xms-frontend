@@ -37,7 +37,8 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
   return (
     <Panel
       title="Skills by person"
-      caption={`${rows.length} ${rows.length === 1 ? "person" : "people"}, ${columns.length} skill${columns.length === 1 ? "" : "s"}; levels 1 Aware to 4 Expert from the roster`}
+      caption="Skills"
+      subtitle={`${rows.length} ${rows.length === 1 ? "person" : "people"} against ${columns.length} skill${columns.length === 1 ? "" : "s"}, at levels 1 Aware to 4 Expert from the roster.`}
       flush
     >
       <table className="w-full border-collapse text-[13px]" aria-label="Skills heat map">

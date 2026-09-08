@@ -145,7 +145,8 @@ export function ContractBudgetCard({
   return (
     <Panel
       title={`${contract.key} ${contract.name}`}
-      caption={rules}
+      caption="Contract"
+      subtitle={`${rules}.`}
       actions={
         position ? <SignalPill tone={STATUS[position.status].tone} label={STATUS[position.status].label} /> : null
       }

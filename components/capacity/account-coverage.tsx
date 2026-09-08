@@ -48,7 +48,8 @@ function AccountCoverageCard({
   return (
     <Panel
       title={`${account.key} ${account.name}`}
-      caption={`${count} technolog${count === 1 ? "y" : "ies"} required by the active contracts${flags.length > 0 ? `; ${flags.join(", ")}` : ""}`}
+      caption="Coverage"
+      subtitle={`${count} technolog${count === 1 ? "y" : "ies"} required by the active contracts${flags.length > 0 ? `, ${flags.join(", ")}` : ""}.`}
       flush
     >
       {count === 0 ? (

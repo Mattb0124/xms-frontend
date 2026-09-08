@@ -59,7 +59,11 @@ export function ImportDemandPanel() {
   };
 
   return (
-    <Panel title="Import CSV" caption="The spreadsheet template as CSV; a header row naming the columns in any order">
+    <Panel
+      title="Import CSV"
+      caption="Import"
+      subtitle="The spreadsheet template as CSV, with a header row naming the columns in any order."
+    >
       <form
         className="flex flex-col gap-3 text-[12px]"
         aria-label="Import demand"

@@ -105,7 +105,11 @@ export function AddDemandForm({ accounts, defaultMonth }: AddDemandFormProps) {
   };
 
   return (
-    <Panel title="Add demand" caption="Pipeline hours weighted by their probability; project hours as committed">
+    <Panel
+      title="Add demand"
+      caption="New line"
+      subtitle="Pipeline hours are weighted by their probability; project hours count as committed."
+    >
       <form
         className="flex flex-col gap-3 text-[12px]"
         aria-label="Add demand"

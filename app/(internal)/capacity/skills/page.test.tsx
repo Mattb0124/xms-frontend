@@ -118,7 +118,7 @@ describe("CapacitySkillsPage", () => {
     // No account directory without tickets:view; the lens's own accounts fill the picker.
     expect(calls.some((call) => call.key === "GET /v1/accounts")).toBe(false);
     expect(screen.getByRole("region", { name: "BRK Brookfield" })).toHaveTextContent(
-      "3 technologies required by the active contracts; 1 single point of failure, 1 gap",
+      "3 technologies required by the active contracts, 1 single point of failure, 1 gap.",
     );
     const anaplan = list.querySelector('[data-technology="anaplan"]') as HTMLElement;
     expect(within(anaplan).getByText("Covered")).toHaveAttribute("data-state", "complete");

@@ -36,7 +36,8 @@ export function DemandTable({ list, canManage, onRemove, removing }: DemandTable
   return (
     <Panel
       title="Demand"
-      caption={`${monthLabel(list.from)} to ${monthLabel(list.to)}; ${list.rows.length} line${list.rows.length === 1 ? "" : "s"}, weighted by the server`}
+      caption="Lines"
+      subtitle={`${monthLabel(list.from)} to ${monthLabel(list.to)}, ${list.rows.length} line${list.rows.length === 1 ? "" : "s"} with the weighted hours.`}
       flush
     >
       <table className="w-full border-collapse text-[13px]" aria-label="Demand lines">

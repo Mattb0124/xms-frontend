@@ -57,7 +57,8 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
   return (
     <Panel
       title="Demand this month"
-      caption="Weighted pipeline and committed project demand stacked on the allocated hours; the lighter shades are demand"
+      caption="Demand"
+      subtitle="Weighted pipeline and committed project demand stacked on the allocated hours; the lighter shades are the demand."
     >
       <div className="flex flex-col gap-3 text-[12px]" data-testid="demand-overlay">
         {demand.by_subject.length === 0 && demand.total_minutes === 0 ? (

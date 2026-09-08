@@ -34,7 +34,8 @@ export function CompTimePanel({ accountId, today = localToday() }: { accountId: 
   return (
     <Panel
       title="Comp time"
-      caption="Non-standard entries on comp-time contracts, per person"
+      caption="Per person"
+      subtitle="Non-standard entries on comp-time contracts, per person."
       actions={
         <div className="flex items-center gap-2 text-[12px]" role="group" aria-label="Comp time range">
           <label className="flex items-center gap-1">
