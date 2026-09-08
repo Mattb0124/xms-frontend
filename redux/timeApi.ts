@@ -117,12 +117,56 @@ export interface UnloggedSummary {
   unlogged_minutes: number;
 }
 
+/**
+ * The non-ticket taxonomy (TB-12, technical 2.7): governance, QBR
+ * preparation, account management and escalation handling are the buckets
+ * the workbook names, and `custom` is anything an operator adds for one
+ * account, so reporting groups the same kind of work across accounts
+ * whatever a client's own bucket is called.
+ */
+export const BUCKET_CODES = ["governance", "qbr_prep", "account_mgmt", "escalation", "custom"] as const;
+export type BucketCode = (typeof BUCKET_CODES)[number];
+
+export const BUCKET_CODE_LABEL: Record<BucketCode, string> = {
+  governance: "Governance",
+  qbr_prep: "QBR preparation",
+  account_mgmt: "Account management",
+  escalation: "Escalation handling",
+  custom: "Custom",
+};
+
+export function bucketCodeLabel(code: string): string {
+  return BUCKET_CODE_LABEL[code as BucketCode] ?? code.replace(/_/g, " ");
+}
+
+/**
+ * A bucket work is logged against without a ticket (TB-12). The billable
+ * class decides whether the entry burns the contract exactly as a ticket
+ * entry does: an internal or non-billable class does not consume the
+ * period, and a bucket that named no class took the account's first
+ * non-consuming one when it was created.
+ */
 export interface Bucket {
   id: string;
+  account_id?: string;
   key: string;
   label: string;
+  /** The shared taxonomy; absent on an older API. */
+  code?: string;
   billable_class: string;
+  /** The contract this bucket's time belongs to; null falls back to the account's active one. */
+  contract_id?: string | null;
   status: string;
+  version?: number;
+}
+
+/** PATCH body: rename a bucket, move its class or code, or retire it (contracts:manage). */
+export interface PatchBucketBody {
+  version: number;
+  label?: string;
+  code?: BucketCode;
+  billable_class?: string;
+  status?: "active" | "retired";
 }
 
 /** One person's comp-time line: non-standard entries on comp-time contracts that carried no premium. */
@@ -414,8 +458,20 @@ export const timeApi = xmsApi.injectEndpoints({
       query: ({ accountId, from, to }) => ({ url: `/v1/accounts/${accountId}/time/comp-time`, params: { from, to } }),
       providesTags: [COMP_TIME],
     }),
+    /** The account's buckets; the API answers the read to `time:log`, since logging is what needs it. */
     listBuckets: build.query<Bucket[], string>({
       query: (accountId) => `/v1/accounts/${accountId}/buckets`,
+      providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:buckets` }],
+    }),
+    /** Rename, reclass or retire a bucket (TB-12), under contracts:manage. */
+    patchBucket: build.mutation<Bucket, { accountId: string; bucketId: string; body: PatchBucketBody }>({
+      query: ({ accountId, bucketId, body }) => ({
+        url: `/v1/accounts/${accountId}/buckets/${bucketId}`,
+        method: "PATCH",
+        body,
+      }),
+      // A stale version means the list is behind, so it is read again either way.
+      invalidatesTags: (_result, _error, { accountId }) => [{ type: "Account", id: `${accountId}:buckets` }],
     }),
     /**
      * Non-ticket time on a bucket (TB-12). The route is
@@ -497,6 +553,7 @@ export const {
   useContractPositionQuery,
   useCompTimeQuery,
   useListBucketsQuery,
+  usePatchBucketMutation,
   useLogBucketTimeMutation,
   useAccountBudgetQuery,
   useBudgetEntriesQuery,

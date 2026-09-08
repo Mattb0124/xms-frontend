@@ -161,7 +161,12 @@ function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: strin
               {key ? (
                 <KeyLink ticketKey={key} />
               ) : (
-                <span className="text-xms-ink">{entry.bucket_label ?? "Bucket"}</span>
+                // Non-ticket time (TB-12) is named by its bucket. An entry the
+                // API answered without a label still says what it is rather
+                // than reading as a bare word.
+                <span className="text-xms-ink" data-bucket>
+                  {entry.bucket_label ?? "Non-ticket time"}
+                </span>
               )}
             </td>
             <td className="text-xms-ink px-3">{activity}</td>

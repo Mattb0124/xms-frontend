@@ -2,10 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
 import {
   billingExportPath,
+  BUCKET_CODES,
+  bucketCodeLabel,
   budgetEntriesParams,
   timeApi,
   type AccountBudget,
   type BillingExport,
+  type Bucket,
   type BillingPeriod,
   type BudgetContractCard,
   type BudgetEntries,
@@ -790,5 +793,102 @@ describe("timeApi billing", () => {
     ).rejects.toMatchObject({ status: 409, data: { code: "invalid_transition", allowed: ["submit", "lock"] } });
     await vi.waitFor(() => expect(reads).toBe(2));
     subscription.unsubscribe();
+  });
+});
+
+export const BUCKET_ID = "b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1";
+
+/**
+ * A constructed bucket (TB-12): governance work on the shared taxonomy,
+ * classed internal, so it is logged and not billed.
+ */
+export function aBucket(overrides: Partial<Bucket> = {}): Bucket {
+  return {
+    id: BUCKET_ID,
+    account_id: "acct-1",
+    key: "governance",
+    label: "Governance",
+    code: "governance",
+    billable_class: "non_billable",
+    contract_id: null,
+    status: "active",
+    version: 1,
+    ...overrides,
+  };
+}
+
+/** The bucket routes (TB-12): the list under time:log, the edit under contracts:manage. */
+describe("timeApi buckets", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("lists the account's buckets with the taxonomy and the class each one carries", async () => {
+    const calls = stubFetch({
+      "GET /v1/accounts/acct-1/buckets": () =>
+        json([aBucket(), aBucket({ id: "b-2", key: "qbr_prep", label: "QBR prep", code: "qbr_prep" })]),
+    });
+    const store = makeStore();
+    const buckets = await store.dispatch(timeApi.endpoints.listBuckets.initiate("acct-1")).unwrap();
+    expect(buckets.map((bucket) => bucket.code)).toEqual(["governance", "qbr_prep"]);
+    expect(calls.map((call) => call.key)).toEqual(["GET /v1/accounts/acct-1/buckets"]);
+  });
+
+  it("patches a bucket with its version and reads the list again", async () => {
+    let reads = 0;
+    const calls = stubFetch({
+      "GET /v1/accounts/acct-1/buckets": () => {
+        reads += 1;
+        return json([reads > 1 ? aBucket({ status: "retired", version: 2 }) : aBucket()]);
+      },
+      [`PATCH /v1/accounts/acct-1/buckets/${BUCKET_ID}`]: () => json(aBucket({ status: "retired", version: 2 })),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.listBuckets.initiate("acct-1"));
+    await subscription.unwrap();
+    const patched = await store
+      .dispatch(
+        timeApi.endpoints.patchBucket.initiate({
+          accountId: "acct-1",
+          bucketId: BUCKET_ID,
+          body: { version: 1, status: "retired" },
+        }),
+      )
+      .unwrap();
+    expect(patched.status).toBe("retired");
+    expect(calls.find((call) => call.key.startsWith("PATCH "))?.body).toEqual({ version: 1, status: "retired" });
+    await vi.waitFor(() => expect(reads).toBe(2));
+    subscription.unsubscribe();
+  });
+
+  it("reads the list again even when the patch is refused, because a stale version means it is behind", async () => {
+    let reads = 0;
+    stubFetch({
+      "GET /v1/accounts/acct-1/buckets": () => {
+        reads += 1;
+        return json([aBucket()]);
+      },
+      [`PATCH /v1/accounts/acct-1/buckets/${BUCKET_ID}`]: () => json({ code: "stale_version" }, 409),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(timeApi.endpoints.listBuckets.initiate("acct-1"));
+    await subscription.unwrap();
+    await expect(
+      store
+        .dispatch(
+          timeApi.endpoints.patchBucket.initiate({
+            accountId: "acct-1",
+            bucketId: BUCKET_ID,
+            body: { version: 1, label: "Governance and QBR" },
+          }),
+        )
+        .unwrap(),
+    ).rejects.toMatchObject({ status: 409, data: { code: "stale_version" } });
+    await vi.waitFor(() => expect(reads).toBe(2));
+    subscription.unsubscribe();
+  });
+
+  it("names each code in the shared taxonomy, and falls back on one it has never heard of", () => {
+    expect([...BUCKET_CODES]).toEqual(["governance", "qbr_prep", "account_mgmt", "escalation", "custom"]);
+    expect(bucketCodeLabel("qbr_prep")).toBe("QBR preparation");
+    expect(bucketCodeLabel("something_new")).toBe("something new");
   });
 });

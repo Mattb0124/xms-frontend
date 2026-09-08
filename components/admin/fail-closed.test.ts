@@ -680,3 +680,80 @@ describe("the routing defaults and the group catalog are read behind tickets:vie
     expect(read("components/tickets/change-calendar.tsx")).not.toContain("Mutation(");
   });
 });
+
+/**
+ * The same map for the non-ticket buckets (TB-12, backend 95ed324). Two keys
+ * again: the API answers the list and the log route to `time:log`, because
+ * logging is what needs them, and the edit to `contracts:manage`, because the
+ * billable class on a bucket is what decides whether that time burns the
+ * contract. Neither is implied by the account record's own `admin:accounts`
+ * or by `contracts:view`, so the panel on the account holds its own read
+ * gate rather than riding on the tab's.
+ */
+const BUCKET_READS = [
+  { hook: "useListBucketsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/buckets" },
+  {
+    hook: "useLogBucketTimeMutation",
+    slice: "redux/timeApi.ts",
+    route: "/v1/accounts/${accountId}/buckets/${bucketId}/time-entries",
+  },
+  {
+    hook: "usePatchBucketMutation",
+    slice: "redux/timeApi.ts",
+    route: "/v1/accounts/${accountId}/buckets/${bucketId}",
+  },
+];
+
+const BUCKET_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/time/bucket-log.tsx", mountedIn: "app/(internal)/time/page.tsx" },
+  { file: "app/(internal)/time/page.tsx", permission: "time:log" },
+  { file: "components/time/buckets-panel.tsx", permission: "time:log" },
+];
+
+describe("the non-ticket buckets are read behind time:log and edited behind contracts:manage", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of BUCKET_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = BUCKET_READS.map((entry) => entry.hook);
+    const listed = new Set(BUCKET_SURFACES.map((surface) => surface.file));
+    const callers = callersOf(hooks);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+  });
+
+  it("gates each surface on time:log, by its own guard or by the screen that mounts it", () => {
+    const gates = new Set(BUCKET_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of BUCKET_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(
+        source.includes(`<AdminGate permission="${surface.permission}">`) ||
+          source.includes(`hasPermission("${surface.permission}")`),
+        `${surface.file} does not gate on ${surface.permission}`,
+      ).toBe(true);
+    }
+  });
+
+  it("keeps the edit behind contracts:manage, which the read key does not imply", () => {
+    expect(read("components/time/buckets-panel.tsx")).toContain('hasPermission("contracts:manage")');
+    // The panel is mounted on the account's Contracts tab, whose own gate is
+    // contracts:view: neither key covers the other, which is why the panel
+    // asks for both itself.
+    expect(read("components/admin/contracts/account-contracts-tab.tsx")).toContain("<BucketsPanel");
+  });
+
+  it("logs bucket time on the route the API renamed it to, and never on the old one", () => {
+    const slice = read("redux/timeApi.ts");
+    expect(slice).toContain("/v1/accounts/${accountId}/buckets/${bucketId}/time-entries");
+    expect(slice).not.toContain("/v1/accounts/${accountId}/buckets/${bucketId}/time`");
+  });
+});

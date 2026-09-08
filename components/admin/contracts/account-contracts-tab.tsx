@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EngagementsPanel } from "@/components/admin/contracts/engagements-panel";
 import { RateCardsPanel } from "@/components/admin/contracts/rate-cards";
 import { useSkillName } from "@/components/capacity/account-coverage";
+import { BucketsPanel } from "@/components/time/buckets-panel";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { Panel } from "@/components/xms/panel";
@@ -610,6 +611,13 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
         />
       ) : null}
       {contracts.data ? <RateCardsPanel accountId={accountId} contracts={rows} /> : null}
+      {/*
+        The non-ticket buckets (TB-12) sit here because their billable class
+        is a commercial fact: it decides whether governance and QBR time
+        burns the contract above. The panel holds its own time:log gate on
+        the read, which contracts:view does not imply.
+      */}
+      <BucketsPanel accountId={accountId} />
     </div>
   );
 }

@@ -176,3 +176,31 @@ describe("Timesheet", () => {
     expect(plain.querySelector("[data-over-budget]")).toBeNull();
   });
 });
+
+/**
+ * Non-ticket time on the timesheet (TB-12): an entry hanging off a bucket
+ * rather than a ticket is named by the bucket, and one the API answered
+ * without a label still says what it is.
+ */
+describe("non-ticket entries", () => {
+  it("names the bucket where the entry has one, and the ticket key where it does not", () => {
+    const week = aWeek({
+      days: [
+        aWeekDay({
+          date: "2026-09-07",
+          weekday: 1,
+          logged_minutes: 135,
+          entries: [
+            anEntry({ id: "e-ticket", ticket_number: "1000199", bucket_label: null }),
+            anEntry({ id: "e-bucket", ticket_id: null, ticket_number: null, bucket_label: "Governance" }),
+            anEntry({ id: "e-unnamed", ticket_id: null, ticket_number: null, bucket_label: null }),
+          ],
+        }),
+      ],
+    });
+    render(<Timesheet week={week} catalogs={catalogs} />);
+    expect(document.querySelector('[data-entry="e-ticket"] [data-key]')).toHaveTextContent("CS1000199");
+    expect(document.querySelector('[data-entry="e-bucket"] [data-bucket]')).toHaveTextContent("Governance");
+    expect(document.querySelector('[data-entry="e-unnamed"] [data-bucket]')).toHaveTextContent("Non-ticket time");
+  });
+});

@@ -41,14 +41,19 @@ export interface LogTimeDraft {
   afterHours: boolean;
 }
 
-export function emptyDraft(catalogs: DeskCatalogs): LogTimeDraft {
+/**
+ * `billableClass` overrides the class the first activity would carry: a
+ * bucket names its own (TB-12), and non-ticket work is internal unless the
+ * account says otherwise, so the bucket's class is the one the form opens on.
+ */
+export function emptyDraft(catalogs: DeskCatalogs, billableClass?: string): LogTimeDraft {
   const first = catalogs.activityTypes[0];
   return {
     performedOn: today(),
     performedStart: "",
     minutes: "",
     activityType: first?.key ?? "",
-    billableClass: first?.billableClass ?? "",
+    billableClass: billableClass ?? first?.billableClass ?? "",
     description: "",
     afterHours: false,
   };
@@ -86,17 +91,25 @@ export interface LogTimeFormProps {
   catalogs: DeskCatalogs;
   onSubmit: (body: LogTimeBody) => Promise<void>;
   pending?: boolean;
+  /** The class the form opens on, where something other than the activity decides it (a bucket, TB-12). */
+  billableClass?: string;
 }
 
 /** The compact Log time form (Time & Budget 5.2): minutes with quick chips, date, start time, activity with the class defaulted. */
-export function LogTimeForm({ catalogs, onSubmit, pending }: LogTimeFormProps) {
-  const [draft, setDraft] = useState<LogTimeDraft>(() => emptyDraft(catalogs));
+export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogTimeFormProps) {
+  const [draft, setDraft] = useState<LogTimeDraft>(() => emptyDraft(catalogs, billableClass));
   const [error, setError] = useState<string | null>(null);
   const [seenLoaded, setSeenLoaded] = useState(catalogs.loaded);
+  const [seenClass, setSeenClass] = useState(billableClass);
   // Once the real catalog lands, re-default the activity and class from it.
   if (seenLoaded !== catalogs.loaded) {
     setSeenLoaded(catalogs.loaded);
-    if (!draft.minutes && !draft.description) setDraft(emptyDraft(catalogs));
+    if (!draft.minutes && !draft.description) setDraft(emptyDraft(catalogs, billableClass));
+  }
+  // A different bucket carries a different class, so an untouched form takes it.
+  if (seenClass !== billableClass) {
+    setSeenClass(billableClass);
+    if (!draft.minutes && !draft.description) setDraft(emptyDraft(catalogs, billableClass));
   }
 
   const chooseActivity = (key: string) => {
@@ -116,7 +129,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending }: LogTimeFormProps) {
         if (problem) return;
         try {
           await onSubmit(toLogTimeBody(draft));
-          setDraft({ ...emptyDraft(catalogs), performedOn: draft.performedOn });
+          setDraft({ ...emptyDraft(catalogs, billableClass), performedOn: draft.performedOn });
         } catch (caught) {
           const parsed = apiError(caught);
           setError(
@@ -127,7 +140,9 @@ export function LogTimeForm({ catalogs, onSubmit, pending }: LogTimeFormProps) {
                   ? "The date cannot be in the future."
                   : parsed.code === "ticket_closed"
                     ? "The ticket is closed; time stays reportable but cannot be added."
-                    : describeError(parsed)),
+                    : parsed.code === "bucket_retired"
+                      ? "That bucket has been retired, so no more time can be logged against it."
+                      : describeError(parsed)),
           );
         }
       }}

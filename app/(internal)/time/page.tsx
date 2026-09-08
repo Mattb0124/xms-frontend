@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AdminGate, INPUT, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { HeaderAction } from "@/components/shell/content-header-bar";
 import { formatMinutes, LogTimeForm } from "@/components/tickets/time-tab";
+import { BucketLog } from "@/components/time/bucket-log";
 import { shiftWeek, Timesheet, weekOf } from "@/components/time/timesheet";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -115,6 +116,8 @@ function MyTime() {
         </div>
       </HeaderAction>
       <QuickLog />
+      {/* Non-ticket time (TB-12): the same form, against a bucket rather than a ticket. */}
+      <BucketLog />
       {isLoading && !data ? (
         <Skeleton lines={8} />
       ) : (
