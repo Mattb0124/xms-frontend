@@ -56,8 +56,6 @@ function PersonRecordPageBody() {
       {data ? (
         <>
           <RecordBar
-            backHref="/roster"
-            backLabel="Roster"
             keyText={data.email}
             title={data.display_name}
             pill={

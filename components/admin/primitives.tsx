@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -103,26 +102,29 @@ export function ConfirmButton({
 }
 
 /** Record bar: a mono key, the title, a pill and the actions on the right. */
+/**
+ * A record screen's own heading: its key, its name and its pills, with the
+ * screen's actions on the right.
+ *
+ * It carried a "← Roster", "← Migration", "← Report packs" link on the left.
+ * The ticket record dropped its own "← Queue" in pass two and nothing missed
+ * it: every screen is a row in the sidebar or in the All overlay, the browser
+ * has a back button, and one of these links did not even go where it said
+ * (Report review's went to the account's reports tab).
+ */
 export function RecordBar({
   keyText,
   title,
   pill,
   actions,
-  backHref,
-  backLabel,
 }: {
   keyText?: string;
   title: string;
   pill?: ReactNode;
   actions?: ReactNode;
-  backHref: string;
-  backLabel: string;
 }) {
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      <Link href={backHref} className="text-xms-label hover:text-xms-ink text-[12px]">
-        ← {backLabel}
-      </Link>
       {keyText ? <span className="xms-mono text-xms-accent text-[13px] font-medium">{keyText}</span> : null}
       <h1 className="text-xms-ink text-[18px] font-semibold">{title}</h1>
       {pill}

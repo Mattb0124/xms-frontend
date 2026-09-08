@@ -56,9 +56,10 @@ describe("ReportRunReview", () => {
     expect(pdf.getAttribute("href")).toBe("https://files.example.test/packs/held.pdf?signature=constructed");
     expect(pdf.getAttribute("rel")).toBe("noopener noreferrer");
     expect(screen.getByRole("link", { name: "Open slides" }).getAttribute("href")).toContain("held.pptx");
-    expect(screen.getByRole("link", { name: "← Report packs" }).getAttribute("href")).toBe(
-      "/admin/accounts/acct-1?tab=reports",
-    );
+    // No back link on a record screen: the ticket record dropped its own in
+    // pass two, and this one said "Report packs" while going to the account's
+    // reports tab, which is a label that lies.
+    expect(screen.queryByRole("link", { name: /^←/ })).toBeNull();
 
     // The numbers are the deck's own sections. The headline is prose alone,
     // so while the run is held it lives in the editable panel above rather

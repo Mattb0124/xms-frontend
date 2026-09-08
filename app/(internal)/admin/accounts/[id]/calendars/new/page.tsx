@@ -17,16 +17,7 @@ function NewCalendarPageBody() {
   const { data } = useGetAccountQuery(params.id);
   return (
     <>
-      {data ? (
-        <RecordBar
-          backHref={`/admin/accounts/${params.id}`}
-          backLabel={data.name}
-          keyText={data.key}
-          title="New calendar"
-        />
-      ) : (
-        <Skeleton lines={1} className="mb-4 max-w-sm" />
-      )}
+      {data ? <RecordBar keyText={data.key} title="New calendar" /> : <Skeleton lines={1} className="mb-4 max-w-sm" />}
       <CalendarEditor accountId={params.id} onCreated={(calendar) => router.push(`/admin/calendars/${calendar.id}`)} />
     </>
   );

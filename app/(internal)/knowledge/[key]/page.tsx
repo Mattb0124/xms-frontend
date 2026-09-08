@@ -154,8 +154,6 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
       <RecordBar
         keyText={article.display_key}
         title=""
-        backHref="/knowledge"
-        backLabel="Solutions"
         pill={
           <span className="flex items-center gap-2">
             <ArticleStatusPill status={article.status} />

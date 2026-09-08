@@ -47,8 +47,6 @@ function AdminGroupRecordPageBody() {
   return (
     <>
       <RecordBar
-        backHref="/admin/groups"
-        backLabel="Groups"
         title={data.name}
         pill={<StatePill state={data.status === "active" ? "resolved" : "closed"} label={data.status} />}
       />

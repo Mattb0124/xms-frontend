@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { formatPeriod } from "@/components/reporting/format";
@@ -28,9 +27,6 @@ export function ReportPackView({ packId }: { packId: string }) {
   return (
     <div className="flex flex-col gap-4" data-testid="report-pack">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/accounts" className="text-xms-label hover:text-xms-ink text-[12px]">
-          ← Accounts
-        </Link>
         <h1 className="text-xms-ink text-[18px] font-semibold">Weekly status report</h1>
         <span className="xms-mono text-xms-label text-[12px]">
           {formatPeriod({ start: data.period_start, end: data.period_end })}

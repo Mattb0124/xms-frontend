@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { DeliveryList } from "@/components/reporting/delivery-list";
@@ -37,7 +36,6 @@ import { requestedByLabel } from "@/lib/reporting/schedules";
 import { EXTERNAL_REL, safeHref } from "@/lib/safe-url";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
-import { useMe } from "@/redux/me";
 import {
   useApproveReportRunMutation,
   useCancelReportRunMutation,
@@ -75,7 +73,6 @@ const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
  * decided (`components/admin/fail-closed.test.ts`).
  */
 export function ReportRunReview({ runId }: { runId: string }) {
-  const me = useMe();
   const { data: run, isLoading, isError, error } = useReviewRunQuery(runId);
   const [approve, approving] = useApproveReportRunMutation();
   const [cancel, cancelling] = useCancelReportRunMutation();
@@ -151,14 +148,6 @@ export function ReportRunReview({ runId }: { runId: string }) {
   return (
     <div className="flex flex-col gap-4" data-testid="run-review" data-status={run.status}>
       <div className="flex flex-wrap items-center gap-3">
-        {me.hasPermission("admin:accounts") ? (
-          <Link
-            href={`/admin/accounts/${run.account_id}?tab=reports`}
-            className="text-xms-label hover:text-xms-ink text-[12px]"
-          >
-            ← Report packs
-          </Link>
-        ) : null}
         <h1 className="text-xms-ink text-[18px] font-semibold">Report review</h1>
         <span className="xms-mono text-xms-label text-[12px]">
           {run.period_start} to {run.period_end}

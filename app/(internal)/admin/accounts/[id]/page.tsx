@@ -308,8 +308,6 @@ function AccountRecordScreen() {
     <>
       {data ? (
         <RecordBar
-          backHref="/admin/accounts"
-          backLabel="Accounts"
           keyText={data.key}
           title={data.name}
           pill={<AccountStatusPill status={data.status} />}

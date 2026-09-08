@@ -20,7 +20,7 @@ function NewBatchScreen() {
   };
   return (
     <>
-      <RecordBar backHref="/admin/migration" backLabel="Migration" title="New batch" />
+      <RecordBar title="New batch" />
       {accounts.isLoading ? <Skeleton lines={6} className="max-w-md" /> : null}
       {!accounts.isLoading ? (
         <NewBatchForm

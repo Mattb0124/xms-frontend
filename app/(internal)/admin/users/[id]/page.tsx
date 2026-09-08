@@ -204,8 +204,6 @@ function AdminUserRecordPageBody() {
     <>
       {data ? (
         <RecordBar
-          backHref="/admin/users"
-          backLabel="Users"
           keyText={data.email}
           title={fullName(data)}
           pill={<UserStatusPill status={data.status} />}

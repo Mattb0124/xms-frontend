@@ -84,8 +84,6 @@ function AdminMigrationBatchPageBody() {
       {data ? (
         <>
           <RecordBar
-            backHref="/admin/migration"
-            backLabel="Migration"
             keyText={data.id.slice(0, 8)}
             title={`${objectKindLabel(data.object_kind)} from ${String(data.source_ref.instance_name ?? "the source")}`}
             pill={<BatchStatusPill status={data.status} title={data.error ?? undefined} />}

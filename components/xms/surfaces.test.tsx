@@ -313,6 +313,28 @@ describe("colour in a list", () => {
 });
 
 /**
+ * No arrow-prefixed back link, on any screen. The ticket record dropped its
+ * own "← Queue" in pass two and nothing missed it: every screen is a row in
+ * the sidebar or in the All overlay, the browser has a back button, and one of
+ * these links did not even go where it said (Report review's "Report packs"
+ * went to the account's reports tab). The arrow is allowed in a comment, which
+ * is where the rule is explained.
+ */
+describe("the way back", () => {
+  const ARROW = String.fromCharCode(0x2190);
+  const COMMENT = /^\s*(\/\/|\*|\/\*)/;
+
+  it("draws no arrow-prefixed back link anywhere", () => {
+    const offenders = sourceFiles().filter((file) =>
+      readFileSync(file, "utf8")
+        .split("\n")
+        .some((line) => line.includes(ARROW) && !COMMENT.test(line)),
+    );
+    expect(offenders).toEqual([]);
+  });
+});
+
+/**
  * Every page is full width: the work area runs from the sidebar edge to the
  * window edge inside the 20px gutter, and no screen shell narrows it. Reading
  * width is capped on the control (`INPUT`), never on the page, so a form does

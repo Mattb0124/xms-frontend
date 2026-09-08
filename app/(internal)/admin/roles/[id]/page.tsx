@@ -58,8 +58,6 @@ function AdminRoleRecordPageBody() {
   return (
     <>
       <RecordBar
-        backHref="/admin/roles"
-        backLabel="Roles"
         title={data.name}
         pill={<StatePill state={data.status === "active" ? "resolved" : "closed"} label={data.status} />}
         actions={

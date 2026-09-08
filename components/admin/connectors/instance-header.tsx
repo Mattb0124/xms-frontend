@@ -167,8 +167,6 @@ export function InstanceHeader({ instance, refetch }: { instance: ConnectorInsta
   return (
     <div className="mb-4 flex flex-col gap-2">
       <RecordBar
-        backHref="/admin/connectors"
-        backLabel="Connectors"
         keyText={instance.table_name}
         title={instance.name}
         pill={<HealthPill health={instance.health} reason={instance.trip_reason} />}

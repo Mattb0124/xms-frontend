@@ -33,12 +33,7 @@ function CalendarRecordPageBody() {
       ) : null}
       {data ? (
         <>
-          <RecordBar
-            backHref={`/admin/accounts/${data.account_id}`}
-            backLabel={account.data?.name ?? "Account"}
-            keyText={account.data?.key}
-            title={data.name}
-          />
+          <RecordBar keyText={account.data?.key} title={data.name} />
           <div className="flex flex-col gap-4">
             <CalendarEditor accountId={data.account_id} calendar={data} refetch={refetch} />
             <div>
