@@ -46,7 +46,11 @@ function walk(directory: string): string[] {
   });
 }
 
-const relative = (file: string) => file.slice(process.cwd().length + 1).split(sep).join("/");
+const relative = (file: string) =>
+  file
+    .slice(process.cwd().length + 1)
+    .split(sep)
+    .join("/");
 
 /** Every caption literal in a file, with the interpolated expressions removed. */
 export function captionsIn(source: string): string[] {
@@ -82,7 +86,7 @@ describe("capacity and time panel eyebrows", () => {
   });
 
   it("recognizes the shape the review objected to", () => {
-    const source = 'caption={`${n} in the month; hours are the server\'s`}';
+    const source = "caption={`${n} in the month; hours are the server's`}";
     expect(captionsIn(source)).toEqual(["in the month; hours are the server's"]);
   });
 });
