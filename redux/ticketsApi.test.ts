@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
-import { ticketsApi, type Contract, type Engagement, type TicketView } from "@/redux/ticketsApi";
+import { ticketsApi, type Contract, type Engagement, type TicketScope, type TicketView } from "@/redux/ticketsApi";
 import { json, stubFetch } from "@/test-kit/portal";
 
 export const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
@@ -69,6 +69,52 @@ export function anExpiringEngagement(overrides: Partial<Engagement> = {}): Engag
 }
 
 export const TICKET_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+export const FLAGGER_ID = "u-cara";
+export const APPROVER_ID = "u-dana";
+
+/** A ticket nobody has flagged: the four fields present, everything else null. */
+export function aScope(overrides: Partial<TicketScope> = {}): TicketScope {
+  return {
+    out_of_scope: "none",
+    reason: null,
+    flagged_by: null,
+    flagged_by_name: null,
+    flagged_at: null,
+    decision: null,
+    note: null,
+    decided_by: null,
+    decided_by_name: null,
+    decided_at: null,
+    overage_allowance_minutes: null,
+    ...overrides,
+  };
+}
+
+/** A flag Cara raised and nobody has decided (TM-11). */
+export function aFlaggedScope(overrides: Partial<TicketScope> = {}): TicketScope {
+  return aScope({
+    out_of_scope: "flagged",
+    reason: "A new hierarchy is a project, not support.",
+    flagged_by: FLAGGER_ID,
+    flagged_by_name: "Cara Lee",
+    flagged_at: "2026-09-06T11:00:00Z",
+    ...overrides,
+  });
+}
+
+/** The same flag, approved by someone else with eight hours of extra budget. */
+export function anApprovedScope(overrides: Partial<TicketScope> = {}): TicketScope {
+  return aFlaggedScope({
+    out_of_scope: "approved",
+    decision: "approve",
+    note: "Agreed with the client.",
+    decided_by: APPROVER_ID,
+    decided_by_name: "Dana Reid",
+    decided_at: "2026-09-07T08:30:00Z",
+    overage_allowance_minutes: 480,
+    ...overrides,
+  });
+}
 
 /** A constructed ticket record: an open incident on the retainer, assigned, with both clocks running. */
 export function aTicketView(overrides: Partial<TicketView> = {}): TicketView {
@@ -99,6 +145,7 @@ export function aTicketView(overrides: Partial<TicketView> = {}): TicketView {
       solution_candidate: false,
       time_exemption_reason: null,
     },
+    scope: aScope(),
     external_refs: {},
     reopen_count: 0,
     first_response_at: null,

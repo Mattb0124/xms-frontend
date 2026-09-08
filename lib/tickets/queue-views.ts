@@ -41,6 +41,16 @@ export const QUEUE_VIEWS: QueueView[] = [
 
 export const DEFAULT_VIEW = "open";
 
+/**
+ * The four dimensions a chip narrows. There is deliberately no chip for the
+ * out-of-scope flag (TM-11): `GET /v1/tickets` takes no `out_of_scope`
+ * parameter, and the server's condition-set allowlist
+ * (`src/modules/tickets/conditions.ts`) has no `out_of_scope` field either,
+ * so a chip for it would be a parameter the API silently drops and a list
+ * that lies about what it filtered. The Waiting on me rail opens the Queue
+ * with the count instead; when the API grows the dimension, the chip and
+ * that link follow it.
+ */
 export type ChipKey = "account_id" | "type" | "priority" | "state";
 
 export interface Chip {

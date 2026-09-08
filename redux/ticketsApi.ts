@@ -25,6 +25,40 @@ export interface TicketResolution {
   time_exemption_reason: string | null;
 }
 
+/**
+ * The out-of-scope flag and its decision as the record carries them
+ * (TM-11). Absent detail reads as null, never undefined, so the record can
+ * say "not decided yet" rather than say nothing at all.
+ */
+export interface TicketScope {
+  out_of_scope: string;
+  reason: string | null;
+  flagged_by: string | null;
+  flagged_by_name: string | null;
+  flagged_at: string | null;
+  decision: "approve" | "decline" | null;
+  note: string | null;
+  decided_by: string | null;
+  decided_by_name: string | null;
+  decided_at: string | null;
+  overage_allowance_minutes: number | null;
+}
+
+/** `out_of_scope: true` raises a flag with its reason; false withdraws one still pending. */
+export interface ScopeFlagBody {
+  version: number;
+  out_of_scope: boolean;
+  reason?: string;
+}
+
+export interface ScopeDecisionBody {
+  version: number;
+  decision: "approve" | "decline";
+  note?: string;
+  /** Minutes added to the contract period's budget on approval; absent means no extra budget. */
+  overage_allowance_minutes?: number;
+}
+
 export interface TicketView {
   id: string;
   key: string;
@@ -46,6 +80,8 @@ export interface TicketView {
   assignee_name: string | null;
   contract_id: string;
   resolution: TicketResolution;
+  /** The out-of-scope flag and its decision (TM-11), for the record's Scope card. */
+  scope?: TicketScope;
   external_refs: Record<string, unknown>;
   reopen_count: number;
   first_response_at: string | null;
@@ -354,6 +390,32 @@ export const ticketsApi = xmsApi.injectEndpoints({
         "Tickets",
       ],
     }),
+    /**
+     * The out-of-scope flag (TM-11), under tickets:work. A refusal leaves
+     * the record behind either way (already flagged, someone else moved
+     * the version), so the ticket and its timeline are read again whether
+     * the API took it or not.
+     */
+    flagTicketScope: build.mutation<TicketView, { key: string; body: ScopeFlagBody }>({
+      query: ({ key, body }) => ({ url: `/v1/tickets/${key}/scope`, method: "POST", body }),
+      invalidatesTags: (_result, _error, { key }) => [
+        ticketTag(key),
+        ticketTag(`${key}:timeline`),
+        "Tickets",
+        "Waiting",
+      ],
+    }),
+    /** The decision, under tickets:approve-scope; an approved allowance changes the account's budget. */
+    decideTicketScope: build.mutation<TicketView, { key: string; body: ScopeDecisionBody }>({
+      query: ({ key, body }) => ({ url: `/v1/tickets/${key}/scope/decision`, method: "POST", body }),
+      invalidatesTags: (_result, _error, { key }) => [
+        ticketTag(key),
+        ticketTag(`${key}:timeline`),
+        "Tickets",
+        "Waiting",
+        "Budget",
+      ],
+    }),
     listComments: build.query<Message[], string>({
       query: (key) => `/v1/tickets/${key}/comments`,
       providesTags: (_result, _error, key) => [ticketTag(`${key}:timeline`)],
@@ -473,6 +535,8 @@ export const {
   useCreateTicketMutation,
   usePatchTicketMutation,
   useTransitionTicketMutation,
+  useFlagTicketScopeMutation,
+  useDecideTicketScopeMutation,
   useListCommentsQuery,
   useAddCommentMutation,
   useAddWorkNoteMutation,

@@ -12,6 +12,7 @@ import { ConversationTab } from "@/components/tickets/conversation-tab";
 import { LinksTab } from "@/components/tickets/links-tab";
 import { PropertiesPanel } from "@/components/tickets/properties-panel";
 import { ResolutionTab } from "@/components/tickets/resolution-tab";
+import { ScopeCard } from "@/components/tickets/scope-card";
 import { RequesterCard, ServiceLevels, WatchCard } from "@/components/tickets/sla-rail";
 import { SolutionsRail } from "@/components/tickets/solutions-rail";
 import { SyncCard } from "@/components/tickets/sync-card";
@@ -131,6 +132,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         </Panel>
         <div className="flex flex-col gap-4">
           <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} pausedReason={ticket.state_label} />
+          <ScopeCard ticket={ticket} />
           <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
