@@ -377,7 +377,9 @@ components/providers.tsx  Redux store, Clerk (when configured), theme, toasts, t
 lib/routes.ts           the route registry: path, screen id, section, permission; visibleScreens fails closed;
                         PORTAL_SCREENS carries the portal screen ids for telemetry only
 lib/conditions.ts       the condition-set grammar (serialise, parse, describe)
-lib/auth/               dev-mode switch (throws in production builds) and the TokenProvider registry
+lib/auth/               dev-mode (DEPLOY_TARGET and readDeployTarget, IS_LOCAL_TARGET, AUTH_DEV_MODE; throws at load when
+                        the dev sign-in is asked for off the local target) and the TokenProvider registry, whose browser
+                        storage is local-target only (security review finding 27)
 lib/telemetry/          TelemetryClient (batching, keepalive, catalog), ScreenViews, useTrack, request-id memory
 lib/persisted-set.ts    per-browser pins, stars and history for the shell
 lib/axel-client/        (P1.7.4) the SSE streaming client for the Axel adapter
@@ -438,4 +440,6 @@ e2e/                    Playwright golden paths; tickets.spec.ts runs only with 
 ```
 
 Environment: `NEXT_PUBLIC_API_BASE_URL` (API origin, also in the CSP), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (enables Clerk),
-`NEXT_PUBLIC_AUTH_DEV_MODE=true` (dev token paste; refused in production builds). See `.env.example`.
+`NEXT_PUBLIC_DEPLOY_TARGET` (`local` | `dev` | `demo` | `production`; unset reads as `local` in a development build and
+`production` in a built one) and `NEXT_PUBLIC_AUTH_DEV_MODE=true` (dev token paste; local target only, and the build
+fails when it is on for any other). See `.env.example`.

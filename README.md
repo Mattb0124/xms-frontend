@@ -6,11 +6,17 @@ The Next.js and React application for XMS. It serves two hosts from one codebase
 
 ```
 pnpm install
-cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_AUTH_DEV_MODE=true for the token paste sign-in
+cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_DEPLOY_TARGET=local, NEXT_PUBLIC_AUTH_DEV_MODE=true for the token paste sign-in
 pnpm dev                     # http://localhost:3000 (desk) and /portal (client portal)
 ```
 
 Sign in with a development token from the backend (`pnpm dev:token --email admin@example.test` there) at `/dev/sign-in`, or with Clerk when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set.
+
+### Deploy target
+
+`NEXT_PUBLIC_DEPLOY_TARGET` names where a build is going: `local`, `dev`, `demo` or `production`. Every pipeline sets it. Unset means `local` in a development build and `production` in a built one, so a pipeline that forgets it closes the door rather than opening it.
+
+The developer conveniences exist only on `local`: the dev sign-in at `/dev/sign-in`, the token check at `/dev/tokens`, and the pasted bearer kept in browser storage. `NEXT_PUBLIC_AUTH_DEV_MODE=true` on any other target fails the build, because a token in `localStorage` is readable by any script on the origin and belongs on a developer's own machine alone (security review finding 27).
 
 Quality gates, all of which must be green before a push:
 
@@ -41,6 +47,7 @@ pnpm test:e2e   # Playwright golden paths against a running API with the seed (E
 ## Conventions
 
 - Tokens only (`styles/tokens`), no raw hex; the wireframes are the UI source of truth.
+- No developer conveniences off the local deploy target: the dev sign-in, the `/dev` pages and the token in browser storage need `NEXT_PUBLIC_DEPLOY_TARGET=local`.
 - No authorisation decisions in the browser: `lib/routes.ts` gates navigation on the permissions the API returned, and every screen fails closed.
 - Telemetry carries identifiers and structured facts, never ticket, email or article text.
 - No em-dashes in copy; "generalization" is spelled with a z.

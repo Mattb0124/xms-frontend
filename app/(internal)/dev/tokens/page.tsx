@@ -1,9 +1,27 @@
+import { Panel } from "@/components/xms/panel";
+import { DEPLOY_TARGET, IS_LOCAL_TARGET } from "@/lib/auth/dev-mode";
+
 /**
  * Token check page (moved from the internal root when the shell landed).
  * Proves the four token layers render in both themes.
  * Reference: 01-architecture/DESIGN-SYSTEM.md section 8, Wireframes section 8.
+ *
+ * A /dev page is a developer's tool, so it exists only on the local deploy
+ * target (security review finding 27); anywhere else it says so and renders
+ * nothing of itself.
  */
 export default function TokensPage() {
+  if (!IS_LOCAL_TARGET) {
+    return (
+      <Panel title="Token check" caption="Not available">
+        <p className="text-xms-body text-[13px]">
+          The developer pages run only on the local deploy target. This build names{" "}
+          <code className="xms-mono">{DEPLOY_TARGET}</code>.
+        </p>
+      </Panel>
+    );
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <header className="flex items-center justify-between">

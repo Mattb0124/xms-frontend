@@ -1,4 +1,12 @@
-import { AUTH_DEV_MODE, CLERK_ENABLED, DEV_TOKEN_STORAGE_KEY } from "@/lib/auth/dev-mode";
+import { AUTH_DEV_MODE, CLERK_ENABLED, DEV_TOKEN_STORAGE_KEY, IS_LOCAL_TARGET } from "@/lib/auth/dev-mode";
+
+/**
+ * A bearer in browser storage is readable by any script on the origin, so it
+ * is kept on a developer's own machine and nowhere else (security review
+ * finding 27). AUTH_DEV_MODE already implies the local target; the second
+ * clause says so where the storage is touched rather than three files away.
+ */
+const DEV_TOKEN_STORAGE_ALLOWED = AUTH_DEV_MODE && IS_LOCAL_TARGET;
 
 /**
  * Where the bearer for the XMS API comes from. RTK Query's prepareHeaders
@@ -16,11 +24,11 @@ export const noTokenProvider: TokenProvider = {
   getToken: async () => null,
 };
 
-/** Reads the pasted token from localStorage; only constructed in dev mode. */
+/** Reads the pasted token from localStorage; only on the local deploy target in dev mode. */
 export const devTokenProvider: TokenProvider = {
   kind: "dev",
   async getToken() {
-    if (!AUTH_DEV_MODE || typeof window === "undefined") return null;
+    if (!DEV_TOKEN_STORAGE_ALLOWED || typeof window === "undefined") return null;
     try {
       return window.localStorage.getItem(DEV_TOKEN_STORAGE_KEY);
     } catch {
@@ -30,7 +38,7 @@ export const devTokenProvider: TokenProvider = {
 };
 
 export function setDevToken(token: string | null): void {
-  if (!AUTH_DEV_MODE || typeof window === "undefined") return;
+  if (!DEV_TOKEN_STORAGE_ALLOWED || typeof window === "undefined") return;
   if (token) window.localStorage.setItem(DEV_TOKEN_STORAGE_KEY, token);
   else window.localStorage.removeItem(DEV_TOKEN_STORAGE_KEY);
 }

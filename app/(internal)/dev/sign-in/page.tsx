@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Panel } from "@/components/xms/panel";
-import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
+import { AUTH_DEV_MODE, CLERK_ENABLED, DEPLOY_TARGET, IS_LOCAL_TARGET } from "@/lib/auth/dev-mode";
 import { setDevToken } from "@/lib/auth/token";
 import { xmsApi } from "@/redux/api";
 import { useAppDispatch } from "@/redux/hooks";
@@ -11,8 +11,9 @@ import { useAppDispatch } from "@/redux/hooks";
 /**
  * Development sign-in: paste a token minted by the backend's `pnpm dev:token`
  * (a locally signed dev JWT the API accepts only when its own dev-mode flag is
- * set). Rendered only when NEXT_PUBLIC_AUTH_DEV_MODE=true; the module that
- * defines that flag refuses production builds.
+ * set). Rendered only when NEXT_PUBLIC_AUTH_DEV_MODE=true on the local deploy
+ * target; the module that defines that flag fails the build anywhere else
+ * (security review finding 27).
  */
 export default function DevSignInPage() {
   const router = useRouter();
@@ -25,7 +26,9 @@ export default function DevSignInPage() {
         <p className="text-xms-body text-[13px]">
           {CLERK_ENABLED
             ? "Sign in through Clerk."
-            : "Set NEXT_PUBLIC_AUTH_DEV_MODE=true in .env.local to use a pasted token."}
+            : !IS_LOCAL_TARGET
+              ? `The pasted token is local only, and this build names the ${DEPLOY_TARGET} deploy target.`
+              : "Set NEXT_PUBLIC_AUTH_DEV_MODE=true in .env.local to use a pasted token."}
         </p>
       </Panel>
     );
