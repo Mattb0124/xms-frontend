@@ -17,6 +17,7 @@ import { SolutionsRail } from "@/components/tickets/solutions-rail";
 import { SyncCard } from "@/components/tickets/sync-card";
 import { TimeTab } from "@/components/tickets/time-tab";
 import { TransitionMenu } from "@/components/tickets/transition-menu";
+import { WORK_AREA_TABS } from "@/components/tickets/work-area-tabs";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
 import { PriorityPill } from "@/components/xms/priority-pill";
@@ -30,15 +31,6 @@ import { apiError, describeError } from "@/lib/admin/api-error";
 import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
 import { useGetTicketQuery, usePatchTicketMutation } from "@/redux/ticketsApi";
-
-const TABS = [
-  { key: "conversation", label: "Conversation" },
-  { key: "activity", label: "Activity" },
-  { key: "email", label: "Email" },
-  { key: "time", label: "Time" },
-  { key: "links", label: "Links" },
-  { key: "resolution", label: "Resolution" },
-];
 
 const TERMINAL = new Set(["closed", "cancelled", "rejected"]);
 
@@ -114,7 +106,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         <PropertiesPanel ticket={ticket} readOnly={readOnly} />
         <Panel title="Work area" flush>
           <div className="px-4 pt-2">
-            <TabBar tabs={TABS} active={tab} onChange={setTab} />
+            <TabBar tabs={WORK_AREA_TABS} active={tab} onChange={setTab} />
           </div>
           <div className="p-4">
             {tab === "conversation" ? (
@@ -136,7 +128,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           </div>
         </Panel>
         <div className="flex flex-col gap-4">
-          <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} />
+          <ServiceLevels sla={ticket.sla} fetchedAt={fetchedAt} pausedReason={ticket.state_label} />
           <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />

@@ -4,7 +4,9 @@ import {
   formatMinutes,
   localRemainingMinutes,
   meterCaption,
+  meterDetail,
   meterPercent,
+  pauseCaption,
   tighterClock,
   type ClockView,
 } from "@/lib/tickets/sla";
@@ -72,6 +74,32 @@ describe("local countdown", () => {
     expect(meterCaption(clock({ paused: true }), now, now)).toBe("Resolution 2h 00m of 8h 00m left (paused)");
     expect(meterCaption(clock({ remainingMinutes: -40, breached: true }), now, now)).toBe("Resolution breached by 40m");
     expect(meterCaption(clock({ kind: "response", met: true }), now, now)).toBe("Response met");
+  });
+
+  /**
+   * Review finding 21: the meters showed only "met" and "breached by", not
+   * the target, elapsed and remaining time the wireframe asks for, and the
+   * grey pause segment carried no reason.
+   */
+  it("names the target, the elapsed and the remaining time on every meter", () => {
+    expect(meterDetail(clock({}), now, now)).toBe("Target 8h 00m, elapsed 6h 00m, 2h 00m left");
+    expect(meterDetail(clock({ met: true, remainingMinutes: 300 }), now, now)).toBe(
+      "Target 8h 00m, met with 5h 00m to spare",
+    );
+    expect(meterDetail(clock({ remainingMinutes: -40, breached: true }), now, now)).toBe(
+      "Target 8h 00m, breached by 40m",
+    );
+  });
+
+  it("gives the grey segment its reason only while the clock is actually paused", () => {
+    expect(pauseCaption(clock({}))).toBeNull();
+    expect(pauseCaption(clock({ pausedTotalMinutes: 130, paused: true }), "Awaiting client")).toBe(
+      "Grey segment is 2h 10m paused, awaiting client.",
+    );
+    expect(pauseCaption(clock({ pausedTotalMinutes: 130 }), "Awaiting client")).toBe(
+      "Grey segment is 2h 10m paused.",
+    );
+    expect(pauseCaption(clock({ pausedTotalMinutes: 130, paused: true }))).toBe("Grey segment is 2h 10m paused.");
   });
 
   it("formats minutes as m, h m, or d h", () => {

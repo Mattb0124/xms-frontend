@@ -100,8 +100,11 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         kind: "select",
         options: PRIORITIES.map((priority) => ({
           value: priority,
-          label: `${priority.toUpperCase()}${priority === ticket.priority && ticket.priority_overridden ? " (overridden)" : ""}`,
+          label: priority.toUpperCase(),
         })),
+        // The matrix caption belongs beside the Priority value, not on the
+        // panel, whose name is Properties (Wireframes 3.2, finding 21).
+        hint: ticket.priority_overridden ? "Overridden by hand" : "Derived from the matrix",
         readOnly: readOnly || !canOverride,
       },
       { key: "source", label: "Source", value: SOURCE_LABEL[ticket.source] ?? ticket.source, readOnly: true },
@@ -140,7 +143,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   };
 
   return (
-    <Panel title="Properties" caption={ticket.priority_overridden ? "priority overridden" : "priority from the matrix"}>
+    <Panel title="Properties">
       <RecordForm
         columns={1}
         fields={fields}

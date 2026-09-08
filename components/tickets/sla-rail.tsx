@@ -5,12 +5,30 @@ import { MeterBar } from "@/components/xms/meter-bar";
 import { RailCard } from "@/components/xms/rail-card";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { meterCaption, meterPercent, type ClockView, type TicketSla } from "@/lib/tickets/sla";
+import {
+  meterCaption,
+  meterDetail,
+  meterPercent,
+  pauseCaption,
+  type ClockView,
+  type TicketSla,
+} from "@/lib/tickets/sla";
 import { useWatchTicketMutation, type TicketView } from "@/redux/ticketsApi";
 
-function Meter({ clock, fetchedAt, now }: { clock: ClockView; fetchedAt: Date; now: Date }) {
+function Meter({
+  clock,
+  fetchedAt,
+  now,
+  pausedReason,
+}: {
+  clock: ClockView;
+  fetchedAt: Date;
+  now: Date;
+  pausedReason?: string;
+}) {
   const percent = meterPercent(clock, fetchedAt, now);
   const pauseShare = clock.targetMinutes > 0 ? (clock.pausedTotalMinutes / clock.targetMinutes) * 100 : 0;
+  const pause = pauseCaption(clock, pausedReason);
   return (
     <div className="flex flex-col gap-1" data-clock={clock.kind}>
       <span className="text-xms-ink text-[13px]">{meterCaption(clock, fetchedAt, now)}</span>
@@ -21,15 +39,33 @@ function Meter({ clock, fetchedAt, now }: { clock: ClockView; fetchedAt: Date; n
         paused={clock.paused}
         pauses={pauseShare > 0 ? [{ startPct: Math.max(0, percent - pauseShare), endPct: percent }] : []}
       />
-      {clock.pausedTotalMinutes > 0 ? (
-        <span className="text-xms-label text-[12px]">Grey segment is {clock.pausedTotalMinutes}m paused.</span>
+      <span className="text-xms-label text-[12px]" data-meter-detail>
+        {meterDetail(clock, fetchedAt, now)}
+      </span>
+      {pause ? (
+        <span className="text-xms-label text-[12px]" data-pause-caption>
+          {pause}
+        </span>
       ) : null}
     </div>
   );
 }
 
-/** Service levels with live countdown (30 s tick), requester card, watch toggle. */
-export function ServiceLevels({ sla, fetchedAt }: { sla: TicketSla; fetchedAt?: Date }) {
+/**
+ * Service levels with live countdown (30 s tick), requester card, watch
+ * toggle. Each meter names its target, elapsed and remaining time, and the
+ * grey pause segment carries its reason, which is the ticket's own paused
+ * state (Wireframes section 3.2, review finding 21).
+ */
+export function ServiceLevels({
+  sla,
+  fetchedAt,
+  pausedReason,
+}: {
+  sla: TicketSla;
+  fetchedAt?: Date;
+  pausedReason?: string;
+}) {
   const [now, setNow] = useState(() => new Date());
   const base = fetchedAt ?? now;
   useEffect(() => {
@@ -44,7 +80,7 @@ export function ServiceLevels({ sla, fetchedAt }: { sla: TicketSla; fetchedAt?: 
       ) : (
         <div className="flex flex-col gap-3">
           {clocks.map((clock) => (
-            <Meter key={clock.kind} clock={clock} fetchedAt={base} now={now} />
+            <Meter key={clock.kind} clock={clock} fetchedAt={base} now={now} pausedReason={pausedReason} />
           ))}
         </div>
       )}

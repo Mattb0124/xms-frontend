@@ -73,6 +73,33 @@ export function meterCaption(clock: ClockView, fetchedAt: Date, now: Date = new 
   return `${label} ${formatMinutes(remaining)} of ${formatMinutes(clock.targetMinutes)} left${suffix}`;
 }
 
+/**
+ * The meter's second line: target, elapsed and remaining, which the
+ * wireframe (section 3.2, callout TM-05) asks every service level meter to
+ * show and the built rail did not (frontend review finding 21).
+ */
+export function meterDetail(clock: ClockView, fetchedAt: Date, now: Date = new Date()): string {
+  const target = `Target ${formatMinutes(clock.targetMinutes)}`;
+  const remaining = localRemainingMinutes(clock, fetchedAt, now);
+  if (clock.breached || remaining < 0) return `${target}, breached by ${formatMinutes(Math.abs(remaining))}`;
+  if (clock.met) return `${target}, met with ${formatMinutes(remaining)} to spare`;
+  const elapsed = Math.max(0, clock.targetMinutes - remaining);
+  return `${target}, elapsed ${formatMinutes(elapsed)}, ${formatMinutes(remaining)} left`;
+}
+
+/**
+ * The grey segment's caption with its reason: "Grey segment is 2h 10m
+ * paused, awaiting client." The reason is the ticket's own state, since a
+ * clock is paused precisely because the ticket sits in a pausing state; a
+ * clock that ran again keeps the total without claiming a current reason.
+ */
+export function pauseCaption(clock: ClockView, reason?: string): string | null {
+  if (clock.pausedTotalMinutes <= 0) return null;
+  const paused = formatMinutes(clock.pausedTotalMinutes);
+  const because = clock.paused && reason ? `, ${reason.toLowerCase()}` : "";
+  return `Grey segment is ${paused} paused${because}.`;
+}
+
 export function formatMinutes(total: number): string {
   const abs = Math.max(0, Math.round(total));
   const hours = Math.floor(abs / 60);

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
-import { ticketsApi, type Contract } from "@/redux/ticketsApi";
+import { ticketsApi, type Contract, type TicketView } from "@/redux/ticketsApi";
 import { json, stubFetch } from "@/test-kit/portal";
 
 export const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
@@ -26,6 +26,53 @@ export function aContract(overrides: Partial<Contract> = {}): Contract {
     forecast_window_days: 10,
     technology_codes: [],
     version: 1,
+    ...overrides,
+  };
+}
+
+export const TICKET_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+/** A constructed ticket record: an open incident on the retainer, assigned, with both clocks running. */
+export function aTicketView(overrides: Partial<TicketView> = {}): TicketView {
+  return {
+    id: TICKET_ID,
+    key: "CS1000199",
+    account_id: ACCOUNT_ID,
+    type: "incident",
+    state: "in_progress",
+    state_label: "In progress",
+    short_description: "HFM consolidation fails on the September close",
+    description: null,
+    category: null,
+    impact: "high",
+    urgency: "high",
+    priority: "p2",
+    priority_overridden: false,
+    source: "portal",
+    requester: { id: "u-pat", email: "pat.client@example.test", display_name: "Pat Client" },
+    group_id: null,
+    assignee_id: "u-ben",
+    assignee_name: "Ben Okafor",
+    contract_id: CONTRACT_ID,
+    resolution: {
+      code: null,
+      notes: null,
+      solution_article_id: null,
+      solution_candidate: false,
+      time_exemption_reason: null,
+    },
+    external_refs: {},
+    reopen_count: 0,
+    first_response_at: null,
+    resolved_at: null,
+    closed_at: null,
+    cancelled_at: null,
+    sla: {},
+    created_by: "u-pat",
+    created_by_name: "Pat Client",
+    created_at: "2026-08-25T09:00:00Z",
+    updated_at: "2026-08-25T10:00:00Z",
+    version: 3,
     ...overrides,
   };
 }
