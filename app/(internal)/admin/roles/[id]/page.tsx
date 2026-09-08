@@ -20,8 +20,12 @@ import { useMutationErrors } from "@/lib/admin/use-mutation-errors";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useGetRoleQuery, useListPermissionsQuery, useUpdateRoleMutation } from "@/redux/adminApi";
 
-/** Registered as `admin.role`: name and description on the form, the permission checklist with implications. */
-export default function AdminRoleRecordPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminRoleRecordPageBody() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { data, refetch } = useGetRoleQuery(id);
@@ -52,7 +56,7 @@ export default function AdminRoleRecordPage() {
   };
 
   return (
-    <AdminGate permission="admin:users">
+    <>
       <RecordBar
         backHref="/admin/roles"
         backLabel="Roles"
@@ -122,6 +126,15 @@ export default function AdminRoleRecordPage() {
           )}
         </Panel>
       </div>
+    </>
+  );
+}
+
+/** Registered as `admin.role`: name and description on the form, the permission checklist with implications. */
+export default function AdminRoleRecordPage() {
+  return (
+    <AdminGate permission="admin:users">
+      <AdminRoleRecordPageBody />
     </AdminGate>
   );
 }

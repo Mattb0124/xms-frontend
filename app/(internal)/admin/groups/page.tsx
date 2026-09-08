@@ -98,13 +98,17 @@ function NewGroupForm({ onDone }: { onDone: (id: string) => void }) {
   );
 }
 
-/** Registered as `admin.groups`. */
-export default function AdminGroupsPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminGroupsPageBody() {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const { data, isLoading } = useListGroupsQuery();
   return (
-    <AdminGate permission="admin:users">
+    <>
       <HeaderAction>
         <button type="button" className={PRIMARY_BUTTON} onClick={() => setCreating(true)}>
           New group
@@ -130,6 +134,15 @@ export default function AdminGroupsPage() {
           emptyState={isLoading ? "Loading" : "No groups yet."}
         />
       </div>
+    </>
+  );
+}
+
+/** Registered as `admin.groups`. */
+export default function AdminGroupsPage() {
+  return (
+    <AdminGate permission="admin:users">
+      <AdminGroupsPageBody />
     </AdminGate>
   );
 }

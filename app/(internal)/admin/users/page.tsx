@@ -176,15 +176,20 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
   );
 }
 
-/** Registered as `admin.users`. */
-export default function AdminUsersPage() {
+/**
+ * The list itself, mounted only once the reader holds admin:users. Keeping
+ * the query inside the gate is what stops the screen asking for the users
+ * and taking a 403 before drawing its own refusal, a denial the browser
+ * already knew about and that wrote a security event (review finding 25).
+ */
+function UsersList() {
   const router = useRouter();
   const [kind, setKind] = useState<UserKind | null>(null);
   const [inviting, setInviting] = useState(false);
   const { data, isLoading } = useListUsersQuery(kind ? { kind } : undefined);
   const rows = useMemo(() => data ?? [], [data]);
   return (
-    <AdminGate permission="admin:users">
+    <>
       <HeaderFilters>
         <FilterBar
           primary={{ label: "Show", value: "Users" }}
@@ -219,6 +224,15 @@ export default function AdminUsersPage() {
           emptyState={isLoading ? "Loading" : "No users yet."}
         />
       </div>
+    </>
+  );
+}
+
+/** Registered as `admin.users`. */
+export default function AdminUsersPage() {
+  return (
+    <AdminGate permission="admin:users">
+      <UsersList />
     </AdminGate>
   );
 }

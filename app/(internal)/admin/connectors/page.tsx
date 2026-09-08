@@ -7,8 +7,12 @@ import { useListAccountsQuery } from "@/redux/adminApi";
 import { useConnectorHealthQuery } from "@/redux/connectorsApi";
 import { useMe } from "@/redux/me";
 
-/** Registered as `admin.connectors`: the sync health screen over every instance the reader can see. */
-export default function AdminConnectorsPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminConnectorsPageBody() {
   const me = useMe();
   const health = useConnectorHealthQuery(undefined, { pollingInterval: 30_000, refetchOnFocus: true });
   const accounts = useListAccountsQuery(undefined, { skip: !me.hasPermission("admin:accounts") });
@@ -17,8 +21,17 @@ export default function AdminConnectorsPage() {
     [accounts.data],
   );
   return (
-    <AdminGate permission="admin:connectors">
+    <>
       <ConnectorHealthList rows={health.data ?? []} accountNames={names} loading={health.isLoading} />
+    </>
+  );
+}
+
+/** Registered as `admin.connectors`: the sync health screen over every instance the reader can see. */
+export default function AdminConnectorsPage() {
+  return (
+    <AdminGate permission="admin:connectors">
+      <AdminConnectorsPageBody />
     </AdminGate>
   );
 }

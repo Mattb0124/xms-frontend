@@ -10,8 +10,12 @@ import { useGetAccountQuery } from "@/redux/adminApi";
 import { useGetCalendarQuery } from "@/redux/calendarsApi";
 import { useMe } from "@/redux/me";
 
-/** Registered as `admin.calendar`: one calendar's editor with the preview panel. */
-export default function CalendarRecordPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function CalendarRecordPageBody() {
   const params = useParams<{ id: string }>();
   const me = useMe();
   const { data, isLoading, isError, refetch } = useGetCalendarQuery(params.id);
@@ -19,10 +23,13 @@ export default function CalendarRecordPage() {
     skip: !data || !me.hasPermission("admin:accounts"),
   });
   return (
-    <AdminGate permission="admin:config">
+    <>
       {isLoading ? <Skeleton lines={2} className="mb-4 max-w-sm" /> : null}
       {!isLoading && (isError || !data) ? (
-        <EmptyBanner title="This calendar is not on your accounts" action={{ label: "Back to Admin", href: "/admin" }} />
+        <EmptyBanner
+          title="This calendar is not on your accounts"
+          action={{ label: "Back to Admin", href: "/admin" }}
+        />
       ) : null}
       {data ? (
         <>
@@ -40,6 +47,15 @@ export default function CalendarRecordPage() {
           </div>
         </>
       ) : null}
+    </>
+  );
+}
+
+/** Registered as `admin.calendar`: one calendar's editor with the preview panel. */
+export default function CalendarRecordPage() {
+  return (
+    <AdminGate permission="admin:config">
+      <CalendarRecordPageBody />
     </AdminGate>
   );
 }

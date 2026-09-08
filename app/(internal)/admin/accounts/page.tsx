@@ -136,8 +136,12 @@ function NewAccountForm({ onDone }: { onDone: (id: string) => void }) {
   );
 }
 
-/** Registered as `admin.accounts`: the dense list with status chips and the New action. */
-export default function AdminAccountsPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminAccountsPageBody() {
   const router = useRouter();
   const [status, setStatus] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -145,7 +149,7 @@ export default function AdminAccountsPage() {
   const rows = useMemo(() => data ?? [], [data]);
 
   return (
-    <AdminGate permission="admin:accounts">
+    <>
       <HeaderFilters>
         <FilterBar
           primary={{ label: "Show", value: "Accounts" }}
@@ -180,6 +184,15 @@ export default function AdminAccountsPage() {
           emptyState={isLoading ? "Loading" : "No accounts yet. Create the first one with New account."}
         />
       </div>
+    </>
+  );
+}
+
+/** Registered as `admin.accounts`: the dense list with status chips and the New action. */
+export default function AdminAccountsPage() {
+  return (
+    <AdminGate permission="admin:accounts">
+      <AdminAccountsPageBody />
     </AdminGate>
   );
 }

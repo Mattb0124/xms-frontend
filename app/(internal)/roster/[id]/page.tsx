@@ -19,8 +19,12 @@ import { useListGroupsQuery } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
 import { useGetPersonQuery, usePatchPersonMutation } from "@/redux/rosterApi";
 
-/** Registered as `roster.person`: header with the active switch, then Details, Calendar, PTO, Skills, Certifications. */
-export default function PersonRecordPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function PersonRecordPageBody() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const me = useMe();
@@ -44,7 +48,7 @@ export default function PersonRecordPage() {
   );
 
   return (
-    <AdminGate permission="capacity:view">
+    <>
       {isLoading ? <Skeleton lines={2} className="mb-4 max-w-sm" /> : null}
       {!isLoading && (isError || !data) ? (
         <EmptyBanner title="This person is not on the roster" action={{ label: "Back to Roster", href: "/roster" }} />
@@ -99,6 +103,15 @@ export default function PersonRecordPage() {
           ) : null}
         </>
       ) : null}
+    </>
+  );
+}
+
+/** Registered as `roster.person`: header with the active switch, then Details, Calendar, PTO, Skills, Certifications. */
+export default function PersonRecordPage() {
+  return (
+    <AdminGate permission="capacity:view">
+      <PersonRecordPageBody />
     </AdminGate>
   );
 }

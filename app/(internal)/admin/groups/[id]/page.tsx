@@ -17,8 +17,12 @@ import {
   useUpdateGroupMutation,
 } from "@/redux/adminApi";
 
-/** Registered as `admin.group`: identity with the lead picker, members reconciled as a set. */
-export default function AdminGroupRecordPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminGroupRecordPageBody() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { data, refetch } = useGetGroupQuery(id);
@@ -41,7 +45,7 @@ export default function AdminGroupRecordPage() {
   ];
 
   return (
-    <AdminGate permission="admin:users">
+    <>
       <RecordBar
         backHref="/admin/groups"
         backLabel="Groups"
@@ -105,6 +109,15 @@ export default function AdminGroupRecordPage() {
           )}
         </Panel>
       </div>
+    </>
+  );
+}
+
+/** Registered as `admin.group`: identity with the lead picker, members reconciled as a set. */
+export default function AdminGroupRecordPage() {
+  return (
+    <AdminGate permission="admin:users">
+      <AdminGroupRecordPageBody />
     </AdminGate>
   );
 }

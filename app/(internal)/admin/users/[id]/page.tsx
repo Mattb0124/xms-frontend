@@ -175,8 +175,12 @@ function AccountsTab({ user }: { user: UserDetail }) {
   );
 }
 
-/** Registered as `admin.user`. */
-export default function AdminUserRecordPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminUserRecordPageBody() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { data, refetch } = useGetUserQuery(id);
@@ -197,7 +201,7 @@ export default function AdminUserRecordPage() {
   };
 
   return (
-    <AdminGate permission="admin:users">
+    <>
       {data ? (
         <RecordBar
           backHref="/admin/users"
@@ -246,6 +250,15 @@ export default function AdminUserRecordPage() {
           )}
         </Panel>
       ) : null}
+    </>
+  );
+}
+
+/** Registered as `admin.user`. */
+export default function AdminUserRecordPage() {
+  return (
+    <AdminGate permission="admin:users">
+      <AdminUserRecordPageBody />
     </AdminGate>
   );
 }

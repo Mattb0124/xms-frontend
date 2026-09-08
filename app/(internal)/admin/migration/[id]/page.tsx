@@ -18,8 +18,12 @@ import { useTrack } from "@/lib/telemetry/provider";
 import { useGetBatchQuery, useRunBatchMutation } from "@/redux/migrationApi";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
-/** Registered as `admin.migration.batch`: properties, counts, Run, then Records, Log and Reconciliation. */
-export default function AdminMigrationBatchPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminMigrationBatchPageBody() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const batch = useGetBatchQuery(id);
@@ -69,7 +73,7 @@ export default function AdminMigrationBatchPage() {
     : "/admin/migration/new";
 
   return (
-    <AdminGate permission="admin:migration">
+    <>
       {batch.isLoading ? <Skeleton lines={2} className="mb-4 max-w-sm" /> : null}
       {!batch.isLoading && (batch.isError || !data) ? (
         <EmptyBanner
@@ -116,6 +120,15 @@ export default function AdminMigrationBatchPage() {
           {tab === "reconciliation" ? <ReconciliationTab accountId={data.account_id} batchId={data.id} /> : null}
         </>
       ) : null}
+    </>
+  );
+}
+
+/** Registered as `admin.migration.batch`: properties, counts, Run, then Records, Log and Reconciliation. */
+export default function AdminMigrationBatchPage() {
+  return (
+    <AdminGate permission="admin:migration">
+      <AdminMigrationBatchPageBody />
     </AdminGate>
   );
 }

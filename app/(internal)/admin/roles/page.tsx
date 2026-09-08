@@ -92,14 +92,18 @@ function NewRoleForm({ catalog, onDone }: { catalog: Catalog; onDone: (id: strin
   );
 }
 
-/** Registered as `admin.roles`: both catalogs, filtered by chip. */
-export default function AdminRolesPage() {
+/**
+ * The screen itself, mounted only once the reader holds the permission,
+ * so the queries below are never sent by someone the API would refuse
+ * (review finding 25).
+ */
+function AdminRolesPageBody() {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Catalog>("operator");
   const [creating, setCreating] = useState(false);
   const { data, isLoading } = useListRolesQuery({ catalog });
   return (
-    <AdminGate permission="admin:users">
+    <>
       <HeaderFilters>
         <FilterBar
           primary={{
@@ -138,6 +142,15 @@ export default function AdminRolesPage() {
           onRowClick={(row) => router.push(`/admin/roles/${row.id}`)}
         />
       </div>
+    </>
+  );
+}
+
+/** Registered as `admin.roles`: both catalogs, filtered by chip. */
+export default function AdminRolesPage() {
+  return (
+    <AdminGate permission="admin:users">
+      <AdminRolesPageBody />
     </AdminGate>
   );
 }
