@@ -10,7 +10,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link. It carries the Queue's saved views the same way: `/v1/views` answers to `tickets:view`, the Queue's own gate, so the map exists to keep it there rather than to raise it. The analytics map now covers the audit's saved queries (five routes on `audit:read`, the key the search itself takes) and the Security screen's integrity route.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
@@ -53,7 +53,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows and the editable narrative)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel)
 
 ```
 middleware.ts           the per-request CSP nonce: sets it on the request headers and the response policy
@@ -63,7 +63,13 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         needs attention, my open tickets),
                         /tickets Queue (system views including Flagged out of scope, chips on five dimensions (account, type,
                         priority, state and out_of_scope over the server's closed vocabulary none, flagged, approved,
-                        declined, a value outside it dropped when the URL is read rather than sent for a 400), condition
+                        declined, a value outside it dropped when the URL is read rather than sent for a 400), the
+                        server's saved views in the same list under an optgroup (TM-08: selecting one writes its
+                        conditions into the URL rather than sending its id to the list route, so the chips stay
+                        removable and `saved=` only names which view is showing and is dropped the moment a criterion
+                        changes; Save as view files the current chips under one account with a name and private or
+                        account sharing, and rename, resharing and delete are offered to the owner alone; the
+                        per-browser star stays the fallback while /v1/views answers 404 or 501), condition
                         trail, Count card in the prototype's column order and
                         opening on SLA, selection bar, cursor paging, rows per page), /tickets/new (record form
                         with the priority preview), /tickets/[key] (record bar, transition menu, Properties with the matrix
@@ -160,7 +166,16 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         condition editor offers is_null and is_not_null on the seven nullable columns alone (account_id,
                         actor_id, principal_kind, entity_kind, entity_id, request_id, correlation_id), worded for the field
                         ("is Portfolio-wide" and "is any account" on the Account row), with no value control and no value
-                        sent, since the API refuses one),
+                        sent, since the API refuses one. Beneath the results the Saved queries panel over
+                        /v1/audit/saved-queries: each query the reader can see (their own plus every shared one) with
+                        how many conditions it carries, who saved it and whether it is shared; Run fills the same
+                        results table, named by the query it came from, and Load more then pages through that query's
+                        own run route rather than the inline search, going back to the inline search on the next
+                        Search or request pivot; Load into builder puts the conditions back in the editor without
+                        running; saving takes a name and a description, and the Share switch is offered only with
+                        audit:export, since audit:read does not imply it; rename and delete are the owner's alone; a
+                        query that is gone is worded as deleted or unshared and never as forbidden, because the API
+                        answers the same 404 to both),
                         /admin/security (P2.19.4, XA-03: sign-in failures, denials, isolation probes, admin changes, exports and
                         downloads, abuse by kind, the clients the rate limiter turned away, what is paused right now, the
                         quarantined files and the open dead letters, each as a tile and a panel under the window selector. A
@@ -173,11 +188,26 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         to /admin/accounts/[id], since a subscription is registered by the client itself through the API and
                         this desk serves no screen for one, and a row naming no record to nothing at all. The dead-letter tile
                         is deliberately wider than its rows: the depth per queue is operator wide and the rows are bound to the
-                        reader's grants, and the panel says so) and
-                        /admin/usage (P2.19.4, XA-03: the roll-up tiles and count lists, then the per-account strip as a Count
+                        reader's grants, and the panel says so. The Integrity panel over
+                        /v1/dashboards/security/integrity replaces the old placeholder: the digest chain per stream
+                        with its last digested day, row count, hash head and what the last verification said (a stream
+                        never verified reads as never verified on the warning trio, never as passing, and a mismatch
+                        leads the whole panel on the breach trio), the archive in cold storage per stream, the events
+                        this reader can see per stream with their span, and the retention months said to be the
+                        declared policy with detach_job_built repeated in words, so a promise is never printed as a
+                        measurement; a block the API omits is left out and a route it does not serve draws no panel) and
+                        /admin/usage (P2.19.4, XA-03: the roll-up tiles and count lists, then the core-loop funnel as a
+                        step strip (opened, first reply, time logged, solution linked, resolved, closed) with the count,
+                        a bar against the largest step and the server's own drop-off in words, a negative one worded
+                        with its reason rather than clamped, since a step is not a subset of the one before; the
+                        per-account funnel in the same step order, busiest first, each account opening /accounts/[id];
+                        the adoption table by role with the action, the people and times in the window and the
+                        first-use date that reaches past it, the API's unassigned row reading as "No role assigned";
+                        then the per-account strip as a Count
                         card sorted on tickets created, busiest first, with tickets closed, time logged in hours, portal
-                        sign-ins, API client calls and active users, each account name opening /accounts/[id]; the table is left
-                        out entirely where the API does not answer per_account); the Queue has an Export menu (Excel, CSV) over
+                        sign-ins, API client calls and active users, each account name opening /accounts/[id]; the strip,
+                        the funnel and the adoption table are each left out entirely where the API does not answer them);
+                        the Queue has an Export menu (Excel, CSV) over
                         the current view and chips (P2.11.4),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only),
@@ -368,9 +398,38 @@ lib/integrations/       api-clients (API_CLIENT_STATUS, DEFAULT_RATE_LIMIT (600)
 lib/exports/            fetchDownload (bearer fetch to a blob, filename from Content-Disposition, x-row-count), saveBlob (object
                         URL and a temporary anchor), downloadFile; presigned pack URLs never come through here
 lib/tickets/export-conditions  the Queue's view and chips expressed as the server ConditionSet (base64url) for /v1/exports/tickets
+lib/tickets/saved-views  the /v1/views grammar both ways: SavedViewDefinition, definitionFromParams (paramsToExportSpec
+                        with the account folded into the conditions, since a view has no account parameter),
+                        applyDefinition (the conditions back as the Queue's view, chips and search box, with each
+                        system view recognized from the preset it stands for and every one of them round-tripping;
+                        anything the chip grammar cannot say is named in `notes`, as is a view naming no state, which
+                        the Queue must narrow to open), savedViewSearch (the address, with `saved=` naming the view),
+                        SHARE_MODES (private and account; group needs a share_ref the Queue cannot pick),
+                        validateSavedView, describeSavedViewError (not_owner, invalid_conditions, share_ref_required,
+                        stale_version, not_found) and isNotDeployed (404 or 501 alone)
+components/tickets/saved-views  useSavedViews (the list, and whether the route answered at all), savedViewLabel and
+                        SavedViewsBar (Save as view with the name, account and sharing; rename, resharing and delete
+                        for the owner; the per-browser star as the fallback while the route is not deployed)
 components/tickets/export-menu  Export action (Excel, CSV) with the row-count toast and export.run telemetry
-components/admin/audit-search (scopeOf and accountLabel: the Operator chip from attrs.scope, Portfolio for a null account),
-                        security-dashboard (CountList, whose rows carry an optional href), usage-dashboard (the per-account strip)
+components/admin/audit-search (scopeOf and accountLabel: the Operator chip from attrs.scope, Portfolio for a null
+                        account; rowsToQuery and rowsFromConditions, which reads a saved query back into the builder
+                        with a datetime in the control's local wording rather than the ISO instant),
+                        saved-queries (SavedQueriesPanel: the list, Run, Load into builder, save, rename and delete),
+                        security-dashboard (CountList, whose rows carry an optional href), integrity-panel
+                        (IntegrityPanel: the chain, the archive, the streams and the retention policy),
+                        usage-dashboard (the per-account strip), usage-funnel (FunnelPanel with the step strip and the
+                        per-account table, AdoptionPanel)
+lib/reporting/saved-queries  the SavedQueryDraft with emptySavedQueryDraft and draftFromSavedQuery, validateSavedQuery
+                        (the API's 120 and 500 character limits, at most twenty conditions, and no saving an empty
+                        builder), savedQueryBody, ownerLabel and savedQueryLine, isOwner, SHARING_NEEDS_EXPORT and
+                        describeSavedQueryError (not_found worded as deleted or unshared, never as forbidden, since
+                        the API answers the same 404 to a query that is gone and to someone else's private one)
+lib/reporting/integrity  momentLabel, digestLabel, bytesLabel, verificationLine (never verified is a warning, not a
+                        pass), chainSummary (a mismatch leads), archiveLine, spanLine and retentionLines (the months
+                        as the declared policy, with detach_job_built said in words)
+lib/reporting/usage      FUNNEL_STEPS and stepLabel, dropOffLine (a negative drop-off worded with its reason, since a
+                        step is not a subset of the one before), stepWidth, stepsByKey, roleLabel (unassigned reads as
+                        "No role assigned") and firstUsedLabel
 components/portal/dashboard-strip  the client's own numbers on the portal home from /v1/portal/dashboard, client language
 components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
                         publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
@@ -547,7 +606,13 @@ test-kit/reporting.ts   dashboard, audit and report fixtures, plus aCsatSummary,
                         run with a reviewer's words waiting to be regenerated) and aRegeneratedRun,
                         SCHEDULE_ID, INTERNAL_USER_ID, REVIEW_RUN_ID and HELD_PACK_ID; the Security dashboard fixture
                         carries the row shapes the API answers today, with PAUSED_INSTANCE_ID, PAUSED_SUBSCRIPTION_ID
-                        and SECURITY_ACCOUNT_ID
+                        and SECURITY_ACCOUNT_ID; aSavedQuery and aSavedQueryPage with SAVED_QUERY_ID and
+                        QUERY_OWNER_ID; anIntegrityPanel (one stream verified and one never verified, an archive of the
+                        security stream alone, and the retention policy with the detach job still unbuilt); aFunnel
+                        (whose solution_linked step deliberately gains, so its drop-off is negative) and anAdoption
+                        (with the unassigned row the API reports for an actor holding no role)
+test-kit/views.ts       constructed saved-view fixtures (aSavedView, aSavedViewDefinition) with SAVED_VIEW_ID,
+                        VIEW_OWNER_ID and VIEW_ACCOUNT_ID; the definition is the one the Queue itself would write
 test-kit/integrations.ts  constructed API client and finance fixtures (anApiClient, aScope, someScopes, aDestination,
                         aFinanceDelivery) with the ids API_CLIENT_ID, FINANCE_ACCOUNT_ID, OTHER_ACCOUNT_ID and
                         BILLING_PERIOD_ID; no live key, endpoint or account
@@ -606,14 +671,21 @@ redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/w
                         overage_multiplier, rollover_rule, rollover_cap_hours, forecast_window_days) and technology_codes,
                         patchContract with the version over the whole rule set (engagement_id included), invalidating
                         SkillsMatrix; listEngagements, createEngagement and patchEngagement on the account's
-                        `:engagements` tag, the list reloaded even when a patch is refused), portalApi.ts (the
+                        `:engagements` tag, the list reloaded even when a patch is refused; listSavedViews,
+                        createSavedView, patchSavedView and deleteSavedView over /v1/views on the SavedViews tag, the
+                        list reloaded even when an edit is refused), portalApi.ts (the
                         /v1/portal mirror, the searchArticles placeholder, portalSurveys with pending and answered, each
                         row carrying its kind, period, questions and answers, one AnswerSurveyBody taking `score` or
                         `scores`, answerPortalSurvey reloading the list even when refused, describeSurveyLink (a POST
                         that reads, because the token belongs in the body and never in the address) and answerSurveyLink
                         posting the token to /v1/csat/:id/answer on the PortalSurveys tag),
                         reportingApi.ts also accountCsat with from and to, its optional quarterly block, on
-                        the Csat tag, reportSchedules by account, createReportSchedule, patchReportSchedule with the version
+                        the Csat tag, securityIntegrity on the Dashboards tag (its own route, since it reads the
+                        present rather than the window the dashboard counts), auditSavedQueries,
+                        createAuditSavedQuery, patchAuditSavedQuery and deleteAuditSavedQuery on the
+                        AuditSavedQueries tag with runAuditSavedQuery as a mutation (a POST fired on a click and
+                        paged by hand, not a cache entry keyed on a query), the usage answer carrying the optional
+                        funnel and adoption blocks, reportSchedules by account, createReportSchedule, patchReportSchedule with the version
                         (reloading the list either way), runScheduleNow with the optional period (reloading schedules, runs
                         and the account's Reports), scheduleRuns by account, status and schedule on the ReportSchedules
                         and ReportRuns tags, and the five review routes reviewRun (which also carries the narrative, its
