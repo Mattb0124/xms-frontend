@@ -14,6 +14,20 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
 - No em-dashes in copy; ServiceNow vocabulary where it aids adoption (CS keys, work notes, resolution codes).
 
+## Tracked security exception
+
+**TODO: replace `'unsafe-inline'` in `script-src` with a per-request nonce.**
+The App Router inlines the flight payload and the bootstrap script into every
+server-rendered document, so the CSP in `next.config.ts` cannot drop
+`'unsafe-inline'` without emitting a nonce from a `middleware.ts` and using
+`script-src 'self' 'nonce-<n>' 'strict-dynamic'`. Until that lands, the CSP is
+a host allowlist and a clickjacking control, not an XSS control, and the
+comment beside the policy says so. What keeps the residual risk bounded, and
+must stay true: no HTML-injection sink anywhere (no `dangerouslySetInnerHTML`,
+no `innerHTML`, no markdown renderer), every `href`, `window.open` and download
+target built from server data validated through `lib/safe-url`, and no cookie
+authentication. Security review 2026-09-08, findings 25 and 26.
+
 ## Commands
 
 - `pnpm dev`, `pnpm build`, `pnpm start`
