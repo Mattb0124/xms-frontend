@@ -77,6 +77,9 @@ export interface TicketView {
   source: string;
   requester: TicketRequester | null;
   group_id: string | null;
+  /** The configuration item the work is about, and its name (TM-19). */
+  configuration_item_id: string | null;
+  configuration_item_name: string | null;
   assignee_id: string | null;
   assignee_name: string | null;
   contract_id: string;

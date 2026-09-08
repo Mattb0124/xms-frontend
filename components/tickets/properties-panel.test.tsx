@@ -29,6 +29,36 @@ function stub(permissions: string[]) {
 describe("PropertiesPanel", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  /*
+   * The prototype's own `ticketProps` (`proto-v3/template.pretty.html`) is
+   * fourteen rows in this order. The built panel had no Configuration item,
+   * put Group and Assignee last, and carried Created, Resolved and Closed,
+   * which the prototype's list does not have at all.
+   */
+  it("draws the prototype's own rows, in its order", async () => {
+    stub(["tickets:view"]);
+    const { container } = renderDesk(<PropertiesPanel ticket={aTicketView({ configuration_item_name: "HFM PROD" })} />);
+    await screen.findByText("Configuration item");
+    const labels = Array.from(container.querySelectorAll("[data-field]"))
+      .map((row) => row.querySelector("span,label")?.textContent)
+      .filter(Boolean);
+    expect(labels.slice(0, 8)).toEqual([
+      "Account",
+      "Requester",
+      "Type",
+      "Category",
+      "Configuration item",
+      "Impact / urgency",
+      "Priority",
+      "Contract",
+    ]);
+    expect(labels).toContain("Source");
+    expect(labels).toContain("Out of scope");
+    expect(labels).toContain("External reference");
+    for (const gone of ["Created", "Resolved", "Closed"]) expect(labels).not.toContain(gone);
+    expect(container.querySelector('[data-field="configuration_item"]')).toHaveTextContent("HFM PROD");
+  });
+
   it("is named Properties and carries the matrix caption on the Priority row", async () => {
     stub(["tickets:view", "tickets:override-priority"]);
     const { container } = renderDesk(<PropertiesPanel ticket={aTicketView()} />);

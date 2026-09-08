@@ -151,6 +151,8 @@ export function aTicketView(overrides: Partial<TicketView> = {}): TicketView {
     source: "portal",
     requester: { id: "u-pat", email: "pat.client@example.test", display_name: "Pat Client" },
     group_id: null,
+    configuration_item_id: null,
+    configuration_item_name: null,
     assignee_id: "u-ben",
     assignee_name: "Ben Okafor",
     contract_id: CONTRACT_ID,

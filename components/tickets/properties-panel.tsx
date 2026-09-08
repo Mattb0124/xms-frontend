@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatDate } from "@/components/admin/primitives";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
 import { GroupPicker } from "@/components/tickets/group-picker";
 import { RecordForm, type RecordField } from "@/components/xms/record-form";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { describeGroupError } from "@/lib/tickets/groups";
+import { scopeLabel } from "@/lib/tickets/scope";
 import { LEVELS, PRIORITIES, SOURCE_LABEL, TICKET_TYPES } from "@/lib/tickets/vocab";
 import { useMe } from "@/redux/me";
 import {
@@ -18,6 +18,17 @@ import {
   type TicketView,
 } from "@/redux/ticketsApi";
 import { useContractPositionQuery } from "@/redux/timeApi";
+
+/**
+ * The one external reference the record carries, as the prototype prints it
+ * ("INC0448120"). `external_refs` is a map keyed by system, so several are
+ * joined and an empty map reads as nothing rather than as "{}".
+ */
+export function externalReference(refs: Record<string, unknown>): string {
+  return Object.values(refs ?? {})
+    .filter((value): value is string => typeof value === "string" && value !== "")
+    .join(" · ");
+}
 
 /**
  * Label-left properties, commit on blur, optimistic rollback with a toast
@@ -71,6 +82,15 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         readOnly: true,
       },
       { key: "category", label: "Category", value: ticket.category ?? "", readOnly },
+      // The prototype puts the configuration item between Category and the
+      // matrix. It is the ticket's own name for it, so the row needs no
+      // second call and never prints an id.
+      {
+        key: "configuration_item",
+        label: "Configuration item",
+        value: ticket.configuration_item_name ?? "",
+        readOnly: true,
+      },
       // Render 02 draws impact and urgency as one row, "2 - Multiple users ·
       // 2 - High", because neither says anything without the other: they are
       // the two axes of the matrix the priority under them comes out of.
@@ -124,12 +144,34 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
             })),
           }
         : { key: "contract_id", label: "Contract", value: contractName, readOnly: true },
-      { key: "source", label: "Source", value: SOURCE_LABEL[ticket.source] ?? ticket.source, readOnly: true },
-      { key: "created_at", label: "Created", value: formatDate(ticket.created_at), readOnly: true, mono: true },
-      { key: "resolved_at", label: "Resolved", value: formatDate(ticket.resolved_at), readOnly: true, mono: true },
-      { key: "closed_at", label: "Closed", value: formatDate(ticket.closed_at), readOnly: true, mono: true },
     ],
     [ticket, account, contracts, contractName, canReadContracts, readOnly, canOverride],
+  );
+
+  /*
+   * The rows the prototype draws under Group and Assignee: Source, then the
+   * two states it names as properties. Created, Resolved and Closed are not
+   * in its list at all; the instants are the Activity timeline's and the
+   * Resolution tab's, which is where a reader can act on them.
+   */
+  const tail = useMemo<RecordField[]>(
+    () => [
+      { key: "source", label: "Source", value: SOURCE_LABEL[ticket.source] ?? ticket.source, readOnly: true },
+      {
+        key: "out_of_scope",
+        label: "Out of scope",
+        value: ticket.scope ? scopeLabel(ticket.scope.out_of_scope) : "No",
+        readOnly: true,
+      },
+      {
+        key: "external_reference",
+        label: "External reference",
+        value: externalReference(ticket.external_refs),
+        readOnly: true,
+        mono: true,
+      },
+    ],
+    [ticket],
   );
 
   const commit = async (key: string, value: string) => {
@@ -217,6 +259,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
           }
         />
       </div>
+      <RecordForm layout="stacked" fields={tail} onCommit={commit} />
     </section>
   );
 }
