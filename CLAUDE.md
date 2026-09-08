@@ -136,9 +136,26 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         period; hidden when none is),
                         /reports/packs/[id] (frozen numbers, narrative, PPTX link),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
-                        values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
-                        /admin/usage (P2.19.4 tiles and count lists); the Queue has an Export menu (Excel, CSV) over the current
-                        view and chips (P2.11.4),
+                        values, "Show this request" pivot, Load more, Export CSV with audit:export; the audit stream carries the
+                        operator half since migration 0033, so a row with no account reads as Portfolio in the Account column
+                        and carries an Operator chip taken from attrs.scope alone, never inferred from the null account. There
+                        is no "Portfolio-wide" account filter: the API's condition grammar types account_id as a uuid with eq,
+                        neq, in and contains and has no is_null, and neq compiles to "is distinct from", which returns every
+                        other account beside the portfolio-wide rows),
+                        /admin/security (P2.19.4, XA-03: sign-in failures, denials, isolation probes, admin changes, exports and
+                        downloads, abuse by kind, the clients the rate limiter turned away, what is paused right now, the
+                        quarantined files and the open dead letters, each as a tile and a panel under the window selector. A
+                        figure the API did not send is left out, tile and panel both, never printed as a zero; the paused and
+                        dead-letter figures say they read the present rather than the window. Rows link only where a screen
+                        answers them and only for a reader who holds its permission: rate-limited clients to /admin/api-clients,
+                        tripped instances and dead letters to /admin/connectors because the API counts them by reason and by
+                        queue and sends no instance id, and paused webhook subscriptions to nothing, since a subscription is
+                        registered by the client itself through the API) and
+                        /admin/usage (P2.19.4, XA-03: the roll-up tiles and count lists, then the per-account strip as a Count
+                        card sorted on tickets created, busiest first, with tickets closed, time logged in hours, portal
+                        sign-ins, API client calls and active users, each account name opening /accounts/[id]; the table is left
+                        out entirely where the API does not answer per_account); the Queue has an Export menu (Excel, CSV) over
+                        the current view and chips (P2.11.4),
                         /admin overview and the built admin screens (P1.4.3, P1.4.4): /admin/accounts(+/[id]),
                         /admin/users(+/[id]), /admin/roles(+/[id]), /admin/groups(+/[id]), /admin/config (read only),
                         /admin/api-clients (Accounts & Administration functional 5.9, Integrations functional 5.4;
@@ -240,7 +257,8 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /admin/accounts/[id]/calendars/new and /admin/calendars/[id] (P3.26.1, TM-06: CalendarEditor with the week
                         grid, holiday library, make default, retire; PreviewPanel), /admin/holiday-calendars (libraries list and create);
                         /admin/connectors (health overview across granted accounts, admin:connectors; the outbound pending and
-                        dead-lettered columns appear only where the health route answers them, never as a zero it did not read)
+                        dead-lettered columns are unconditional now that the health route answers them on every instance, and a
+                        row that arrives without a count prints a blank, never a zero it did not read)
                         and /admin/connectors/[id]
                         (the gate holds a child, so nothing is asked before admin:connectors is decided; header with mode switch,
                         kill switch, Test connection; the mode switch offers bidirectional, says what the promotion still needs
@@ -301,7 +319,8 @@ lib/exports/            fetchDownload (bearer fetch to a blob, filename from Con
                         URL and a temporary anchor), downloadFile; presigned pack URLs never come through here
 lib/tickets/export-conditions  the Queue's view and chips expressed as the server ConditionSet (base64url) for /v1/exports/tickets
 components/tickets/export-menu  Export action (Excel, CSV) with the row-count toast and export.run telemetry
-components/admin/audit-search, security-dashboard (CountList), usage-dashboard
+components/admin/audit-search (scopeOf and accountLabel: the Operator chip from attrs.scope, Portfolio for a null account),
+                        security-dashboard (CountList, whose rows carry an optional href), usage-dashboard (the per-account strip)
 components/portal/dashboard-strip  the client's own numbers on the portal home from /v1/portal/dashboard, client language
 components/knowledge/   ArticleStatusPill and labels, ArticleEditor (eight sections, commit on blur), ArticleActions (submit,
                         publish, retire, generalize; refusals inline; FindingsSheet), VisibilityTab (whole-set save)
