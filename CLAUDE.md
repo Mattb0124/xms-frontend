@@ -10,7 +10,7 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **The wireframes are the UI source of truth (ADR-17, ADR-18).** Navy finder bar, pinned sidebar, content header bar with removable filter chips, Count-card dense lists with no row striping, the v3 state ramp, 3px type bars, account identity dots, IBM Plex Mono for keys and SLA values, violet for AI-origin content only. Skills: `xms-web-design-system`, `xms-web-data-table`, `xms-web-ui-component`.
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
-- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link.
+- **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link.
 - **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
 - **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
@@ -53,7 +53,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows and the editable narrative)
 
 ```
 middleware.ts           the per-request CSP nonce: sets it on the request headers and the response policy
@@ -61,7 +61,10 @@ lib/security/csp        contentSecurityPolicy, newNonce and NONCE_HEADER ("x-non
 app/layout.tsx          fonts, .xms-scope, the nonce read back from the headers, Providers
 app/(internal)/         the desk inside the Shell: / My work (scorecards, brief line, time today, the Waiting on me rail,
                         needs attention, my open tickets),
-                        /tickets Queue (system views, chips, condition trail, Count card in the prototype's column order and
+                        /tickets Queue (system views including Flagged out of scope, chips on five dimensions (account, type,
+                        priority, state and out_of_scope over the server's closed vocabulary none, flagged, approved,
+                        declined, a value outside it dropped when the URL is read rather than sent for a 400), condition
+                        trail, Count card in the prototype's column order and
                         opening on SLA, selection bar, cursor paging, rows per page), /tickets/new (record form
                         with the priority preview), /tickets/[key] (record bar, transition menu, Properties with the matrix
                         caption on the Priority row and one Assignee control, Conversation,
@@ -140,28 +143,37 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         status and its deadline (a passed one says the grace period expired and nothing was sent),
                         the pack as the two renditions present it (Headline, Service levels, Backlog and notable
                         requests, Consumption, in the deck's own order, with "No activity this period" for a section
-                        that carries nothing), Open PDF and Open slides over the presigned links the API minted,
-                        Approve and send, and Cancel with a required reason; not_under_review naming the status the
-                        run now has, run_without_schedule, run_without_pack and the empty reason all in words. The
-                        pack is read only: the API has no narrative edit and no regenerate route, so the spec's
-                        editable panel and "Regenerate with my edits" are not offered and the narrative panel says
-                        so),
+                        that carries nothing), Open PDF and Open slides over the presigned links the API minted, the
+                        editable narrative panel (one box per section, the source of the words said above it from
+                        narrative_source with "AI is off for this account" where ai_enabled is false, and Regenerate
+                        with my edits, which PATCHes the narrative and POSTs the regenerate in one press and reads the
+                        run again so the links are the ones minted against the files that now exist; while it holds the
+                        prose the section panels carry the numbers alone and the Headline panel is not drawn, so no
+                        paragraph is shown twice), Approve and send (enabled only with a saved edit) and Send without
+                        changes (both approve, the API rebuilding an unrendered edit first), and Cancel with a required
+                        reason; not_under_review naming the status the run now has, run_without_schedule,
+                        run_without_pack, duplicate_section and the empty reason all in words),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
                         values, "Show this request" pivot, Load more, Export CSV with audit:export; the audit stream carries the
                         operator half since migration 0033, so a row with no account reads as Portfolio in the Account column
-                        and carries an Operator chip taken from attrs.scope alone, never inferred from the null account. There
-                        is no "Portfolio-wide" account filter: the API's condition grammar types account_id as a uuid with eq,
-                        neq, in and contains and has no is_null, and neq compiles to "is distinct from", which returns every
-                        other account beside the portfolio-wide rows),
+                        and carries an Operator chip taken from attrs.scope alone, never inferred from the null account. The
+                        condition editor offers is_null and is_not_null on the seven nullable columns alone (account_id,
+                        actor_id, principal_kind, entity_kind, entity_id, request_id, correlation_id), worded for the field
+                        ("is Portfolio-wide" and "is any account" on the Account row), with no value control and no value
+                        sent, since the API refuses one),
                         /admin/security (P2.19.4, XA-03: sign-in failures, denials, isolation probes, admin changes, exports and
                         downloads, abuse by kind, the clients the rate limiter turned away, what is paused right now, the
                         quarantined files and the open dead letters, each as a tile and a panel under the window selector. A
                         figure the API did not send is left out, tile and panel both, never printed as a zero; the paused and
-                        dead-letter figures say they read the present rather than the window. Rows link only where a screen
-                        answers them and only for a reader who holds its permission: rate-limited clients to /admin/api-clients,
-                        tripped instances and dead letters to /admin/connectors because the API counts them by reason and by
-                        queue and sends no instance id, and paused webhook subscriptions to nothing, since a subscription is
-                        registered by the client itself through the API) and
+                        dead-letter figures say they read the present rather than the window, and both tiles read the API's own
+                        roll-ups (paused_integrations_by_reason, open_dead_letters_by_queue) while the rows below them are one
+                        record each. Rows link only where a screen answers them and only for a reader who holds its permission:
+                        rate-limited clients to /admin/api-clients, a tripped instance to /admin/connectors/[id] by its own id,
+                        a dead-letter queue to that instance's Dead letters tab by instance_id, a paused webhook subscription
+                        to /admin/accounts/[id], since a subscription is registered by the client itself through the API and
+                        this desk serves no screen for one, and a row naming no record to nothing at all. The dead-letter tile
+                        is deliberately wider than its rows: the depth per queue is operator wide and the rows are bound to the
+                        reader's grants, and the panel says so) and
                         /admin/usage (P2.19.4, XA-03: the roll-up tiles and count lists, then the per-account strip as a Count
                         card sorted on tickets created, busiest first, with tickets closed, time logged in hours, portal
                         sign-ins, API client calls and active users, each account name opening /accounts/[id]; the table is left
@@ -319,10 +331,16 @@ lib/reporting/          csat (defaultCsatRange, formatAverage, distributionRows 
                         else the order the averages arrived), quarterlyTrendRows (each mean against the five-point scale)
                         and latestPeriodLabel), review (DR-05, functional 5.8: REVIEW_STATE_LABELS and runStatusLabel,
                         isHeld, reviewPill on the signal trios, reviewMoment and deadlineLine (a passed deadline says
-                        nothing was sent), packSections reading the frozen pack in the deck's own section order with
-                        EMPTY_SECTION_LINE and isEmptySection, latestNarrative, CANCEL_REASON_MESSAGE, reviewError with
-                        the status the run now has, and describeReviewError for not_under_review, run_without_schedule
-                        and run_without_pack), schedules (CADENCES, PERIOD_KINDS, RECIPIENT_KINDS, WEEKDAYS,
+                        nothing was sent), packSections reading the frozen pack in the deck's own section order (each
+                        section carrying its narrative key, and the prose passed in rather than read out, so the screen
+                        can hold it in the editor instead) with
+                        EMPTY_SECTION_LINE and isEmptySection, latestNarrative, the narrative panel's own vocabulary
+                        (NARRATIVE_SECTIONS, narrativeSectionsOf (the run's sections, else the pack's newest version as
+                        the headline), narrativeDraft, narrativeBody (every key once, in the deck's order),
+                        narrativeChanged, hasSavedEdit, needsRegenerate, narrativeSourceLine and
+                        UNRENDERED_EDIT_NOTE), CANCEL_REASON_MESSAGE, reviewError with
+                        the status the run now has, and describeReviewError for not_under_review, run_without_schedule,
+                        run_without_pack and duplicate_section), schedules (CADENCES, PERIOD_KINDS, RECIPIENT_KINDS, WEEKDAYS,
                         maxRunDay, defaultPeriodKind, cadenceLabel, nextRunLabel, recipientLabel, the ScheduleDraft with
                         emptyScheduleDraft, draftFromSchedule, validateSchedule (WEEKLY_RUN_DAY_MESSAGE), scheduleBody and
                         patchBody with the version (review_required in both, review_grace_hours in neither),
@@ -396,7 +414,9 @@ lib/contracts/engagements  ENGAGEMENT_STATUS labels and tones, renewalLabel, not
                         describeEngagementError
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
-                        queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
+                        queue-views (system views and the URL grammar, breached is a server parameter; OUT_OF_SCOPE and
+                        outOfScopeLabel, CHIP_KEYS with out_of_scope among them, and the Flagged out of scope view),
+                        transition-errors
                         (typed 409 toasts), use-transition, scope (TM-11: SCOPE_STATES and SCOPE_LABELS with scopeTone,
                         isFlagged, allowanceLabel (minutes as hours), actorLabel (the server's name, never an id),
                         decisionBlockedReason (the flagger, and nothing pending), flagBody, withdrawBody, decisionBody
@@ -491,12 +511,13 @@ app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome 
                         ("2026 Q2 relationship survey") where there is no ticket to name; the completed ones read back the
                         score or each question and its answer; "No surveys pending."; already_answered and survey_closed
                         worded with the list read again) and /surveys/[id]
-                        (with `#token=`, the email link: no chrome, no session, posted to POST /v1/csat/:id/answer with
-                        the token. The link route has no GET behind it, so the kind cannot be known before the first
-                        answer: the page opens on the one question and, when the server answers `scores_required` naming
-                        the five keys, asks those five instead and says why. The quarterly question text is kept locally
-                        (lib/portal/csat QUARTERLY_FALLBACK_TEXT) for that one path alone, where the refusal names keys
-                        without text; with a session and no token the Surveys page with that survey first, or a notice
+                        (with `#token=`, the email link: no chrome, no session. The page reads
+                        POST /v1/csat/:id/describe with the token first and asks what that answers, so a ticket-close
+                        survey opens on its one question named after the ticket and a quarterly one on its five, and
+                        answers through POST /v1/csat/:id/answer with the same token. An unknown id and a token that
+                        does not match answer the same 404, and the page says the same one thing back
+                        ("This link is not valid."); an answered or expired survey reads as its status with no form
+                        under it; with a session and no token the Surveys page with that survey first, or a notice
                         when it was already answered or is no longer open)
 components/portal/      PortalChrome (account name and accent, nav with Surveys, user menu, 401 redirect; renders only the
                         main column when isSurveyLink matches, skipping /portal/me), SearchHome, RequestList,
@@ -505,22 +526,28 @@ components/portal/      PortalChrome (account name and accent, nav with Surveys,
                         RequestForm (validateRequest), RequestThread and CommentComposer, RequestDetail, primitives
                         (ClientStatusPill, PortalCard, buttons and inputs), attachments (PortalUploadControl, PortalAttachmentList,
                         client scan copy), surveys (SurveysPage with focusId, both kinds), survey-link (SurveyLinkAnswer,
-                        which learns the kind from the server's scores_required refusal).
+                        which reads the survey behind the token before asking anything).
                         Renders portal view models only; nothing
                         from components/tickets or app/(internal) is imported here
 lib/portal/             client-language (the seven client statuses, type and level copy, priority words, relative time),
                         csat (SCORES, SCORE_LABELS, scoreLabel, surveyQuestion, isSurveyLink, expiryLabel; the two kinds:
                         surveyKind (a row with none reads as ticket_close), isQuarterly, periodLabel ("2026 Q2"), keyLabel,
-                        QUARTERLY_FALLBACK_TEXT and questionsFromKeys (the email-link path alone), questionsOf,
-                        surveySubject, answerBody (`score` or the five keyed `scores`), answerLine; surveyError and
-                        describeSurveyError for scores_required, already_answered, survey_closed with its status,
+                        questionsOf (what the server sent, never a question text kept here),
+                        surveySubject, isAnswerable and statusLine, answerBody (`score` or the five keyed `scores`),
+                        answerLine; LINK_NOT_VALID, surveyError and
+                        describeSurveyError for already_answered, survey_closed with its status,
                         not_found, token_required)
 test-kit/portal.tsx     constructed portal fixtures (aPortalMe, aPortalTicket, aTimeline, aSurvey, anAnsweredSurvey,
-                        QUARTERLY_QUESTIONS, aQuarterlySurvey, aQuarterlyAnswer), the fetch stub and renderPortal for the
+                        QUARTERLY_QUESTIONS, aQuarterlySurvey, aQuarterlyAnswer, aSurveyDescription and
+                        aQuarterlyDescription as the describe route answers them), the fetch stub and renderPortal for the
                         portal tests
 test-kit/reporting.ts   dashboard, audit and report fixtures, plus aCsatSummary, aCsatQuarterly, aSchedule, aRun,
                         aDelivery, aHeldPack and aReviewRun (a run held inside its grace period, with both presigned
-                        links and nothing delivered), SCHEDULE_ID, INTERNAL_USER_ID, REVIEW_RUN_ID and HELD_PACK_ID
+                        links, a templated narrative and nothing delivered), aNarrativeEdit, anEditedReviewRun (the same
+                        run with a reviewer's words waiting to be regenerated) and aRegeneratedRun,
+                        SCHEDULE_ID, INTERNAL_USER_ID, REVIEW_RUN_ID and HELD_PACK_ID; the Security dashboard fixture
+                        carries the row shapes the API answers today, with PAUSED_INSTANCE_ID, PAUSED_SUBSCRIPTION_ID
+                        and SECURITY_ACCOUNT_ID
 test-kit/integrations.ts  constructed API client and finance fixtures (anApiClient, aScope, someScopes, aDestination,
                         aFinanceDelivery) with the ids API_CLIENT_ID, FINANCE_ACCOUNT_ID, OTHER_ACCOUNT_ID and
                         BILLING_PERIOD_ID; no live key, endpoint or account
@@ -582,14 +609,17 @@ redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/w
                         `:engagements` tag, the list reloaded even when a patch is refused), portalApi.ts (the
                         /v1/portal mirror, the searchArticles placeholder, portalSurveys with pending and answered, each
                         row carrying its kind, period, questions and answers, one AnswerSurveyBody taking `score` or
-                        `scores`, answerPortalSurvey reloading the list even when refused, and answerSurveyLink posting
-                        the token to /v1/csat/:id/answer on the PortalSurveys tag),
+                        `scores`, answerPortalSurvey reloading the list even when refused, describeSurveyLink (a POST
+                        that reads, because the token belongs in the body and never in the address) and answerSurveyLink
+                        posting the token to /v1/csat/:id/answer on the PortalSurveys tag),
                         reportingApi.ts also accountCsat with from and to, its optional quarterly block, on
                         the Csat tag, reportSchedules by account, createReportSchedule, patchReportSchedule with the version
                         (reloading the list either way), runScheduleNow with the optional period (reloading schedules, runs
                         and the account's Reports), scheduleRuns by account, status and schedule on the ReportSchedules
-                        and ReportRuns tags, and the review trio reviewRun, approveReportRun and cancelReportRun (each
-                        decision reloading the run, the account's runs, its Reports card and the Waiting rail whether the
+                        and ReportRuns tags, and the five review routes reviewRun (which also carries the narrative, its
+                        source, its version, whether it is rendered and whether AI is on for the account),
+                        editRunNarrative, regenerateReportRun, approveReportRun and cancelReportRun (each write
+                        reloading the run, the account's runs, its Reports card and the Waiting rail whether the
                         API took it or refused it, since a refusal means this view is behind the run); reportPack takes
                         { id, format } so the PDF is its own cache entry and never overwrites the deck's download,
                         apiClientsApi.ts (apiClients, apiClientScopes, createApiClient (the key
