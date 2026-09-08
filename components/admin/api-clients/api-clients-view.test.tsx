@@ -2,13 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiClientsView } from "@/components/admin/api-clients/api-clients-view";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
-import {
-  anApiClient,
-  API_CLIENT_ID,
-  FINANCE_ACCOUNT_ID,
-  OTHER_ACCOUNT_ID,
-  someScopes,
-} from "@/test-kit/integrations";
+import { anApiClient, API_CLIENT_ID, FINANCE_ACCOUNT_ID, OTHER_ACCOUNT_ID, someScopes } from "@/test-kit/integrations";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/api-clients" }));
 
@@ -95,9 +89,7 @@ describe("ApiClientsView", () => {
       [SCOPES]: () => json(someScopes()),
     });
     renderDesk(<ApiClientsView />);
-    expect(
-      await screen.findByText(/registers its own endpoints through the API with its key/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/registers its own endpoints through the API with its key/)).toBeInTheDocument();
     expect(await screen.findByText("No API client issued yet.")).toBeInTheDocument();
   });
 

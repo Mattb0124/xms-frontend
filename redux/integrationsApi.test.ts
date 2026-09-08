@@ -1,12 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { integrationsApi } from "@/redux/integrationsApi";
 import { makeStore } from "@/redux/store";
-import {
-  aDestination,
-  aFinanceDelivery,
-  BILLING_PERIOD_ID,
-  FINANCE_ACCOUNT_ID,
-} from "@/test-kit/integrations";
+import { aDestination, aFinanceDelivery, BILLING_PERIOD_ID, FINANCE_ACCOUNT_ID } from "@/test-kit/integrations";
 import { json, stubFetch } from "@/test-kit/portal";
 
 const DESTINATION = `GET /v1/finance/destinations/${FINANCE_ACCOUNT_ID}`;
@@ -57,7 +52,9 @@ describe("integrationsApi finance endpoints", () => {
   it("sets an object store destination with the prefix and no endpoint", async () => {
     const calls = stubFetch({
       [SET_DESTINATION]: () =>
-        json(aDestination({ kind: "object_store", endpoint_url: null, object_prefix: "finance/xms", secret_kid: null })),
+        json(
+          aDestination({ kind: "object_store", endpoint_url: null, object_prefix: "finance/xms", secret_kid: null }),
+        ),
     });
     const store = makeStore();
     const saved = await store

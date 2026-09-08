@@ -7,6 +7,7 @@ import { BillingPeriodsTab } from "@/components/admin/billing/billing-periods-ta
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
+import { AccountFinanceTab } from "@/components/admin/finance/finance-tab";
 import { AccountContractsTab } from "@/components/admin/contracts/account-contracts-tab";
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
@@ -57,6 +58,7 @@ const TABS = [
   { key: "budget", label: "Budget" },
   { key: "billing", label: "Billing" },
   { key: "reports", label: "Report packs" },
+  { key: "finance", label: "Finance" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
   { key: "configuration", label: "Configuration" },
@@ -319,6 +321,7 @@ function AccountRecordScreen() {
       {tab === "budget" ? <AccountBudgetView accountId={id} /> : null}
       {tab === "billing" ? <BillingPeriodsTab accountId={id} /> : null}
       {tab === "reports" ? <ReportSchedulesTab accountId={id} /> : null}
+      {tab === "finance" ? <AccountFinanceTab accountId={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
       {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
       {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
@@ -328,7 +331,7 @@ function AccountRecordScreen() {
 
 /**
  * Registered as `admin.account`: Overview, Settings, Access, Calendars,
- * Contracts, Budget, Billing, Report packs, Intake, Connectors and Configuration tabs with the
+ * Contracts, Budget, Billing, Report packs, Finance, Intake, Connectors and Configuration tabs with the
  * status actions and the skills coverage chips under the record bar
  * (capacity:view); `?tab=` picks the opening tab.
  */

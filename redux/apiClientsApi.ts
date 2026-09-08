@@ -74,9 +74,5 @@ export const apiClientsApi = xmsApi.injectEndpoints({
   overrideExisting: false,
 });
 
-export const {
-  useApiClientsQuery,
-  useApiClientScopesQuery,
-  useCreateApiClientMutation,
-  useRevokeApiClientMutation,
-} = apiClientsApi;
+export const { useApiClientsQuery, useApiClientScopesQuery, useCreateApiClientMutation, useRevokeApiClientMutation } =
+  apiClientsApi;

@@ -232,9 +232,7 @@ export function ApiClientsView() {
                   />
                   <span>
                     <span className="xms-mono text-xms-ink">{scope.scope}</span>
-                    {scope.description ? (
-                      <span className="text-xms-label"> {scope.description}</span>
-                    ) : null}
+                    {scope.description ? <span className="text-xms-label"> {scope.description}</span> : null}
                   </span>
                 </label>
               ))}
@@ -319,7 +317,9 @@ export function ApiClientsView() {
                   <td className={CELL} data-accounts>
                     {client.account_ids.length} account{client.account_ids.length === 1 ? "" : "s"}
                   </td>
-                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>{lastUsedLabel(client.last_used_at)}</td>
+                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>
+                    {lastUsedLabel(client.last_used_at)}
+                  </td>
                   <td className={CELL}>
                     <ApiClientStatusPill status={client.status} />
                   </td>
