@@ -332,6 +332,20 @@
     padding: 3px 7px;
   }
 
+  /* A quiet classifying pill on the chip fill: the billable class on a time
+   * entry (render 04). Not a state, not a signal: it names a category, so it
+   * carries no colour of its own. */
+  .xms-chip-pill {
+    display: inline-flex;
+    align-items: center;
+    font: 500 12px/1 var(--xms-font);
+    color: var(--xms-body);
+    background: var(--xms-chip);
+    border-radius: 999px;
+    padding: 6px 11px;
+    white-space: nowrap;
+  }
+
   /* The quiet grey block inside a card: the Axel brief, the unlogged nudge,
    * the Axel panel's suggestion. */
   .xms-note {

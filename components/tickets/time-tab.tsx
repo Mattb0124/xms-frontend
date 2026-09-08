@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { INPUT, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { AfterHoursBadge } from "@/components/time/after-hours-badge";
 import { EntryAmount, OverBudgetPill } from "@/components/time/entry-amount";
+import { ICON, CloseIcon } from "@/components/xms/icons";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -270,6 +271,11 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
   );
 }
 
+/** Decimal hours, as render 04 reads them: 3.25, 1.00, 0.50, 2.00. */
+export function decimalHours(minutes: number): string {
+  return (minutes / 60).toFixed(2);
+}
+
 function EntryRow({ entry, catalogs, rule }: { entry: TimeEntry; catalogs: DeskCatalogs; rule?: HandlingRule | null }) {
   const adjusted = entry.adjusted_minutes ?? entry.minutes;
   const changed = adjusted !== entry.minutes;
@@ -279,51 +285,64 @@ function EntryRow({ entry, catalogs, rule }: { entry: TimeEntry; catalogs: DeskC
     catalogs.billableClasses.find((item) => item.key === entry.billable_class)?.label ?? entry.billable_class;
   const start = startTimeLabel(entry.performed_start);
   return (
-    <tr className="border-xms-line hover:bg-xms-row-hover h-[40px] border-b" data-entry={entry.id}>
-      <td className="xms-mono text-xms-ink px-3">
-        {entry.performed_on}
-        {start ? (
-          <span className="text-xms-label ml-1" data-start>
-            {start}
-          </span>
+    // Render 04's row: who, what, the class as a pill, the hours in mono on
+    // the right. The date is a quiet mono suffix on the name, because a
+    // timesheet entry without its day cannot be checked, and the description
+    // continues the activity, which is how the render's own rows read
+    // ("Rework, linked adjustment").
+    <li
+      className="border-xms-line-row flex items-center gap-3 border-b px-[14px] py-3 last:border-b-0"
+      data-entry={entry.id}
+    >
+      <span className="flex w-[150px] shrink-0 items-baseline gap-2">
+        <span className="text-xms-ink truncate text-[13px] font-medium">{entry.person_name}</span>
+        <span className="xms-mono text-xms-muted shrink-0 text-[11px]" data-performed-on>
+          {entry.performed_on.slice(5)}
+          {start ? <span data-start>{` ${start}`}</span> : null}
+        </span>
+      </span>
+      <span className="text-xms-body min-w-0 flex-1 truncate text-[13px]">
+        {activity}
+        {entry.description ? (
+          <>
+            {", "}
+            <span className="text-xms-muted">{entry.description}</span>
+          </>
         ) : null}
-      </td>
-      <td className="text-xms-ink px-3">{entry.person_name}</td>
-      <td className="text-xms-ink px-3">{activity}</td>
-      <td className="text-xms-body px-3">{billable}</td>
-      <td className="xms-mono px-3 text-right">
+      </span>
+      <AfterHoursBadge entry={entry} rule={rule} className="inline-flex shrink-0 items-center gap-1.5" />
+      {entry.over_budget ? (
+        <span className="shrink-0" data-over-budget>
+          <OverBudgetPill entry={entry} />
+        </span>
+      ) : null}
+      <span className="text-xms-muted shrink-0 text-[12px]">
+        <EntryAmount entry={entry} />
+      </span>
+      <span className="xms-chip-pill shrink-0">{billable}</span>
+      <span className="xms-mono text-xms-ink w-[56px] shrink-0 text-right text-[13px] font-semibold">
         {changed ? (
           <>
-            <span className="text-xms-muted line-through">{formatMinutes(entry.minutes)}</span>{" "}
-            <span className="text-xms-ink" data-adjusted>
-              {formatMinutes(adjusted)}
-            </span>
+            <span className="text-xms-muted line-through">{decimalHours(entry.minutes)}</span>{" "}
+            <span data-adjusted>{decimalHours(adjusted)}</span>
           </>
         ) : (
-          <span className="text-xms-ink">{formatMinutes(entry.minutes)}</span>
+          decimalHours(entry.minutes)
         )}
-      </td>
-      <td className="px-3 text-right">
-        <EntryAmount entry={entry} />
-      </td>
-      <td className="text-xms-body max-w-[320px] truncate px-3">
-        <AfterHoursBadge entry={entry} rule={rule} className="mr-2 inline-flex items-center gap-1.5" />
-        {entry.over_budget ? (
-          <span className="mr-2 inline-flex" data-over-budget>
-            <OverBudgetPill entry={entry} />
-          </span>
-        ) : null}
-        {entry.description}
-      </td>
-    </tr>
+      </span>
+    </li>
   );
 }
 
 /**
- * The Time tab: the entries with adjustments and the after-hours badge, the
- * total, and the Log time form. The contract's handling (for the badge's
- * explanation) comes from the account's contracts when the ticket's
- * account and contract are known.
+ * The Time tab (render 04): a card headed "Time on this ticket" with the
+ * entries under it and their total at the foot, and an Add entry control that
+ * opens the log form.
+ *
+ * The form used to stand open above the list, permanently, so the tab opened
+ * on eight fields and a row of chips and the entries it was about were below
+ * the fold. Render 04 opens on the entries; logging is a thing you go and do.
+ * Every field the form had is still in it, because each one maps to the API.
  */
 export function TimeTab({
   ticketKey,
@@ -349,68 +368,93 @@ export function TimeTab({
   const [log, logging] = useLogTicketTimeMutation();
   const { push } = useToast();
   const track = useTrack("time.log");
-  const canLog = me.hasPermission("time:log");
+  const canLog = me.hasPermission("time:log") && !readOnly;
+  const [adding, setAdding] = useState(false);
+
+  // "shortcut t · under five seconds to log" (render 04). It is ignored while
+  // the reader is typing, so t in the reply box is still a letter.
+  useEffect(() => {
+    if (!canLog) return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "t") {
+        event.preventDefault();
+        setAdding(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canLog]);
+
+  const submit = async (body: LogTimeBody) => {
+    const entry = await log({ ticketKey, body }).unwrap();
+    track({ minutes: entry.minutes, activity: entry.activity_type, after_hours_class: entry.after_hours_class });
+    push({ title: `${formatMinutes(entry.minutes)} logged on ${ticketKey}`, tone: "success" });
+    setAdding(false);
+  };
 
   return (
     <div className="flex flex-col gap-4">
-      {!readOnly && canLog ? (
-        <LogTimeForm
-          catalogs={catalogs}
-          pending={logging.isLoading}
-          onSubmit={async (body) => {
-            const entry = await log({ ticketKey, body }).unwrap();
-            track({
-              minutes: entry.minutes,
-              activity: entry.activity_type,
-              after_hours_class: entry.after_hours_class,
-            });
-            push({ title: `${formatMinutes(entry.minutes)} logged on ${ticketKey}`, tone: "success" });
-          }}
-        />
-      ) : null}
-      {isLoading || !data ? (
-        <Skeleton lines={3} />
-      ) : (
-        <div className="overflow-auto">
-          <table className="w-full border-collapse text-[13px]" aria-label="Time entries">
-            <thead>
-              <tr className="border-xms-line text-xms-ink border-b text-left text-[12px] font-semibold">
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Person</th>
-                <th className="px-3 py-2">Activity</th>
-                <th className="px-3 py-2">Class</th>
-                <th className="px-3 py-2 text-right">Minutes</th>
-                <th className="px-3 py-2 text-right">Amount</th>
-                <th className="px-3 py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody>
+      <section className="xms-card overflow-hidden" aria-label="Time on this ticket">
+        <header className="border-xms-line bg-xms-quiet-bg flex items-center gap-[10px] border-b px-[14px] py-[13px]">
+          <h3 className="text-xms-ink text-[14px] leading-[1.3] font-semibold">Time on this ticket</h3>
+          {canLog ? (
+            <span className="text-xms-muted text-[12px] leading-none">shortcut t · under five seconds to log</span>
+          ) : null}
+          <span className="flex-1" />
+          {canLog ? (
+            <button type="button" onClick={() => setAdding(true)} className={PRIMARY_BUTTON}>
+              Add entry
+            </button>
+          ) : null}
+        </header>
+        {isLoading || !data ? (
+          <div className="p-[14px]">
+            <Skeleton lines={3} />
+          </div>
+        ) : (
+          <>
+            <ul aria-label="Time entries">
               {data.entries.map((entry) => (
                 <EntryRow key={entry.id} entry={entry} catalogs={catalogs} rule={rule} />
               ))}
-              {data.entries.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-xms-label px-3 py-4 text-center">
-                    No time logged yet.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-            <tfoot>
-              <tr className="text-xms-ink text-[12px] font-semibold">
-                <td colSpan={4} className="px-3 py-2">
-                  Total
-                </td>
-                <td className="xms-mono px-3 py-2 text-right" data-testid="time-total">
-                  {formatMinutes(data.total_minutes)}
-                </td>
-                <td />
-                <td />
-              </tr>
-            </tfoot>
-          </table>
+            </ul>
+            {data.entries.length === 0 ? (
+              <p className="text-xms-label px-[14px] py-6 text-center text-[13px]">
+                No time logged on this ticket yet.
+              </p>
+            ) : (
+              <div className="bg-xms-quiet-bg flex items-center px-[14px] py-[13px]">
+                <span className="text-xms-ink flex-1 text-[13px] font-semibold">Total</span>
+                <span className="xms-mono text-xms-ink text-[13px] font-semibold" data-testid="time-total">
+                  {`${decimalHours(data.total_minutes)} h`}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+      {adding ? (
+        <div className="bg-xms-overlay-scrim fixed inset-0 z-40 flex items-start justify-center overflow-auto p-6">
+          <div role="dialog" aria-modal="true" aria-label="Log time" className="xms-card w-full max-w-[640px] p-4">
+            <div className="mb-3 flex items-center gap-3">
+              <h3 className="text-xms-ink flex-1 text-[15px] font-semibold">{`Log time on ${ticketKey}`}</h3>
+              <button
+                type="button"
+                onClick={() => setAdding(false)}
+                aria-label="Close"
+                className="text-xms-label hover:text-xms-ink"
+              >
+                <CloseIcon size={ICON.tool} />
+              </button>
+            </div>
+            <LogTimeForm catalogs={catalogs} pending={logging.isLoading} onSubmit={submit} />
+          </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -111,10 +111,50 @@ describe("TimeTab", () => {
         json({ entries: [anEntry({ adjusted_minutes: 30, description: "Traced" })], total_minutes: 30 }),
     });
     renderDesk(<TimeTab ticketKey="CS0001001" catalogs={catalogs} />);
-    await waitFor(() => expect(screen.getByTestId("time-total")).toHaveTextContent("30m"));
-    expect(screen.getByText("45m")).toHaveClass("line-through");
+    // Render 04 reads the hours as decimals with the total under them.
+    await waitFor(() => expect(screen.getByTestId("time-total")).toHaveTextContent("0.50 h"));
+    expect(screen.getByText("0.75")).toHaveClass("line-through");
+    // The form is not standing open: render 04 opens on the entries.
     expect(screen.queryByRole("form", { name: "Log time" })).not.toBeInTheDocument();
     expect(document.querySelector("[data-after-hours]")).toBeNull();
+  });
+
+  /**
+   * Render 04's header says "shortcut t · under five seconds to log", and
+   * the tab opens on the entries rather than on the form.
+   */
+  it("opens the log form from Add entry and from the t shortcut, and not before", async () => {
+    stubFetch({
+      "GET /v1/admin/me": viewer(["tickets:view", "time:log"]),
+      "GET /v1/tickets/CS0001001/time": () =>
+        json({ entries: [anEntry({ description: "Traced" })], total_minutes: 45 }),
+    });
+    renderDesk(<TimeTab ticketKey="CS0001001" catalogs={catalogs} />);
+    await screen.findByText("Traced");
+    expect(screen.queryByRole("dialog", { name: "Log time" })).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "t" });
+    expect(await screen.findByRole("dialog", { name: "Log time" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Log time" })).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Add entry" }));
+    expect(await screen.findByRole("dialog", { name: "Log time" })).toBeInTheDocument();
+  });
+
+  it("leaves t alone while the reader is typing", async () => {
+    stubFetch({
+      "GET /v1/admin/me": viewer(["tickets:view", "time:log"]),
+      "GET /v1/tickets/CS0001001/time": () =>
+        json({ entries: [anEntry({ description: "Traced" })], total_minutes: 45 }),
+    });
+    renderDesk(
+      <>
+        <textarea aria-label="Reply" />
+        <TimeTab ticketKey="CS0001001" catalogs={catalogs} />
+      </>,
+    );
+    await screen.findByText("Traced");
+    fireEvent.keyDown(screen.getByLabelText("Reply"), { key: "t" });
+    expect(screen.queryByRole("dialog", { name: "Log time" })).not.toBeInTheDocument();
   });
 
   it("badges after-hours entries with the contract's handling and posts performed_start when time is logged", async () => {
@@ -130,14 +170,15 @@ describe("TimeTab", () => {
       "POST /v1/tickets/CS0001001/time": () => json(anAfterHoursEntry({ id: "e-3" }), 201),
     });
     renderDesk(<TimeTab ticketKey="CS0001001" catalogs={catalogs} accountId={ACCOUNT_ID} contractId={CONTRACT_ID} />);
-    const late = (await screen.findByText("Late fix")).closest("tr") as HTMLElement;
+    const late = (await screen.findByText("Late fix")).closest("[data-entry]") as HTMLElement;
     await within(late).findByText("Premium 1.5x per contract");
     expect(within(late).getByText("After hours")).toBeInTheDocument();
     expect(within(late).getByText("1.5x")).toBeInTheDocument();
     expect(late.querySelector("[data-start]")).toHaveTextContent("19:30");
-    const day = screen.getByText("Daytime").closest("tr") as HTMLElement;
+    const day = screen.getByText("Daytime").closest("[data-entry]") as HTMLElement;
     expect(day.querySelector("[data-after-hours]")).toBeNull();
 
+    fireEvent.click(screen.getByRole("button", { name: "Add entry" }));
     fireEvent.click(screen.getByRole("button", { name: "45m" }));
     fireEvent.change(screen.getByLabelText("Start time"), { target: { value: "19:30" } });
     fireEvent.click(screen.getByRole("button", { name: "Log time" }));
@@ -175,17 +216,18 @@ describe("TimeTab", () => {
         json({ code: "overage_blocked", available_minutes: 600, consumed_minutes: 570, requested_minutes: 60 }, 409),
     });
     renderDesk(<TimeTab ticketKey="CS0001001" catalogs={catalogs} />);
-    const rated = (await screen.findByText("Rated")).closest("tr") as HTMLElement;
+    const rated = (await screen.findByText("Rated")).closest("[data-entry]") as HTMLElement;
     expect(rated.querySelector("[data-amount]")).toHaveTextContent("225.00");
     expect(rated.querySelector("[data-rate-snapshot]")).toHaveTextContent("at 150.00/h");
     expect(rated.querySelector("[data-over-budget]")).toBeNull();
-    const over = screen.getByText("Past the line").closest("tr") as HTMLElement;
+    const over = screen.getByText("Past the line").closest("[data-entry]") as HTMLElement;
     expect(within(over).getByText("Over budget")).toBeInTheDocument();
     expect(over.querySelector("[data-amount]")).toHaveTextContent("300.00");
-    const plain = screen.getByText("Unrated").closest("tr") as HTMLElement;
+    const plain = screen.getByText("Unrated").closest("[data-entry]") as HTMLElement;
     expect(plain.querySelector("[data-amount]")).toBeNull();
     expect(plain.querySelector("[data-over-budget]")).toBeNull();
 
+    fireEvent.click(screen.getByRole("button", { name: "Add entry" }));
     fireEvent.click(screen.getByRole("button", { name: "1h" }));
     fireEvent.click(screen.getByRole("button", { name: "Log time" }));
     await screen.findByText(
