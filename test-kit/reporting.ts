@@ -272,3 +272,20 @@ export function anAuditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
     ...overrides,
   };
 }
+
+/**
+ * An operator-scope row as migration 0033 sends it: the `audit` stream, no
+ * account, and `attrs.scope = 'operator'`, because a role has no account of
+ * its own.
+ */
+export function anOperatorAuditRow(overrides: Partial<AuditEvent> = {}): AuditEvent {
+  return anAuditEvent({
+    id: "ev-op-1",
+    event_type: "role.permissions_changed",
+    account_id: null,
+    entity_kind: "role",
+    entity_id: "role-dispatcher",
+    attrs: { scope: "operator", old: { permissions: ["tickets:view"] }, new: { permissions: ["tickets:work"] } },
+    ...overrides,
+  });
+}

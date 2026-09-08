@@ -344,3 +344,67 @@ describe("the account's contacts are read behind admin:accounts", () => {
     }
   });
 });
+
+/**
+ * The same map for the three analytics surfaces, which the API answers to
+ * `audit:read` and `analytics:read` (backend test/golden/routes.json). The
+ * audit search reads every event of every request, the Security dashboard
+ * names the actors the guard turned away, and the Usage dashboard reads the
+ * window one account at a time, so none of the three may ship behind a
+ * weaker key or with no gate above it at all. The permission differs by
+ * route, so each surface carries its own here rather than one for the set.
+ */
+const ANALYTICS_READS = [
+  { hook: "useLazyAuditSearchQuery", slice: "redux/reportingApi.ts", route: "/v1/audit/search" },
+  { hook: "useSecurityDashboardQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/security" },
+  { hook: "useUsageDashboardQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/usage" },
+];
+
+const ANALYTICS_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/admin/audit-search.tsx", mountedIn: "app/(internal)/admin/audit/page.tsx" },
+  { file: "app/(internal)/admin/audit/page.tsx", permission: "audit:read" },
+  { file: "components/admin/security-dashboard.tsx", mountedIn: "app/(internal)/admin/security/page.tsx" },
+  { file: "app/(internal)/admin/security/page.tsx", permission: "audit:read" },
+  { file: "components/admin/usage-dashboard.tsx", mountedIn: "app/(internal)/admin/usage/page.tsx" },
+  { file: "app/(internal)/admin/usage/page.tsx", permission: "analytics:read" },
+];
+
+describe("the audit search and the two analytics dashboards fail closed", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of ANALYTICS_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = ANALYTICS_READS.map((entry) => entry.hook);
+    const listed = new Set(ANALYTICS_SURFACES.map((surface) => surface.file));
+    const callers = sources()
+      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
+      .map(relative);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+  });
+
+  it("mounts each surface only inside a screen that gates on its own permission", () => {
+    const gates = new Set(ANALYTICS_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of ANALYTICS_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `<AdminGate permission="${surface.permission}">`,
+      );
+    }
+  });
+
+  it("keeps the Usage dashboard on analytics:read and never on audit:read", () => {
+    const usage = read("app/(internal)/admin/usage/page.tsx");
+    expect(usage).toContain('<AdminGate permission="analytics:read">');
+    expect(usage).not.toContain("audit:read");
+  });
+});

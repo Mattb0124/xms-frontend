@@ -1,8 +1,8 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AuditSearch, rowsToQuery } from "@/components/admin/audit-search";
+import { accountLabel, AUDIT_FIELDS, AuditSearch, rowsToQuery, scopeOf } from "@/components/admin/audit-search";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
-import { anAuditEvent } from "@/test-kit/reporting";
+import { anAuditEvent, anOperatorAuditRow } from "@/test-kit/reporting";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/audit" }));
 
@@ -106,6 +106,54 @@ describe("AuditSearch", () => {
       body: { conditions: [{ field: "request_id", op: "eq", value: "req-1" }] },
       fallbackName: "events.csv",
     });
+  });
+
+  it("reads an operator-scope row as Portfolio with the Operator chip, and an account row as its account", async () => {
+    stubFetch({
+      "GET /v1/admin/me": () => json(me(["audit:read"])),
+      "POST /v1/audit/search": () =>
+        json({ items: [anOperatorAuditRow(), anAuditEvent({ account_id: "acct-77" })], next_cursor: null }),
+    });
+    renderDesk(<AuditSearch />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+
+    await waitFor(() => expect(screen.getByText("role.permissions_changed")).toBeInTheDocument());
+    const operator = screen.getAllByRole("row").find((row) => row.textContent?.includes("role.permissions_changed"))!;
+    expect(within(operator).getByText("Portfolio")).toHaveAttribute("data-account", "portfolio");
+    expect(within(operator).getByText("Operator")).toHaveAttribute("data-scope", "operator");
+
+    // The account row keeps its account and is never chipped as operator.
+    const account = screen.getAllByRole("row").find((row) => row.textContent?.includes("ticket.transitioned"))!;
+    expect(within(account).getByText("acct-77")).toHaveAttribute("data-account", "acct-77");
+    expect(within(account).queryByText("Operator")).not.toBeInTheDocument();
+
+    // The drawer names the scope and the portfolio too, so the envelope's
+    // empty account is never read as an account that went missing.
+    fireEvent.click(operator);
+    const drawer = await screen.findByRole("dialog", { name: "Event record" });
+    expect(within(drawer).getByText("Operator")).toBeInTheDocument();
+    expect(within(drawer).getByText("Portfolio")).toBeInTheDocument();
+  });
+
+  it("reads the scope off the attribute the server sent and nothing else", () => {
+    expect(scopeOf(anOperatorAuditRow())).toBe("operator");
+    expect(scopeOf(anAuditEvent())).toBeNull();
+    // A null account is not on its own an operator record: the security
+    // stream carries portfolio-wide rows with no scope attribute at all.
+    expect(scopeOf(anAuditEvent({ account_id: null, attrs: null }))).toBeNull();
+    expect(scopeOf(anAuditEvent({ attrs: { scope: 42 } }))).toBeNull();
+    expect(accountLabel(anAuditEvent({ account_id: null }))).toBe("Portfolio");
+    expect(accountLabel(anAuditEvent({ account_id: "acct-12345678900" }))).toBe("acct-123");
+  });
+
+  it("offers no account filter for the portfolio, because the API grammar has no null match", () => {
+    const account = AUDIT_FIELDS.find((field) => field.key === "account_id")!;
+    expect(account.kind).toBe("text");
+    expect(account.options).toBeUndefined();
+    // Nothing may send a stand-in for the absence of an account: an empty
+    // value is dropped rather than posted as a condition the API refuses.
+    expect(rowsToQuery([{ field: "account_id", op: "eq", value: "" }])).toEqual([]);
   });
 
   it("hides Export CSV without audit:export", async () => {

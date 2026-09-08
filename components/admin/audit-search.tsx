@@ -45,6 +45,16 @@ export const AUDIT_FIELDS: AuditFieldSpec[] = [
   { key: "actor_id", label: "Actor", kind: "text" },
   { key: "actor_kind", label: "Actor kind", kind: "text" },
   { key: "principal_kind", label: "Principal kind", kind: "text" },
+  // The account filter matches an account, never the absence of one, so
+  // there is no "Portfolio-wide" choice here. The API's condition grammar
+  // (backend src/modules/reporting/audit-search.ts) types `account_id` as a
+  // uuid and offers eq, neq, in and contains alone: it has no `is_null`, the
+  // way the Queue's own grammar does, and `neq` compiles to `is distinct
+  // from`, which returns every other account beside the portfolio-wide rows
+  // rather than the portfolio-wide rows on their own. A choice sent as some
+  // stand-in value would be refused as a bad uuid. Until the grammar answers
+  // a null match, the Portfolio label on the row is how a portfolio-wide
+  // record is read.
   { key: "account_id", label: "Account", kind: "text" },
   { key: "entity_kind", label: "Entity kind", kind: "text" },
   { key: "entity_id", label: "Entity", kind: "text" },
@@ -204,6 +214,40 @@ function StreamChip({ stream }: { stream: string }) {
   );
 }
 
+const SCOPE_LABEL: Record<string, string> = { operator: "Operator" };
+
+/**
+ * The scope the server recorded the row at. Everything done to a user, a
+ * role, a group or a configuration catalog goes to `op.audit_events`, and
+ * migration 0033 unions that table into the same `audit` stream with a null
+ * account and `attrs.scope = 'operator'`, because those entities have no
+ * account of their own. The chip is read off the attribute the server sent
+ * and nothing else, so a stream that starts carrying another scope names it
+ * rather than being mistaken for an operator record.
+ */
+export function scopeOf(event: AuditEvent): string | null {
+  const scope = event.attrs && typeof event.attrs === "object" ? (event.attrs as Record<string, unknown>).scope : null;
+  return typeof scope === "string" && scope.length > 0 ? scope : null;
+}
+
+function ScopeChip({ scope }: { scope: string }) {
+  return (
+    <span className="xms-state" data-state="ready" data-scope={scope}>
+      {SCOPE_LABEL[scope] ?? scope}
+    </span>
+  );
+}
+
+/**
+ * A row with no account is portfolio-wide: the operator audit stream and the
+ * security events the platform records for nobody in particular. It is
+ * labelled rather than left blank, so an empty cell is never read as a
+ * missing account.
+ */
+export function accountLabel(event: AuditEvent): string {
+  return event.account_id ? event.account_id.slice(0, 8) : "Portfolio";
+}
+
 function outcomeClass(outcome: string | null): string {
   if (outcome === "denied" || outcome === "failed") return "text-[color:var(--state-overdue-text)] font-semibold";
   if (outcome === "success") return "text-[color:var(--state-complete-text)]";
@@ -229,6 +273,7 @@ function RecordDrawer({
     >
       <header className="flex items-center gap-3">
         <StreamChip stream={event.stream} />
+        {scopeOf(event) ? <ScopeChip scope={scopeOf(event)!} /> : null}
         <span className="xms-mono text-xms-ink text-[13px] font-semibold">{event.event_type}</span>
         <button type="button" onClick={onClose} className="text-xms-muted hover:text-xms-ink ml-auto text-[14px]">
           Close
@@ -247,7 +292,11 @@ function RecordDrawer({
             <div key={key} className="contents">
               <dt className="text-xms-label">{key}</dt>
               <dd className="xms-mono text-xms-ink break-all">
-                {value === null || value === undefined ? "" : String(value)}
+                {key === "account_id" && value === null
+                  ? "Portfolio"
+                  : value === null || value === undefined
+                    ? ""
+                    : String(value)}
               </dd>
             </div>
           ))}
@@ -286,7 +335,36 @@ const COLUMNS: DenseColumn<AuditEvent>[] = [
     width: "160px",
     render: (row) => row.occurred_at.slice(0, 19).replace("T", " "),
   },
-  { key: "stream", title: "Stream", width: "90px", render: (row) => <StreamChip stream={row.stream} /> },
+  {
+    key: "stream",
+    title: "Stream",
+    width: "150px",
+    render: (row) => {
+      const scope = scopeOf(row);
+      return (
+        <span className="flex flex-wrap items-center gap-1">
+          <StreamChip stream={row.stream} />
+          {scope ? <ScopeChip scope={scope} /> : null}
+        </span>
+      );
+    },
+  },
+  {
+    key: "account",
+    title: "Account",
+    width: "110px",
+    sortValue: (row) => accountLabel(row),
+    render: (row) =>
+      row.account_id ? (
+        <span className="xms-mono text-xms-body" data-account={row.account_id}>
+          {accountLabel(row)}
+        </span>
+      ) : (
+        <span className="text-xms-label" data-account="portfolio">
+          {accountLabel(row)}
+        </span>
+      ),
+  },
   { key: "event_type", title: "Event", mono: true, render: (row) => row.event_type },
   { key: "actor", title: "Actor", render: (row) => row.actor_name ?? row.actor_id ?? "" },
   {
@@ -309,6 +387,13 @@ const PAGE = 100;
  * event streams with the condition builder, the results list, a record
  * drawer with the full envelope and old and new values, "Show this request"
  * and Load more over the keyset cursor. Export CSV needs audit:export.
+ *
+ * The `audit` stream carries the operator half as well now (backend
+ * migration 0033): a change to a user, a role, a group or a configuration
+ * catalog arrives with no account and `attrs.scope = 'operator'`. Those rows
+ * read as Portfolio where the account would be and carry an Operator chip,
+ * so a portfolio-wide record is never mistaken for one whose account went
+ * missing.
  */
 export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
   const me = useMe();
