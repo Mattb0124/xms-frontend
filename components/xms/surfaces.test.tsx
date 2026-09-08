@@ -1,3 +1,4 @@
+import { readFileSync, readdirSync } from "node:fs";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BriefLine } from "@/components/xms/brief-line";
@@ -178,5 +179,37 @@ describe("Skeleton and EmptyBanner", () => {
     expect(container.querySelectorAll(".animate-pulse")).toHaveLength(3);
     expect(screen.getByRole("status")).toHaveClass("bg-xms-navy");
     expect(screen.getByRole("link", { name: "Contracts" })).toHaveAttribute("href", "/accounts");
+  });
+});
+
+/**
+ * One focus treatment, and only one (reviewer finding 11). The vendored
+ * aiinnovation-tokens.css draws a global :focus-visible outline; components
+ * were drawing a Tailwind ring over it, so a clicked control showed a dark box
+ * and a cobalt ring at once. The single treatment now lives in
+ * styles/tokens/xms-scope.css and nothing under components/ may add its own.
+ */
+describe("the focus treatment", () => {
+  // The suite files are left out: this one names the classes it is banning.
+  const files = readdirSync("components", { recursive: true, encoding: "utf8" }).filter(
+    (file) => file.endsWith(".tsx") && !file.includes(".test."),
+  );
+
+  it("is stated once in the scope and never in a component", () => {
+    expect(files.length).toBeGreaterThan(40);
+    const offenders = files.filter((file) => {
+      const source = readFileSync(`components/${file}`, "utf8");
+      return /focus-visible:ring|focus-visible:outline|focus:border-|focus-within:border-/.test(
+        source.replace(/^.*\/\/.*$/gm, ""),
+      );
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it("cancels the vendored offset ring inside the scope", () => {
+    const scope = readFileSync("styles/tokens/xms-scope.css", "utf8");
+    expect(scope).toContain(".xms-scope :focus-visible");
+    expect(scope).toContain("outline: 2px solid var(--xms-accent)");
+    expect(scope).toContain("outline-offset: 0");
   });
 });

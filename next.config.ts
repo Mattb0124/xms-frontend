@@ -43,6 +43,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
+  // The development indicator is a fixed circle in the bottom left corner,
+  // which is exactly where the sidebar's "Browse all screens" footer sits: it
+  // covered the control and nothing could scroll out from under it. No part of
+  // the product reads it, so it is off.
+  devIndicators: false,
   images: { unoptimized: true },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];

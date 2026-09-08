@@ -1,5 +1,6 @@
 "use client";
 
+import { BellIcon, ChevronDownIcon, HackettMark, SearchIcon, SparkleIcon, StarIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type FinderKind = "all" | "favourites" | "history";
@@ -7,12 +8,16 @@ export type FinderKind = "all" | "favourites" | "history";
 export interface FinderBarProps {
   activeFinder: FinderKind | null;
   onFinder: (kind: FinderKind) => void;
-  /** "THG PROD · Queue: my group, open" */
+  /** "Queue: my group, open" - the instance name is drawn by the pill itself. */
   workspaceLabel: string;
   starred: boolean;
   onToggleStar: () => void;
+  /** The scope pill's own chevron: it opens the same overlay the finders do. */
+  onWorkspace: () => void;
+  workspaceOpen?: boolean;
   onSearchFocus: () => void;
   onAxel: () => void;
+  axelOpen?: boolean;
   unreadCount: number;
   onNotifications: () => void;
   userInitials: string;
@@ -25,24 +30,32 @@ const FINDERS: Array<{ kind: FinderKind; label: string }> = [
   { kind: "history", label: "History" },
 ];
 
-/** The navy finder bar (Wireframes v2 section 2): finders only, never destinations. */
+/**
+ * The navy finder bar (Wireframes v2 section 2, v3 renders 01 to 15): finders
+ * only, never destinations.
+ *
+ * Every zone carries a fixed size rather than one derived from its content, so
+ * nothing in the bar moves when `me`, the unread count or the current screen
+ * label arrive: the mark is 22px, the scope pill a fixed 320px, the search
+ * field 330px, and the Axel pill, bell and avatar are sized in the class list
+ * rather than by their text. The bar itself is `shrink-0`, which the built bar
+ * was not: as a flex child of a column it was squeezed from 56px to about
+ * 32px, which is the height the reviewer measured.
+ */
 export function FinderBar(props: FinderBarProps) {
   return (
     <header
-      className="bg-xms-navy text-white"
+      className="bg-xms-navy shrink-0 text-white"
       style={{ height: "var(--xms-finder-bar-h)" }}
       data-testid="finder-bar"
       role="banner"
     >
-      <div className="flex h-full items-center gap-3 px-4">
-        <div className="flex items-center gap-2">
-          <span className="bg-xms-accent xms-mono flex h-7 w-7 items-center justify-center rounded-[4px] text-[12px] font-semibold">
-            X
-          </span>
-          <span className="text-[13px] font-semibold">XMS</span>
-          <span className="hidden text-[12px] opacity-70 lg:inline">The Hackett Group</span>
+      <div className="flex h-full items-center gap-2 px-4">
+        <div className="flex shrink-0 items-center gap-[10px]">
+          <HackettMark size={22} className="text-white" />
+          <span className="text-[15px] font-semibold tracking-[-0.01em] whitespace-nowrap">The Hackett Group</span>
         </div>
-        <nav aria-label="Finders" className="ml-4 flex items-center gap-1">
+        <nav aria-label="Finders" className="ml-5 flex shrink-0 items-center gap-1">
           {FINDERS.map((finder) => (
             <button
               key={finder.kind}
@@ -50,71 +63,99 @@ export function FinderBar(props: FinderBarProps) {
               aria-pressed={props.activeFinder === finder.kind}
               onClick={() => props.onFinder(finder.kind)}
               className={cn(
-                "h-8 rounded-[4px] px-3 text-[13px]",
-                props.activeFinder === finder.kind
-                  ? "bg-xms-navy-overlay text-white"
-                  : "text-white/80 hover:bg-xms-navy-overlay",
+                "hover:bg-xms-navy-overlay h-8 rounded-[4px] px-[10px] text-[14px] font-medium",
+                props.activeFinder === finder.kind ? "bg-xms-navy-overlay text-white" : "text-white/85",
               )}
             >
               {finder.label}
             </button>
           ))}
         </nav>
-        <div className="mx-auto flex items-center">
+
+        {/* The scope pill: the instance and the current view, with a star that
+            favourites that exact view and a chevron onto the same overlay the
+            Favourites finder opens (renders 12 to 14). Fixed width, so a long
+            or a late-arriving label never shifts the search field. */}
+        <div className="mx-auto flex min-w-0 justify-center px-4">
           <span
-            className="border-xms-navy-line bg-xms-navy-overlay flex h-8 items-center gap-2 rounded-[999px] border pr-2 pl-3 text-[12px]"
+            className="bg-xms-navy-overlay border-xms-navy-line flex h-[34px] w-[320px] items-center gap-2 rounded-[999px] border pr-2 pl-4"
             data-testid="workspace-pill"
           >
-            <span className="xms-mono opacity-80">THG PROD</span>
-            <span className="opacity-50">·</span>
-            <span>{props.workspaceLabel}</span>
+            <button
+              type="button"
+              onClick={props.onWorkspace}
+              aria-expanded={props.workspaceOpen ?? false}
+              aria-label={`Scope: THG PROD, ${props.workspaceLabel}`}
+              className="flex min-w-0 flex-1 items-center gap-[6px] text-left"
+            >
+              <span className="text-[13px] font-semibold whitespace-nowrap text-white">THG PROD</span>
+              <span aria-hidden className="text-white/40">
+                ·
+              </span>
+              <span className="truncate text-[13px] font-medium text-white/90">{props.workspaceLabel}</span>
+              <ChevronDownIcon size={13} className="ml-auto shrink-0 text-white/55" />
+            </button>
             <button
               type="button"
               aria-label={props.starred ? "Unstar this view" : "Star this view"}
               aria-pressed={props.starred}
               onClick={props.onToggleStar}
               className={cn(
-                "ml-1 text-[14px] leading-none",
-                props.starred ? "text-xms-sla-warn" : "text-white/60 hover:text-white",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-[999px]",
+                props.starred ? "text-xms-sla-warn" : "text-white/55 hover:text-white",
               )}
             >
-              {props.starred ? "★" : "☆"}
+              <StarIcon size={15} filled={props.starred} />
             </button>
           </span>
         </div>
+
         <button
           type="button"
           onClick={props.onSearchFocus}
-          className="border-xms-navy-line bg-xms-navy-overlay flex h-8 w-[260px] items-center gap-2 rounded-[4px] border px-3 text-left text-[12px] text-white/60 hover:text-white"
+          className="bg-xms-card flex h-[34px] w-[330px] shrink-0 items-center gap-2 rounded-[999px] px-3 text-left"
         >
-          <span className="flex-1 truncate">Search tickets, accounts, solutions</span>
-          <kbd className="xms-mono rounded-[3px] border border-white/20 px-1 text-[10px]">/</kbd>
+          <SearchIcon size={15} className="text-xms-muted shrink-0" />
+          <span className="text-xms-placeholder flex-1 truncate text-[13px]">Search tickets, accounts, solutions</span>
+          <kbd className="xms-mono border-xms-line text-xms-muted rounded-[4px] border px-[5px] py-[1px] text-[11px]">
+            /
+          </kbd>
         </button>
+
         <button
           type="button"
           onClick={props.onAxel}
-          className="border-xms-ai-accent text-xms-ai-accent hover:bg-xms-navy-overlay h-8 rounded-[4px] border px-3 text-[12px] font-medium"
+          aria-expanded={props.axelOpen ?? false}
+          className="bg-xms-navy-overlay border-xms-navy-line ml-3 flex h-[34px] shrink-0 items-center gap-[6px] rounded-[999px] border pr-4 pl-3 text-[13px] font-medium text-white"
         >
+          <SparkleIcon size={15} className="text-xms-ai-accent" />
           Axel
         </button>
+
         <button
           type="button"
           aria-label={`Notifications, ${props.unreadCount} unread`}
           onClick={props.onNotifications}
-          className="hover:bg-xms-navy-overlay relative flex h-8 w-8 items-center justify-center rounded-[4px] text-[15px]"
+          className="relative ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-white/85 hover:text-white"
         >
-          <span aria-hidden>🔔</span>
+          <BellIcon size={19} />
+          {/* The badge sits on the bell and takes no room in the row, so a
+              count arriving after the first paint moves nothing beside it. */}
           {props.unreadCount > 0 ? (
-            <span className="bg-xms-accent xms-mono absolute -top-1 -right-1 rounded-[999px] px-1 text-[10px] font-semibold">
-              {props.unreadCount}
+            <span
+              data-testid="unread-badge"
+              className="bg-xms-sla-breach xms-mono absolute -top-[1px] -right-[1px] flex h-[16px] min-w-[16px] items-center justify-center rounded-[999px] px-[3px] text-[10px] leading-none font-semibold text-white"
+            >
+              {props.unreadCount > 99 ? "99+" : props.unreadCount}
             </span>
           ) : null}
         </button>
+
         <button
           type="button"
           aria-label="Account menu"
           onClick={props.onUser}
-          className="bg-xms-accent xms-mono flex h-8 w-8 items-center justify-center rounded-[999px] text-[11px] font-semibold"
+          className="bg-xms-accent ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-[12px] font-semibold text-white"
         >
           {props.userInitials}
         </button>

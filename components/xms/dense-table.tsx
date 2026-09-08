@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { SortCaret } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type SortDirection = "asc" | "desc";
@@ -19,6 +20,12 @@ export interface DenseColumn<Row> {
   width?: string;
   align?: "left" | "right";
   mono?: boolean;
+  /**
+   * Carried for sorting but not drawn. The Queue keeps its SLA column this
+   * way: the v3 render (01) has no SLA cell, and dropping the column outright
+   * would take the tightest-clock default sort with it.
+   */
+  hidden?: boolean;
 }
 
 export interface DenseTableProps<Row> {
@@ -41,6 +48,8 @@ export interface DenseTableProps<Row> {
   onRowClick?: (row: Row) => void;
   /** In-card search slot, rendered in the header after the count. */
   search?: ReactNode;
+  /** The icon controls to the right of the search field (filter, columns). */
+  actions?: ReactNode;
   /** Between header and rows: the selection bar, in practice. */
   banner?: ReactNode;
   footer?: ReactNode;
@@ -64,6 +73,7 @@ function compare(a: string | number | null | undefined, b: string | number | nul
  */
 export function DenseTable<Row>(props: DenseTableProps<Row>) {
   const { columns, rows, rowKey, selectable, onRowClick } = props;
+  const drawn = useMemo(() => columns.filter((column) => !column.hidden), [columns]);
   const [localSort, setLocalSort] = useState<SortState | undefined>(props.defaultSort);
   const sort = props.sort ?? localSort;
   const selected = props.selected ?? new Set<string>();
@@ -112,7 +122,12 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
         <span className="xms-mono bg-xms-tint text-xms-accent rounded-[999px] px-2 py-[2px] text-[11px] font-semibold">
           {props.count}
         </span>
-        {props.search ? <div className="ml-auto min-w-0 max-w-full">{props.search}</div> : null}
+        {props.search ? <div className="ml-auto min-w-0 max-w-full flex-1">{props.search}</div> : null}
+        {props.actions ? (
+          <div className={cn("flex shrink-0 items-center gap-2", props.search ? undefined : "ml-auto")}>
+            {props.actions}
+          </div>
+        ) : null}
       </header>
       {props.banner}
       <div className="overflow-auto">
@@ -124,7 +139,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                   <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />
                 </th>
               ) : null}
-              {columns.map((column) => {
+              {drawn.map((column) => {
                 const active = sort?.key === column.key;
                 return (
                   <th
@@ -143,9 +158,11 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                         className="hover:text-xms-accent inline-flex items-center gap-1"
                       >
                         {column.title}
-                        <span className="text-xms-muted text-[10px]" aria-hidden>
-                          {active ? (sort?.direction === "asc" ? "▲" : "▼") : "△"}
-                        </span>
+                        <SortCaret
+                          size={12}
+                          className={active ? "text-xms-accent" : "text-xms-muted"}
+                          direction={active ? sort?.direction : undefined}
+                        />
                       </button>
                     ) : (
                       column.title
@@ -183,7 +200,6 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                   }
                   className={cn(
                     "border-xms-line hover:bg-xms-row-hover h-[47px] border-b",
-                    "focus-visible:outline-xms-accent focus-visible:outline-2 focus-visible:-outline-offset-2",
                     isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
                     onRowClick && "cursor-pointer",
                   )}
@@ -198,7 +214,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       />
                     </td>
                   ) : null}
-                  {columns.map((column) => (
+                  {drawn.map((column) => (
                     <td
                       key={column.key}
                       className={cn(
@@ -215,7 +231,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
             })}
             {ordered.length === 0 && !props.loading ? (
               <tr>
-                <td colSpan={columns.length + (selectable ? 1 : 0)} className="text-xms-label px-4 py-8 text-center">
+                <td colSpan={drawn.length + (selectable ? 1 : 0)} className="text-xms-label px-4 py-8 text-center">
                   {props.emptyState ?? "Nothing here"}
                 </td>
               </tr>

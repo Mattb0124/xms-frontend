@@ -22,7 +22,7 @@ export const SECONDARY_BUTTON =
 export const DANGER_BUTTON =
   "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
 export const INPUT =
-  "border-xms-line bg-xms-card text-xms-ink focus:border-xms-accent h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
 
 /**
  * Display gating for an admin screen. Nothing renders until `me` has loaded

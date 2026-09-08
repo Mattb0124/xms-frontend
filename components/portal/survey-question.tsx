@@ -57,7 +57,7 @@ export function SurveyQuestion({
                 onClick={() => setScores((current) => ({ ...current, [question.key]: value }))}
                 data-score={value}
                 className={cn(
-                  "border-xms-line text-xms-body hover:bg-xms-tint focus-visible:ring-xms-accent flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-[6px] border px-1 py-2 outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                  "border-xms-line text-xms-body hover:bg-xms-tint flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-[6px] border px-1 py-2 outline-none",
                   scores[question.key] === value && "border-xms-accent bg-xms-tint text-xms-ink",
                 )}
               >

@@ -91,7 +91,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
                   href={item.href}
                   aria-current={item.match(pathname) ? "page" : undefined}
                   className={cn(
-                    "rounded-[6px] px-3 py-1.5 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-white",
+                    "rounded-[6px] px-3 py-1.5 text-[14px] outline-none",
                     item.match(pathname) ? "bg-white/15 font-medium" : "opacity-80 hover:opacity-100",
                   )}
                 >
@@ -138,7 +138,7 @@ function UserMenu({ me }: { me: PortalMe | undefined }) {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="rounded-[6px] px-3 py-1.5 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-white"
+        className="rounded-[6px] px-3 py-1.5 text-[14px] outline-none"
       >
         {name}
       </button>

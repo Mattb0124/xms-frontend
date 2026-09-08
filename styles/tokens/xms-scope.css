@@ -234,3 +234,22 @@
 .xms-scope ::placeholder {
   color: var(--xms-placeholder);
 }
+
+/* One focus treatment, and only one.
+ *
+ * The vendored aiinnovation-tokens.css sets a global :focus-visible outline
+ * with a 2px offset and a radius of its own, and components were adding a
+ * Tailwind ring over the top, so a clicked control drew a dark box and a
+ * cobalt ring at once. The vendored file is never edited, so the scope states
+ * the prototype's own treatment here instead and every per-component
+ * focus-visible:ring-* and focus:border-* class was removed with it
+ * (components/xms/surfaces.test.tsx holds that line): a 2px cobalt outline on
+ * the control's own radius, no offset, no ring. */
+.xms-scope :focus-visible {
+  outline: 2px solid var(--xms-accent);
+  outline-offset: 0;
+  border-radius: inherit;
+}
+.xms-scope :focus:not(:focus-visible) {
+  outline: none;
+}

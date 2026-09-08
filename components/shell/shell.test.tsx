@@ -24,6 +24,7 @@ describe("FinderBar", () => {
         workspaceLabel="Queue"
         starred={false}
         onToggleStar={onToggleStar}
+        onWorkspace={() => {}}
         onSearchFocus={() => {}}
         onAxel={() => {}}
         unreadCount={3}
@@ -38,6 +39,11 @@ describe("FinderBar", () => {
     fireEvent.click(screen.getByLabelText("Star this view"));
     expect(onToggleStar).toHaveBeenCalled();
     expect(screen.getByLabelText("Notifications, 3 unread")).toBeInTheDocument();
+    // v3 render 01: the bell carries the unread count as a badge on the icon,
+    // and the scope pill names the instance beside the view.
+    expect(screen.getByTestId("unread-badge")).toHaveTextContent("3");
+    expect(screen.getByTestId("workspace-pill")).toHaveTextContent("THG PROD");
+    expect(screen.getByTestId("workspace-pill")).toHaveTextContent("Queue");
   });
 });
 
@@ -55,7 +61,9 @@ describe("FinderOverlay", () => {
         onClose={() => {}}
       />,
     );
-    expect(screen.getByRole("dialog", { name: /All screens · 16/ })).toBeInTheDocument();
+    // The overlay header is the render's plain "All screens"; the tree count
+    // lives on the sidebar's own "Browse all screens" footer (render 12).
+    expect(screen.getByRole("dialog", { name: "All screens" })).toBeInTheDocument();
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
     expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "oper" } });

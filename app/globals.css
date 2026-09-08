@@ -2,6 +2,7 @@
  * :root wins over Tailwind's base), then the house layer, then the XMS
  * identity, then the Tailwind theme bridge. */
 @import "tailwindcss";
+@import "../styles/tokens/fonts.css";
 @import "../styles/tokens/aiinnovation-tokens.css";
 @import "../styles/tokens/house.css";
 @import "../styles/tokens/xms-scope.css";

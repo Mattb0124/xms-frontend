@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FinderKind } from "@/components/shell/finder-bar";
+import { CloseIcon, PinIcon, SearchIcon } from "@/components/xms/icons";
 import { SECTIONS, isDynamicPath, navigableHref, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,8 @@ export interface FinderOverlayProps {
   pinned: ReadonlySet<string>;
   onTogglePin: (path: string) => void;
   favourites: Array<{ path: string; label: string; type: string }>;
+  /** Live counts by screen id, the badges the All overlay carries (render 12). */
+  counts?: Record<string, number | undefined>;
   history: HistoryEntry[];
   onClose: () => void;
 }
@@ -89,12 +92,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
   const favourites = useMemo(() => props.favourites.filter((item) => !isDynamicPath(item.path)), [props.favourites]);
   const history = useMemo(() => props.history.filter((entry) => !isDynamicPath(entry.path)), [props.history]);
 
-  const title =
-    props.kind === "all"
-      ? `All screens · ${props.screens.length}`
-      : props.kind === "favourites"
-        ? "Favourites"
-        : "History";
+  const title = props.kind === "all" ? "All screens" : props.kind === "favourites" ? "Favourites" : "History";
 
   return (
     <div className="fixed inset-0 z-40" style={{ top: "var(--xms-finder-bar-h)" }}>
@@ -107,19 +105,22 @@ export function FinderOverlay(props: FinderOverlayProps) {
       <div
         role="dialog"
         aria-label={title}
-        className="bg-xms-navy absolute top-0 left-0 flex max-h-[80vh] w-[720px] flex-col rounded-br-[6px] text-white shadow-2xl"
+        className="bg-xms-navy-overlay absolute top-0 left-[208px] flex max-h-[76vh] w-[640px] flex-col rounded-b-[6px] text-white shadow-2xl"
       >
         <header className="border-xms-navy-line flex items-center gap-3 border-b px-4 py-3">
-          <span className="text-[13px] font-semibold">{title}</span>
+          <span className="text-[15px] font-semibold">{title}</span>
           {props.kind === "all" ? (
-            <input
-              ref={input}
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-              placeholder="Filter screens"
-              aria-label="Filter screens"
-              className="border-xms-navy-line bg-xms-navy-overlay ml-auto h-8 w-[240px] rounded-[4px] border px-2 text-[12px] text-white"
-            />
+            <span className="border-xms-navy-line bg-xms-navy ml-auto flex h-8 w-[240px] items-center gap-2 rounded-[4px] border px-2">
+              <SearchIcon size={14} className="shrink-0 text-white/50" />
+              <input
+                ref={input}
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+                placeholder="Filter screens"
+                aria-label="Filter screens"
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-white/45"
+              />
+            </span>
           ) : null}
           <button
             type="button"
@@ -127,7 +128,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
             className="ml-2 text-white/60 hover:text-white"
             aria-label="Close"
           >
-            ×
+            <CloseIcon size={16} />
           </button>
         </header>
         <div className="overflow-auto p-4">
@@ -142,19 +143,24 @@ export function FinderOverlay(props: FinderOverlayProps) {
                         key={screen.path}
                         className="hover:bg-xms-navy-overlay flex items-center gap-2 rounded-[4px] px-2 py-1"
                       >
-                        <ScreenRow screen={screen} screens={props.screens} onClose={props.onClose} />
                         <button
                           type="button"
                           aria-label={props.pinned.has(screen.path) ? `Unpin ${screen.label}` : `Pin ${screen.label}`}
                           aria-pressed={props.pinned.has(screen.path)}
                           onClick={() => props.onTogglePin(screen.path)}
                           className={cn(
-                            "text-[12px]",
-                            props.pinned.has(screen.path) ? "text-xms-sla-warn" : "text-white/40 hover:text-white",
+                            "shrink-0",
+                            props.pinned.has(screen.path) ? "text-white" : "text-white/35 hover:text-white",
                           )}
                         >
-                          📌
+                          <PinIcon size={15} filled={props.pinned.has(screen.path)} />
                         </button>
+                        <ScreenRow screen={screen} screens={props.screens} onClose={props.onClose} />
+                        {typeof props.counts?.[screen.screen] === "number" ? (
+                          <span className="xms-mono shrink-0 rounded-[999px] bg-white/12 px-[7px] py-[1px] text-[11px] text-white/80">
+                            {props.counts[screen.screen]}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

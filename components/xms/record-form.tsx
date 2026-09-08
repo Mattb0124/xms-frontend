@@ -32,7 +32,7 @@ export interface RecordFormProps {
 }
 
 const CONTROL =
-  "border-xms-line bg-xms-card text-xms-ink focus:border-xms-accent h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
 
 // Label 104px, value takes the rest and may shrink below its content, which is
 // what lets a long value wrap instead of being clipped (review finding 9).

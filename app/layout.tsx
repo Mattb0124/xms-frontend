@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers";
 import { NONCE_HEADER } from "@/lib/security/csp";
@@ -8,18 +7,9 @@ import "./globals.css";
 
 // Two typefaces and no third one (Wireframes v2 section 4): Inter for the UI,
 // IBM Plex Mono for keys, SLA values, counts, tool calls and caption labels.
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex-mono",
-  display: "swap",
-});
+// Both are declared in styles/tokens/fonts.css over files in public/fonts
+// rather than fetched by next/font at build time, which failed silently for
+// Inter and left every screen in the platform sans (reviewer finding 6).
 
 export const metadata: Metadata = {
   title: "XMS",
@@ -36,11 +26,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${plexMono.variable} xms-scope h-full antialiased`}
-    >
+    <html lang="en" suppressHydrationWarning className="xms-scope h-full antialiased">
       <body className="flex min-h-full flex-col">
         <Providers nonce={nonce}>{children}</Providers>
       </body>

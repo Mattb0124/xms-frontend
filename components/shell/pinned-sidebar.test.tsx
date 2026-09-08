@@ -15,7 +15,7 @@ describe("PinnedSidebar", () => {
     const { container } = render(<PinnedSidebar {...base} permissions={undefined} />);
     expect(container.querySelector("[data-skeleton]")).toBeInTheDocument();
     expect(screen.queryAllByRole("link")).toHaveLength(0);
-    expect(screen.getByText(/Browse all screens/)).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Browse all screens/ })).toBeDisabled();
   });
 
   it("shows only the unrestricted pins to a user with no permissions", () => {
@@ -41,7 +41,11 @@ describe("PinnedSidebar", () => {
     const queue = screen.getByRole("link", { name: /Queue/ });
     expect(queue).toHaveAttribute("aria-current", "page");
     expect(queue).toHaveTextContent("42");
-    expect(screen.getByText(/Browse all screens · 14/)).toBeEnabled();
+    // v3 render 01: the footer is a label with the tree count right-aligned
+    // beside it, not a label with the count spliced into the sentence.
+    const browse = screen.getByRole("button", { name: /Browse all screens/ });
+    expect(browse).toBeEnabled();
+    expect(browse).toHaveTextContent("14");
   });
 
   it("never shows a pin the user is not permitted to see", () => {

@@ -4,15 +4,15 @@ import { cn } from "@/lib/utils";
 
 /** Buttons and inputs for the portal: the house tokens, larger targets, visible focus. */
 export const PORTAL_PRIMARY =
-  "bg-xms-accent hover:bg-xms-accent-hover focus-visible:ring-xms-accent inline-flex h-[40px] items-center justify-center rounded-[6px] px-4 text-[14px] font-medium text-white outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50";
+  "bg-xms-accent hover:bg-xms-accent-hover inline-flex h-[40px] items-center justify-center rounded-[6px] px-4 text-[14px] font-medium text-white outline-none disabled:opacity-50";
 export const PORTAL_SECONDARY =
-  "border-xms-line text-xms-body hover:bg-xms-tint focus-visible:ring-xms-accent inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50";
+  "border-xms-line text-xms-body hover:bg-xms-tint inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none disabled:opacity-50";
 export const PORTAL_DANGER =
-  "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] focus-visible:ring-xms-accent inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50";
+  "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none disabled:opacity-50";
 export const PORTAL_INPUT =
-  "border-xms-line bg-xms-card text-xms-ink focus:border-xms-accent focus-visible:ring-xms-accent h-[40px] w-full rounded-[6px] border px-3 text-[14px] outline-none focus-visible:ring-2 disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink h-[40px] w-full rounded-[6px] border px-3 text-[14px] outline-none disabled:opacity-60";
 export const PORTAL_TEXTAREA =
-  "border-xms-line bg-xms-card text-xms-ink focus:border-xms-accent focus-visible:ring-xms-accent w-full rounded-[6px] border p-3 text-[14px] outline-none focus-visible:ring-2 disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink w-full rounded-[6px] border p-3 text-[14px] outline-none disabled:opacity-60";
 
 /** Client status pill: the internal state chooses the ramp step, the label is client language. */
 export function ClientStatusPill({ state, className }: { state: string; className?: string }) {
