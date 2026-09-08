@@ -23,6 +23,13 @@ const ICON_BUTTON =
   "text-xms-label hover:text-xms-ink hover:bg-xms-card flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]";
 
 /**
+ * The height of every control standing in the toolbar band, from render 01:
+ * the pills measure 32px and sit with 8px between them, centred in the 51px
+ * of content the 52px band leaves.
+ */
+export const HEADER_CONTROL = "h-[var(--xms-header-pill-h)]";
+
+/**
  * Grey 44px bar (Wireframes v2 section 2, v3 renders 01, 08, 09): hamburger,
  * funnel, the screen title with a chevron that switches screens, the filter
  * slot pages portal their pills into, a gear, the local search slot and the
@@ -139,7 +146,7 @@ export function HeaderSearchField({
 }) {
   return (
     <form
-      className="border-xms-line bg-xms-card flex h-8 w-full items-center gap-2 rounded-[4px] border px-2"
+      className="border-xms-line bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-[6px] border px-[10px]"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit?.();

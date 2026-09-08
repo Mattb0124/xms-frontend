@@ -88,7 +88,7 @@ function withoutChip(chips: Chip[], key: ChipKey): Chip[] {
 // The primary "Show:" dimension (v3 render 01): a real dropdown wearing the
 // render's blue outline pill rather than the platform's own select chrome.
 const SHOW_PILL =
-  "border-xms-accent text-xms-accent bg-xms-card h-[30px] cursor-pointer appearance-none rounded-[999px] border pr-7 pl-3 text-[13px] font-medium";
+  "border-xms-accent text-xms-accent bg-xms-card h-[var(--xms-header-pill-h)] cursor-pointer appearance-none rounded-[999px] border pr-7 pl-3 text-[13px] font-medium";
 
 const CARD_ICON_BUTTON =
   "border-xms-line bg-xms-card text-xms-label hover:text-xms-ink hover:border-xms-line-strong flex h-[34px] w-[38px] shrink-0 items-center justify-center rounded-[6px] border";

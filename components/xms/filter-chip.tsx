@@ -12,7 +12,7 @@ export function FilterChip({ label, value, onRemove, className }: FilterChipProp
   return (
     <span
       className={cn(
-        "border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-[999px] border pr-1 pl-[10px] text-[12px] whitespace-nowrap",
+        "border-xms-line bg-xms-card text-xms-body inline-flex h-[var(--xms-header-pill-h)] items-center gap-1 rounded-[999px] border pr-1 pl-3 text-[13px] whitespace-nowrap",
         className,
       )}
     >

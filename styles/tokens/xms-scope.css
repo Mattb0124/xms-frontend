@@ -79,7 +79,11 @@
   --xms-radius-control: 4px;
   --xms-radius-card: 6px;
   --xms-finder-bar-h: 56px;
-  --xms-header-bar-h: 44px;
+  /* 52px, not the 44px the v2 table quoted: measured off v3 render 01, where
+   * the grey band runs y=116 to y=167 under the 56px navy bar, which is 51px
+   * of content and the 1px rule. The pills inside it are 32px with 8px gaps. */
+  --xms-header-bar-h: 52px;
+  --xms-header-pill-h: 32px;
   --xms-sidebar-w: 238px;
   --xms-axel-panel-w: 340px;
   --xms-control-h: 34px;

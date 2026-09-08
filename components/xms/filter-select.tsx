@@ -40,7 +40,7 @@ export function FilterSelect({ label, value, options, onChange, onClear, primary
       data-testid={`filter-${label.toLowerCase()}`}
       data-active={active ? "true" : undefined}
       className={cn(
-        "bg-xms-card inline-flex h-[30px] shrink-0 items-center rounded-[999px] border pr-1 pl-3",
+        "bg-xms-card inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center rounded-[999px] border pr-1 pl-3",
         primary ? "border-xms-accent" : active ? "border-xms-accent-border" : "border-xms-line",
         className,
       )}
