@@ -40,7 +40,7 @@ describe("ApiClientsView", () => {
     expect(calls.some((call) => call.key === CLIENTS || call.key === SCOPES)).toBe(false);
   });
 
-  it("lists the clients with prefix, scope chips, account count, last used and status", async () => {
+  it("lists the clients with prefix, scope chips, account count, rate limit, last used and status", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["admin:api-clients"]),
       [CLIENTS]: () =>
@@ -55,6 +55,7 @@ describe("ApiClientsView", () => {
             last_used_at: null,
             expires_at: "2026-12-31T00:00:00Z",
             status: "revoked",
+            rate_limit_per_minute: 12_000,
           }),
         ]),
       [SCOPES]: () => json(someScopes()),
@@ -68,12 +69,15 @@ describe("ApiClientsView", () => {
     expect(active.querySelector("[data-accounts]")).toHaveTextContent("1 account");
     expect(active).toHaveTextContent("2026-09-06 07:15");
     expect(active).toHaveTextContent("No expiry");
+    expect(active.querySelector("[data-rate-limit]")).toHaveTextContent("600 / min");
     expect(within(active).getByText("Active")).toHaveAttribute("data-state", "ready");
     expect(within(active).getByRole("button", { name: "Revoke" })).toBeInTheDocument();
 
     const revoked = within(table).getByRole("row", { name: /Old loader/ });
     expect(revoked).toHaveTextContent("Never used");
     expect(revoked).toHaveTextContent("Expires 2026-12-31");
+    // A raised limit reads with its thousands separator, not as bare digits.
+    expect(revoked.querySelector("[data-rate-limit]")).toHaveTextContent("12,000 / min");
     expect(revoked.querySelector("[data-accounts]")).toHaveTextContent("2 accounts");
     expect(within(revoked).getByText("Revoked", { selector: ".aix-state-pill" })).toHaveAttribute(
       "data-state",
@@ -119,6 +123,16 @@ describe("ApiClientsView", () => {
     // Accounts are the granted ones, named from the directory.
     fireEvent.click(within(form).getByRole("checkbox", { name: "Acme Group" }));
     fireEvent.change(within(form).getByLabelText("Expires"), { target: { value: "2027-01-31" } });
+
+    // The rate limit opens on the API's own default and is refused before the
+    // API when it is not a whole number in range.
+    const rate = within(form).getByLabelText("Rate limit (requests a minute)");
+    expect(rate).toHaveValue("600");
+    fireEvent.change(rate, { target: { value: "0" } });
+    fireEvent.click(within(form).getByRole("button", { name: "Create client" }));
+    expect(await within(form).findByText(/between 1 and 100,000 requests a minute/)).toBeInTheDocument();
+    expect(calls.some((call) => call.key === CREATE)).toBe(false);
+    fireEvent.change(rate, { target: { value: "1200" } });
     fireEvent.click(within(form).getByRole("button", { name: "Create client" }));
 
     await waitFor(() =>
@@ -127,6 +141,7 @@ describe("ApiClientsView", () => {
         scopes: ["tickets:view", "exports:read"],
         account_ids: [FINANCE_ACCOUNT_ID],
         expires_at: "2027-01-31",
+        rate_limit_per_minute: 1200,
       }),
     );
     const once = await screen.findByTestId("new-api-key");

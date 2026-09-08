@@ -19,10 +19,12 @@ import {
   API_CLIENT_STATUS,
   apiClientBody,
   apiClientError,
+  DEFAULT_RATE_LIMIT,
   describeApiClientError,
   emptyApiClientDraft,
   expiryLabel,
   lastUsedLabel,
+  rateLimitLabel,
   toggle,
   validateApiClient,
   type ApiClientDraft,
@@ -111,8 +113,9 @@ export function NewKeyPanel({ name, apiKey, onDismiss }: { name: string; apiKey:
 /**
  * API clients (Accounts & Administration functional 5.9, Integrations
  * functional 5.4): the list with the key prefix, the scopes, how many
- * accounts the client may read, last used and the status; a New client form
- * over the server's scope catalog and the accounts granted to the viewer;
+ * accounts the client may read, the rate limit it carries, last used and the
+ * status; a New client form over the server's scope catalog and the accounts
+ * granted to the viewer, opening on the API's own default rate limit;
  * and Revoke behind a confirm. Needs `admin:api-clients`, which
  * `admin:users` implies; fails closed and never asks the API without it.
  */
@@ -265,6 +268,19 @@ export function ApiClientsView() {
               />
             </FieldRow>
             <p className="text-xms-label text-[12px]">Leave the expiry empty for a key that does not expire.</p>
+            <FieldRow label="Rate limit (requests a minute)" htmlFor="client-rate">
+              <input
+                id="client-rate"
+                inputMode="numeric"
+                className={cn(INPUT, "xms-mono w-[130px]")}
+                value={draft.ratePerMinute}
+                onChange={(event) => set({ ratePerMinute: event.target.value })}
+              />
+            </FieldRow>
+            <p className="text-xms-label text-[12px]">
+              The API throttles this client past its limit. It is per client, not per account, and {DEFAULT_RATE_LIMIT}{" "}
+              a minute is what a key carries unless you change it here.
+            </p>
             <InlineError message={error} />
             <div>
               <button type="submit" className={PRIMARY_BUTTON} disabled={creating}>
@@ -289,6 +305,7 @@ export function ApiClientsView() {
                 <th className={HEAD}>Key prefix</th>
                 <th className={HEAD}>Scopes</th>
                 <th className={HEAD}>Accounts</th>
+                <th className={HEAD}>Rate limit</th>
                 <th className={HEAD}>Last used</th>
                 <th className={HEAD}>Status</th>
                 <th className={cn(HEAD, "text-right")}>Actions</th>
@@ -317,6 +334,9 @@ export function ApiClientsView() {
                   <td className={CELL} data-accounts>
                     {client.account_ids.length} account{client.account_ids.length === 1 ? "" : "s"}
                   </td>
+                  <td className={cn(CELL, "xms-mono text-xms-body text-[12px]")} data-rate-limit>
+                    {rateLimitLabel(client.rate_limit_per_minute)}
+                  </td>
                   <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>
                     {lastUsedLabel(client.last_used_at)}
                   </td>
@@ -340,7 +360,7 @@ export function ApiClientsView() {
               ))}
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-xms-label px-4 py-8 text-center text-[13px]">
+                  <td colSpan={8} className="text-xms-label px-4 py-8 text-center text-[13px]">
                     No API client issued yet.
                   </td>
                 </tr>

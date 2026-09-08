@@ -19,9 +19,25 @@ export interface ApiClientDraft {
   accountIds: string[];
   /** A calendar date from the form, empty for no expiry. */
   expiresOn: string;
+  /** Requests a minute, text until it is sent; the form opens on the API's own default. */
+  ratePerMinute: string;
 }
 
-export const emptyApiClientDraft: ApiClientDraft = { name: "", scopes: [], accountIds: [], expiresOn: "" };
+/**
+ * The rate limit the API applies when a create leaves it out (Integrations
+ * technical 5). The form opens on it rather than on an empty field, so the
+ * number an administrator reads is the number the key will carry.
+ */
+export const DEFAULT_RATE_LIMIT = 600;
+export const MAX_RATE_LIMIT = 100_000;
+
+export const emptyApiClientDraft: ApiClientDraft = {
+  name: "",
+  scopes: [],
+  accountIds: [],
+  expiresOn: "",
+  ratePerMinute: String(DEFAULT_RATE_LIMIT),
+};
 
 export function toggle(values: string[], value: string): string[] {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
@@ -32,6 +48,10 @@ export function validateApiClient(draft: ApiClientDraft): string | null {
   if (draft.name.trim().length === 0) return "Give the client a name.";
   if (draft.scopes.length === 0) return "Choose at least one scope.";
   if (draft.accountIds.length === 0) return "Grant the client at least one account.";
+  if (!/^\d+$/.test(draft.ratePerMinute.trim())) return "The rate limit is a whole number of requests a minute.";
+  const rate = Number(draft.ratePerMinute);
+  if (rate < 1 || rate > MAX_RATE_LIMIT)
+    return `The rate limit is between 1 and ${MAX_RATE_LIMIT.toLocaleString("en-US")} requests a minute.`;
   return null;
 }
 
@@ -41,7 +61,13 @@ export function apiClientBody(draft: ApiClientDraft): CreateApiClientBody {
     scopes: draft.scopes,
     account_ids: draft.accountIds,
     ...(draft.expiresOn ? { expires_at: draft.expiresOn } : {}),
+    rate_limit_per_minute: Number(draft.ratePerMinute),
   };
+}
+
+/** "600 / min" for the list column. */
+export function rateLimitLabel(perMinute: number): string {
+  return `${perMinute.toLocaleString("en-US")} / min`;
 }
 
 /** "Never used" before the first call, else the day and minute the API recorded. */

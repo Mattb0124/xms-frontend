@@ -27,6 +27,8 @@ export interface ApiClient {
   created_at: string;
   version: number;
   account_ids: string[];
+  /** Requests a minute this key may make (Integrations technical 5); 600 when the create left it out. */
+  rate_limit_per_minute: number;
 }
 
 /** The create response only: the key is shown once and never returned again. */
@@ -44,6 +46,8 @@ export interface CreateApiClientBody {
   scopes: string[];
   account_ids: string[];
   expires_at?: string;
+  /** Whole requests a minute, 1 to 100000; the API applies 600 when it is left out. */
+  rate_limit_per_minute?: number;
 }
 
 export interface RevokedApiClient {

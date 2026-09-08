@@ -25,6 +25,7 @@ export function anApiClient(overrides: Partial<ApiClient> = {}): ApiClient {
     created_at: "2026-08-01T09:00:00Z",
     version: 1,
     account_ids: [FINANCE_ACCOUNT_ID],
+    rate_limit_per_minute: 600,
     ...overrides,
   };
 }

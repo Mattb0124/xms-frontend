@@ -116,11 +116,14 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         /admin/api-clients (Accounts & Administration functional 5.9, Integrations functional 5.4;
                         admin:api-clients, which admin:users implies, fails closed: the list with the name, the expiry
                         or "No expiry", the key prefix, the scopes as chips, how many accounts the client may read,
-                        last used or "Never used" and the status pill Active or Revoked; New client over GET
+                        the rate limit as "600 / min", last used or "Never used" and the status pill Active or Revoked;
+                        New client over GET
                         /v1/admin/api-clients/scopes as checkboxes with the server's descriptions and the viewer's
                         granted accounts as checkboxes, named from the account directory under admin:accounts and by
-                        short id otherwise, with an optional expiry, refused locally before the API when the name,
-                        a scope or an account is missing; the key from the create response in a copy box that says it
+                        short id otherwise, with an optional expiry and the rate limit opening on the API's own default
+                        of 600 a minute, refused locally before the API when the name,
+                        a scope or an account is missing or the rate limit is not a whole number from 1 to 100000; the
+                        key from the create response in a copy box that says it
                         will not be shown again and never reaches the list; Revoke behind a confirm with
                         already_revoked worded; a note that webhook subscriptions are registered by the client itself
                         through the API with its key, since /v1/webhooks answers API client principals only); the
@@ -235,8 +238,10 @@ components/admin/api-clients/  api-clients-view (ApiClientsView, ApiClientStatus
                         copy box until it is dismissed by hand)
 components/admin/finance/  finance-tab (AccountFinanceTab, DestinationForm over DestinationEditor keyed on the record's
                         version, NewSecretPanel, DeliveriesPanel with Deliver now, DeliveryStatusPill)
-lib/integrations/       api-clients (API_CLIENT_STATUS, the ApiClientDraft with emptyApiClientDraft, toggle,
-                        validateApiClient and apiClientBody, lastUsedLabel, expiryLabel, accountLabel, apiClientError
+lib/integrations/       api-clients (API_CLIENT_STATUS, DEFAULT_RATE_LIMIT (600) and MAX_RATE_LIMIT, the ApiClientDraft
+                        with emptyApiClientDraft opening on the default rate, toggle,
+                        validateApiClient and apiClientBody, lastUsedLabel, expiryLabel, rateLimitLabel, accountLabel,
+                        apiClientError
                         and describeApiClientError for already_revoked and not_found), finance (DESTINATION_KINDS,
                         FINANCE_FORMATS, DELIVERY_STATUS, DELIVERABLE_STATUSES and isDeliverable, the DestinationDraft
                         with emptyDestinationDraft, draftFromDestination and destinationBody (only the chosen kind's
