@@ -573,3 +573,100 @@ describe("a held report run is read and decided behind reports:manage", () => {
     expect(read("components/admin/reports/report-schedules-tab.tsx")).toContain('hasPermission("reports:manage")');
   });
 });
+
+/**
+ * The same map for the group routes the 2026-09-08 backend change added
+ * (TM-08, TM-10, backend test/golden/routes.json). Two keys are in play and
+ * they are not the same one, so each surface carries its own:
+ *
+ * - the account's routing defaults answer the read to `tickets:view` and the
+ *   write to `admin:config`. The panel lives on the account record, whose
+ *   own gate is `admin:accounts`, which implies neither, so it holds its own
+ *   `tickets:view` guard on the read and offers the write only with
+ *   `admin:config`;
+ * - the catalog of projects and change windows answers the read to
+ *   `tickets:view` and the writes to `tickets:work`, so its screen gates on
+ *   the first and its form asks for the second.
+ *
+ * `/v1/groups`, the assignment-group directory the pickers read, is not in
+ * this map: it predates the change and is already read from screens gated on
+ * tickets:work and tickets:create as well as tickets:view. What is pinned
+ * here is that the routing panel, which is the first surface to read it from
+ * an `admin:accounts` screen, holds `tickets:view` before mounting a picker.
+ */
+const GROUP_READS = [
+  {
+    hook: "useListRoutingRulesQuery",
+    slice: "redux/ticketsApi.ts",
+    route: "/v1/accounts/${accountId}/routing-rules",
+  },
+  {
+    hook: "useReplaceRoutingRulesMutation",
+    slice: "redux/ticketsApi.ts",
+    route: "/v1/accounts/${accountId}/routing-rules",
+  },
+  { hook: "useListTicketGroupsQuery", slice: "redux/ticketsApi.ts", route: '"/v1/ticket-groups"' },
+  {
+    hook: "useCreateTicketGroupMutation",
+    slice: "redux/ticketsApi.ts",
+    route: 'url: "/v1/ticket-groups", method: "POST"',
+  },
+  { hook: "usePatchTicketGroupMutation", slice: "redux/ticketsApi.ts", route: "/v1/ticket-groups/${id}" },
+];
+
+const GROUP_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/admin/config/routing-rules.tsx", permission: "tickets:view" },
+  { file: "components/tickets/ticket-groups.tsx", mountedIn: "app/(internal)/tickets/groups/page.tsx" },
+  { file: "app/(internal)/tickets/groups/page.tsx", permission: "tickets:view" },
+];
+
+describe("the routing defaults and the group catalog are read behind tickets:view", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of GROUP_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = GROUP_READS.map((entry) => entry.hook);
+    const listed = new Set(GROUP_SURFACES.map((surface) => surface.file));
+    const callers = callersOf(hooks);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+    // The catalog's page is listed as the gate its body is mounted behind and
+    // calls no hook of its own, which is exactly the shape the first rule of
+    // this file asks for.
+    expect(callers).not.toContain("app/(internal)/tickets/groups/page.tsx");
+  });
+
+  it("gates each surface on tickets:view, by its own guard or by the screen that mounts it", () => {
+    const gates = new Set(GROUP_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of GROUP_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      // A page gates with AdminGate; a panel inside another screen's gate
+      // asks the permission set itself, which is the same decision made in
+      // the same place, before any query hook runs.
+      expect(
+        source.includes(`<AdminGate permission="${surface.permission}">`) ||
+          source.includes(`hasPermission("${surface.permission}")`),
+        `${surface.file} does not gate on ${surface.permission}`,
+      ).toBe(true);
+    }
+  });
+
+  it("keeps the writes behind their own keys, which are not the read key", () => {
+    // The routing panel offers Save only with admin:config; the catalog
+    // offers New group and the edit form only with tickets:work.
+    expect(read("components/admin/config/routing-rules.tsx")).toContain('hasPermission("admin:config")');
+    expect(read("components/tickets/ticket-groups.tsx")).toContain('hasPermission("tickets:work")');
+    // The catalog is registered on the read key, so no weaker reader is
+    // offered the link and no stronger one is needed to open it.
+    expect(read("lib/routes.ts")).toMatch(/screen: "ticket_groups",[\s\S]*?permission: "tickets:view"/);
+  });
+});

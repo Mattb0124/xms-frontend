@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { viewByKey, viewToParams } from "@/lib/tickets/queue-views";
+import { MY_GROUPS, viewByKey, viewToParams } from "@/lib/tickets/queue-views";
 import {
   ACCOUNT_REQUIRED,
   applyDefinition,
   definitionFromParams,
   describeSavedViewError,
+  GROUP_REQUIRED,
   isNotDeployed,
   NAME_REQUIRED,
   savedViewSearch,
@@ -121,8 +122,51 @@ describe("savedViewSearch", () => {
 
 describe("validateSavedView", () => {
   it("refuses a nameless view and one filed under no account before the API is asked", () => {
-    expect(validateSavedView({ name: "", share: "private", accountId: "" })).toEqual([NAME_REQUIRED, ACCOUNT_REQUIRED]);
-    expect(validateSavedView({ name: "P1s", share: "account", accountId: VIEW_ACCOUNT_ID })).toEqual([]);
+    expect(validateSavedView({ name: "", share: "private", accountId: "", groupId: "" })).toEqual([
+      NAME_REQUIRED,
+      ACCOUNT_REQUIRED,
+    ]);
+    expect(validateSavedView({ name: "P1s", share: "account", accountId: VIEW_ACCOUNT_ID, groupId: "" })).toEqual([]);
+  });
+
+  it("refuses a group share that names no group, which is the API's share_ref_required", () => {
+    expect(validateSavedView({ name: "P1s", share: "group", accountId: VIEW_ACCOUNT_ID, groupId: "" })).toEqual([
+      GROUP_REQUIRED,
+    ]);
+    expect(validateSavedView({ name: "P1s", share: "group", accountId: VIEW_ACCOUNT_ID, groupId: "g-1" })).toEqual([]);
+  });
+});
+
+/**
+ * The group queue in a saved view (TM-08): `is_mine` on group_id is the
+ * reader's own groups, which is what makes a shared "my groups" view mean
+ * the reader rather than whoever saved it.
+ */
+describe("the group conditions", () => {
+  it("writes the group queue as is_mine and one group as eq", () => {
+    expect(
+      definitionFromParams(params("open", [{ key: "my_groups", value: MY_GROUPS }])).definition.conditions,
+    ).toEqual({
+      conditions: [
+        { field: "state", op: "not_in", value: ["closed", "cancelled"] },
+        { field: "group_id", op: "is_mine" },
+      ],
+      match: "all",
+    });
+    expect(
+      definitionFromParams(params("open", [{ key: "group_id", value: "g-1" }])).definition.conditions.conditions,
+    ).toContainEqual({ field: "group_id", op: "eq", value: "g-1" });
+  });
+
+  it("reads both back as chips, and says so when a definition names more groups than the Queue can show", () => {
+    expect(
+      applyDefinition({ conditions: { conditions: [{ field: "group_id", op: "is_mine" }], match: "all" } }).chips,
+    ).toContainEqual({ key: "my_groups", value: MY_GROUPS });
+    const many = applyDefinition({
+      conditions: { conditions: [{ field: "group_id", op: "in", value: ["g-1", "g-2"] }], match: "all" },
+    });
+    expect(many.chips).toContainEqual({ key: "group_id", value: "g-1" });
+    expect(many.notes.join(" ")).toContain("names 2 groups");
   });
 });
 
@@ -134,7 +178,7 @@ describe("the words for a refusal", () => {
     );
     expect(describeSavedViewError("not_found")).toContain("gone");
     expect(shareLabel("account")).toBe("Everyone on the account");
-    expect(shareLabel("group")).toBe("My group");
+    expect(shareLabel("group")).toBe("One group");
   });
 
   it("treats only a missing route as the reason to fall back to the browser star", () => {

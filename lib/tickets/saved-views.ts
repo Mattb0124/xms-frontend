@@ -18,6 +18,7 @@ import { paramsToExportSpec, type ExportCondition, type ExportConditionSet } fro
 import {
   chipsToSearch,
   DEFAULT_VIEW,
+  MY_GROUPS,
   OUT_OF_SCOPE,
   RESOLVED_STATES,
   type Chip,
@@ -33,17 +34,18 @@ export interface SavedViewDefinition {
 }
 
 /**
- * The three sharing modes the API declares. `group` is left out of the
- * picker: it needs a `share_ref` naming one of the caller's groups, and the
- * Queue has no group picker, so offering it would only produce
- * `share_ref_required`.
+ * The three sharing modes the API declares. `group` is offered now that the
+ * Queue has a group picker to fill `share_ref` with, and now that the server
+ * actually resolves a member's groups when it lists views (TM-08): before
+ * that it read them as an empty list, so a view shared with a group was
+ * visible to nobody but its owner.
  */
-export const SHARE_MODES = ["private", "account"] as const;
+export const SHARE_MODES = ["private", "group", "account"] as const;
 export type ShareMode = (typeof SHARE_MODES)[number];
 
 export const SHARE_LABEL: Record<string, string> = {
   private: "Only me",
-  group: "My group",
+  group: "One group",
   account: "Everyone on the account",
 };
 
@@ -143,6 +145,21 @@ export function applyDefinition(definition: SavedViewDefinition | undefined): Ap
       case "account_id:in":
         push("account_id", values(condition.value));
         break;
+      // The group queue (TM-08). `is_mine` is the reader's own groups, which
+      // is why it is a flag here rather than a list of ids.
+      case "group_id:is_mine":
+        push("my_groups", [MY_GROUPS]);
+        break;
+      case "group_id:eq":
+      case "group_id:in": {
+        // The list route filters on one group, so a definition naming several
+        // is narrowed to the first and says so rather than showing more.
+        const groups = values(condition.value);
+        push("group_id", groups.slice(0, 1));
+        if (groups.length > 1)
+          notes.push(`This view names ${groups.length} groups; the Queue can show one, so the first is applied.`);
+        break;
+      }
       case "short_description:contains":
         q = String(condition.value ?? "");
         break;
@@ -184,11 +201,14 @@ export interface SavedViewDraft {
   name: string;
   share: ShareMode;
   accountId: string;
+  /** The `share_ref` a group share needs: one assignment group, by id. */
+  groupId: string;
 }
 
 export const NAME_REQUIRED = "A saved view needs a name.";
 export const ACCOUNT_REQUIRED = "A saved view is filed under one account. Choose one.";
 export const NAME_TOO_LONG = "A name is at most 80 characters.";
+export const GROUP_REQUIRED = "A view shared with a group has to name the group.";
 
 /** Refused here before the API is asked, in the API's own limits (80 characters, one account). */
 export function validateSavedView(draft: SavedViewDraft): string[] {
@@ -196,6 +216,9 @@ export function validateSavedView(draft: SavedViewDraft): string[] {
   if (draft.name.trim() === "") problems.push(NAME_REQUIRED);
   if (draft.name.trim().length > 80) problems.push(NAME_TOO_LONG);
   if (draft.accountId === "") problems.push(ACCOUNT_REQUIRED);
+  // The API answers share_ref_required; asking here saves the round trip and
+  // says it beside the picker that fixes it.
+  if (draft.share === "group" && draft.groupId === "") problems.push(GROUP_REQUIRED);
   return problems;
 }
 

@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  addChip,
   CHIP_KEYS,
   CHIP_LABEL,
   chipsFromSearch,
   chipsToSearch,
+  MULTI_CHIP_KEYS,
+  MY_GROUPS,
   OUT_OF_SCOPE,
   outOfScopeLabel,
   paramsToQuery,
@@ -99,5 +102,66 @@ describe("the out-of-scope filter", () => {
     expect(chipsToSearch("open", [{ key: "out_of_scope", value: "flagged" }], "", 25).toString()).toBe(
       "out_of_scope=flagged",
     );
+  });
+});
+
+/**
+ * The group queue and the group filter (TM-08). `my_groups` is a flag the
+ * server answers from the membership table and `group_id` is one assignment
+ * group, so neither is a comma list and a second chip on either replaces the
+ * first rather than producing a value the route refuses.
+ */
+describe("the group dimensions", () => {
+  it("carries both dimensions as chips with their own labels", () => {
+    expect(CHIP_KEYS).toContain("group_id");
+    expect(CHIP_KEYS).toContain("my_groups");
+    expect(MULTI_CHIP_KEYS).not.toContain("group_id");
+    expect(MULTI_CHIP_KEYS).not.toContain("my_groups");
+    expect(CHIP_LABEL.group_id).toBe("Group");
+    expect(CHIP_LABEL.my_groups).toBe("Group queue");
+  });
+
+  it("sends the group queue as the flag and the group as one id", () => {
+    const params = viewToParams(viewByKey("breached"), [
+      { key: "my_groups", value: MY_GROUPS },
+      { key: "group_id", value: "g-1" },
+    ]);
+    expect(paramsToQuery(params)).toEqual({ open: "true", breached: "true", my_groups: "true", group_id: "g-1" });
+  });
+
+  it("keeps the last value on a single-value dimension rather than joining them", () => {
+    const params = viewToParams(viewByKey("open"), [
+      { key: "group_id", value: "g-1" },
+      { key: "group_id", value: "g-2" },
+    ]);
+    expect(params.group_id).toBe("g-2");
+    expect(
+      chipsToSearch(
+        "open",
+        [
+          { key: "group_id", value: "g-1" },
+          { key: "group_id", value: "g-2" },
+        ],
+        "",
+        25,
+      ).toString(),
+    ).toBe("group_id=g-2");
+  });
+
+  it("replaces rather than appends when a chip is added on a single-value dimension", () => {
+    const chips = addChip([{ key: "group_id", value: "g-1" }], { key: "group_id", value: "g-2" });
+    expect(chips).toEqual([{ key: "group_id", value: "g-2" }]);
+    const many = addChip([{ key: "priority", value: "p1" }], { key: "priority", value: "p2" });
+    expect(many).toEqual([
+      { key: "priority", value: "p1" },
+      { key: "priority", value: "p2" },
+    ]);
+  });
+
+  it("reads a hand-typed address back without breaking the list", () => {
+    expect(chipsFromSearch(new URLSearchParams("group_id=g-1,g-2")).chips).toEqual([{ key: "group_id", value: "g-1" }]);
+    // The group queue is a flag: anything but the flag is not it.
+    expect(chipsFromSearch(new URLSearchParams("my_groups=maybe")).chips).toEqual([]);
+    expect(chipsFromSearch(new URLSearchParams("my_groups=true")).chips).toEqual([{ key: "my_groups", value: "true" }]);
   });
 });

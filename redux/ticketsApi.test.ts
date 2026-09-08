@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
-import { ticketsApi, type Contract, type Engagement, type TicketScope, type TicketView } from "@/redux/ticketsApi";
+import {
+  ticketsApi,
+  type Contract,
+  type Engagement,
+  type FreezeWindow,
+  type RoutingRule,
+  type TicketGroup,
+  type TicketScope,
+  type TicketView,
+} from "@/redux/ticketsApi";
 import { json, stubFetch } from "@/test-kit/portal";
+import { aSavedView, SAVED_VIEW_ID } from "@/test-kit/views";
 
 export const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
 export const CONTRACT_ID = "c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1";
@@ -251,5 +261,225 @@ describe("ticketsApi contracts", () => {
         .unwrap();
     await expect(patch(1)).rejects.toMatchObject({ status: 400, data: { code: "multiplier_required" } });
     await expect(patch(1)).rejects.toMatchObject({ status: 409, data: { code: "stale_version" } });
+  });
+});
+
+export const GROUP_ID = "99999999-9999-4999-8999-999999999999";
+export const TICKET_GROUP_ID = "88888888-8888-4888-8888-888888888888";
+
+/** A constructed change window: October's release window with one freeze inside it (TM-10, TM-18). */
+export function aTicketGroup(overrides: Partial<TicketGroup> = {}): TicketGroup {
+  return {
+    id: TICKET_GROUP_ID,
+    account_id: ACCOUNT_ID,
+    kind: "change_window",
+    name: "October release window",
+    description: "The monthly consolidation release",
+    owner_user_id: "u-ben",
+    starts_at: "2026-10-03T18:00:00Z",
+    ends_at: "2026-10-04T02:00:00Z",
+    freeze_windows: [aFreeze()],
+    status: "planned",
+    created_at: "2026-09-01T09:00:00Z",
+    updated_at: "2026-09-01T09:00:00Z",
+    version: 1,
+    ...overrides,
+  };
+}
+
+/** A constructed freeze: the hour inside the window during which nothing may be scheduled. */
+export function aFreeze(overrides: Partial<FreezeWindow> = {}): FreezeWindow {
+  return {
+    starts_at: "2026-10-03T20:00:00Z",
+    ends_at: "2026-10-03T21:00:00Z",
+    reason: "Month-end close",
+    ...overrides,
+  };
+}
+
+/** A constructed project: a container with no schedule, so no window rule applies to it. */
+export function aProjectGroup(overrides: Partial<TicketGroup> = {}): TicketGroup {
+  return aTicketGroup({
+    id: "88888888-8888-4888-8888-888888888889",
+    kind: "project",
+    name: "Cutover programme",
+    starts_at: null,
+    ends_at: null,
+    freeze_windows: [],
+    status: "active",
+    ...overrides,
+  });
+}
+
+/** A constructed routing default: every incident goes to one group unless a category rule is more specific. */
+export function aRoutingRule(overrides: Partial<RoutingRule> = {}): RoutingRule {
+  return {
+    id: "44444444-4444-4444-8444-444444444444",
+    account_id: ACCOUNT_ID,
+    ticket_type: "incident",
+    category: null,
+    group_id: GROUP_ID,
+    group_name: "Application support",
+    created_at: "2026-09-01T09:00:00Z",
+    updated_at: "2026-09-01T09:00:00Z",
+    version: 1,
+    ...overrides,
+  };
+}
+
+/**
+ * The group queue and the routing defaults (TM-08), and the catalog of
+ * projects and change windows (TM-10), on the tickets slice.
+ */
+describe("ticketsApi groups", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("asks the list route for the group queue and for one group by id", async () => {
+    const calls = stubFetch({
+      "GET /v1/tickets": () =>
+        json({ items: [aTicketView({ group_id: GROUP_ID })], next_cursor: null, stats: { open: 1 } }),
+    });
+    const store = makeStore();
+    await store.dispatch(ticketsApi.endpoints.listTickets.initiate({ open: true, my_groups: true })).unwrap();
+    await store.dispatch(ticketsApi.endpoints.listTickets.initiate({ open: true, group_id: GROUP_ID })).unwrap();
+    expect(calls.map((call) => call.search)).toEqual(["?open=true&my_groups=true", `?open=true&group_id=${GROUP_ID}`]);
+  });
+
+  it("replaces the whole routing set with one PUT and reads the set again", async () => {
+    let reads = 0;
+    const calls = stubFetch({
+      [`GET /v1/accounts/${ACCOUNT_ID}/routing-rules`]: () => {
+        reads += 1;
+        return json(reads > 1 ? [aRoutingRule({ category: "consolidation" })] : [aRoutingRule()]);
+      },
+      [`PUT /v1/accounts/${ACCOUNT_ID}/routing-rules`]: () => json([aRoutingRule({ category: "consolidation" })]),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(ticketsApi.endpoints.listRoutingRules.initiate(ACCOUNT_ID));
+    expect((await subscription.unwrap())[0].category).toBeNull();
+    const saved = await store
+      .dispatch(
+        ticketsApi.endpoints.replaceRoutingRules.initiate({
+          accountId: ACCOUNT_ID,
+          rules: [{ ticket_type: "incident", category: "consolidation", group_id: GROUP_ID }],
+        }),
+      )
+      .unwrap();
+    expect(saved[0].category).toBe("consolidation");
+    expect(calls.find((call) => call.key.startsWith("PUT "))?.body).toEqual({
+      rules: [{ ticket_type: "incident", category: "consolidation", group_id: GROUP_ID }],
+    });
+    await vi.waitFor(() => expect(reads).toBe(2));
+    subscription.unsubscribe();
+  });
+
+  it("leaves the routing set alone when the API refuses it, because nothing was written", async () => {
+    let reads = 0;
+    stubFetch({
+      [`GET /v1/accounts/${ACCOUNT_ID}/routing-rules`]: () => {
+        reads += 1;
+        return json([aRoutingRule()]);
+      },
+      [`PUT /v1/accounts/${ACCOUNT_ID}/routing-rules`]: () => json({ code: "validation_failed" }, 400),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(ticketsApi.endpoints.listRoutingRules.initiate(ACCOUNT_ID));
+    await subscription.unwrap();
+    await expect(
+      store
+        .dispatch(
+          ticketsApi.endpoints.replaceRoutingRules.initiate({
+            accountId: ACCOUNT_ID,
+            rules: [{ ticket_type: "incident", category: null, group_id: GROUP_ID }],
+          }),
+        )
+        .unwrap(),
+    ).rejects.toMatchObject({ status: 400, data: { code: "validation_failed" } });
+    expect(reads).toBe(1);
+    subscription.unsubscribe();
+  });
+
+  it("filters the group catalog on the parameters the API declares", async () => {
+    const calls = stubFetch({ "GET /v1/ticket-groups": () => json([aTicketGroup(), aProjectGroup()]) });
+    const store = makeStore();
+    const groups = await store
+      .dispatch(ticketsApi.endpoints.listTicketGroups.initiate({ account_id: ACCOUNT_ID, kind: "change_window" }))
+      .unwrap();
+    expect(groups.map((group) => group.kind)).toEqual(["change_window", "project"]);
+    expect(calls[0].search).toBe(`?account_id=${ACCOUNT_ID}&kind=change_window`);
+  });
+
+  it("creates a group, and reads the list again even when a patch is refused", async () => {
+    let reads = 0;
+    const calls = stubFetch({
+      "GET /v1/ticket-groups": () => {
+        reads += 1;
+        return json([aTicketGroup()]);
+      },
+      "POST /v1/ticket-groups": () => json(aTicketGroup(), 201),
+      [`PATCH /v1/ticket-groups/${TICKET_GROUP_ID}`]: () => json({ code: "stale_version" }, 409),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(ticketsApi.endpoints.listTicketGroups.initiate());
+    await subscription.unwrap();
+    const created = await store
+      .dispatch(
+        ticketsApi.endpoints.createTicketGroup.initiate({
+          account_id: ACCOUNT_ID,
+          kind: "change_window",
+          name: "October release window",
+          starts_at: "2026-10-03T18:00:00Z",
+          ends_at: "2026-10-04T02:00:00Z",
+        }),
+      )
+      .unwrap();
+    expect(created.name).toBe("October release window");
+    expect(calls.find((call) => call.key === "POST /v1/ticket-groups")?.body).toMatchObject({
+      kind: "change_window",
+      starts_at: "2026-10-03T18:00:00Z",
+    });
+    await vi.waitFor(() => expect(reads).toBe(2));
+    // A stale version means this screen is behind, so the list is read again
+    // even though nothing was written.
+    await expect(
+      store
+        .dispatch(
+          ticketsApi.endpoints.patchTicketGroup.initiate({ id: TICKET_GROUP_ID, body: { version: 1, name: "Moved" } }),
+        )
+        .unwrap(),
+    ).rejects.toMatchObject({ status: 409, data: { code: "stale_version" } });
+    await vi.waitFor(() => expect(reads).toBe(3));
+    subscription.unsubscribe();
+  });
+
+  it("sends share_ref with a group share and clears it on a move away", async () => {
+    const calls = stubFetch({
+      "POST /v1/views": () => json(aSavedView({ share: "group", share_ref: GROUP_ID }), 201),
+      [`PATCH /v1/views/${SAVED_VIEW_ID}`]: () => json(aSavedView({ share: "private", share_ref: null, version: 2 })),
+    });
+    const store = makeStore();
+    const view = await store
+      .dispatch(
+        ticketsApi.endpoints.createSavedView.initiate({
+          account_id: ACCOUNT_ID,
+          name: "My groups, breached",
+          definition: { conditions: { conditions: [{ field: "group_id", op: "is_mine" }], match: "all" } },
+          share: "group",
+          share_ref: GROUP_ID,
+        }),
+      )
+      .unwrap();
+    expect(view.share_ref).toBe(GROUP_ID);
+    const moved = await store
+      .dispatch(
+        ticketsApi.endpoints.patchSavedView.initiate({
+          id: SAVED_VIEW_ID,
+          body: { version: 1, share: "private", share_ref: null },
+        }),
+      )
+      .unwrap();
+    expect(moved.share_ref).toBeNull();
+    expect(calls[0].body).toMatchObject({ share: "group", share_ref: GROUP_ID });
+    expect(calls[1].body).toMatchObject({ share: "private", share_ref: null });
   });
 });

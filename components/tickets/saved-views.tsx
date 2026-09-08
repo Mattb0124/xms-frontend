@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ConfirmButton, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { GroupName, GroupPicker } from "@/components/tickets/group-picker";
 import { useToast } from "@/components/xms/toast";
 import { apiError } from "@/lib/admin/api-error";
 import {
@@ -43,6 +44,16 @@ export function savedViewLabel(view: SavedView): string {
   return view.share === "private" ? view.name : `${view.name} (${shareLabel(view.share).toLowerCase()})`;
 }
 
+/** Who else has a view, in words: a group share names the group it is for. */
+function ShareLine({ view }: { view: SavedView }) {
+  if (view.share !== "group") return <>{shareLabel(view.share).toLowerCase()}</>;
+  return (
+    <>
+      shared with <GroupName id={view.share_ref} />
+    </>
+  );
+}
+
 /**
  * Save as view, and rename and delete for the one being shown.
  *
@@ -80,6 +91,10 @@ export function SavedViewsBar({
   const [name, setName] = useState("");
   const [share, setShare] = useState<ShareMode>("private");
   const [accountId, setAccountId] = useState("");
+  // The `share_ref` a group share needs, both on the save form and while a
+  // reshare to a group is being pointed at one.
+  const [groupId, setGroupId] = useState("");
+  const [resharingGroup, setResharingGroup] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
   const [create, creating] = useCreateSavedViewMutation();
@@ -94,6 +109,7 @@ export function SavedViewsBar({
     setName("");
     setShare("private");
     setAccountId(defaultAccount);
+    setGroupId("");
     setProblems([]);
     setOpen(true);
   };
@@ -104,7 +120,7 @@ export function SavedViewsBar({
   };
 
   const save = async () => {
-    const draft = { name, share, accountId };
+    const draft = { name, share, accountId, groupId };
     const found = validateSavedView(draft);
     setProblems(found);
     if (found.length > 0) return;
@@ -115,6 +131,9 @@ export function SavedViewsBar({
         name: name.trim(),
         definition,
         share,
+        // The API takes share_ref on a group share alone, and refuses one
+        // without it (share_ref_required).
+        share_ref: share === "group" ? groupId : undefined,
       }).unwrap();
       setOpen(false);
       push({ title: `${view.name} saved`, detail: notes.join(" ") || undefined, tone: "success" });
@@ -136,9 +155,23 @@ export function SavedViewsBar({
     }
   };
 
-  const reshare = async (view: SavedView, next: ShareMode) => {
+  /**
+   * Resharing. A move to `group` has to name the group, so the select opens
+   * the picker and the patch waits for it; a move away clears `share_ref`,
+   * because a private view pointing at a group is a fact that is no longer
+   * true.
+   */
+  const reshare = async (view: SavedView, next: ShareMode, ref?: string) => {
+    if (next === "group" && !ref) {
+      setResharingGroup(true);
+      return;
+    }
+    setResharingGroup(false);
     try {
-      await patch({ id: view.id, body: { version: view.version, share: next } }).unwrap();
+      await patch({
+        id: view.id,
+        body: { version: view.version, share: next, share_ref: next === "group" ? ref : null },
+      }).unwrap();
       push({ title: `Shared: ${shareLabel(next).toLowerCase()}`, tone: "success" });
     } catch (error) {
       const { code, details } = apiError(error);
@@ -180,7 +213,7 @@ export function SavedViewsBar({
         {current ? (
           <span className="flex flex-wrap items-center gap-2">
             <span className="text-xms-label">
-              Showing {current.name}, {shareLabel(current.share).toLowerCase()}
+              Showing {current.name}, <ShareLine view={current} />
             </span>
             {owned ? (
               <>
@@ -202,8 +235,18 @@ export function SavedViewsBar({
                       {shareLabel(mode)}
                     </option>
                   ))}
-                  {current.share === "group" ? <option value="group">{shareLabel("group")}</option> : null}
                 </select>
+                {resharingGroup ? (
+                  <GroupPicker
+                    aria-label="Share with group"
+                    value={current.share_ref}
+                    allowNone={false}
+                    className="h-[26px] w-[180px] text-[12px]"
+                    onChange={(next) => {
+                      if (next) void reshare(current, "group", next);
+                    }}
+                  />
+                ) : null}
                 <ConfirmButton
                   label="Delete"
                   confirmLabel="Confirm delete"
@@ -300,6 +343,21 @@ export function SavedViewsBar({
               ))}
             </select>
           </span>
+          {share === "group" ? (
+            <span className="flex flex-col gap-1">
+              <label htmlFor="saved-view-group" className="text-xms-label text-[12px]">
+                Group
+              </label>
+              <GroupPicker
+                id="saved-view-group"
+                aria-label="Group"
+                value={groupId}
+                allowNone={false}
+                onChange={(next) => setGroupId(next ?? "")}
+                className="w-[220px]"
+              />
+            </span>
+          ) : null}
           <button type="submit" disabled={creating.isLoading} className={PRIMARY_BUTTON}>
             Save view
           </button>

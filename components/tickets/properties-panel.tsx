@@ -3,15 +3,16 @@
 import { useMemo } from "react";
 import { formatDate } from "@/components/admin/primitives";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
+import { GroupPicker } from "@/components/tickets/group-picker";
 import { Panel } from "@/components/xms/panel";
 import { RecordForm, type RecordField } from "@/components/xms/record-form";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { describeGroupError } from "@/lib/tickets/groups";
 import { LEVELS, PRIORITIES, SOURCE_LABEL, TICKET_TYPES } from "@/lib/tickets/vocab";
 import { useMe } from "@/redux/me";
 import {
   useListAccountContractsQuery,
-  useListDirectoryGroupsQuery,
   useListGrantedAccountsQuery,
   usePatchTicketMutation,
   type PatchTicketBody,
@@ -26,7 +27,6 @@ import {
 export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; readOnly?: boolean }) {
   const me = useMe();
   const { data: accounts } = useListGrantedAccountsQuery();
-  const { data: groups } = useListDirectoryGroupsQuery();
   // The contract directory sits behind contracts:view; without it the row
   // keeps the ticket's own contract id rather than taking a needless 403.
   const canReadContracts = me.hasPermission("contracts:view");
@@ -59,17 +59,6 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         readOnly: true,
       },
       { key: "category", label: "Category", value: ticket.category ?? "", readOnly },
-      {
-        key: "group_id",
-        label: "Group",
-        value: ticket.group_id ?? "",
-        kind: "select",
-        options: [
-          { value: "", label: "No group" },
-          ...(groups ?? []).map((group) => ({ value: group.id, label: group.name })),
-        ],
-        readOnly,
-      },
       {
         key: "contract_id",
         label: "Contract",
@@ -115,7 +104,7 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
       { key: "resolved_at", label: "Resolved", value: formatDate(ticket.resolved_at), readOnly: true, mono: true },
       { key: "closed_at", label: "Closed", value: formatDate(ticket.closed_at), readOnly: true, mono: true },
     ],
-    [ticket, account, groups, contracts, readOnly, canOverride],
+    [ticket, account, contracts, readOnly, canOverride],
   );
 
   const commit = async (key: string, value: string) => {
@@ -123,9 +112,6 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
     switch (key) {
       case "category":
         body.category = value === "" ? null : value;
-        break;
-      case "group_id":
-        body.group_id = value === "" ? null : value;
         break;
       case "contract_id":
         body.contract_id = value;
@@ -161,10 +147,27 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
         }}
       />
       {/*
-        One row for one concept (Wireframes section 3.2, review finding 10):
-        the picker itself names the current assignee, so there is no second
-        read-only "Assigned to" line under an empty combobox.
+        Reassignment (TM-08): a ticket moves to a group or to a person, and
+        both are one row for one concept (Wireframes section 3.2, review
+        finding 10), so each picker names its own current value and there is
+        no second read-only line under an empty combobox. The group is a
+        picker rather than a properties row because it is the queue the work
+        sits in, not a field.
       */}
+      <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3">
+        <span className="text-xms-label text-[12px]">Group</span>
+        <GroupPicker
+          id="ticket-group"
+          aria-label="Group"
+          value={ticket.group_id}
+          disabled={readOnly}
+          onChange={(groupId) =>
+            patch({ key: ticket.key, body: { version: ticket.version, group_id: groupId } })
+              .unwrap()
+              .catch((error) => push({ title: "Not saved", detail: describeGroupError(error), tone: "error" }))
+          }
+        />
+      </div>
       <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3">
         <span className="text-xms-label text-[12px]">Assignee</span>
         <AssigneePicker

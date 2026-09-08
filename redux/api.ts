@@ -137,6 +137,7 @@ export const xmsApi = createApi({
     "Contacts",
     "SavedViews",
     "AuditSavedQueries",
+    "TicketGroups",
   ],
   endpoints: (build) => ({
     me: build.query<MeResponse, void>({

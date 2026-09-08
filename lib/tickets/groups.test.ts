@@ -1,0 +1,115 @@
+import { describe, expect, it } from "vitest";
+import {
+  CHANGE_WINDOW_ENDS_REQUIRED,
+  describeGroupError,
+  describeTicketGroupError,
+  ENDS_AFTER_STARTS,
+  GROUP_ACCOUNT_REQUIRED,
+  GROUP_NAME_REQUIRED,
+  refusalProblems,
+  RULE_DUPLICATE,
+  RULE_GROUP_REQUIRED,
+  ticketGroupKindLabel,
+  ticketGroupStatusLabel,
+  toInstant,
+  toLocalInput,
+  toRoutingRuleInputs,
+  validateRoutingRules,
+  validateTicketGroup,
+  type RoutingRuleDraft,
+  type TicketGroupDraft,
+} from "@/lib/tickets/groups";
+
+const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
+
+function aGroupDraft(overrides: Partial<TicketGroupDraft> = {}): TicketGroupDraft {
+  return {
+    accountId: ACCOUNT_ID,
+    kind: "change_window",
+    name: "October release window",
+    description: "",
+    ownerUserId: "",
+    status: "planned",
+    startsAt: "2026-10-03T18:00",
+    endsAt: "2026-10-04T02:00",
+    ...overrides,
+  };
+}
+
+function aRuleDraft(overrides: Partial<RoutingRuleDraft> = {}): RoutingRuleDraft {
+  return { ticketType: "incident", category: "", groupId: "g-1", ...overrides };
+}
+
+describe("the words for a group refusal", () => {
+  it("says why a group change on a ticket was refused", () => {
+    expect(describeGroupError({ status: 400, data: { code: "group_retired" } })).toContain("retired");
+    expect(describeGroupError({ status: 409, data: { code: "stale_version" } })).toContain("reloaded");
+    expect(describeGroupError({ status: 409, data: { code: "ticket_closed" } })).toContain("cannot be reassigned");
+    expect(describeGroupError({ status: 500, data: { code: "boom" } })).toContain("boom");
+  });
+
+  it("reads the problems out of an invalid_schedule and puts them in the sentence", () => {
+    const error = { status: 400, data: { code: "invalid_schedule", problems: ["ends_at must be after starts_at"] } };
+    expect(refusalProblems(error)).toEqual(["ends_at must be after starts_at"]);
+    expect(describeTicketGroupError(error)).toContain("ends_at must be after starts_at");
+    expect(describeTicketGroupError({ status: 409, data: { code: "stale_version" } })).toContain("reloaded");
+    expect(describeTicketGroupError({ status: 404, data: { code: "not_found" } })).toContain("gone");
+  });
+
+  it("names the two kinds and the four statuses, and falls back on one it has never heard of", () => {
+    expect(ticketGroupKindLabel("change_window")).toBe("Change window");
+    expect(ticketGroupStatusLabel("cancelled")).toBe("Cancelled");
+    expect(ticketGroupKindLabel("something_new")).toBe("something new");
+  });
+});
+
+describe("validateTicketGroup", () => {
+  it("takes a well-formed change window", () => {
+    expect(validateTicketGroup(aGroupDraft())).toEqual([]);
+  });
+
+  it("refuses a change window without both ends, which the API answers as invalid_schedule", () => {
+    expect(validateTicketGroup(aGroupDraft({ endsAt: "" }))).toEqual([CHANGE_WINDOW_ENDS_REQUIRED]);
+    // A project has no window rules, so it needs no dates at all.
+    expect(validateTicketGroup(aGroupDraft({ kind: "project", startsAt: "", endsAt: "" }))).toEqual([]);
+  });
+
+  it("refuses an end before the start, a nameless group and one under no account", () => {
+    expect(validateTicketGroup(aGroupDraft({ endsAt: "2026-10-03T17:00" }))).toEqual([ENDS_AFTER_STARTS]);
+    expect(validateTicketGroup(aGroupDraft({ name: " ", accountId: "" }))).toEqual([
+      GROUP_NAME_REQUIRED,
+      GROUP_ACCOUNT_REQUIRED,
+    ]);
+  });
+});
+
+describe("the datetime the form holds and the instant the API takes", () => {
+  it("round-trips a local value through the instant it is sent as", () => {
+    const local = "2026-10-03T18:00";
+    const instant = toInstant(local);
+    expect(instant).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(toLocalInput(instant)).toBe(local);
+  });
+
+  it("treats an empty or unreadable value as no date rather than as an invalid one", () => {
+    expect(toInstant("")).toBeNull();
+    expect(toInstant("not a date")).toBeNull();
+    expect(toLocalInput(null)).toBe("");
+    expect(toLocalInput("not a date")).toBe("");
+  });
+});
+
+describe("the routing defaults", () => {
+  it("sends a blank category as null, which is the rule for the type as a whole", () => {
+    expect(toRoutingRuleInputs([aRuleDraft(), aRuleDraft({ category: " consolidation " })])).toEqual([
+      { ticket_type: "incident", category: null, group_id: "g-1" },
+      { ticket_type: "incident", category: "consolidation", group_id: "g-1" },
+    ]);
+  });
+
+  it("refuses a rule with no group and two rules covering the same type and category", () => {
+    expect(validateRoutingRules([aRuleDraft({ groupId: "" })])).toEqual([RULE_GROUP_REQUIRED]);
+    expect(validateRoutingRules([aRuleDraft(), aRuleDraft({ category: "" })])).toEqual([RULE_DUPLICATE]);
+    expect(validateRoutingRules([aRuleDraft(), aRuleDraft({ ticketType: "change" })])).toEqual([]);
+  });
+});

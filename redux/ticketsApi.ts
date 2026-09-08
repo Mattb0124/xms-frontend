@@ -260,13 +260,121 @@ export interface CreateSavedViewBody {
   name: string;
   definition: SavedViewDefinition;
   share?: "private" | "group" | "account";
+  /** The group a `group` share is for; the API answers share_ref_required without it. */
+  share_ref?: string;
 }
 
 export interface PatchSavedViewBody {
   version: number;
   name?: string;
   share?: "private" | "group" | "account";
+  /** Sent with a move to `group`; null clears it when the share moves away again. */
+  share_ref?: string | null;
   definition?: SavedViewDefinition;
+}
+
+/**
+ * Assignment group routing defaults (TM-08): the account's answer to which
+ * group takes which kind of work. A rule naming a category wins over the
+ * rule for the type as a whole, and the whole set is reconciled with one
+ * PUT, so a rule cannot be half-saved. Reading is `tickets:view`; writing is
+ * `admin:config` like every other catalog.
+ */
+export const ROUTABLE_TYPES = ["incident", "service_request", "change", "problem", "project_task"] as const;
+export type RoutableType = (typeof ROUTABLE_TYPES)[number];
+
+export interface RoutingRule {
+  id: string;
+  account_id: string;
+  ticket_type: RoutableType;
+  /** The category the rule is for, or null for the type as a whole. */
+  category: string | null;
+  group_id: string;
+  /** The group's name, joined by the API; absent on an older one. */
+  group_name?: string | null;
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+/** One rule as the PUT carries it; the API replaces the whole set with these. */
+export interface RoutingRuleInput {
+  ticket_type: RoutableType;
+  category?: string | null;
+  group_id: string;
+}
+
+/**
+ * A project or change window a ticket tree belongs to (TM-10, TM-18): a
+ * named container with a schedule. `freeze_windows` are the spans during
+ * which nothing may be scheduled; a change window needs both ends, and the
+ * API refuses one without them with `invalid_schedule`.
+ */
+export const TICKET_GROUP_KINDS = ["project", "change_window"] as const;
+export type TicketGroupKind = (typeof TICKET_GROUP_KINDS)[number];
+
+export const TICKET_GROUP_STATUSES = ["planned", "active", "closed", "cancelled"] as const;
+export type TicketGroupStatus = (typeof TICKET_GROUP_STATUSES)[number];
+
+export interface FreezeWindow {
+  starts_at: string;
+  ends_at: string;
+  reason?: string;
+}
+
+export interface TicketGroup {
+  id: string;
+  account_id: string;
+  kind: TicketGroupKind;
+  name: string;
+  description: string;
+  owner_user_id: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  freeze_windows: FreezeWindow[];
+  status: TicketGroupStatus;
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+/** One ticket inside a change window, as the change calendar lists them. */
+export interface TicketGroupTicket {
+  id: string;
+  key: string;
+  type: string;
+  state: string;
+  priority: Priority;
+  short_description: string;
+}
+
+export interface CreateTicketGroupBody {
+  account_id: string;
+  kind: TicketGroupKind;
+  name: string;
+  description?: string;
+  owner_user_id?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  freeze_windows?: FreezeWindow[];
+  status?: TicketGroupStatus;
+}
+
+export interface PatchTicketGroupBody {
+  version: number;
+  name?: string;
+  description?: string;
+  owner_user_id?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  freeze_windows?: FreezeWindow[];
+  status?: TicketGroupStatus;
+}
+
+export interface TicketGroupFilter {
+  account_id?: string;
+  kind?: TicketGroupKind;
+  status?: TicketGroupStatus;
 }
 
 /** How a contract handles a non-standard after-hours class (TB-13): a premium multiplier, comp time, or nothing. */
@@ -536,6 +644,56 @@ export const ticketsApi = xmsApi.injectEndpoints({
       query: () => "/v1/groups",
       providesTags: ["Groups"],
     }),
+
+    /**
+     * The account's routing defaults (TM-08). Reading them is part of seeing
+     * the desk, because the New ticket form shows where work will land;
+     * replacing the set is `admin:config`, and the API takes the whole set at
+     * once so a rule cannot be half-saved.
+     */
+    listRoutingRules: build.query<RoutingRule[], string>({
+      query: (accountId) => `/v1/accounts/${accountId}/routing-rules`,
+      providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:routing` }],
+    }),
+    replaceRoutingRules: build.mutation<RoutingRule[], { accountId: string; rules: RoutingRuleInput[] }>({
+      query: ({ accountId, rules }) => ({
+        url: `/v1/accounts/${accountId}/routing-rules`,
+        method: "PUT",
+        body: { rules },
+      }),
+      // A refused set changed nothing, so nothing reloads.
+      invalidatesTags: (_result, error, { accountId }) =>
+        error ? [] : [{ type: "Account", id: `${accountId}:routing` }],
+    }),
+
+    /**
+     * Projects and change windows (TM-10, TM-18). Reading is `tickets:view`;
+     * creating and editing are `tickets:work`, because a window is planned
+     * work rather than a configuration catalog.
+     */
+    listTicketGroups: build.query<TicketGroup[], TicketGroupFilter | void>({
+      query: (filter) => ({
+        url: "/v1/ticket-groups",
+        params: {
+          ...(filter?.account_id ? { account_id: filter.account_id } : {}),
+          ...(filter?.kind ? { kind: filter.kind } : {}),
+          ...(filter?.status ? { status: filter.status } : {}),
+        },
+      }),
+      providesTags: [{ type: "TicketGroups", id: "list" }],
+    }),
+    createTicketGroup: build.mutation<TicketGroup, CreateTicketGroupBody>({
+      query: (body) => ({ url: "/v1/ticket-groups", method: "POST", body }),
+      invalidatesTags: (_result, error) => (error ? [] : [{ type: "TicketGroups", id: "list" }]),
+    }),
+    /** A refusal reloads the record too: stale_version means this screen is behind. */
+    patchTicketGroup: build.mutation<TicketGroup, { id: string; body: PatchTicketGroupBody }>({
+      query: ({ id, body }) => ({ url: `/v1/ticket-groups/${id}`, method: "PATCH", body }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "TicketGroups", id: "list" },
+        { type: "TicketGroups", id },
+      ],
+    }),
     listAccountContracts: build.query<Contract[], string>({
       query: (accountId) => `/v1/accounts/${accountId}/contracts`,
       providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:contracts` }],
@@ -614,6 +772,11 @@ export const {
   usePatchSavedViewMutation,
   useDeleteSavedViewMutation,
   useListDirectoryGroupsQuery,
+  useListRoutingRulesQuery,
+  useReplaceRoutingRulesMutation,
+  useListTicketGroupsQuery,
+  useCreateTicketGroupMutation,
+  usePatchTicketGroupMutation,
   useListAccountContractsQuery,
   usePatchContractMutation,
   useListEngagementsQuery,

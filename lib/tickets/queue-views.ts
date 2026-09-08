@@ -10,7 +10,15 @@ export interface TicketListParams {
   type?: string[];
   priority?: string[];
   assignee_id?: string;
+  /** One assignment group, by id; the API takes a single value, not a list. */
   group_id?: string;
+  /**
+   * The group queue (TM-08): every ticket assigned to a group the signed-in
+   * person belongs to. The groups are read from the membership table on the
+   * server and are never named by the client, so a person in no group gets
+   * an empty queue rather than an unfiltered one.
+   */
+  my_groups?: boolean;
   unassigned?: boolean;
   open?: boolean;
   mine?: boolean;
@@ -80,10 +88,29 @@ export const DEFAULT_VIEW = "open";
  * 400 rather than a silent widening, which is why the chip offers the four
  * values rather than free text.
  */
-export type ChipKey = "account_id" | "type" | "priority" | "state" | "out_of_scope";
+export type ChipKey = "account_id" | "type" | "priority" | "state" | "out_of_scope" | "group_id" | "my_groups";
 
 /** The chip dimensions in the order the URL writes them. */
-export const CHIP_KEYS: ChipKey[] = ["account_id", "type", "priority", "state", "out_of_scope"];
+export const CHIP_KEYS: ChipKey[] = [
+  "account_id",
+  "type",
+  "priority",
+  "state",
+  "out_of_scope",
+  "group_id",
+  "my_groups",
+];
+
+/**
+ * The dimensions the API reads as a comma list. The two group dimensions are
+ * not among them (TM-08): `group_id` is one assignment group and `my_groups`
+ * is a flag, so a second chip on either replaces the first rather than being
+ * joined into a value the route would refuse.
+ */
+export const MULTI_CHIP_KEYS: ChipKey[] = ["account_id", "type", "priority", "state", "out_of_scope"];
+
+/** The only value the group-queue chip carries; anything else is not the flag. */
+export const MY_GROUPS = "true";
 
 export interface Chip {
   key: ChipKey;
@@ -98,6 +125,17 @@ export function viewByKey(key: string | null | undefined): QueueView {
 export function viewToParams(view: QueueView, chips: Chip[], extra: Partial<TicketListParams> = {}): TicketListParams {
   const params: TicketListParams = { ...view.params, ...extra };
   for (const chip of chips) {
+    // The group queue is a flag the server answers from the membership table,
+    // and the group filter is one id: neither is a list, so the last chip on
+    // either dimension is the one that is sent.
+    if (chip.key === "my_groups") {
+      params.my_groups = true;
+      continue;
+    }
+    if (chip.key === "group_id") {
+      params.group_id = chip.value;
+      continue;
+    }
     const current = params[chip.key] ?? [];
     if (!current.includes(chip.value)) params[chip.key] = [...current, chip.value];
   }
@@ -116,13 +154,25 @@ export function paramsToQuery(params: TicketListParams): Record<string, string> 
   return query;
 }
 
+/**
+ * Adds a chip. A second chip on a single-value dimension replaces the first
+ * rather than sitting beside it, because only one of them would be sent and
+ * a criterion the list is not applying may not stay on the trail.
+ */
+export function addChip(chips: Chip[], chip: Chip): Chip[] {
+  const kept = MULTI_CHIP_KEYS.includes(chip.key) ? chips : chips.filter((entry) => entry.key !== chip.key);
+  if (kept.some((entry) => entry.key === chip.key && entry.value === chip.value)) return kept;
+  return [...kept, chip];
+}
+
 /** URL search params for the screen: view, chips, q, limit. */
 export function chipsToSearch(view: string, chips: Chip[], q: string, limit: number): URLSearchParams {
   const search = new URLSearchParams();
   if (view !== DEFAULT_VIEW) search.set("view", view);
   for (const key of CHIP_KEYS) {
     const values = chips.filter((chip) => chip.key === key).map((chip) => chip.value);
-    if (values.length > 0) search.set(key, values.join(","));
+    if (values.length === 0) continue;
+    search.set(key, MULTI_CHIP_KEYS.includes(key) ? values.join(",") : values[values.length - 1]);
   }
   if (q) search.set("q", q);
   if (limit !== 25) search.set("limit", String(limit));
@@ -145,12 +195,17 @@ export function chipsFromSearch(search: URLSearchParams): {
   for (const key of CHIP_KEYS) {
     const raw = search.get(key);
     if (!raw) continue;
-    for (const value of raw.split(",").filter(Boolean)) {
+    const parts = raw.split(",").filter(Boolean);
+    // A single-value dimension takes the first value of a hand-typed list
+    // rather than sending a comma list the route cannot parse.
+    for (const value of MULTI_CHIP_KEYS.includes(key) ? parts : parts.slice(0, 1)) {
       // The out-of-scope vocabulary is closed on the server, so a value from
       // outside it is dropped here rather than sent for a 400: the API's own
       // waiting-rail link (`/tickets?out_of_scope=flagged`) reads back as a
       // chip, and a hand-typed address cannot break the list.
       if (key === "out_of_scope" && !(OUT_OF_SCOPE as readonly string[]).includes(value)) continue;
+      // The group queue is a flag, so only the flag turns it on.
+      if (key === "my_groups" && value !== MY_GROUPS) continue;
       chips.push({ key, value });
     }
   }
@@ -170,4 +225,6 @@ export const CHIP_LABEL: Record<ChipKey, string> = {
   priority: "Priority",
   state: "State",
   out_of_scope: "Out of scope",
+  group_id: "Group",
+  my_groups: "Group queue",
 };

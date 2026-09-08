@@ -147,3 +147,67 @@ describe("SavedViewsBar", () => {
     expect(screen.getByText(/kept in this browser/)).toBeInTheDocument();
   });
 });
+
+/**
+ * Sharing a view with a group (TM-08). The API takes `share_ref` on a group
+ * share alone and refuses one without it, and the server now resolves a
+ * member's groups when it lists views, so the mode is worth offering.
+ */
+describe("SavedViewsBar group sharing", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const GROUP_ID = "99999999-9999-4999-8999-999999999999";
+  const groups = () => json([{ id: GROUP_ID, name: "Application support", status: "active" }]);
+
+  it("refuses a group share that names no group before the API is asked", async () => {
+    const calls = stubFetch({ "GET /v1/admin/me": () => json(me()), "GET /v1/groups": groups });
+    renderDesk(bar());
+    fireEvent.click(screen.getByRole("button", { name: "Save as view" }));
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "My group's P1s" } });
+    fireEvent.change(screen.getByLabelText("Shared with"), { target: { value: "group" } });
+    // The picker appears with the mode, and nothing is chosen in it yet.
+    await screen.findByLabelText("Group");
+    fireEvent.click(screen.getByRole("button", { name: "Save view" }));
+    await screen.findByText("A view shared with a group has to name the group.");
+    expect(calls.some((call) => call.key === "POST /v1/views")).toBe(false);
+  });
+
+  it("sends the chosen group as share_ref", async () => {
+    const onSaved = vi.fn();
+    const calls = stubFetch({
+      "GET /v1/admin/me": () => json(me()),
+      "GET /v1/groups": groups,
+      "POST /v1/views": () => json(aSavedView({ share: "group", share_ref: GROUP_ID }), 201),
+    });
+    renderDesk(bar({ onSaved }));
+    fireEvent.click(screen.getByRole("button", { name: "Save as view" }));
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Team P1s" } });
+    fireEvent.change(screen.getByLabelText("Shared with"), { target: { value: "group" } });
+    // The picker offers a group only once the directory has answered.
+    await screen.findByRole("option", { name: "Application support" });
+    fireEvent.change(screen.getByLabelText("Group"), { target: { value: GROUP_ID } });
+    fireEvent.click(screen.getByRole("button", { name: "Save view" }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    expect(calls.find((call) => call.key === "POST /v1/views")?.body).toMatchObject({
+      share: "group",
+      share_ref: GROUP_ID,
+    });
+  });
+
+  it("names the group a shared view is for, and clears the reference on a move away", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": () => json(me()),
+      "GET /v1/groups": groups,
+      [`PATCH /v1/views/${SAVED_VIEW_ID}`]: () => json(aSavedView({ share: "private", share_ref: null, version: 2 })),
+    });
+    renderDesk(bar({ current: aSavedView({ share: "group", share_ref: GROUP_ID }) }));
+    // The line names the group rather than the mode, once the directory answers.
+    await screen.findByText(/shared with Application support/);
+    fireEvent.change(screen.getByLabelText("Sharing"), { target: { value: "private" } });
+    await waitFor(() => expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(true));
+    expect(calls.find((call) => call.key.startsWith("PATCH "))?.body).toMatchObject({
+      share: "private",
+      share_ref: null,
+    });
+  });
+});

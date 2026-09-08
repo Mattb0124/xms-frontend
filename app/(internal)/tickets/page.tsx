@@ -21,10 +21,12 @@ import { apiError, describeError } from "@/lib/admin/api-error";
 import { STARS_KEY, useToggleInList } from "@/lib/persisted-set";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
+  addChip,
   CHIP_KEYS,
   CHIP_LABEL,
   chipsFromSearch,
   chipsToSearch,
+  MY_GROUPS,
   OUT_OF_SCOPE,
   outOfScopeLabel,
   QUEUE_VIEWS,
@@ -38,6 +40,7 @@ import { PRIORITIES, TICKET_TYPES } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import {
+  useListDirectoryGroupsQuery,
   useListGrantedAccountsQuery,
   useListTicketsQuery,
   usePatchTicketMutation,
@@ -45,6 +48,7 @@ import {
   type SavedView,
   type TicketView,
 } from "@/redux/ticketsApi";
+import { groupLabel } from "@/components/tickets/group-picker";
 
 const STATE_OPTIONS = [
   "new",
@@ -88,6 +92,9 @@ function QueueScreen() {
   // The export carries the view and chips, never the page cursor or size.
   const exportParams = useMemo(() => viewToParams(view, parsed.chips, { q: parsed.q || undefined }), [view, parsed]);
   const { data: accounts } = useListGrantedAccountsQuery();
+  // The assignment groups the group chip names (TM-08); `/v1/groups` stands
+  // on tickets:view, the Queue's own gate.
+  const { data: groups } = useListDirectoryGroupsQuery();
   // The server's saved views beside the system ones (Ticket Management
   // technical 2.5). `/v1/views` stands on tickets:view, the Queue's own gate,
   // so the only reason it is unavailable is an API that does not serve it
@@ -146,6 +153,8 @@ function QueueScreen() {
     if (chip.key === "type") return TICKET_TYPES.find((type) => type.value === chip.value)?.label ?? chip.value;
     if (chip.key === "priority") return chip.value.toUpperCase();
     if (chip.key === "out_of_scope") return outOfScopeLabel(chip.value);
+    if (chip.key === "group_id") return groupLabel(groups, chip.value);
+    if (chip.key === "my_groups") return "My groups";
     return chip.value.replace(/_/g, " ");
   };
 
@@ -161,6 +170,12 @@ function QueueScreen() {
         return STATE_OPTIONS.map((state) => ({ value: state, label: state.replace(/_/g, " ") }));
       case "out_of_scope":
         return OUT_OF_SCOPE.map((value) => ({ value, label: outOfScopeLabel(value) }));
+      case "group_id":
+        return (groups ?? []).map((group) => ({ value: group.id, label: group.name }));
+      // The group queue is a flag the server answers from the membership
+      // table, so the only value on offer is the flag itself.
+      case "my_groups":
+        return [{ value: MY_GROUPS, label: "My groups" }];
     }
   };
 
@@ -280,7 +295,7 @@ function QueueScreen() {
                 defaultValue=""
                 onChange={(event) => {
                   if (!event.target.value) return;
-                  navigate({ chips: [...parsed.chips, { key: adding, value: event.target.value }] });
+                  navigate({ chips: addChip(parsed.chips, { key: adding, value: event.target.value }) });
                   setAdding(null);
                 }}
                 className={CHIP_SELECT}

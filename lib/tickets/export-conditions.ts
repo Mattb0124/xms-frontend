@@ -8,7 +8,18 @@ import type { TicketListParams } from "@/lib/tickets/queue-views";
  * breached view is response OR resolution breached) is approximated and
  * named in `notes` so the toast can say so.
  */
-export type ExportOperator = "eq" | "neq" | "in" | "not_in" | "contains" | "before" | "after" | "is_null" | "is_me";
+export type ExportOperator =
+  | "eq"
+  | "neq"
+  | "in"
+  | "not_in"
+  | "contains"
+  | "before"
+  | "after"
+  | "is_null"
+  | "is_me"
+  /** The group queue (TM-08): the assignment groups the caller belongs to, resolved on the server. */
+  | "is_mine";
 
 export interface ExportCondition {
   field: string;
@@ -43,7 +54,11 @@ export function paramsToExportSpec(params: TicketListParams): ExportSpec {
   if (params.mine) conditions.push({ field: "assignee_id", op: "is_me" });
   else if (params.unassigned) conditions.push({ field: "assignee_id", op: "is_null" });
   else if (params.assignee_id) conditions.push({ field: "assignee_id", op: "eq", value: params.assignee_id });
-  if (params.group_id) conditions.push({ field: "group_id", op: "eq", value: params.group_id });
+  // The group queue is the server's own `is_mine` on group_id (TM-08), which
+  // is why the backend added the operator: a saved view of "my groups" has to
+  // mean the reader's groups, never the groups of whoever saved it.
+  if (params.my_groups) conditions.push({ field: "group_id", op: "is_mine" });
+  else if (params.group_id) conditions.push({ field: "group_id", op: "eq", value: params.group_id });
   if (params.breached) {
     conditions.push({ field: "sla_resolution_breached", op: "eq", value: true });
     notes.push("Breached counts resolution breaches only in the export.");

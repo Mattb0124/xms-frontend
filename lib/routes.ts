@@ -61,6 +61,14 @@ export const SCREENS: Screen[] = [
     purpose: "Unknown senders awaiting review.",
   },
   {
+    path: "/tickets/groups",
+    screen: "ticket_groups",
+    label: "Groups",
+    section: "Tickets",
+    permission: "tickets:view",
+    purpose: "Projects and change windows, with the schedule each one carries.",
+  },
+  {
     path: "/tickets/new",
     screen: "ticket.new",
     label: "New ticket",
