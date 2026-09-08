@@ -41,6 +41,23 @@ describe("paramsToExportSpec", () => {
   });
 });
 
+describe("the out-of-scope condition", () => {
+  it("carries the flag the list filtered on, so the file says what the screen said", () => {
+    const params = viewToParams(viewByKey("flagged"), [{ key: "out_of_scope", value: "approved" }]);
+    expect(paramsToExportSpec(params).conditions.conditions).toContainEqual({
+      field: "out_of_scope",
+      op: "in",
+      value: ["flagged", "approved"],
+    });
+    // A list that never asked about the flag does not ask about it here either.
+    expect(
+      paramsToExportSpec(viewByKey("open").params).conditions.conditions.some(
+        (condition) => condition.field === "out_of_scope",
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("exportUrl", () => {
   it("encodes the set as base64url JSON the server decodes, and joins accounts with commas", () => {
     const spec = paramsToExportSpec({ open: true, account_id: ["a", "b"] });

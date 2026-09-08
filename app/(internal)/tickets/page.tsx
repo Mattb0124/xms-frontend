@@ -20,9 +20,12 @@ import { apiError, describeError } from "@/lib/admin/api-error";
 import { STARS_KEY, useToggleInList } from "@/lib/persisted-set";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
+  CHIP_KEYS,
   CHIP_LABEL,
   chipsFromSearch,
   chipsToSearch,
+  OUT_OF_SCOPE,
+  outOfScopeLabel,
   QUEUE_VIEWS,
   viewByKey,
   viewToParams,
@@ -114,6 +117,7 @@ function QueueScreen() {
     if (chip.key === "account_id") return accountsById.get(chip.value)?.name ?? chip.value;
     if (chip.key === "type") return TICKET_TYPES.find((type) => type.value === chip.value)?.label ?? chip.value;
     if (chip.key === "priority") return chip.value.toUpperCase();
+    if (chip.key === "out_of_scope") return outOfScopeLabel(chip.value);
     return chip.value.replace(/_/g, " ");
   };
 
@@ -127,6 +131,8 @@ function QueueScreen() {
         return PRIORITIES.map((priority) => ({ value: priority, label: priority.toUpperCase() }));
       case "state":
         return STATE_OPTIONS.map((state) => ({ value: state, label: state.replace(/_/g, " ") }));
+      case "out_of_scope":
+        return OUT_OF_SCOPE.map((value) => ({ value, label: outOfScopeLabel(value) }));
     }
   };
 
@@ -217,7 +223,7 @@ function QueueScreen() {
                 onChange={(event) => setAdding(event.target.value as ChipKey)}
                 className={CHIP_SELECT}
               >
-                {(Object.keys(CHIP_LABEL) as ChipKey[]).map((key) => (
+                {CHIP_KEYS.map((key) => (
                   <option key={key} value={key}>
                     {CHIP_LABEL[key]}
                   </option>

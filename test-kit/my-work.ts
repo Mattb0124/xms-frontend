@@ -29,7 +29,10 @@ export function aWaiting(overrides: Partial<WaitingOnMe> = {}): WaitingOnMe {
         key: "scope_approvals",
         label: "Out-of-scope flags to approve",
         count: 1,
-        link: "/tickets",
+        // The list route filters on the flag now, so the API links the
+        // tickets it counted rather than the whole queue (backend
+        // src/modules/me/waiting.module.ts).
+        link: "/tickets?out_of_scope=flagged",
       }),
       aWaitingItem({
         key: "articles_in_review",

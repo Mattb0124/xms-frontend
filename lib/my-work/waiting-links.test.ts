@@ -37,7 +37,9 @@ describe("the waiting map", () => {
  */
 const CASES: { key: string; href: string | null; screen: string | null }[] = [
   { key: "tickets_assigned", href: "/tickets?view=mine", screen: "queue" },
-  { key: "scope_approvals", href: "/tickets", screen: "queue" },
+  // The flagged tickets themselves, which the Queue's own chip grammar reads
+  // back as a chip (lib/tickets/queue-views).
+  { key: "scope_approvals", href: "/tickets?out_of_scope=flagged", screen: "queue" },
   { key: "articles_in_review", href: "/knowledge?status=in_review", screen: "knowledge" },
   // The account the newest waiting run belongs to: a key alone cannot say this.
   { key: "report_reviews", href: `/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`, screen: "admin.account" },
@@ -66,7 +68,7 @@ describe.each(CASES)("waitingHref for $key", ({ key, href, screen }) => {
  */
 const LEGACY: { key: string; href: string | null }[] = [
   { key: "tickets_assigned", href: "/tickets?view=mine" },
-  { key: "scope_approvals", href: "/tickets" },
+  { key: "scope_approvals", href: "/tickets?out_of_scope=flagged" },
   { key: "report_reviews", href: "/reports" },
   { key: "pending_time", href: "/time" },
   { key: "unread_notifications", href: null },

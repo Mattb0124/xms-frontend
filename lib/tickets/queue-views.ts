@@ -15,6 +15,8 @@ export interface TicketListParams {
   open?: boolean;
   mine?: boolean;
   breached?: boolean;
+  /** The out-of-scope flag (TM-11); one or more values of `OUT_OF_SCOPE`. */
+  out_of_scope?: string[];
   q?: string;
   sort?: "updated_desc" | "created_desc" | "priority";
   limit?: number;
@@ -29,12 +31,39 @@ export interface QueueView {
 
 export const RESOLVED_STATES = ["resolved", "fulfilled", "completed", "done"];
 
+/**
+ * The out-of-scope vocabulary, exactly as the API declares it
+ * (`src/modules/tickets/conditions.ts`, `OUT_OF_SCOPE`, from the check
+ * constraint of migration 0004). `GET /v1/tickets?out_of_scope=` takes one
+ * or more of these as a comma list and refuses anything else with a 400, so
+ * the list is written here once and the view, the chip and the export
+ * conditions all read it.
+ */
+export const OUT_OF_SCOPE = ["none", "flagged", "approved", "declined"] as const;
+
+export type OutOfScope = (typeof OUT_OF_SCOPE)[number];
+
+export const OUT_OF_SCOPE_LABEL: Record<string, string> = {
+  none: "Not flagged",
+  flagged: "Flagged, waiting for a decision",
+  approved: "Approved as out of scope",
+  declined: "Flag declined",
+};
+
+export function outOfScopeLabel(value: string): string {
+  return OUT_OF_SCOPE_LABEL[value] ?? value.replace(/_/g, " ");
+}
+
 export const QUEUE_VIEWS: QueueView[] = [
   { key: "open", label: "All open", params: { open: true } },
   { key: "mine", label: "My work", params: { open: true, mine: true } },
   { key: "unassigned", label: "Unassigned", params: { open: true, unassigned: true } },
   { key: "breached", label: "Breached", params: { open: true, breached: true } },
   { key: "p1", label: "P1", params: { open: true, priority: ["p1"] } },
+  // Functional 5.x names "Flagged out of scope" among the Queue's own
+  // presets, and the flag is the thing an approver comes here for: the work
+  // waiting on their decision, not every ticket the flag ever touched.
+  { key: "flagged", label: "Flagged out of scope", params: { open: true, out_of_scope: ["flagged"] } },
   { key: "awaiting_client", label: "Awaiting client", params: { state: ["awaiting_client"] } },
   { key: "resolved", label: "Resolved", params: { state: RESOLVED_STATES } },
 ];
@@ -42,16 +71,19 @@ export const QUEUE_VIEWS: QueueView[] = [
 export const DEFAULT_VIEW = "open";
 
 /**
- * The four dimensions a chip narrows. There is deliberately no chip for the
- * out-of-scope flag (TM-11): `GET /v1/tickets` takes no `out_of_scope`
- * parameter, and the server's condition-set allowlist
- * (`src/modules/tickets/conditions.ts`) has no `out_of_scope` field either,
- * so a chip for it would be a parameter the API silently drops and a list
- * that lies about what it filtered. The Waiting on me rail opens the Queue
- * with the count instead; when the API grows the dimension, the chip and
- * that link follow it.
+ * The five dimensions a chip narrows.
+ *
+ * `out_of_scope` is the newest (TM-11): the list route takes it as a
+ * parameter and the server's condition-set allowlist carries it as an enum,
+ * so the chip asks for something the API actually filters on and a saved
+ * link reproduces it. The vocabulary is closed, and a value outside it is a
+ * 400 rather than a silent widening, which is why the chip offers the four
+ * values rather than free text.
  */
-export type ChipKey = "account_id" | "type" | "priority" | "state";
+export type ChipKey = "account_id" | "type" | "priority" | "state" | "out_of_scope";
+
+/** The chip dimensions in the order the URL writes them. */
+export const CHIP_KEYS: ChipKey[] = ["account_id", "type", "priority", "state", "out_of_scope"];
 
 export interface Chip {
   key: ChipKey;
@@ -88,7 +120,7 @@ export function paramsToQuery(params: TicketListParams): Record<string, string> 
 export function chipsToSearch(view: string, chips: Chip[], q: string, limit: number): URLSearchParams {
   const search = new URLSearchParams();
   if (view !== DEFAULT_VIEW) search.set("view", view);
-  for (const key of ["account_id", "type", "priority", "state"] as ChipKey[]) {
+  for (const key of CHIP_KEYS) {
     const values = chips.filter((chip) => chip.key === key).map((chip) => chip.value);
     if (values.length > 0) search.set(key, values.join(","));
   }
@@ -99,10 +131,17 @@ export function chipsToSearch(view: string, chips: Chip[], q: string, limit: num
 
 export function chipsFromSearch(search: URLSearchParams): { view: string; chips: Chip[]; q: string; limit: number } {
   const chips: Chip[] = [];
-  for (const key of ["account_id", "type", "priority", "state"] as ChipKey[]) {
+  for (const key of CHIP_KEYS) {
     const raw = search.get(key);
     if (!raw) continue;
-    for (const value of raw.split(",").filter(Boolean)) chips.push({ key, value });
+    for (const value of raw.split(",").filter(Boolean)) {
+      // The out-of-scope vocabulary is closed on the server, so a value from
+      // outside it is dropped here rather than sent for a 400: the API's own
+      // waiting-rail link (`/tickets?out_of_scope=flagged`) reads back as a
+      // chip, and a hand-typed address cannot break the list.
+      if (key === "out_of_scope" && !(OUT_OF_SCOPE as readonly string[]).includes(value)) continue;
+      chips.push({ key, value });
+    }
   }
   const limit = Number(search.get("limit") ?? 25);
   return {
@@ -118,4 +157,5 @@ export const CHIP_LABEL: Record<ChipKey, string> = {
   type: "Type",
   priority: "Priority",
   state: "State",
+  out_of_scope: "Out of scope",
 };

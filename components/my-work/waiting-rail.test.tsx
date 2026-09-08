@@ -52,7 +52,11 @@ describe("WaitingRail", () => {
     const assigned = screen.getByRole("link", { name: /Tickets assigned to me/ });
     expect(assigned).toHaveAttribute("href", "/tickets?view=mine");
     expect(assigned).toHaveTextContent("4");
-    expect(screen.getByRole("link", { name: /Out-of-scope flags to approve/ })).toHaveAttribute("href", "/tickets");
+    // The Queue filters on the flag now, so the row opens the tickets it counted.
+    expect(screen.getByRole("link", { name: /Out-of-scope flags to approve/ })).toHaveAttribute(
+      "href",
+      "/tickets?out_of_scope=flagged",
+    );
     // The API named an account's Report packs tab, which needs admin:accounts;
     // this viewer does not hold it, so the row falls back to the key's screen.
     expect(screen.getByRole("link", { name: /Report packs to review/ })).toHaveAttribute("href", "/reports");

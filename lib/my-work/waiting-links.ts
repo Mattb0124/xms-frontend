@@ -37,10 +37,11 @@ export interface WaitingTarget {
 export const WAITING_TARGETS: Record<string, WaitingTarget> = {
   // The Queue's system view for the signed-in person (lib/tickets/queue-views).
   tickets_assigned: { screen: "queue", search: "?view=mine" },
-  // Out-of-scope flags are a ticket field, not a state, and neither the list
-  // parameters nor the server's condition-set allowlist carry one, so the
-  // Queue has no chip: the row opens the Queue and the count says how many.
-  scope_approvals: { screen: "queue" },
+  // The list route filters on the out-of-scope flag now, and the API writes
+  // `/tickets?out_of_scope=flagged` on this row, which `serverHref` accepts
+  // as the Queue with a chip on it. The same search is the fallback, so an
+  // older API that sends only `/queue` still lands on the flagged ones.
+  scope_approvals: { screen: "queue", search: "?out_of_scope=flagged" },
   articles_in_review: { screen: "knowledge", search: "?status=in_review" },
   // With a run waiting the API names the account's Report packs tab, an
   // address no key can express; with none waiting it sends /reports. That tab

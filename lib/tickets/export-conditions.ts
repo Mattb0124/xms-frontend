@@ -36,6 +36,10 @@ export function paramsToExportSpec(params: TicketListParams): ExportSpec {
   else if (params.open) conditions.push({ field: "state", op: "not_in", value: CLOSED_STATES });
   if (params.type?.length) conditions.push({ field: "type", op: "in", value: params.type });
   if (params.priority?.length) conditions.push({ field: "priority", op: "in", value: params.priority });
+  // The out-of-scope flag is an enum in the server's own allowlist now
+  // (`src/modules/tickets/conditions.ts`), so the export says exactly what
+  // the list said rather than quietly widening to every ticket.
+  if (params.out_of_scope?.length) conditions.push({ field: "out_of_scope", op: "in", value: params.out_of_scope });
   if (params.mine) conditions.push({ field: "assignee_id", op: "is_me" });
   else if (params.unassigned) conditions.push({ field: "assignee_id", op: "is_null" });
   else if (params.assignee_id) conditions.push({ field: "assignee_id", op: "eq", value: params.assignee_id });
