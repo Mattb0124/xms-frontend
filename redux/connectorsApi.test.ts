@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { connectorError, describeConnectorError } from "@/lib/connectors/errors";
+import type { ConflictOutcome, SyncCardOutbound } from "@/lib/connectors/outbound";
 import { externalRecordUrl, formatSeconds } from "@/lib/connectors/vocab";
 import {
   connectorsApi,
@@ -7,6 +8,7 @@ import {
   type ConnectorInstance,
   type DeadLetter,
   type FieldMapRow,
+  type OutboundRow,
   type SyncRun,
   type TicketSyncLink,
 } from "@/redux/connectorsApi";
@@ -110,6 +112,47 @@ export function aDeadLetter(overrides: Partial<DeadLetter> = {}): DeadLetter {
   };
 }
 
+/** The conflict outcome the worker settles a contested row with (SN-04). */
+export function aConflictOutcome(overrides: Partial<ConflictOutcome> = {}): ConflictOutcome {
+  return {
+    external_changed: true,
+    kept: ["short_description"],
+    dropped: [{ field: "client_notes", policy: "external", reason: "external_owned" }],
+    external_sys_updated_on: "2026-09-07T09:55:00Z",
+    ...overrides,
+  };
+}
+
+export function anOutboundRow(overrides: Partial<OutboundRow> = {}): OutboundRow {
+  return {
+    id: "55555555-5555-4555-8555-555555555551",
+    account_id: "acct-1",
+    instance_id: anInstance().id,
+    ticket_id: "33333333-3333-4333-8333-333333333333",
+    ticket_key: "CS0000042",
+    link_id: "66666666-6666-4666-8666-666666666661",
+    event: "ticket.updated",
+    outbox_id: "9012",
+    payload: { fields: ["short_description"] },
+    origin: "user",
+    correlation_id: null,
+    status: "pending",
+    attempts: 0,
+    next_attempt_at: "2026-09-07T10:05:00Z",
+    last_error: null,
+    conflict: null,
+    sent_at: null,
+    created_at: "2026-09-07T10:00:00Z",
+    updated_at: "2026-09-07T10:00:00Z",
+    ...overrides,
+  };
+}
+
+/** The Sync card's outbound half, as the API answers it per link. */
+export function aSyncCardOutbound(overrides: Partial<SyncCardOutbound> = {}): SyncCardOutbound {
+  return { last_pushed_at: "2026-09-07T09:40:00Z", pending: 0, failed: 0, last_error: null, ...overrides };
+}
+
 export function aLink(overrides: Partial<TicketSyncLink> = {}): TicketSyncLink {
   return {
     external_number: "CS0012345",
@@ -118,6 +161,7 @@ export function aLink(overrides: Partial<TicketSyncLink> = {}): TicketSyncLink {
     last_inbound_at: "2026-09-07T09:12:00Z",
     last_outbound_at: null,
     last_conflict: null,
+    outbound: aSyncCardOutbound(),
     instance_name: "Brookfield CSM",
     base_url: "https://brookfield.service-now.com",
     table_name: "sn_customerservice_case",
@@ -277,6 +321,70 @@ describe("connectorsApi", () => {
     ]);
   });
 
+  it("reads the outbound queue, filters it by status and retries one settled row", async () => {
+    const row = anOutboundRow({ status: "failed", attempts: 3, last_error: "HTTP 503 from the instance" });
+    const calls = stubFetch({
+      [`GET /v1/connectors/${ID}/outbound`]: () => json([anOutboundRow(), row]),
+      [`POST /v1/connectors/${ID}/outbound/${row.id}/retry`]: () => json({ id: row.id, outcome: "requeued" }, 201),
+    });
+    const store = makeStore();
+    const all = await store.dispatch(connectorsApi.endpoints.listOutbound.initiate({ id: ID })).unwrap();
+    expect(all).toHaveLength(2);
+    expect(all[1].conflict).toBeNull();
+    await store.dispatch(connectorsApi.endpoints.listOutbound.initiate({ id: ID, status: "failed" })).unwrap();
+    const retried = await store
+      .dispatch(connectorsApi.endpoints.retryOutbound.initiate({ id: ID, outboundId: row.id }))
+      .unwrap();
+    expect(retried).toEqual({ id: row.id, outcome: "requeued" });
+    expect(calls.map((call) => `${call.key}${call.search}`)).toEqual([
+      `GET /v1/connectors/${ID}/outbound`,
+      `GET /v1/connectors/${ID}/outbound?status=failed`,
+      `POST /v1/connectors/${ID}/outbound/${row.id}/retry`,
+    ]);
+    expect(calls[2].body).toBeUndefined();
+  });
+
+  it("reloads the queue after a retry", async () => {
+    let queue = 0;
+    const row = anOutboundRow({ status: "dead_lettered" });
+    stubFetch({
+      [`GET /v1/connectors/${ID}/outbound`]: () => {
+        queue += 1;
+        return json([row]);
+      },
+      [`POST /v1/connectors/${ID}/outbound/${row.id}/retry`]: () => json({ id: row.id, outcome: "requeued" }, 201),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(connectorsApi.endpoints.listOutbound.initiate({ id: ID }));
+    await subscription.unwrap();
+    await store.dispatch(connectorsApi.endpoints.retryOutbound.initiate({ id: ID, outboundId: row.id })).unwrap();
+    await vi.waitFor(() => expect(queue).toBe(2));
+    subscription.unsubscribe();
+  });
+
+  it("carries the outbound half of each Sync card link", async () => {
+    stubFetch({
+      "GET /v1/tickets/t-2/sync": () =>
+        json({
+          links: [
+            aLink({
+              mode: "bidirectional",
+              outbound: aSyncCardOutbound({ pending: 2, failed: 1, last_error: "HTTP 401 from the instance" }),
+            }),
+          ],
+          runs: [],
+        }),
+    });
+    const store = makeStore();
+    const sync = await store.dispatch(connectorsApi.endpoints.ticketSync.initiate("t-2")).unwrap();
+    expect(sync.links[0].outbound).toEqual({
+      last_pushed_at: "2026-09-07T09:40:00Z",
+      pending: 2,
+      failed: 1,
+      last_error: "HTTP 401 from the instance",
+    });
+  });
+
   it("refreshes the health list after an instance mutation", async () => {
     let health = 0;
     stubFetch({
@@ -299,15 +407,30 @@ describe("connectorsApi", () => {
 
 describe("connector errors", () => {
   it("parses the typed 409 and 400 bodies into fixed copy", () => {
-    const mode = connectorError({
-      status: 409,
-      data: { code: "mode_unavailable", detail: "bidirectional mode ships with Phase 3" },
-    });
-    expect(mode.code).toBe("mode_unavailable");
-    expect(describeConnectorError(mode)).toContain("Phase 3");
     expect(describeConnectorError(connectorError({ status: 409, data: { code: "no_active_field_map" } }))).toBe(
       "Activate a field map before switching the mode on.",
     );
+    expect(describeConnectorError(connectorError({ status: 409, data: { code: "no_active_state_map" } }))).toBe(
+      "Bidirectional mode sends XMS states to the client, so activate a state map first.",
+    );
+    const untested = connectorError({
+      status: 409,
+      data: { code: "credential_not_valid", credential_state: "unknown" },
+    });
+    expect(untested.credential_state).toBe("unknown");
+    expect(describeConnectorError(untested)).toContain("Run Test connection first");
+    const refused = connectorError({
+      status: 409,
+      data: { code: "credential_not_valid", credential_state: "invalid" },
+    });
+    expect(describeConnectorError(refused)).toBe(
+      "The instance refused this credential. Fix it in Settings, then test the connection again.",
+    );
+    expect(
+      describeConnectorError(
+        connectorError({ status: 400, data: { code: "bad_status", allowed: ["pending", "sent"] } }),
+      ),
+    ).toBe("That is not a status the outbound queue keeps.");
     const immutable = connectorError({ status: 409, data: { code: "map_immutable", state: "retired" } });
     expect(describeConnectorError(immutable)).toBe("This version is retired and cannot be edited. Create a new draft.");
     expect(

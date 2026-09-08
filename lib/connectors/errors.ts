@@ -7,7 +7,9 @@ import { apiError, describeError, type ApiError } from "@/lib/admin/api-error";
  */
 export type ConnectorErrorCode =
   | "no_active_field_map"
-  | "mode_unavailable"
+  | "no_active_state_map"
+  | "credential_not_valid"
+  | "bad_status"
   | "stale_version"
   | "map_immutable"
   | "map_not_validated"
@@ -20,6 +22,8 @@ export interface ConnectorError extends ApiError {
   needs?: string[];
   /** map_immutable and map_not_validated carry the map's state. */
   state?: string;
+  /** credential_not_valid names the state the credential is in (unknown or invalid). */
+  credential_state?: string;
   detail?: string;
 }
 
@@ -29,6 +33,7 @@ export function connectorError(error: unknown): ConnectorError {
   if (data && typeof data === "object") {
     if (Array.isArray(data.needs)) parsed.needs = data.needs.map(String);
     if (typeof data.state === "string") parsed.state = data.state;
+    if (typeof data.credential_state === "string") parsed.credential_state = data.credential_state;
     if (typeof data.detail === "string") parsed.detail = data.detail;
   }
   return parsed;
@@ -38,8 +43,14 @@ export function describeConnectorError(error: ConnectorError): string {
   switch (error.code) {
     case "no_active_field_map":
       return "Activate a field map before switching the mode on.";
-    case "mode_unavailable":
-      return "Bidirectional mode ships with Phase 3; ingest only is the highest mode today.";
+    case "no_active_state_map":
+      return "Bidirectional mode sends XMS states to the client, so activate a state map first.";
+    case "credential_not_valid":
+      return error.credential_state === "invalid"
+        ? "The instance refused this credential. Fix it in Settings, then test the connection again."
+        : "Run Test connection first: bidirectional mode needs a credential the instance has accepted.";
+    case "bad_status":
+      return "That is not a status the outbound queue keeps.";
     case "map_immutable":
       return `This version is ${error.state ?? "active"} and cannot be edited. Create a new draft.`;
     case "map_not_validated":

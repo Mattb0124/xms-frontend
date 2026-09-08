@@ -101,6 +101,7 @@ export const xmsApi = createApi({
     "ConnectorMaps",
     "ConnectorRuns",
     "ConnectorDeadLetters",
+    "ConnectorOutbound",
     "TicketSync",
     "Roster",
     "Person",

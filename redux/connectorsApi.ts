@@ -1,3 +1,4 @@
+import type { ConflictOutcome, OutboundEvent, OutboundStatus, SyncCardOutbound } from "@/lib/connectors/outbound";
 import type {
   ConnectorHealth,
   ConnectorMode,
@@ -18,8 +19,9 @@ import { xmsApi } from "@/redux/api";
  * list and the cross-account health list; there is no single-instance read,
  * so the record screen selects its instance out of the health list and every
  * instance mutation invalidates `Connectors`. Maps, runs and dead letters
- * carry the instance id in their tag so one instance refreshes at a time.
- * The credential is sent once on create and never returned.
+ * carry the instance id in their tag so one instance refreshes at a time, and
+ * so does the outbound queue. The credential is sent once on create and never
+ * returned.
  */
 export interface ErrorTripThreshold {
   ratio: number;
@@ -64,6 +66,14 @@ export interface ConnectorHealthRow extends ConnectorInstance {
   pending_inbox: number;
   open_dead_letters: number;
   inbound_lag_seconds: number;
+  /**
+   * The outbound backlog beside the ingest figures (functional 5.4). Both are
+   * optional because the health route answers the ingest counts alone until
+   * the API adds them; the list leaves the columns out rather than printing a
+   * zero it did not read.
+   */
+  pending_outbound?: number;
+  dead_lettered_outbound?: number;
 }
 
 export interface CreateServiceNowBody {
@@ -207,6 +217,39 @@ export interface DeadLetterActionResult {
   results: { id: string; outcome: string }[];
 }
 
+/**
+ * One row of `acct.sync_outbound`: an XMS change on its way to one instance,
+ * with the attempts, the backoff and the conflict outcome the worker settled
+ * it with. `ticket_key` is the list route's join, null while the ticket is
+ * gone.
+ */
+export interface OutboundRow {
+  id: string;
+  account_id: string;
+  instance_id: string;
+  ticket_id: string;
+  ticket_key: string | null;
+  link_id: string;
+  event: OutboundEvent;
+  outbox_id: string | null;
+  payload: Record<string, unknown>;
+  origin: string;
+  correlation_id: string | null;
+  status: OutboundStatus;
+  attempts: number;
+  next_attempt_at: string;
+  last_error: string | null;
+  conflict: ConflictOutcome | null;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RetryOutboundResult {
+  id: string;
+  outcome: "requeued" | "already_pending";
+}
+
 export interface SyncConflict {
   fields?: string[];
   at?: string;
@@ -222,6 +265,8 @@ export interface TicketSyncLink {
   last_inbound_at: string | null;
   last_outbound_at?: string | null;
   last_conflict: SyncConflict | null;
+  /** What has and has not reached this instance for this ticket (functional 5.3). */
+  outbound?: SyncCardOutbound;
   instance_name: string;
   base_url: string;
   table_name: string;
@@ -374,6 +419,25 @@ export const connectorsApi = xmsApi.injectEndpoints({
         { type: "Connectors", id },
       ],
     }),
+    listOutbound: build.query<OutboundRow[], { id: string; status?: OutboundStatus }>({
+      query: ({ id, status }) => ({
+        url: `/v1/connectors/${id}/outbound`,
+        params: status ? { status } : undefined,
+      }),
+      providesTags: (_result, _error, { id }) => [{ type: "ConnectorOutbound", id }],
+    }),
+    retryOutbound: build.mutation<RetryOutboundResult, { id: string; outboundId: string }>({
+      query: ({ id, outboundId }) => ({
+        url: `/v1/connectors/${id}/outbound/${outboundId}/retry`,
+        method: "POST",
+      }),
+      // The row moves back to pending and the instance's figures move with it.
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "ConnectorOutbound", id },
+        { type: "ConnectorRuns", id },
+        { type: "Connectors", id },
+      ],
+    }),
     ticketSync: build.query<TicketSync, string>({
       query: (ticketId) => `/v1/tickets/${ticketId}/sync`,
       providesTags: (_result, _error, ticketId) => [{ type: "TicketSync", id: ticketId }],
@@ -401,6 +465,8 @@ export const {
   useListDeadLettersQuery,
   useReplayDeadLettersMutation,
   useDiscardDeadLettersMutation,
+  useListOutboundQuery,
+  useRetryOutboundMutation,
   useTicketSyncQuery,
 } = connectorsApi;
 
