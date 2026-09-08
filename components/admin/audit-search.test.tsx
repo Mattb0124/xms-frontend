@@ -1,6 +1,14 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { accountLabel, AUDIT_FIELDS, AuditSearch, rowsToQuery, scopeOf } from "@/components/admin/audit-search";
+import {
+  accountLabel,
+  AUDIT_FIELDS,
+  AuditSearch,
+  operatorLabel,
+  operatorsFor,
+  rowsToQuery,
+  scopeOf,
+} from "@/components/admin/audit-search";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 import { anAuditEvent, anOperatorAuditRow } from "@/test-kit/reporting";
 
@@ -147,13 +155,59 @@ describe("AuditSearch", () => {
     expect(accountLabel(anAuditEvent({ account_id: "acct-12345678900" }))).toBe("acct-123");
   });
 
-  it("offers no account filter for the portfolio, because the API grammar has no null match", () => {
+  /**
+   * The Portfolio-wide filter (backend c16f7f0). The pair is offered on the
+   * nullable columns of `rpt.events_v` and nowhere else, because the API
+   * refuses a null test on a column every branch of the view writes.
+   */
+  it("offers the two null tests on the nullable fields alone, worded for the field", () => {
+    const nullable = AUDIT_FIELDS.filter((field) => operatorsFor(field).includes("is_null")).map((field) => field.key);
+    expect(nullable).toEqual([
+      "actor_id",
+      "principal_kind",
+      "account_id",
+      "entity_kind",
+      "entity_id",
+      "request_id",
+      "correlation_id",
+    ]);
     const account = AUDIT_FIELDS.find((field) => field.key === "account_id")!;
-    expect(account.kind).toBe("text");
-    expect(account.options).toBeUndefined();
-    // Nothing may send a stand-in for the absence of an account: an empty
-    // value is dropped rather than posted as a condition the API refuses.
-    expect(rowsToQuery([{ field: "account_id", op: "eq", value: "" }])).toEqual([]);
+    expect(operatorLabel(account, "is_null")).toBe("is Portfolio-wide");
+    expect(operatorLabel(account, "is_not_null")).toBe("is any account");
+    expect(operatorsFor(AUDIT_FIELDS.find((field) => field.key === "stream")!)).not.toContain("is_null");
+    expect(operatorsFor(AUDIT_FIELDS.find((field) => field.key === "occurred_at")!)).toEqual(["after", "before"]);
+  });
+
+  it("sends a null test with no value, and still drops an empty value on every other operator", () => {
+    expect(
+      rowsToQuery([
+        { field: "account_id", op: "is_null", value: "left over from the last operator" },
+        { field: "actor_id", op: "is_not_null", value: "" },
+        { field: "account_id", op: "eq", value: "" },
+      ]),
+    ).toEqual([
+      { field: "account_id", op: "is_null" },
+      { field: "actor_id", op: "is_not_null" },
+    ]);
+  });
+
+  it("asks the API for the portfolio-wide rows, with no value box to fill in", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": () => json(me(["audit:read"])),
+      "POST /v1/audit/search": () => json({ items: [anOperatorAuditRow()], next_cursor: null }),
+    });
+    renderDesk(<AuditSearch initialRows={[{ field: "account_id", op: "eq", value: "" }]} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
+
+    fireEvent.change(screen.getByLabelText("Operator"), { target: { value: "is_null" } });
+    expect(screen.queryByLabelText("Value")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+
+    await waitFor(() => expect(screen.getByText("role.permissions_changed")).toBeInTheDocument());
+    expect(calls.find((call) => call.key === "POST /v1/audit/search")?.body).toEqual({
+      conditions: [{ field: "account_id", op: "is_null" }],
+      limit: 100,
+    });
   });
 
   it("hides Export CSV without audit:export", async () => {

@@ -148,12 +148,20 @@ export type AuditField =
   | "correlation_id"
   | "occurred_at";
 
-export type AuditOperator = "eq" | "neq" | "in" | "contains" | "before" | "after";
+/**
+ * `is_null` and `is_not_null` ask about the column itself (backend
+ * c16f7f0): they carry no value, take no bind parameter and are accepted
+ * only on the columns of `rpt.events_v` that can actually be null. A value
+ * sent with either is refused rather than ignored, so neither is written
+ * with one here.
+ */
+export type AuditOperator = "eq" | "neq" | "in" | "contains" | "before" | "after" | "is_null" | "is_not_null";
 
 export interface AuditCondition {
   field: AuditField;
   op: AuditOperator;
-  value: string | string[];
+  /** Absent for `is_null` and `is_not_null`, and required by every other operator. */
+  value?: string | string[];
 }
 
 export interface AuditQuery {

@@ -28,7 +28,17 @@ interface AuditFieldSpec {
   label: string;
   kind: FieldKind;
   options?: Array<{ value: string; label: string }>;
+  /**
+   * The two null tests, worded for this field. Only a column of
+   * `rpt.events_v` that can be null carries them; the API refuses the pair on
+   * every column each branch of the view writes, where a null test would be
+   * a mistake rather than a filter.
+   */
+  nulls?: { is_null: string; is_not_null: string };
 }
+
+/** The default wording where a nullable field needs no better one. */
+const NULL_LABELS = { is_null: "is empty", is_not_null: "is not empty" };
 
 export const AUDIT_FIELDS: AuditFieldSpec[] = [
   {
@@ -42,22 +52,23 @@ export const AUDIT_FIELDS: AuditFieldSpec[] = [
     ],
   },
   { key: "event_type", label: "Event type", kind: "text" },
-  { key: "actor_id", label: "Actor", kind: "text" },
+  { key: "actor_id", label: "Actor", kind: "text", nulls: { is_null: "is nobody", is_not_null: "is anybody" } },
   { key: "actor_kind", label: "Actor kind", kind: "text" },
-  { key: "principal_kind", label: "Principal kind", kind: "text" },
-  // The account filter matches an account, never the absence of one, so
-  // there is no "Portfolio-wide" choice here. The API's condition grammar
-  // (backend src/modules/reporting/audit-search.ts) types `account_id` as a
-  // uuid and offers eq, neq, in and contains alone: it has no `is_null`, the
-  // way the Queue's own grammar does, and `neq` compiles to `is distinct
-  // from`, which returns every other account beside the portfolio-wide rows
-  // rather than the portfolio-wide rows on their own. A choice sent as some
-  // stand-in value would be refused as a bad uuid. Until the grammar answers
-  // a null match, the Portfolio label on the row is how a portfolio-wide
-  // record is read.
-  { key: "account_id", label: "Account", kind: "text" },
-  { key: "entity_kind", label: "Entity kind", kind: "text" },
-  { key: "entity_id", label: "Entity", kind: "text" },
+  { key: "principal_kind", label: "Principal kind", kind: "text", nulls: NULL_LABELS },
+  // The Portfolio-wide filter (backend c16f7f0). `account_id` is nullable in
+  // `rpt.events_v`: the operator audit stream and the portfolio-wide security
+  // events carry none, and asking for exactly those rows is `is_null`. `neq`
+  // is not that question, since it compiles to "is distinct from" and returns
+  // every other account beside them, and no stand-in value could stand for a
+  // null on a uuid column. "Any account" is the other half of the pair.
+  {
+    key: "account_id",
+    label: "Account",
+    kind: "text",
+    nulls: { is_null: "is Portfolio-wide", is_not_null: "is any account" },
+  },
+  { key: "entity_kind", label: "Entity kind", kind: "text", nulls: NULL_LABELS },
+  { key: "entity_id", label: "Entity", kind: "text", nulls: NULL_LABELS },
   {
     key: "outcome",
     label: "Outcome",
@@ -68,8 +79,8 @@ export const AUDIT_FIELDS: AuditFieldSpec[] = [
       { value: "failed", label: "Failed" },
     ],
   },
-  { key: "request_id", label: "Request id", kind: "text" },
-  { key: "correlation_id", label: "Correlation id", kind: "text" },
+  { key: "request_id", label: "Request id", kind: "text", nulls: NULL_LABELS },
+  { key: "correlation_id", label: "Correlation id", kind: "text", nulls: NULL_LABELS },
   { key: "occurred_at", label: "Occurred", kind: "datetime" },
 ];
 
@@ -79,6 +90,12 @@ const OPERATORS_BY_KIND: Record<FieldKind, AuditOperator[]> = {
   datetime: ["after", "before"],
 };
 
+/** The operators this field offers: its kind's, then the null tests where the column can be null. */
+export function operatorsFor(spec: AuditFieldSpec): AuditOperator[] {
+  const base = OPERATORS_BY_KIND[spec.kind];
+  return spec.nulls ? [...base, "is_null", "is_not_null"] : base;
+}
+
 const OPERATOR_LABEL: Record<AuditOperator, string> = {
   eq: "is",
   neq: "is not",
@@ -86,7 +103,20 @@ const OPERATOR_LABEL: Record<AuditOperator, string> = {
   contains: "contains",
   before: "before",
   after: "after",
+  is_null: "is empty",
+  is_not_null: "is not empty",
 };
+
+/** The null tests read in the field's own words ("is Portfolio-wide"), the rest in the operator's. */
+export function operatorLabel(spec: AuditFieldSpec, op: AuditOperator): string {
+  if (op === "is_null" || op === "is_not_null") return spec.nulls?.[op] ?? OPERATOR_LABEL[op];
+  return OPERATOR_LABEL[op];
+}
+
+/** True for the two operators that ask about the column itself and carry no value. */
+export function isNullTest(op: AuditOperator): boolean {
+  return op === "is_null" || op === "is_not_null";
+}
 
 /** Screen rows keep the raw text; the request body carries typed values (lists for `in`, ISO for dates). */
 export interface AuditRow {
@@ -98,6 +128,12 @@ export interface AuditRow {
 export function rowsToQuery(rows: AuditRow[]): AuditCondition[] {
   const conditions: AuditCondition[] = [];
   for (const row of rows) {
+    // A null test asks about the column and carries no value; sending one
+    // with it is a 400, so the row's text is dropped rather than attached.
+    if (isNullTest(row.op)) {
+      conditions.push({ field: row.field, op: row.op });
+      continue;
+    }
     const text = row.value.trim();
     if (!text) continue;
     if (row.op === "in") {
@@ -127,7 +163,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
     <div className="flex flex-col gap-2" role="group" aria-label="Conditions">
       {rows.map((row, index) => {
         const spec = AUDIT_FIELDS.find((field) => field.key === row.field) ?? AUDIT_FIELDS[0];
-        const operators = OPERATORS_BY_KIND[spec.kind];
+        const operators = operatorsFor(spec);
         return (
           <div key={index} className="flex items-center gap-2" data-condition-row>
             <span className="xms-mono text-xms-muted w-8 text-[11px]">{index === 0 ? "" : "AND"}</span>
@@ -136,7 +172,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
               value={row.field}
               onChange={(event) => {
                 const next = AUDIT_FIELDS.find((field) => field.key === event.target.value) ?? AUDIT_FIELDS[0];
-                update(index, { field: next.key, op: OPERATORS_BY_KIND[next.kind][0], value: "" });
+                update(index, { field: next.key, op: operatorsFor(next)[0], value: "" });
               }}
               className={CONTROL}
             >
@@ -154,11 +190,11 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
             >
               {operators.map((op) => (
                 <option key={op} value={op}>
-                  {OPERATOR_LABEL[op]}
+                  {operatorLabel(spec, op)}
                 </option>
               ))}
             </select>
-            {spec.kind === "select" && row.op !== "in" ? (
+            {isNullTest(row.op) ? null : spec.kind === "select" && row.op !== "in" ? (
               <select
                 aria-label="Value"
                 value={row.value}
