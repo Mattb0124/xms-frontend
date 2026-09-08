@@ -13,6 +13,27 @@ describe("SyncCardView", () => {
     expect(screen.getByText("CS0012345")).toBeInTheDocument();
   });
 
+  /**
+   * Render 07 draws the tab as two blocks: what a person needs to be told,
+   * on the note ground, then the facts in mono, one a line. They used to be
+   * scattered through the card at 11 and 12px between sentences.
+   */
+  it("draws the tab as one note block and one block of facts", () => {
+    const { container } = render(<SyncCardView links={[aLink()]} runs={[aRun()]} flush />);
+    const note = container.querySelector(".xms-note");
+    expect(note).not.toBeNull();
+    expect(note).toHaveTextContent("Synced with Brookfield CSM.");
+    expect(note).toHaveTextContent("Updates are not sent to ServiceNow.");
+    const facts = container.querySelector(".xms-mono");
+    expect(facts).not.toBeNull();
+    expect(facts).toHaveTextContent("external record:");
+    expect(facts).toHaveTextContent("direction: ingest only");
+    expect(facts).toHaveTextContent("kill switch armed, not tripped");
+    // The rail keeps its compact stack: 262px has room for neither block.
+    const { container: rail } = render(<SyncCardView links={[aLink()]} runs={[aRun()]} />);
+    expect(rail.querySelector(".xms-note")).toBeNull();
+  });
+
   it("renders nothing without links", () => {
     const { container } = render(<SyncCardView links={[]} runs={[aRun()]} />);
     expect(container).toBeEmptyDOMElement();

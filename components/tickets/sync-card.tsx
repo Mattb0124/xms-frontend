@@ -23,7 +23,7 @@ export function modeNotice(link: TicketSyncLink): string | null {
  * push left fields behind because the instance owns them (functional 5.3 and
  * 5.5, SN-04). Policy resolves a conflict; the note records it.
  */
-function ConflictNote({ link }: { link: TicketSyncLink }) {
+function ConflictNote({ link, inline }: { link: TicketSyncLink; inline?: boolean }) {
   const conflict = link.last_conflict;
   if (!conflict) return null;
   const fields = Array.isArray(conflict.fields) ? conflict.fields.map(String) : [];
@@ -32,7 +32,14 @@ function ConflictNote({ link }: { link: TicketSyncLink }) {
   const outbound = conflict.direction === "out";
   return (
     <p
-      className="rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[12px] text-[color:var(--state-needs-input-text)]"
+      // Inside the note block the sentence is part of what the block says, so
+      // it takes the block's own type rather than a second tinted box inside
+      // it (render 07 draws one block, one voice).
+      className={
+        inline
+          ? "mt-2 text-[14px] leading-[1.6]"
+          : "rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[12px] text-[color:var(--state-needs-input-text)]"
+      }
       data-conflict={fields.join(",")}
       data-conflict-direction={outbound ? "out" : "in"}
     >
@@ -104,6 +111,34 @@ function ExternalRecordLink({ link }: { link: TicketSyncLink }) {
   );
 }
 
+/**
+ * The facts about one link, as render 07 sets them: a mono block, one fact a
+ * line, on the quietest ground. They were scattered through the card at 11
+ * and 12px between sentences, so the external number, the direction, the
+ * last exchange and the kill switch each read as a different kind of thing.
+ */
+function LinkFacts({ link }: { link: TicketSyncLink }) {
+  const lines = [
+    `direction: ${modeLabel(link.mode).toLowerCase()}`,
+    `last in ${link.last_inbound_at ? formatDate(link.last_inbound_at) : "never"} · last out ${
+      link.last_outbound_at ? formatDate(link.last_outbound_at) : "never"
+    }`,
+    `instance ${link.instance_name}, health ${link.health}`,
+    `kill switch ${link.health === "tripped" ? "tripped" : "armed, not tripped"}`,
+  ];
+  return (
+    <div className="border-xms-line bg-xms-quiet-bg xms-mono text-xms-body rounded-[var(--xms-radius-card)] border p-4 text-[13px] leading-[1.9]">
+      <p>
+        {"external record: "}
+        <ExternalRecordLink link={link} />
+      </p>
+      {lines.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+    </div>
+  );
+}
+
 export function SyncCardView({
   links,
   runs,
@@ -115,6 +150,45 @@ export function SyncCardView({
   flush?: boolean;
 }) {
   if (links.length === 0) return null;
+  // Render 07 draws the tab as two blocks: what a person needs to be told,
+  // on the note ground, then the facts in mono. The rail keeps the compact
+  // stack, because 262px has no room for either.
+  if (flush) {
+    return (
+      <div className="flex flex-col gap-3">
+        {links.map((link) => {
+          const notice = modeNotice(link);
+          return (
+            <div key={`${link.instance_name}:${link.external_sys_id}`} className="flex flex-col gap-3">
+              <div className="xms-note p-4 text-[14px] leading-[1.6]">
+                <p>
+                  {`Synced with ${link.instance_name}. `}
+                  {notice ?? "Updates travel both ways; policy decides a conflict and the run log names both sides."}
+                </p>
+                <ConflictNote link={link} inline />
+              </div>
+              <LinkFacts link={link} />
+              <OutboundState link={link} />
+            </div>
+          );
+        })}
+        {runs.length > 0 ? (
+          <ul className="flex flex-col" aria-label="Recent runs">
+            {runs.slice(0, 5).map((run) => (
+              <li
+                key={run.id}
+                className="border-xms-line-row flex items-center gap-3 border-b py-[10px] text-[13px] last:border-b-0"
+              >
+                <span className="xms-mono text-xms-muted">{formatDate(run.created_at)}</span>
+                <span className="text-xms-body flex-1">{run.direction}</span>
+                <OutcomePill outcome={run.outcome} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
+  }
   const body = (
     <div className="flex flex-col gap-3">
       {links.map((link) => {
