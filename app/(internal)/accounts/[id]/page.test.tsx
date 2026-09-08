@@ -4,7 +4,7 @@ import AccountPage, { initialAccountTab } from "@/app/(internal)/accounts/[id]/p
 import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
 import { aBudget } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
-import { anAccountDashboard } from "@/test-kit/reporting";
+import { aCsatSummary, anAccountDashboard } from "@/test-kit/reporting";
 
 let search = "tab=budget";
 
@@ -21,6 +21,7 @@ const me = (permissions: string[]) => () =>
 describe("initialAccountTab", () => {
   it("opens the tab a link names and falls back to the dashboard", () => {
     expect(initialAccountTab(new URLSearchParams("tab=budget"))).toBe("budget");
+    expect(initialAccountTab(new URLSearchParams("tab=satisfaction"))).toBe("satisfaction");
     expect(initialAccountTab(new URLSearchParams("tab=nonsense"))).toBe("dashboard");
     expect(initialAccountTab(new URLSearchParams(""))).toBe("dashboard");
     expect(initialAccountTab(null)).toBe("dashboard");
@@ -29,6 +30,21 @@ describe("initialAccountTab", () => {
 
 describe("AccountPage", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("resolves ?tab=satisfaction to the CSAT view with the range as the API names it", async () => {
+    search = "tab=satisfaction";
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["tickets:view"]),
+      "GET /v1/accounts/acct-1/csat": () => json(aCsatSummary()),
+    });
+    renderDesk(<AccountPage />);
+    await screen.findByTestId("account-csat");
+    expect(screen.getByRole("tab", { name: "Satisfaction" })).toHaveAttribute("aria-selected", "true");
+    await screen.findByRole("list", { name: "Score distribution" });
+    const csat = calls.find((call) => call.key === "GET /v1/accounts/acct-1/csat");
+    expect(csat?.search).toMatch(/^\?from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}$/);
+    expect(calls.some((call) => call.key === "GET /v1/dashboards/accounts/acct-1")).toBe(false);
+  });
 
   it("resolves ?tab=budget to the Budget view for a reader with tickets:view and no admin:accounts", async () => {
     search = "tab=budget";

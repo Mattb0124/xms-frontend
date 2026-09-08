@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import { AdminGate } from "@/components/admin/primitives";
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { AccountDashboard } from "@/components/reporting/account-dashboard";
+import { AccountCsatView } from "@/components/reporting/csat-panel";
 import { AccountBudgetView } from "@/components/time/budget-view";
 import { Skeleton } from "@/components/xms/skeleton";
 import { TabBar } from "@/components/xms/tab-bar";
@@ -12,6 +13,7 @@ import { TabBar } from "@/components/xms/tab-bar";
 const TABS = [
   { key: "dashboard", label: "Dashboard" },
   { key: "budget", label: "Budget" },
+  { key: "satisfaction", label: "Satisfaction" },
 ];
 
 /** The tab a link opens (`?tab=budget` from the threshold notifications); the dashboard otherwise. */
@@ -29,15 +31,17 @@ function AccountScreen({ accountId }: { accountId: string }) {
       <TabBar tabs={TABS} active={tab} onChange={setTab} className="mb-4" />
       {tab === "dashboard" ? <AccountDashboard accountId={accountId} /> : null}
       {tab === "budget" ? <AccountBudgetView accountId={accountId} /> : null}
+      {tab === "satisfaction" ? <AccountCsatView accountId={accountId} /> : null}
     </>
   );
 }
 
 /**
  * Registered as `account` (P2.19.3, DR-03): one account's dashboard with
- * "View as client" and the Reports card, and the Budget view as a tab
+ * "View as client" and the Reports card, the Budget view as a tab
  * (`?tab=budget`, the target of the threshold notifications) for readers
- * with tickets:view and no admin:accounts; the skills coverage chips sit
+ * with tickets:view and no admin:accounts, and the Satisfaction tab
+ * (`?tab=satisfaction`, CSAT per account); the skills coverage chips sit
  * above the tabs under capacity:view.
  */
 export default function AccountPage() {
