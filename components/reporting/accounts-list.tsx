@@ -1,9 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AccountStatusPill } from "@/components/admin/primitives";
+import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { FilterSelect } from "@/components/xms/filter-select";
+import { ICON, SearchIcon } from "@/components/xms/icons";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useMe } from "@/redux/me";
 import { useOperationsDashboardQuery, type AccountStrip } from "@/redux/reportingApi";
@@ -13,10 +16,35 @@ interface AccountListRow extends GrantedAccount {
   measures?: AccountStrip["measures"];
 }
 
+/** The statuses an account can be in, in the order it moves through them. */
+const STATUSES = ["onboarding", "active", "suspended", "offboarding", "offboarded"];
+
+/**
+ * The two dimensions this list narrows on, kept out of the component so the
+ * rule can be read and tested on its own: the status the account is in, and
+ * the words a reader typed, matched against the name and the key.
+ */
+export function filterAccounts<Row extends { name: string; key: string; status: string }>(
+  rows: Row[],
+  status: string,
+  query: string,
+): Row[] {
+  const needle = query.trim().toLowerCase();
+  return rows.filter((row) => {
+    if (status && row.status !== status) return false;
+    if (!needle) return true;
+    return row.name.toLowerCase().includes(needle) || row.key.toLowerCase().includes(needle);
+  });
+}
+
 /**
  * Granted accounts (User Experience 3.9, list cut): the accounts the viewer
  * may see with open and breached counts from the operations strip when the
  * viewer holds reports:view-portfolio; otherwise the identity columns only.
+ *
+ * No v3 render draws this screen, so it takes the list grammar every other
+ * one stands on: the dimensions on the grey strip, the search in the card
+ * header, the line that says what the card holds.
  */
 export function AccountsList() {
   const router = useRouter();
@@ -24,11 +52,14 @@ export function AccountsList() {
   const portfolio = me.hasPermission("reports:view-portfolio");
   const accounts = useListGrantedAccountsQuery();
   const operations = useOperationsDashboardQuery({ days: 7 }, { skip: !portfolio });
+  const [status, setStatus] = useState("");
+  const [query, setQuery] = useState("");
 
   const rows = useMemo<AccountListRow[]>(() => {
     const strip = new Map((operations.data?.per_account ?? []).map((row) => [row.account_id, row.measures]));
-    return (accounts.data ?? []).map((account) => ({ ...account, measures: strip.get(account.id) }));
-  }, [accounts.data, operations.data]);
+    const all = (accounts.data ?? []).map((account) => ({ ...account, measures: strip.get(account.id) }));
+    return filterAccounts(all, status, query);
+  }, [accounts.data, operations.data, status, query]);
 
   const columns = useMemo<DenseColumn<AccountListRow>[]>(() => {
     const base: DenseColumn<AccountListRow>[] = [
@@ -88,13 +119,46 @@ export function AccountsList() {
   if (accounts.isLoading && !accounts.data) return <Skeleton lines={6} />;
 
   return (
-    <DenseTable<AccountListRow>
-      title="Accounts"
-      columns={columns}
-      rows={rows}
-      rowKey={(row) => row.id}
-      onRowClick={(row) => router.push(`/accounts/${row.id}`)}
-      emptyState="No granted accounts. Ask an administrator for account access."
-    />
+    <>
+      <HeaderFilters>
+        <FilterSelect
+          label="Show"
+          primary
+          count={rows.length}
+          value={status}
+          options={STATUSES.map((entry) => ({ value: entry, label: entry }))}
+          onChange={setStatus}
+        />
+      </HeaderFilters>
+      <DenseTable<AccountListRow>
+        title="Accounts"
+        subtitle="the accounts granted to you, and how each one is standing"
+        columns={columns}
+        rows={rows}
+        rowKey={(row) => row.id}
+        onRowClick={(row) => router.push(`/accounts/${row.id}`)}
+        search={
+          <form
+            className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <input
+              type="search"
+              aria-label="Search accounts by name or key"
+              placeholder="Search accounts by name or key"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+            />
+            <SearchIcon size={ICON.action} className="text-xms-muted shrink-0" />
+          </form>
+        }
+        emptyState={
+          status || query.trim()
+            ? "No account here. Set Show back to all, or clear the search."
+            : "No granted accounts. Ask an administrator for account access."
+        }
+      />
+    </>
   );
 }
