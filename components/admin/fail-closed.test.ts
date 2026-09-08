@@ -427,12 +427,34 @@ describe("the account's contacts are read behind admin:accounts", () => {
  */
 const ANALYTICS_READS = [
   { hook: "useLazyAuditSearchQuery", slice: "redux/reportingApi.ts", route: "/v1/audit/search" },
+  // The saved queries of the audit search (backend 1b7bc74). Every one of the
+  // five routes stands on audit:read, the same key the search itself takes,
+  // and a saved query names the conditions of a search over every event of
+  // every request, so none of them may ship behind a weaker key.
+  { hook: "useAuditSavedQueriesQuery", slice: "redux/reportingApi.ts", route: '"/v1/audit/saved-queries"' },
+  {
+    hook: "useCreateAuditSavedQueryMutation",
+    slice: "redux/reportingApi.ts",
+    route: 'url: "/v1/audit/saved-queries", method: "POST"',
+  },
+  {
+    hook: "usePatchAuditSavedQueryMutation",
+    slice: "redux/reportingApi.ts",
+    route: "/v1/audit/saved-queries/${id}",
+  },
+  {
+    hook: "useDeleteAuditSavedQueryMutation",
+    slice: "redux/reportingApi.ts",
+    route: "/v1/audit/saved-queries/${id}",
+  },
+  { hook: "useRunAuditSavedQueryMutation", slice: "redux/reportingApi.ts", route: "/v1/audit/saved-queries/${id}/run" },
   { hook: "useSecurityDashboardQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/security" },
   { hook: "useUsageDashboardQuery", slice: "redux/reportingApi.ts", route: "/v1/dashboards/usage" },
 ];
 
 const ANALYTICS_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
   { file: "components/admin/audit-search.tsx", mountedIn: "app/(internal)/admin/audit/page.tsx" },
+  { file: "components/admin/saved-queries.tsx", mountedIn: "app/(internal)/admin/audit/page.tsx" },
   { file: "app/(internal)/admin/audit/page.tsx", permission: "audit:read" },
   { file: "components/admin/security-dashboard.tsx", mountedIn: "app/(internal)/admin/security/page.tsx" },
   { file: "app/(internal)/admin/security/page.tsx", permission: "audit:read" },

@@ -10,7 +10,7 @@ import {
   scopeOf,
 } from "@/components/admin/audit-search";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
-import { anAuditEvent, anOperatorAuditRow } from "@/test-kit/reporting";
+import { anAuditEvent, anOperatorAuditRow, aSavedQuery, aSavedQueryPage, SAVED_QUERY_ID } from "@/test-kit/reporting";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/audit" }));
 
@@ -215,5 +215,71 @@ describe("AuditSearch", () => {
     renderDesk(<AuditSearch />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument());
     expect(screen.queryByRole("button", { name: "Export CSV" })).not.toBeInTheDocument();
+  });
+
+  it("runs a saved query into the results and pages it through the run route, not the inline search", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": () => json(me(["audit:read"])),
+      "GET /v1/audit/saved-queries": () => json([aSavedQuery()]),
+      [`POST /v1/audit/saved-queries/${SAVED_QUERY_ID}/run`]: (body) => {
+        const parsed = JSON.parse(body ?? "{}") as { cursor?: string };
+        return json(
+          parsed.cursor
+            ? aSavedQueryPage({ items: [anAuditEvent({ id: "ev-saved-2", event_type: "role.created" })] })
+            : aSavedQueryPage({ next_cursor: "cur-2" }),
+          201,
+        );
+      },
+    });
+    renderDesk(<AuditSearch />);
+
+    await waitFor(() => expect(screen.getByText("Brookfield changes")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+
+    // The results name the query they came from rather than a bare count.
+    await waitFor(() => expect(screen.getAllByText("1 loaded from Brookfield changes").length).toBeGreaterThan(0));
+    expect(screen.getByText("account.updated")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load more" }));
+    await waitFor(() => expect(screen.getByText("role.created")).toBeInTheDocument());
+    // Two runs of the saved query, and the inline search was never asked.
+    const runs = calls.filter((call) => call.key.endsWith("/run"));
+    expect(runs).toHaveLength(2);
+    expect(runs.at(-1)!.body).toEqual({ limit: 100, cursor: "cur-2" });
+    expect(calls.some((call) => call.key === "POST /v1/audit/search")).toBe(false);
+  });
+
+  it("goes back to the inline search once the reader searches again", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": () => json(me(["audit:read"])),
+      "GET /v1/audit/saved-queries": () => json([aSavedQuery()]),
+      [`POST /v1/audit/saved-queries/${SAVED_QUERY_ID}/run`]: () =>
+        json(aSavedQueryPage({ next_cursor: "cur-2" }), 201),
+      "POST /v1/audit/search": () => json({ items: [anAuditEvent()], next_cursor: null }),
+    });
+    renderDesk(<AuditSearch />);
+
+    await waitFor(() => expect(screen.getByText("Brookfield changes")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(screen.getAllByText("1 loaded from Brookfield changes").length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    await waitFor(() => expect(screen.getAllByText("1 loaded").length).toBeGreaterThan(0));
+    expect(calls.some((call) => call.key === "POST /v1/audit/search")).toBe(true);
+  });
+
+  it("loads a saved query into the builder without running it", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": () => json(me(["audit:read"])),
+      "GET /v1/audit/saved-queries": () => json([aSavedQuery()]),
+    });
+    renderDesk(<AuditSearch />);
+
+    await waitFor(() => expect(screen.getByText("Brookfield changes")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Load into builder" }));
+
+    const fields = screen.getAllByLabelText("Field") as HTMLSelectElement[];
+    expect(fields.map((field) => field.value)).toEqual(["stream", "account_id"]);
+    expect(calls.some((call) => call.key.endsWith("/run"))).toBe(false);
   });
 });

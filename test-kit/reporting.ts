@@ -2,6 +2,7 @@ import type {
   AccountCsat,
   AccountDashboard,
   AuditEvent,
+  AuditSavedQuery,
   CsatQuarterly,
   CsatResponse,
   DeliveryOutcome,
@@ -14,6 +15,7 @@ import type {
   ReportRun,
   ReportSchedule,
   ReviewRun,
+  SavedQueryPage,
   ScheduleRun,
   SecurityDashboard as SecurityData,
   UsageAccountRow,
@@ -406,6 +408,43 @@ export function anAuditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
     entity_id: "t-1",
     outcome: "success",
     attrs: { old: { state: "new" }, new: { state: "assigned" } },
+    ...overrides,
+  };
+}
+
+export const SAVED_QUERY_ID = "88888888-8888-4888-8888-888888888888";
+export const QUERY_OWNER_ID = "user-ada";
+
+/**
+ * A saved condition set as `/v1/audit/saved-queries` answers it: conditions
+ * and nothing else, with the owner the API named and whether it is shared.
+ * The default is the reader's own private query; pass `shared` and another
+ * `owner_user_id` for the one somebody else put in front of everybody.
+ */
+export function aSavedQuery(overrides: Partial<AuditSavedQuery> = {}): AuditSavedQuery {
+  return {
+    id: SAVED_QUERY_ID,
+    name: "Brookfield changes",
+    description: "Everything audited on Brookfield",
+    owner_user_id: QUERY_OWNER_ID,
+    owner_name: "Ada Byron",
+    shared: false,
+    conditions: [
+      { field: "stream", op: "eq", value: "audit" },
+      { field: "account_id", op: "is_not_null" },
+    ],
+    created_at: "2026-09-05T08:00:00.000Z",
+    updated_at: "2026-09-05T08:00:00.000Z",
+    ...overrides,
+  };
+}
+
+/** The run route's answer: a page of events beside the query that produced it. */
+export function aSavedQueryPage(overrides: Partial<SavedQueryPage> = {}): SavedQueryPage {
+  return {
+    items: [anAuditEvent({ id: "ev-saved-1", event_type: "account.updated" })],
+    next_cursor: null,
+    saved_query: aSavedQuery(),
     ...overrides,
   };
 }

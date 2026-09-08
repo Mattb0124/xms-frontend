@@ -7,18 +7,23 @@ import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
+import { SavedQueriesPanel } from "@/components/admin/saved-queries";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { downloadFile } from "@/lib/exports/download";
+import { describeSavedQueryError } from "@/lib/reporting/saved-queries";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import {
   useLazyAuditSearchQuery,
+  useRunAuditSavedQueryMutation,
   type AuditCondition,
   type AuditEvent,
   type AuditField,
   type AuditOperator,
   type AuditQuery,
+  type AuditSavedQuery,
+  type SavedQueryPage,
 } from "@/redux/reportingApi";
 
 type FieldKind = "text" | "select" | "datetime";
@@ -150,6 +155,35 @@ export function rowsToQuery(rows: AuditRow[]): AuditCondition[] {
     conditions.push({ field: row.field, op: row.op, value });
   }
   return conditions;
+}
+
+/**
+ * The other direction, for loading a saved query back into the builder: the
+ * request body as screen rows. A datetime is written in the local wording the
+ * `datetime-local` control reads rather than the ISO instant, so a loaded row
+ * sends back the moment it was saved and not one shifted by the reader's own
+ * offset.
+ */
+export function rowsFromConditions(conditions: AuditCondition[]): AuditRow[] {
+  return conditions.map((condition) => {
+    if (isNullTest(condition.op)) return { field: condition.field, op: condition.op, value: "" };
+    if (condition.op === "in")
+      return {
+        field: condition.field,
+        op: condition.op,
+        value: (Array.isArray(condition.value) ? condition.value : []).join(", "),
+      };
+    const spec = AUDIT_FIELDS.find((field) => field.key === condition.field);
+    const raw = String(condition.value ?? "");
+    return { field: condition.field, op: condition.op, value: spec?.kind === "datetime" ? localMoment(raw) : raw };
+  });
+}
+
+function localMoment(iso: string): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return iso;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}T${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
 const CONTROL = "border-xms-line bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[13px]";
@@ -442,6 +476,11 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
   const [selected, setSelected] = useState<AuditEvent | null>(null);
   const [search, result] = useLazyAuditSearchQuery();
   const [exporting, setExporting] = useState(false);
+  // The saved query these rows came from, where they came from one. It names
+  // the list and decides which route pages it: a saved query pages through
+  // its own run route, so the second page is the same query the first was.
+  const [ranQuery, setRanQuery] = useState<AuditSavedQuery | null>(null);
+  const [runSaved, runningSaved] = useRunAuditSavedQueryMutation();
 
   const run = useCallback(
     async (conditions: AuditCondition[], after?: string) => {
@@ -459,12 +498,43 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
     [search, track, push],
   );
 
-  const onSearch = () => void run(rowsToQuery(rows));
+  const onSearch = () => {
+    setRanQuery(null);
+    void run(rowsToQuery(rows));
+  };
   const onPivot = (requestId: string) => {
     const next: AuditRow[] = [{ field: "request_id", op: "eq", value: requestId }];
     setRows(next);
     setSelected(null);
+    setRanQuery(null);
     void run(rowsToQuery(next));
+  };
+
+  /** The first page of a saved query, from the panel below the results. */
+  const onRan = (page: SavedQueryPage) => {
+    setItems(page.items);
+    setCursor(page.next_cursor);
+    setLastQuery(page.saved_query.conditions);
+    setRanQuery(page.saved_query);
+    setSelected(null);
+    track({ conditions: page.saved_query.conditions.length, result_count: page.items.length }, "search.run");
+  };
+
+  const loadMore = async () => {
+    if (!cursor) return;
+    if (!ranQuery) return void run(lastQuery ?? [], cursor);
+    try {
+      const page = await runSaved({ id: ranQuery.id, limit: PAGE, cursor }).unwrap();
+      setItems((current) => [...current, ...page.items]);
+      setCursor(page.next_cursor);
+    } catch (error) {
+      const { code, details, permission } = apiError(error);
+      push({
+        title: `${ranQuery.name} did not run`,
+        detail: describeSavedQueryError(code, details, permission),
+        tone: "error",
+      });
+    }
   };
 
   const onExport = async () => {
@@ -484,7 +554,10 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
     }
   };
 
-  const summary = useMemo(() => (lastQuery ? `${items.length} loaded` : "Run a search"), [items.length, lastQuery]);
+  const summary = useMemo(() => {
+    if (!lastQuery) return "Run a search";
+    return ranQuery ? `${items.length} loaded from ${ranQuery.name}` : `${items.length} loaded`;
+  }, [items.length, lastQuery, ranQuery]);
 
   return (
     <div className="flex flex-col gap-4" data-testid="audit-search">
@@ -528,8 +601,8 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
               {cursor ? (
                 <button
                   type="button"
-                  onClick={() => void run(lastQuery ?? [], cursor)}
-                  disabled={result.isFetching}
+                  onClick={() => void loadMore()}
+                  disabled={result.isFetching || runningSaved.isLoading}
                   className={cn(SECONDARY_BUTTON, "ml-auto")}
                 >
                   Load more
@@ -539,6 +612,15 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
           }
         />
       )}
+
+      <SavedQueriesPanel
+        conditions={rowsToQuery(rows)}
+        onRan={onRan}
+        onLoad={(query) => {
+          setRows(rowsFromConditions(query.conditions));
+          setRanQuery(null);
+        }}
+      />
 
       {selected ? <RecordDrawer event={selected} onClose={() => setSelected(null)} onPivot={onPivot} /> : null}
     </div>

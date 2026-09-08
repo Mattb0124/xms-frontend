@@ -233,6 +233,43 @@ export interface AuditPage {
   next_cursor: string | null;
 }
 
+/**
+ * A saved condition set for the audit search (Audit & Analytics 7.1, backend
+ * 1b7bc74). It holds conditions and nothing else: no rows, no account, no
+ * window. What a query may see is decided when it runs, by the grant clause
+ * the search applies to whoever ran it, so two readers running the same
+ * shared query each see their own accounts' events.
+ *
+ * Every route stands on `audit:read`. Sharing needs `audit:export`, which
+ * `audit:read` does not imply, because a shared query is how audit rows are
+ * put in front of other people. A private query of another user answers 404
+ * rather than 403, the house rule for a by-id read, and so does an edit or a
+ * delete by anyone but the owner.
+ */
+export interface AuditSavedQuery {
+  id: string;
+  name: string;
+  description: string;
+  owner_user_id: string;
+  owner_name: string | null;
+  shared: boolean;
+  conditions: AuditCondition[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedQueryBody {
+  name: string;
+  description?: string;
+  shared?: boolean;
+  conditions: AuditCondition[];
+}
+
+/** The run route answers the page beside the query it ran, so the screen can name what it is showing. */
+export interface SavedQueryPage extends AuditPage {
+  saved_query: AuditSavedQuery;
+}
+
 export interface ReportRun {
   id: string;
   pack_type: string;
@@ -623,6 +660,33 @@ export const reportingApi = xmsApi.injectEndpoints({
     auditSearch: build.query<AuditPage, AuditQuery>({
       query: (body) => ({ url: "/v1/audit/search", method: "POST", body }),
     }),
+
+    /** Mine plus every shared one, by name; the server decides which of those this reader sees. */
+    auditSavedQueries: build.query<AuditSavedQuery[], void>({
+      query: () => "/v1/audit/saved-queries",
+      providesTags: [{ type: "AuditSavedQueries", id: "list" }],
+    }),
+    createAuditSavedQuery: build.mutation<AuditSavedQuery, SavedQueryBody>({
+      query: (body) => ({ url: "/v1/audit/saved-queries", method: "POST", body }),
+      invalidatesTags: (_result, error) => (error ? [] : [{ type: "AuditSavedQueries", id: "list" }]),
+    }),
+    patchAuditSavedQuery: build.mutation<AuditSavedQuery, { id: string; body: Partial<SavedQueryBody> }>({
+      query: ({ id, body }) => ({ url: `/v1/audit/saved-queries/${id}`, method: "PATCH", body }),
+      invalidatesTags: [{ type: "AuditSavedQueries", id: "list" }],
+    }),
+    deleteAuditSavedQuery: build.mutation<{ deleted: true }, string>({
+      query: (id) => ({ url: `/v1/audit/saved-queries/${id}`, method: "DELETE" }),
+      invalidatesTags: [{ type: "AuditSavedQueries", id: "list" }],
+    }),
+    /**
+     * Running one is the inline search with the stored conditions, one code
+     * path and one grant clause on the server. It is a mutation here because
+     * it is a POST the screen fires on a click and pages through by hand, not
+     * a cache entry keyed on a query.
+     */
+    runAuditSavedQuery: build.mutation<SavedQueryPage, { id: string; limit?: number; cursor?: string }>({
+      query: ({ id, ...body }) => ({ url: `/v1/audit/saved-queries/${id}/run`, method: "POST", body }),
+    }),
     reportRuns: build.query<ReportRun[], string>({
       query: (accountId) => `/v1/accounts/${accountId}/reports`,
       providesTags: (_result, _error, accountId) => [{ type: "Reports", id: accountId }],
@@ -733,6 +797,11 @@ export const {
   useUsageDashboardQuery,
   useAuditSearchQuery,
   useLazyAuditSearchQuery,
+  useAuditSavedQueriesQuery,
+  useCreateAuditSavedQueryMutation,
+  usePatchAuditSavedQueryMutation,
+  useDeleteAuditSavedQueryMutation,
+  useRunAuditSavedQueryMutation,
   useReportRunsQuery,
   useGenerateWsrMutation,
   useReportPackQuery,
