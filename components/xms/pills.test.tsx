@@ -27,7 +27,9 @@ describe("StatePill", () => {
 });
 
 describe("PriorityPill", () => {
-  it("lights up P1 and P2 and leaves P3 and P4 quiet", () => {
+  // Wireframes section 8.1: P1 red, P2 to P4 quiet. An amber P2 read as an
+  // at-risk clock in a row that already carried an amber state pill.
+  it("lights up P1 alone and leaves P2 to P4 quiet", () => {
     render(
       <>
         <PriorityPill priority="p1" />
@@ -36,7 +38,7 @@ describe("PriorityPill", () => {
       </>,
     );
     expect(screen.getByText("P1")).toHaveAttribute("data-state", "overdue");
-    expect(screen.getByText("P2")).toHaveAttribute("data-state", "needs-input");
+    expect(screen.getByText("P2")).not.toHaveAttribute("data-state");
     expect(screen.getByText("P3")).not.toHaveAttribute("data-state");
   });
 });

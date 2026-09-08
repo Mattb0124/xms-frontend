@@ -5,16 +5,22 @@ export interface BulkActionProps {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  /** The small leading glyph the render puts on Assign, Add tag and Export. */
+  icon?: ReactNode;
+  /** Why a disabled action is disabled, so the reason is readable in place. */
+  title?: string;
 }
 
-export function BulkAction({ label, onClick, disabled }: BulkActionProps) {
+export function BulkAction({ label, onClick, disabled, icon, title }: BulkActionProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint h-[28px] rounded-[4px] border px-[10px] text-[12px] font-medium disabled:opacity-50"
+      title={title}
+      className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint inline-flex h-[28px] items-center gap-[6px] rounded-[4px] border px-[10px] text-[12px] font-medium disabled:opacity-50"
     >
+      {icon}
       {label}
     </button>
   );

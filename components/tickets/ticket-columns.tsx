@@ -1,7 +1,7 @@
 "use client";
 
 import { AccountDot } from "@/components/xms/account-dot";
-import { ActorChip } from "@/components/xms/actor-chip";
+import { shortName } from "@/components/xms/actor-chip";
 import type { DenseColumn } from "@/components/xms/dense-table";
 import { KeyLink } from "@/components/xms/key-link";
 import { PriorityPill } from "@/components/xms/priority-pill";
@@ -36,23 +36,34 @@ export interface ColumnOptions {
   accounts: Map<string, GrantedAccount>;
   /** Hide the account column on single-account lists. */
   hideAccount?: boolean;
+  /**
+   * Draw the SLA and Updated cells. The Queue leaves them off: the v3 render
+   * (01) ends the table at Assignee, and the two extra cells pushed the card
+   * past 1500 so the whole list scrolled sideways. They stay in the set,
+   * carried as hidden columns, because the Queue still opens on the tightest
+   * clock and a hidden column can still be sorted on.
+   */
+  showClocks?: boolean;
 }
 
 /** The Queue's default sort: the tightest clock first (Wireframes section 3.1). */
 export const QUEUE_DEFAULT_SORT = { key: "sla", direction: "asc" } as const;
 
 /**
- * The Queue column set in the prototype's order (Wireframes section 3.1):
- * Key, Short description, Account, Type, Priority, State, Assignee, SLA,
- * Updated. The built order put Type second and State before Priority, which
- * is not the prototype's reading order (frontend review finding 20).
+ * The Queue column set in the prototype's order (Wireframes section 3.1, v3
+ * render 01): Key, Short description, Account, Type, Priority, State,
+ * Assignee, then SLA and Updated, which v3 does not draw.
+ *
+ * The widths add up to the render's: 1500 less the 238px sidebar, the page
+ * padding and the card border leaves about 1180 for the seven cells, which is
+ * why Short description takes the slack and everything else is fixed.
  */
-export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseColumn<TicketView>[] {
+export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptions): DenseColumn<TicketView>[] {
   const columns: DenseColumn<TicketView>[] = [
     {
       key: "key",
       title: "Key",
-      width: "120px",
+      width: "116px",
       sortValue: (row) => row.key,
       render: (row) => <KeyLink ticketKey={row.key} />,
     },
@@ -69,7 +80,7 @@ export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseCo
     {
       key: "account",
       title: "Account",
-      width: "160px",
+      width: "168px",
       sortValue: (row) => accounts.get(row.account_id)?.name ?? row.account_id,
       render: (row) => {
         const account = accounts.get(row.account_id);
@@ -79,36 +90,42 @@ export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseCo
     {
       key: "type",
       title: "Type",
-      width: "120px",
+      width: "112px",
       sortValue: (row) => row.type,
       render: (row) => <TypeBar type={row.type} />,
     },
     {
       key: "priority",
       title: "Priority",
-      width: "90px",
+      width: "96px",
       sortValue: (row) => row.priority,
       render: (row) => <PriorityPill priority={row.priority} />,
     },
     {
       key: "state",
       title: "State",
-      width: "150px",
+      width: "154px",
       sortValue: (row) => row.state,
       render: (row) => <StatePill state={row.state} label={row.state_label} />,
     },
     {
       key: "assignee",
       title: "Assignee",
-      width: "170px",
+      width: "140px",
       sortValue: (row) => row.assignee_name ?? "",
+      // "M. Brown", no avatar circle: the render carries the name alone.
       render: (row) =>
-        row.assignee_name ? <ActorChip name={row.assignee_name} /> : <span className="text-xms-muted">Unassigned</span>,
+        row.assignee_name ? (
+          <span className="text-xms-ink">{shortName(row.assignee_name)}</span>
+        ) : (
+          <span className="text-xms-muted">Unassigned</span>
+        ),
     },
     {
       key: "sla",
       title: "SLA",
       width: "110px",
+      hidden: !showClocks,
       sortValue: (row) => tighterClock(row.sla)?.remainingMinutes ?? Number.MAX_SAFE_INTEGER,
       render: (row) => <SlaValue snapshot={clockSnapshot(tighterClock(row.sla))} />,
     },
@@ -116,6 +133,7 @@ export function ticketColumns({ accounts, hideAccount }: ColumnOptions): DenseCo
       key: "updated",
       title: "Updated",
       width: "100px",
+      hidden: !showClocks,
       mono: true,
       sortValue: (row) => row.updated_at,
       render: (row) => <span className="text-xms-label">{relativeTime(row.updated_at)}</span>,

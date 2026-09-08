@@ -17,7 +17,16 @@ export type ExportFormat = "xlsx" | "csv";
  * with the bearer and saved through an object URL; the toast carries the
  * row count the API reported.
  */
-export function ExportMenu({ params, className }: { params: TicketListParams; className?: string }) {
+export function ExportMenu({
+  params,
+  className,
+  label = "Export",
+}: {
+  params: TicketListParams;
+  className?: string;
+  /** The trigger word; the selection bar and the card header both say Export. */
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<ExportFormat | null>(null);
   const { push } = useToast();
@@ -62,7 +71,7 @@ export function ExportMenu({ params, className }: { params: TicketListParams; cl
         onClick={() => setOpen((value) => !value)}
         className={SECONDARY_BUTTON}
       >
-        {busy ? "Exporting" : "Export"}
+        {busy ? "Exporting" : label}
       </button>
       {open ? (
         <ul

@@ -17,6 +17,17 @@ export function initials(name: string): string {
     .join("");
 }
 
+/**
+ * "Matt Brown" as "M. Brown": the list form the v3 renders use in the Assignee
+ * cell, where an avatar circle per row would put ten coloured discs down a
+ * column that is read by exception. A single-word name is left whole.
+ */
+export function shortName(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return name;
+  return `${parts[0][0].toUpperCase()}. ${parts[parts.length - 1]}`;
+}
+
 /** Avatar initials plus name. AI actors take the violet family; everyone else the tint. */
 export function ActorChip({ name, kind = "user", className }: ActorChipProps) {
   const isAi = kind === "ai";

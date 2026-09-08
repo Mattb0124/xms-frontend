@@ -62,13 +62,23 @@ describe("the Queue columns", () => {
     ]);
   });
 
+  // The v3 render (01) ends the table at Assignee, so SLA is carried as a
+  // hidden column: still sorted on, not drawn, and one click away on the card
+  // header column control.
+  it("keeps SLA and Updated hidden unless the clocks are asked for", () => {
+    const quiet = ticketColumns({ accounts });
+    expect(quiet.filter((column) => column.hidden).map((column) => column.key)).toEqual(["sla", "updated"]);
+    const loud = ticketColumns({ accounts, showClocks: true });
+    expect(loud.filter((column) => column.hidden)).toEqual([]);
+  });
+
   it("opens on SLA with the tightest clock first", () => {
     expect(QUEUE_DEFAULT_SORT).toEqual({ key: "sla", direction: "asc" });
     render(
       <DenseTable<TicketView>
         title="Count"
         count={ROWS.length}
-        columns={ticketColumns({ accounts })}
+        columns={ticketColumns({ accounts, showClocks: true })}
         rows={ROWS}
         rowKey={(row) => row.key}
         defaultSort={QUEUE_DEFAULT_SORT}
