@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { WaitingRail } from "@/components/my-work/waiting-rail";
 import { HeaderAction, HeaderFilters, HeaderSearch, HeaderSearchField } from "@/components/shell/content-header-bar";
 import { PRIMARY_BUTTON } from "@/components/admin/primitives";
@@ -15,39 +15,18 @@ import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
 import { ScoreTile } from "@/components/xms/score-tile";
 import { Skeleton } from "@/components/xms/skeleton";
-import { tighterClock } from "@/lib/tickets/sla";
+import {
+  attentionOrder,
+  isAtRisk,
+  isBreached,
+  needsAttention,
+  TILES,
+  underLens,
+  type TileKey,
+} from "@/lib/my-work/attention";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useListGrantedAccountsQuery, useListTicketsQuery, type TicketView } from "@/redux/ticketsApi";
-
-const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
-
-/** Breached, or awaiting the client for more than two days: what needs a nudge today. */
-export function needsAttention(items: TicketView[], now: Date = new Date()): TicketView[] {
-  return items.filter((ticket) => {
-    const breached = Boolean(ticket.sla.response?.breached || ticket.sla.resolution?.breached);
-    const stale =
-      ticket.state === "awaiting_client" && now.getTime() - new Date(ticket.updated_at).getTime() > TWO_DAYS;
-    return breached || stale;
-  });
-}
-
-/** Tightest clock first, and a ticket with no clock last: the order the list is read in. */
-function byClock(a: TicketView, b: TicketView): number {
-  const left = tighterClock(a.sla)?.remainingMinutes ?? Number.MAX_SAFE_INTEGER;
-  const right = tighterClock(b.sla)?.remainingMinutes ?? Number.MAX_SAFE_INTEGER;
-  return left - right;
-}
-
-/**
- * "Mine first, then group unassigned", which is what render 08's own subtitle
- * says the list is: everything assigned to me on the tightest clock, then the
- * unassigned work in my groups on the same order, with nothing counted twice.
- */
-export function attentionOrder(mine: TicketView[], group: TicketView[]): TicketView[] {
-  const seen = new Set(mine.map((ticket) => ticket.key));
-  return [...[...mine].sort(byClock), ...group.filter((ticket) => !seen.has(ticket.key)).sort(byClock)];
-}
 
 /**
  * My work (render 08, User Experience 3.1, Wireframes section 3.3): four
@@ -57,7 +36,7 @@ export function attentionOrder(mine: TicketView[], group: TicketView[]): TicketV
  * There is one list, not two. The screen carried "Needs attention" and "My
  * open tickets" under it, and the render and section 3.3 both name one:
  * everything the second list held is in the Queue behind "Show: mine", which
- * the Assigned to me tile links to.
+ * the strip's own dimension opens.
  */
 export default function MyWorkPage() {
   const me = useMe();
@@ -79,17 +58,20 @@ export default function MyWorkPage() {
   const attentionCols = useMemo(() => attentionColumns({ accounts: accountsById }), [accountsById]);
   const mine = useMemo(() => data?.items ?? [], [data]);
   const group = useMemo(() => groupWork?.items ?? [], [groupWork]);
-  const attention = useMemo(() => attentionOrder(needsAttention(mine), group).slice(0, 8), [mine, group]);
-  const breached = mine.filter((ticket) => ticket.sla.response?.breached || ticket.sla.resolution?.breached).length;
-  const atRisk = mine.filter((ticket) => {
-    const clock = ticket.sla.resolution ?? ticket.sla.response;
-    return clock && !clock.met && !clock.breached && clock.remainingMinutes < clock.targetMinutes * 0.25;
-  }).length;
+  // The pressed scorecard, if any: the lens over the list rather than a place
+  // to go (render 08, note 1).
+  const [lens, setLens] = useState<TileKey | null>(null);
+  const attention = useMemo(
+    () => underLens(attentionOrder(needsAttention(mine), group), lens).slice(0, 8),
+    [mine, group, lens],
+  );
+  const breached = mine.filter(isBreached).length;
+  const atRisk = mine.filter(isAtRisk).length;
   const awaiting = mine.filter((ticket) => ticket.state.startsWith("awaiting")).length;
   // The sub-lines under the numbers in render 08 name what each is counted
   // over: the accounts the work sits on, and the key of the one that breached.
   const accountCount = new Set(mine.map((ticket) => ticket.account_id)).size;
-  const firstBreached = mine.find((ticket) => ticket.sla.response?.breached || ticket.sla.resolution?.breached);
+  const firstBreached = mine.find(isBreached);
 
   if (!me.permissions) return <Skeleton lines={6} />;
   if (!ready) {
@@ -146,22 +128,20 @@ export default function MyWorkPage() {
       </HeaderAction>
 
       {/* The four scorecards the render draws, each with the sub-line that
-          says what the number is counted over. */}
+          says what the number is counted over. Render 08's own note 1: they
+          filter the list below on click rather than navigating away, so each
+          is a toggle and a second click puts the list back. */}
       <div className="grid grid-cols-2 gap-[14px] md:grid-cols-4">
-        <ScoreTile
-          label="Assigned to me"
-          value={mine.length}
-          detail={accountCount === 1 ? "on 1 account" : `across ${accountCount} accounts`}
-          href="/tickets?view=mine"
-        />
-        <ScoreTile label="Breached" value={breached} detail={firstBreached?.key} href="/tickets?view=breached" />
-        <ScoreTile label="At risk" value={atRisk} detail="under 25% left" href="/tickets?view=mine" />
-        <ScoreTile
-          label="Awaiting client"
-          value={awaiting}
-          detail={awaiting === 1 ? "clock paused" : "clocks paused"}
-          href="/tickets?view=awaiting_client"
-        />
+        {TILES.map((tile) => (
+          <ScoreTile
+            key={tile.key}
+            label={tile.label}
+            value={tile.value({ mine, breached, atRisk, awaiting })}
+            detail={tile.detail({ accountCount, firstBreached, awaiting })}
+            selected={lens === tile.key}
+            onClick={() => setLens((current) => (current === tile.key ? null : tile.key))}
+          />
+        ))}
       </div>
       <BriefLine
         text={

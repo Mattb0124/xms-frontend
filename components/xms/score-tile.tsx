@@ -13,6 +13,13 @@ export interface ScoreTileProps {
   detailBeside?: boolean;
   /** Every tile links into the Queue with a matching condition set. */
   href?: string;
+  /**
+   * Narrow the list under the tile instead of navigating (render 08's own
+   * note 1: "scorecards filter the list below on click rather than navigating
+   * away"). A tile with an `onClick` is a toggle, not a link.
+   */
+  onClick?: () => void;
+  selected?: boolean;
   className?: string;
 }
 
@@ -26,7 +33,7 @@ export interface ScoreTileProps {
  * and neither is a count. Both renders draw every number in ink, and the
  * signal lives in the row the tile filters to.
  */
-export function ScoreTile({ label, value, detail, detailBeside, href, className }: ScoreTileProps) {
+export function ScoreTile({ label, value, detail, detailBeside, href, onClick, selected, className }: ScoreTileProps) {
   const body = (
     <>
       <p className="xms-caption">{label}</p>
@@ -37,7 +44,19 @@ export function ScoreTile({ label, value, detail, detailBeside, href, className 
       {detail && !detailBeside ? <p className="text-xms-muted mt-[4px] text-[12px] leading-[1.4]">{detail}</p> : null}
     </>
   );
-  const classes = cn("xms-card block p-4", href && "hover:border-xms-accent-border", className);
+  const classes = cn(
+    "xms-card block p-4 text-left",
+    (href || onClick) && "hover:border-xms-accent-border",
+    selected && "border-xms-accent bg-xms-nav-wash",
+    className,
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} aria-pressed={Boolean(selected)} className={classes}>
+        {body}
+      </button>
+    );
+  }
   return href ? (
     <Link href={href} className={classes}>
       {body}
