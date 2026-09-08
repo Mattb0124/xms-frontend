@@ -24,13 +24,17 @@ export function ScoreTile({ label, value, detail, tone = "neutral", href, classN
   const body = (
     <>
       <p className="xms-caption">{label}</p>
-      <p className={cn("xms-mono mt-1 text-[24px] leading-none font-semibold", TONE_CLASS[tone])} data-tone={tone}>
-        {value}
+      {/* The render (08, 10) puts the caption on the same baseline as the
+          number, not on a line under it: "218  +12 this week". */}
+      <p className="mt-[10px] flex items-baseline gap-2">
+        <span className={cn("xms-mono text-[26px] leading-none font-semibold", TONE_CLASS[tone])} data-tone={tone}>
+          {value}
+        </span>
+        {detail ? <span className="text-xms-label text-[13px]">{detail}</span> : null}
       </p>
-      {detail ? <p className="text-xms-label mt-2 text-[12px]">{detail}</p> : null}
     </>
   );
-  const classes = cn("xms-card block p-4", href && "hover:border-xms-accent-border", className);
+  const classes = cn("xms-card block px-5 py-4", href && "hover:border-xms-accent-border", className);
   return href ? (
     <Link href={href} className={classes}>
       {body}

@@ -141,3 +141,16 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
   ];
   return hideAccount ? columns.filter((column) => column.key !== "account") : columns;
 }
+
+/**
+ * The Needs attention list on My work (v3 render 08): key, title, account,
+ * state and the clock, and nothing else. The Queue's full set was being used
+ * there, which put Type, Priority and Assignee into a rail-width card that
+ * had no room for them.
+ */
+export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView>[] {
+  const wanted = new Set(["key", "short_description", "account", "state", "sla"]);
+  return ticketColumns({ ...options, showClocks: true })
+    .filter((column) => wanted.has(column.key))
+    .map((column) => (column.key === "sla" ? { ...column, title: "", align: "right" as const } : column));
+}

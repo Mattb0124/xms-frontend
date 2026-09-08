@@ -36,18 +36,22 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
     <Link
       href="/time"
       className={cn(
-        "xms-card hover:border-xms-accent-border flex items-center gap-4 p-4 hover:no-underline",
+        // The render (08) stacks this card: the caption and the figure on one
+        // line, the sentence under them, the way in at the foot. It used to be
+        // one row of three, which folded into four wrapping columns the moment
+        // it stood in a 320px rail.
+        "xms-card hover:border-xms-accent-border flex flex-col gap-2 p-4 hover:no-underline",
         className,
       )}
       data-testid="time-today"
       data-tone={day ? tone : undefined}
       aria-busy={isLoading || undefined}
     >
-      <div>
+      <div className="flex items-baseline gap-3">
         <p className="xms-caption">Time today</p>
         <p
           className={cn(
-            "xms-mono mt-1 text-[24px] leading-none font-semibold",
+            "xms-mono ml-auto text-[20px] leading-none font-semibold",
             day ? TONE_VALUE[tone] : "text-xms-ink",
           )}
         >
@@ -70,7 +74,7 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
           <p className="text-xms-label text-[12px]">Loading time for today.</p>
         )}
       </div>
-      <span className="text-xms-accent ml-auto text-[13px] font-medium">Open my timesheet</span>
+      <span className="text-xms-accent text-[13px] font-medium">Open my timesheet</span>
     </Link>
   );
 }

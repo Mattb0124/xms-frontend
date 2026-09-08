@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { AccountDot } from "@/components/xms/account-dot";
 import { KeyLink } from "@/components/xms/key-link";
-import { PriorityPill, type Priority } from "@/components/xms/priority-pill";
+import type { Priority } from "@/components/xms/priority-pill";
 import { SlaValue, type SlaSnapshot } from "@/components/xms/sla-value";
-import { TypeBar, type TicketType } from "@/components/xms/type-bar";
+import type { TicketType } from "@/components/xms/type-bar";
 import { cn } from "@/lib/utils";
 
 export interface DispatchOption {
@@ -33,7 +33,7 @@ export interface DispatchCardProps {
   className?: string;
 }
 
-const SELECT = "border-xms-line bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[13px]";
+const SELECT = "border-xms-line bg-xms-card text-xms-ink h-[34px] w-[168px] rounded-[6px] border px-2 text-[13px]";
 
 /** One card per ticket on Dispatch with group and assignee pickers (Wireframes v2 section 3.4). */
 export function DispatchCard(props: DispatchCardProps) {
@@ -42,21 +42,19 @@ export function DispatchCard(props: DispatchCardProps) {
   const warning = props.assignees.find((option) => option.id === assigneeId)?.warning;
   return (
     <article className={cn("xms-card flex flex-col gap-3 p-4", props.className)} data-key={props.ticketKey}>
+      {/* The render (09) reads key, title, then the account and the age on the
+          right, and puts the pickers, the suggestion and the two actions on one
+          row under it. The built card had the priority and the clock in the
+          header and the account and type on a row of their own, which is three
+          rows for what the render says in two. */}
       <header className="flex items-center gap-3">
         <KeyLink ticketKey={props.ticketKey} />
-        <span className="text-xms-ink truncate text-[14px] font-medium">{props.shortDescription}</span>
-        <PriorityPill priority={props.priority} className="ml-auto" />
-        <SlaValue snapshot={props.sla} tickMs={0} />
+        <span className="text-xms-ink min-w-0 flex-1 truncate text-[14px] font-medium">{props.shortDescription}</span>
+        <AccountDot name={props.account.name} hue={props.account.hue} className="shrink-0 text-[13px]" />
+        <span className="border-xms-line bg-xms-bar text-xms-label xms-mono shrink-0 rounded-[999px] border px-[10px] py-[3px] text-[12px]">
+          <SlaValue snapshot={props.sla} tickMs={0} />
+        </span>
       </header>
-      <div className="flex items-center gap-4">
-        <AccountDot name={props.account.name} hue={props.account.hue} />
-        <TypeBar type={props.type} />
-        {props.suggestion ? (
-          <span className="xms-ai text-xms-ai-accent px-2 py-[2px] text-[12px]" data-suggestion>
-            {props.suggestion}
-          </span>
-        ) : null}
-      </div>
       <div className="flex flex-wrap items-center gap-2">
         <select
           aria-label="Group"
@@ -83,6 +81,11 @@ export function DispatchCard(props: DispatchCardProps) {
             </option>
           ))}
         </select>
+        {props.suggestion ? (
+          <span className="xms-ai text-xms-ai-accent rounded-[999px] px-3 py-[5px] text-[13px]" data-suggestion>
+            {props.suggestion}
+          </span>
+        ) : null}
         {warning ? (
           <span className="aix-state-pill" data-state="needs-input">
             {warning}
@@ -91,14 +94,14 @@ export function DispatchCard(props: DispatchCardProps) {
         <button
           type="button"
           onClick={() => setAssigneeId(props.currentUserId)}
-          className="border-xms-line text-xms-body ml-auto h-[32px] rounded-[4px] border px-3 text-[12px]"
+          className="border-xms-accent-border text-xms-accent hover:bg-xms-accent-tint ml-auto h-[34px] rounded-[6px] border px-4 text-[13px] font-medium"
         >
           Assign to me
         </button>
         <button
           type="button"
           onClick={() => props.onConfirm({ groupId, assigneeId })}
-          className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[12px] font-medium text-white"
+          className="bg-xms-accent hover:bg-xms-accent-hover h-[34px] rounded-[6px] px-4 text-[13px] font-semibold text-white"
         >
           Confirm
         </button>

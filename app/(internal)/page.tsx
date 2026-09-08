@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { WaitingRail } from "@/components/my-work/waiting-rail";
-import { ticketColumns } from "@/components/tickets/ticket-columns";
+import { attentionColumns, ticketColumns } from "@/components/tickets/ticket-columns";
 import { TimeTodayCard } from "@/components/time/time-today-card";
 import { BriefLine } from "@/components/xms/brief-line";
 import { DenseTable } from "@/components/xms/dense-table";
@@ -37,6 +37,7 @@ export default function MyWorkPage() {
   const { data: accounts } = useListGrantedAccountsQuery(undefined, { skip: !ready });
   const accountsById = useMemo(() => new Map((accounts ?? []).map((account) => [account.id, account])), [accounts]);
   const columns = useMemo(() => ticketColumns({ accounts: accountsById }), [accountsById]);
+  const attentionCols = useMemo(() => attentionColumns({ accounts: accountsById }), [accountsById]);
   const mine = useMemo(() => data?.items ?? [], [data]);
   const attention = useMemo(() => needsAttention(mine), [mine]);
   const breached = mine.filter((ticket) => ticket.sla.response?.breached || ticket.sla.resolution?.breached).length;
@@ -45,6 +46,10 @@ export default function MyWorkPage() {
     return clock && !clock.met && !clock.breached && clock.remainingMinutes < clock.targetMinutes * 0.25;
   }).length;
   const awaiting = mine.filter((ticket) => ticket.state.startsWith("awaiting")).length;
+  // The captions under the numbers in render 08 name what each is counted
+  // over: the accounts the work sits on, and the key of the one that breached.
+  const accountCount = new Set(mine.map((ticket) => ticket.account_id)).size;
+  const firstBreached = mine.find((ticket) => ticket.sla.response?.breached || ticket.sla.resolution?.breached);
 
   if (!me.permissions) return <Skeleton lines={6} />;
   if (!ready) {
@@ -59,16 +64,35 @@ export default function MyWorkPage() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="sr-only">My work</h1>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <ScoreTile label="Assigned to me" value={mine.length} href="/tickets?view=mine" />
+      {/* The four scorecards the render (08) draws, each with the caption
+          that says what the number is counted over. */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <ScoreTile
+          label="Assigned to me"
+          value={mine.length}
+          detail={accountCount === 1 ? "on 1 account" : `across ${accountCount} accounts`}
+          href="/tickets?view=mine"
+        />
         <ScoreTile
           label="Breached"
           value={breached}
+          detail={firstBreached?.key}
           tone={breached > 0 ? "breach" : "good"}
           href="/tickets?view=breached"
         />
-        <ScoreTile label="At risk" value={atRisk} tone={atRisk > 0 ? "warn" : "neutral"} href="/tickets?view=mine" />
-        <ScoreTile label="Awaiting" value={awaiting} href="/tickets?view=awaiting_client" />
+        <ScoreTile
+          label="At risk"
+          value={atRisk}
+          detail="under 25% left"
+          tone={atRisk > 0 ? "warn" : "neutral"}
+          href="/tickets?view=mine"
+        />
+        <ScoreTile
+          label="Awaiting client"
+          value={awaiting}
+          detail={awaiting === 1 ? "clock paused" : "clocks paused"}
+          href="/tickets?view=awaiting_client"
+        />
       </div>
       <BriefLine
         text={
@@ -79,36 +103,42 @@ export default function MyWorkPage() {
               : `${mine.length} open on your desk, ${atRisk} at risk.`
         }
       />
-      <TimeTodayCard />
-      <WaitingRail />
+      {/* The render (08) puts the lists on the left and Time today and
+          Waiting on me in a rail beside them, rather than stacking all four. */}
       {isLoading && !data ? (
         <Skeleton lines={6} />
       ) : (
-        <>
-          <DenseTable<TicketView>
-            title="Needs attention"
-            count={attention.length}
-            columns={columns}
-            rows={attention}
-            rowKey={(row) => row.key}
-            onRowClick={(row) => router.push(`/tickets/${row.key}`)}
-            emptyState="Nothing needs a nudge right now."
-          />
-          <DenseTable<TicketView>
-            title="My open tickets"
-            count={mine.length}
-            columns={columns}
-            rows={mine}
-            rowKey={(row) => row.key}
-            onRowClick={(row) => router.push(`/tickets/${row.key}`)}
-            emptyState={
-              <EmptyBanner
-                title="Nothing assigned to you"
-                action={{ label: "Open the Queue", href: "/tickets?view=unassigned" }}
-              />
-            }
-          />
-        </>
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="flex min-w-0 flex-col gap-4">
+            <DenseTable<TicketView>
+              title="Needs attention"
+              count={attention.length}
+              columns={attentionCols}
+              rows={attention}
+              rowKey={(row) => row.key}
+              onRowClick={(row) => router.push(`/tickets/${row.key}`)}
+              emptyState="Nothing needs a nudge right now."
+            />
+            <DenseTable<TicketView>
+              title="My open tickets"
+              count={mine.length}
+              columns={columns}
+              rows={mine}
+              rowKey={(row) => row.key}
+              onRowClick={(row) => router.push(`/tickets/${row.key}`)}
+              emptyState={
+                <EmptyBanner
+                  title="Nothing assigned to you"
+                  action={{ label: "Open the Queue", href: "/tickets?view=unassigned" }}
+                />
+              }
+            />
+          </div>
+          <div className="flex flex-col gap-4">
+            <TimeTodayCard />
+            <WaitingRail />
+          </div>
+        </div>
       )}
     </div>
   );
