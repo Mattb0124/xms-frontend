@@ -70,14 +70,14 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
     : "No requester email on this ticket; watchers are notified in app";
 
   return (
-    <div className="flex flex-col gap-5" data-ticket={ticket.key}>
+    <div className="flex flex-col" data-ticket={ticket.key}>
       {/* The record bar (v3 render 02): the key in mono beside the title as
           plain text on one line, then the pill row. The built bar wrapped the
           title in a bordered input, which reads as a form field on a page that
           is not a form, and carried a back link the render does not have: the
           sidebar and the browser are the way back. The title is still editable
           on click, through the stacked field's own text-until-clicked shape. */}
-      <div className="flex flex-wrap items-baseline gap-3">
+      <div className="mb-[14px] flex flex-wrap items-center gap-[10px]">
         <span className="xms-mono text-xms-accent text-[13px] font-medium">{ticket.key}</span>
         <div className="min-w-[280px] flex-1">
           <RecordForm
@@ -93,7 +93,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           />
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-[10px]">
         <TransitionMenu ticket={ticket} />
         {/* The render (02) carries the state, the priority and the clock in
             this row and nothing else: the type is a Properties row, and a
@@ -160,7 +160,12 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           </button>
         </div>
       ) : null}
-      <div className="grid gap-4 xl:grid-cols-[320px_1fr_300px]">
+      {/* The prototype's own three columns (`proto-v3/template.pretty.html`):
+          `display:flex;align-items:flex-start;gap:16px`, a 262px rail on each
+          side, and `flex:1;min-width:0` for the work area. The built grid was
+          320px and 300px, which took 96px off the middle column and made the
+          whole screen read left-heavy. */}
+      <div className="grid items-start gap-4 xl:grid-cols-[262px_minmax(0,1fr)_262px]">
         <PropertiesPanel ticket={ticket} readOnly={readOnly} />
         {/* The tabs are the card header in the render (02 to 07): there is no
             "Work area" title above them. */}
@@ -186,7 +191,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             {tab === "sync" ? <SyncCard ticketId={ticket.id} flush /> : null}
           </div>
         </section>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-[14px]">
           <ServiceLevels
             sla={ticket.sla}
             fetchedAt={fetchedAt}
