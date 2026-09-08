@@ -4,7 +4,8 @@ import { useState } from "react";
 import { HealthPill } from "@/components/admin/connectors/pills";
 import { ReasonDialog } from "@/components/admin/connectors/reason-dialog";
 import { DANGER_BUTTON, InlineError, RecordBar, SECONDARY_BUTTON, formatDate } from "@/components/admin/primitives";
-import { BIDIRECTIONAL_UNAVAILABLE, MODES, type ConnectorMode } from "@/lib/connectors/vocab";
+import { MODES, bidirectionalBlocker, type ConnectorMode } from "@/lib/connectors/vocab";
+import { describeConnectorError } from "@/lib/connectors/errors";
 import { useConnectorErrors } from "@/lib/connectors/use-connector-errors";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
@@ -16,48 +17,67 @@ import {
   type TestConnectionResult,
 } from "@/redux/connectorsApi";
 
-/** Off / Ingest only / Bidirectional (disabled until Phase 3; the API answers 409 mode_unavailable). */
+/**
+ * Off / Ingest only / Bidirectional. Every mode is offered: the API decides
+ * whether an instance may write into the client, and refuses with
+ * no_active_field_map, no_active_state_map or credential_not_valid. The
+ * refusal is shown here in words rather than swallowed, and what the promotion
+ * still needs is said before the click as well (SN-09).
+ */
 export function ModeSwitch({ instance, refetch }: { instance: ConnectorInstance; refetch?: () => unknown }) {
   const [update, { isLoading }] = useUpdateConnectorMutation();
   const onError = useConnectorErrors(refetch);
   const track = useTrack("connector.mode");
+  const [refused, setRefused] = useState<string | null>(null);
+  const blocker = bidirectionalBlocker(instance);
   const set = async (mode: ConnectorMode) => {
     if (mode === instance.mode) return;
+    setRefused(null);
     try {
       await update({ id: instance.id, body: { version: instance.version, mode } }).unwrap();
       track({ instance_id: instance.id, from: instance.mode, to: mode });
     } catch (caught) {
-      onError(caught);
+      setRefused(describeConnectorError(onError(caught)));
     }
   };
   return (
-    <div
-      role="radiogroup"
-      aria-label="Mode"
-      className="border-xms-line inline-flex h-[32px] overflow-hidden rounded-[4px] border"
-    >
-      {MODES.map((option) => {
-        const unavailable = option.value === "bidirectional";
-        const active = instance.mode === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            disabled={isLoading || unavailable}
-            title={unavailable ? BIDIRECTIONAL_UNAVAILABLE : undefined}
-            onClick={() => void set(option.value)}
-            className={cn(
-              "border-xms-line px-3 text-[13px] [&:not(:last-child)]:border-r",
-              active ? "bg-xms-tint text-xms-accent font-medium" : "text-xms-body hover:bg-xms-row-hover",
-              unavailable && "opacity-50",
-            )}
-          >
-            {option.label}
-          </button>
-        );
-      })}
+    <div className="flex flex-col items-start gap-1">
+      <div
+        role="radiogroup"
+        aria-label="Mode"
+        className="border-xms-line inline-flex h-[32px] overflow-hidden rounded-[4px] border"
+      >
+        {MODES.map((option) => {
+          const active = instance.mode === option.value;
+          const hint = option.value === "bidirectional" ? (blocker ?? undefined) : undefined;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              disabled={isLoading}
+              title={hint}
+              onClick={() => void set(option.value)}
+              className={cn(
+                "border-xms-line px-3 text-[13px] [&:not(:last-child)]:border-r",
+                active ? "bg-xms-tint text-xms-accent font-medium" : "text-xms-body hover:bg-xms-row-hover",
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+      {refused ? (
+        <p className="text-[12px] text-[color:var(--state-overdue-text)]" data-mode-refused>
+          {refused}
+        </p>
+      ) : blocker && instance.mode !== "bidirectional" ? (
+        <p className="text-xms-label text-[12px]" data-mode-hint>
+          {blocker}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -234,3 +234,57 @@ describe("a surface reading a contracts:view route gates on contracts:view", () 
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * The same map for the connector's outbound queue, which the API answers to
+ * `admin:connectors` alone (backend test/golden/routes.json). The queue names
+ * ticket keys and the errors a client instance returned, so a surface reading
+ * it may not ship behind a weaker key or with no gate above it at all.
+ */
+const OUTBOUND_READS = [
+  { hook: "useListOutboundQuery", slice: "redux/connectorsApi.ts", route: "/v1/connectors/${id}/outbound" },
+  {
+    hook: "useRetryOutboundMutation",
+    slice: "redux/connectorsApi.ts",
+    route: "/v1/connectors/${id}/outbound/${outboundId}/retry",
+  },
+];
+
+const OUTBOUND_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
+  { file: "components/admin/connectors/outbound-tab.tsx", mountedIn: "app/(internal)/admin/connectors/[id]/page.tsx" },
+  { file: "app/(internal)/admin/connectors/[id]/page.tsx", permission: "admin:connectors" },
+];
+
+describe("the outbound queue is read behind admin:connectors", () => {
+  it("pins each hook to the route it reads", () => {
+    for (const { hook, slice, route } of OUTBOUND_READS) {
+      const source = read(slice);
+      expect(source, `${slice} no longer exports ${hook}`).toContain(hook);
+      expect(source, `${hook} no longer reads ${route}`).toContain(route);
+    }
+  });
+
+  it("lists every file that calls one of those hooks", () => {
+    const hooks = OUTBOUND_READS.map((entry) => entry.hook);
+    const listed = new Set(OUTBOUND_SURFACES.map((surface) => surface.file));
+    const callers = sources()
+      .filter((file) => hooks.some((hook) => readFileSync(file, "utf8").includes(`${hook}(`)))
+      .map(relative);
+    expect(callers.length).toBeGreaterThan(0);
+    expect(callers.filter((file) => !listed.has(file))).toEqual([]);
+  });
+
+  it("mounts the queue only inside a screen that gates on admin:connectors", () => {
+    const gates = new Set(OUTBOUND_SURFACES.filter((surface) => surface.permission).map((surface) => surface.file));
+    for (const surface of OUTBOUND_SURFACES) {
+      const source = read(surface.file);
+      if (surface.mountedIn) {
+        expect(gates, `${surface.file} names a parent that gates nothing`).toContain(surface.mountedIn);
+        continue;
+      }
+      expect(source, `${surface.file} does not gate on ${surface.permission}`).toContain(
+        `<AdminGate permission="${surface.permission}">`,
+      );
+    }
+  });
+});

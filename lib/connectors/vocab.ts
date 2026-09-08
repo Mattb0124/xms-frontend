@@ -75,8 +75,25 @@ export const MODES: { value: ConnectorMode; label: string }[] = [
   { value: "bidirectional", label: "Bidirectional" },
 ];
 
-/** Copy shown beside the disabled bidirectional option (the API answers 409 mode_unavailable). */
-export const BIDIRECTIONAL_UNAVAILABLE = "Bidirectional mode ships with Phase 3.";
+/**
+ * What bidirectional mode is still missing, in the order the API checks it
+ * (technical 3.5): an active field map, an active state map, then a
+ * credential the instance has accepted. The switch says this before the click
+ * and the server's own refusal after it; the server decides either way.
+ */
+export function bidirectionalBlocker(instance: {
+  active_field_map_id: string | null;
+  active_state_map_id: string | null;
+  credential_state: string;
+}): string | null {
+  if (!instance.active_field_map_id) return "Bidirectional mode needs an active field map.";
+  if (!instance.active_state_map_id) return "Bidirectional mode needs an active state map.";
+  if (instance.credential_state === "invalid")
+    return "The instance refused this credential. Fix it in Settings, then test the connection again.";
+  if (instance.credential_state !== "valid")
+    return "Bidirectional mode needs a credential the instance has accepted. Run Test connection first.";
+  return null;
+}
 
 export const RUN_DIRECTIONS: { value: RunDirection; label: string }[] = [
   { value: "in", label: "In" },

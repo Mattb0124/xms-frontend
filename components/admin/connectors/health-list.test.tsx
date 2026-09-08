@@ -64,6 +64,36 @@ describe("ConnectorHealthList", () => {
     expect(screen.getByText("7")).toBeInTheDocument();
   });
 
+  it("leaves the outbound columns out until the route answers them", () => {
+    render(<ConnectorHealthList rows={[aHealthRow({ id: "i-1", mode: "bidirectional" })]} />);
+    expect(screen.queryByText("Outbound pending")).not.toBeInTheDocument();
+    expect(screen.queryByText("Outbound dead lettered")).not.toBeInTheDocument();
+  });
+
+  it("shows the outbound backlog beside the ingest figures where the API sends it", () => {
+    render(
+      <ConnectorHealthList
+        rows={[
+          aHealthRow({ id: "i-1", mode: "bidirectional", pending_inbox: 1, pending_outbound: 4 }),
+          aHealthRow({
+            id: "i-2",
+            name: "Dev ITSM",
+            mode: "bidirectional",
+            pending_outbound: 0,
+            dead_lettered_outbound: 2,
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("Outbound pending")).toBeInTheDocument();
+    // The Count card's own total prints the same digits, so the cells are
+    // read by the attribute they carry.
+    const cell = (label: string, attribute: string) =>
+      screen.getAllByText(label).find((element) => element.hasAttribute(attribute));
+    expect(cell("4", "data-pending-outbound")).toBeInTheDocument();
+    expect(cell("2", "data-dead-lettered-outbound")).toBeInTheDocument();
+  });
+
   it("shows the empty state when there are no instances", () => {
     render(<ConnectorHealthList rows={[]} />);
     expect(screen.getByText(/No connector instances/)).toBeInTheDocument();

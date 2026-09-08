@@ -1,3 +1,4 @@
+import { outboundStatusLabel, outboundStatusTone, type OutboundStatus } from "@/lib/connectors/outbound";
 import {
   LINK_STATE_LABEL,
   healthLabel,
@@ -40,6 +41,10 @@ export function MapStatePill({ state }: { state: MapState }) {
 
 export function OutcomePill({ outcome }: { outcome: RunOutcome }) {
   return <SignalPill tone={outcomeTone(outcome)} label={outcomeLabel(outcome)} />;
+}
+
+export function OutboundStatusPill({ status }: { status: OutboundStatus }) {
+  return <SignalPill tone={outboundStatusTone(status)} label={outboundStatusLabel(status)} />;
 }
 
 export function LinkStatePill({ state }: { state: LinkState }) {
