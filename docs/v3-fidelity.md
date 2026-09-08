@@ -813,3 +813,112 @@ and the outbound messages with their delivery state, bounces included. The
 spec gives that surface no other home and the record needs it, so it is a
 deliberate addition outside the adopted set rather than a drawing this build
 disagrees with.
+
+## 11. Pass four: the screens with no render
+
+Screenshots for this pass are in
+`C:/Users/matt.brown/Documents/repos/xms-work/shots-v3-pass4/`, at the same
+1500 by 1020.
+
+### 11a. There are no wireframes for these screens, and no callouts
+
+The brief for this pass named `01-architecture/wireframes/XMS-v2-standalone.html`
+as holding 28 screens at wireframe fidelity with numbered engineering
+callouts. It does not. Unpacked the same way pass two unpacked the v3 file
+(its `__bundler/template` script is the rendered page; the copy is in
+`xms-work/proto-v2/`), it is the same prototype the v3 renders come from:
+`IMPL` names five implemented screens (My work, Queue, Ticket record,
+Dispatch, Operations), `CALLOUTS` carries numbered notes for those five and
+for the navigation and nothing else, and every other screen in the tree
+renders the "Not restyled yet" stub with a single purpose sentence.
+
+`WIREFRAMES.md` says so in its own words: section 3.6 ("Every unbuilt screen
+renders its title and purpose line from the tree ... these purpose lines match
+the User Experience catalog and are the acceptance one-liners for those
+screens") and section 7 ("Portal screens, New ticket record form, Quarantine,
+Solutions record, Timesheet, Contracts, Report pack review, Admin screens, and
+every empty and error state" are gaps the prototype does not cover).
+
+So for every screen below there is no wireframe to follow and no callout to
+satisfy or miss. The sources are the shared grammar, the purpose line in
+`lib/routes.ts` (which is the tree's own), and the `USER-EXPERIENCE.md`
+catalog for behaviour. Where a screen's build already satisfied its purpose
+line, only the chrome changed.
+
+### 11b. The one defect they nearly all shared
+
+Every screen in this pass carried its filters in the page body: a row of
+labelled 30px native selects, or a card titled "Filters", or a panel that
+"+ Add filter" opened, standing under a grey strip that was either empty or
+carrying a pill that could not be clicked. The Queue settled this in pass two
+and Groups repeated it in pass three: **the dimensions are drawn controls on
+the strip, the action is the toolbar's blue New, and the sentence that
+explains the screen is the card's subtitle.** That is what changed on most of
+these screens, and it is not restated per screen below.
+
+### 11c. My timesheet (`/time`)
+
+The screen opened on two log forms, "Log time" and "Log time without a
+ticket", sixteen fields between them, with the week they were about below the
+fold. Render 04 settled this for the Time tab and the ruling carries: both
+forms are behind one blue Add entry and the `t` shortcut, in the house sheet,
+with one control naming which of the two is being filled in.
+
+The week was four text buttons in the toolbar's action slot, where the render
+puts the primary action; it is the strip's primary dimension now, over the
+window `weekOptions` gives it.
+
+No striping: the seven day groups carried three washes across the row (amber
+unlogged, two blue tints otherwise), which is banding by another name. Every
+group stands on the quiet ground and the tone is an 8px signal dot and the
+words beside it, as My work's clock already reads. The table takes the shared
+measures.
+
+### 11d. Solutions (`/knowledge`)
+
+Still on the chip-and-"+ Add filter" row the Queue lost in pass two. Show,
+Kind and Visibility are standing dimensions now, the primary carrying the row
+count. The URL keeps its parameter names so a saved link still opens the list
+it named; `status` was a comma list and is read on its first value now that
+the control sets one (`lib/knowledge/list-filters.ts`).
+
+Waits on the API: the funnel opens no condition builder here, because
+`GET /v1/kb/articles` has no condition vocabulary of its own. The dimensions
+are the whole filter.
+
+### 11e. Accounts (`/accounts`)
+
+The list was already the shared table, but the strip above it was empty and
+there was no way to find one account among many. It takes the Show dimension
+over the five account statuses with the row count, and the shared 38px card
+search over the name and the key (`filterAccounts`).
+
+### 11f. Roster (`/roster`)
+
+Three of four dimensions were behind "+ Add filter", which opened a card of
+three native selects and a Done button in the page body; the fourth was a pill
+that cycled through active, inactive and everyone on click rather than
+offering them. All four stand on the strip. The action is New with the plus;
+Import from directory stays beside it.
+
+### 11g. Capacity, Planned versus actual, Skills matrix, Demand
+
+All four said their filters twice, a pill and chips on the strip against the
+real controls in the body. Every dimension is on the strip:
+Month/Role/Group/Account, Month/Account/Person, Lens with Role or Account,
+From/To/Account.
+
+`monthOptions` and `MonthSelect` give the month the list it does not have (six
+ahead, twelve back, keeping whatever month a saved link names) and draw it as
+the same 32px control every other dimension is, because a native
+`<input type="month">` takes the platform's widget where the strip needs a
+control. The lens was a pair of segmented buttons, a shape no other screen
+has; it is the primary dimension. A dimension whose directory is out of reach
+now simply offers "all" rather than being a disabled select whose only option
+explained the permission it wanted. Planned versus actual takes the shared
+table measures and loses the second Export that was hidden on wide windows and
+drawn on narrow ones.
+
+Seed: the Skills matrix and Demand carry the seed's own thin data (one skill
+set across seven people, two demand lines), so both screens are correct and
+short rather than incomplete.
