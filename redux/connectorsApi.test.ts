@@ -52,8 +52,17 @@ export function anInstance(overrides: Partial<ConnectorInstance> = {}): Connecto
   };
 }
 
+/** What the health route answers today: both halves of the queue on every row. */
 export function aHealthRow(overrides: Partial<ConnectorHealthRow> = {}): ConnectorHealthRow {
-  return { ...anInstance(), pending_inbox: 0, open_dead_letters: 0, inbound_lag_seconds: 45, ...overrides };
+  return {
+    ...anInstance(),
+    pending_inbox: 0,
+    open_dead_letters: 0,
+    inbound_lag_seconds: 45,
+    pending_outbound: 0,
+    dead_lettered_outbound: 0,
+    ...overrides,
+  };
 }
 
 export function aFieldMap(overrides: Partial<FieldMapRow> = {}): FieldMapRow {

@@ -64,10 +64,24 @@ describe("ConnectorHealthList", () => {
     expect(screen.getByText("7")).toBeInTheDocument();
   });
 
-  it("leaves the outbound columns out until the route answers them", () => {
+  it("draws the outbound columns on every list now that the route answers them", () => {
     render(<ConnectorHealthList rows={[aHealthRow({ id: "i-1", mode: "bidirectional" })]} />);
-    expect(screen.queryByText("Outbound pending")).not.toBeInTheDocument();
-    expect(screen.queryByText("Outbound dead lettered")).not.toBeInTheDocument();
+    expect(screen.getByText("Outbound pending")).toBeInTheDocument();
+    expect(screen.getByText("Outbound dead lettered")).toBeInTheDocument();
+  });
+
+  it("prints a blank, never a zero, for a count an older API did not answer", () => {
+    const row = aHealthRow({ id: "i-1", mode: "bidirectional" });
+    delete row.pending_outbound;
+    delete row.dead_lettered_outbound;
+    const { container } = render(<ConnectorHealthList rows={[row]} />);
+    expect(screen.getByText("Outbound pending")).toBeInTheDocument();
+    const pending = container.querySelector("[data-pending-outbound]");
+    const dead = container.querySelector("[data-dead-lettered-outbound]");
+    expect(pending).toHaveAttribute("data-pending-outbound", "");
+    expect(pending).toHaveTextContent("");
+    expect(dead).toHaveAttribute("data-dead-lettered-outbound", "");
+    expect(dead).toHaveTextContent("");
   });
 
   it("shows the outbound backlog beside the ingest figures where the API sends it", () => {

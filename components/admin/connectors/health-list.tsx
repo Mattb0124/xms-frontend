@@ -70,45 +70,45 @@ export function ConnectorHealthList({ rows, accountNames, loading }: HealthListP
           <span>0</span>
         ),
     },
-    // The outbound backlog beside the ingest figures (functional 5.4), and
-    // only where the route answers them: a column of zeroes the server never
-    // sent would read as "nothing is waiting", which is not what it said.
-    ...(rows.some((row) => row.pending_outbound !== undefined)
-      ? [
-          {
-            key: "pending_outbound",
-            title: "Outbound pending",
-            align: "right" as const,
-            mono: true,
-            sortValue: (row: ConnectorHealthRow) => row.pending_outbound ?? 0,
-            render: (row: ConnectorHealthRow) => (
-              <span data-pending-outbound={row.pending_outbound ?? 0}>{row.pending_outbound ?? 0}</span>
-            ),
-          },
-        ]
-      : []),
-    ...(rows.some((row) => row.dead_lettered_outbound !== undefined)
-      ? [
-          {
-            key: "dead_lettered_outbound",
-            title: "Outbound dead lettered",
-            align: "right" as const,
-            mono: true,
-            sortValue: (row: ConnectorHealthRow) => row.dead_lettered_outbound ?? 0,
-            render: (row: ConnectorHealthRow) =>
-              (row.dead_lettered_outbound ?? 0) > 0 ? (
-                <span
-                  className="text-[color:var(--state-overdue-text)]"
-                  data-dead-lettered-outbound={row.dead_lettered_outbound}
-                >
-                  {row.dead_lettered_outbound}
-                </span>
-              ) : (
-                <span data-dead-lettered-outbound="0">0</span>
-              ),
-          },
-        ]
-      : []),
+    // The outbound backlog beside the ingest figures (functional 5.4). The
+    // health route answers both counts on every instance now, so the columns
+    // are unconditional and one instance is read in one row. A row that
+    // arrives without a count still prints a blank rather than a zero: a
+    // figure the server never sent would read as "nothing is waiting", which
+    // is not what it said.
+    {
+      key: "pending_outbound",
+      title: "Outbound pending",
+      align: "right",
+      mono: true,
+      sortValue: (row) => row.pending_outbound ?? null,
+      render: (row) =>
+        row.pending_outbound === undefined ? (
+          <span className="text-xms-muted" data-pending-outbound="" aria-label="not answered" />
+        ) : (
+          <span data-pending-outbound={row.pending_outbound}>{row.pending_outbound}</span>
+        ),
+    },
+    {
+      key: "dead_lettered_outbound",
+      title: "Outbound dead lettered",
+      align: "right",
+      mono: true,
+      sortValue: (row) => row.dead_lettered_outbound ?? null,
+      render: (row) =>
+        row.dead_lettered_outbound === undefined ? (
+          <span className="text-xms-muted" data-dead-lettered-outbound="" aria-label="not answered" />
+        ) : row.dead_lettered_outbound > 0 ? (
+          <span
+            className="text-[color:var(--state-overdue-text)]"
+            data-dead-lettered-outbound={row.dead_lettered_outbound}
+          >
+            {row.dead_lettered_outbound}
+          </span>
+        ) : (
+          <span data-dead-lettered-outbound="0">0</span>
+        ),
+    },
     {
       key: "lag",
       title: "Inbound lag",

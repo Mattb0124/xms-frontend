@@ -67,10 +67,11 @@ export interface ConnectorHealthRow extends ConnectorInstance {
   open_dead_letters: number;
   inbound_lag_seconds: number;
   /**
-   * The outbound backlog beside the ingest figures (functional 5.4). Both are
-   * optional because the health route answers the ingest counts alone until
-   * the API adds them; the list leaves the columns out rather than printing a
-   * zero it did not read.
+   * The outbound backlog beside the ingest figures (functional 5.4). The
+   * health route and the instance route both answer them now, so the health
+   * list draws the columns unconditionally. They stay optional in the type
+   * for the older API a rolling deploy can still be talking to, and the list
+   * prints a blank in that case rather than a zero it did not read.
    */
   pending_outbound?: number;
   dead_lettered_outbound?: number;
