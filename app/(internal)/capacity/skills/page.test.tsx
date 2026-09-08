@@ -10,7 +10,7 @@ import {
   OTHER_PERSON_ID,
 } from "@/test-kit/capacity";
 import { PERSON_ID } from "@/test-kit/roster";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({ search: "", replace: vi.fn(), push: vi.fn() }));
 
@@ -49,7 +49,7 @@ describe("CapacitySkillsPage", () => {
 
   it("fails closed without capacity:view and never asks for the matrix", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["tickets:view", "capacity:manage"]) });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     await screen.findByText("Not permitted");
     expect(screen.getByText(/needs the capacity:view permission/)).toBeInTheDocument();
     expect(calls.some((call) => call.key === MATRIX)).toBe(false);
@@ -60,7 +60,7 @@ describe("CapacitySkillsPage", () => {
       "GET /v1/admin/me": me(["capacity:view"]),
       [MATRIX]: () => json(aSkillsMatrixPeople()),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     const table = await screen.findByRole("table", { name: "Skills heat map" });
     expect(decodeURIComponent(calls.find((call) => call.key === MATRIX)?.search ?? "")).toBe("?lens=people");
     // Technology before process; names ascending inside a kind.
@@ -88,7 +88,8 @@ describe("CapacitySkillsPage", () => {
     expect(ben.querySelector('[data-skill="onestream"]')).toHaveClass("bg-xms-accent-tint-strong");
     expect(within(table).getByRole("link", { name: "Ana Silva" })).toHaveAttribute("href", `/roster/${PERSON_ID}`);
     expect(screen.getByRole("link", { name: "Skills matrix" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "People" })).toHaveAttribute("aria-pressed", "true");
+    // The lens is the strip's primary dimension, not a pair of segmented buttons.
+    expect(screen.getByLabelText("Lens")).toHaveValue("people");
   });
 
   it("narrows the heat map to the role in the URL", async () => {
@@ -97,12 +98,12 @@ describe("CapacitySkillsPage", () => {
       "GET /v1/admin/me": me(["capacity:view"]),
       [MATRIX]: () => json(aSkillsMatrixPeople()),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     const table = await screen.findByRole("table", { name: "Skills heat map" });
     expect(within(table).queryByRole("row", { name: /Ana Silva/ })).not.toBeInTheDocument();
     expect(within(table).getByRole("row", { name: /Ben Ito/ })).toBeInTheDocument();
-    expect(screen.getByLabelText("Filter by role")).toHaveValue("consultant");
-    fireEvent.change(screen.getByLabelText("Filter by role"), { target: { value: "architect" } });
+    expect(screen.getByLabelText("Role")).toHaveValue("consultant");
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: "architect" } });
     expect(navigation.replace).toHaveBeenLastCalledWith("/capacity/skills?role=architect");
   });
 
@@ -116,7 +117,7 @@ describe("CapacitySkillsPage", () => {
       "GET /v1/admin/me": me(["capacity:view"]),
       [MATRIX]: () => json(aSkillsMatrixPeople({ skills: [] })),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     expect(await screen.findByText("No skills in the catalog yet")).toBeInTheDocument();
     expect(screen.queryByRole("table", { name: "Skills heat map" })).toBeNull();
     expect(screen.queryByText("Ana Silva")).toBeNull();
@@ -130,7 +131,7 @@ describe("CapacitySkillsPage", () => {
       [MATRIX]: () => json(aSkillsMatrixAccount()),
       "GET /v1/roster/skills": () => json(SKILLS),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     const list = await screen.findByRole("list", { name: "Technologies for BRK" });
     // The names come from the skills catalog, read alongside the lens.
     await within(list).findByText("OneStream");
@@ -156,9 +157,9 @@ describe("CapacitySkillsPage", () => {
     expect(sap).toHaveTextContent("sap");
     expect(within(sap).getByText("Gap")).toHaveAttribute("data-state", "overdue");
     expect(sap.querySelector("[data-qualified]")).toHaveTextContent("Nobody at level 3");
-    expect(screen.getByLabelText("Filter by account")).toHaveValue(ACCOUNT_ID);
-    expect(screen.getByRole("button", { name: "Accounts" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.queryByLabelText("Filter by role")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Account")).toHaveValue(ACCOUNT_ID);
+    expect(screen.getByLabelText("Lens")).toHaveValue("account");
+    expect(screen.queryByLabelText("Role")).not.toBeInTheDocument();
   });
 
   it("switches the lens and the account through the URL", async () => {
@@ -166,9 +167,9 @@ describe("CapacitySkillsPage", () => {
       "GET /v1/admin/me": me(["capacity:view", "tickets:view"]),
       [MATRIX]: () => json(aSkillsMatrixPeople()),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     await screen.findByRole("table", { name: "Skills heat map" });
-    fireEvent.click(screen.getByRole("button", { name: "Accounts" }));
+    fireEvent.change(screen.getByLabelText("Lens"), { target: { value: "account" } });
     expect(navigation.replace).toHaveBeenLastCalledWith("/capacity/skills?lens=account");
   });
 
@@ -184,10 +185,10 @@ describe("CapacitySkillsPage", () => {
         ]),
       "GET /v1/roster/skills": () => json(SKILLS),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     await screen.findByRole("list", { name: "Technologies for BRK" });
-    await screen.findByRole("option", { name: "AUS Austral Mining" });
-    fireEvent.change(screen.getByLabelText("Filter by account"), { target: { value: OTHER_ACCOUNT_ID } });
+    await screen.findByRole("option", { name: "Account: AUS Austral Mining" });
+    fireEvent.change(screen.getByLabelText("Account"), { target: { value: OTHER_ACCOUNT_ID } });
     expect(navigation.replace).toHaveBeenLastCalledWith(`/capacity/skills?lens=account&account=${OTHER_ACCOUNT_ID}`);
   });
 
@@ -197,7 +198,7 @@ describe("CapacitySkillsPage", () => {
       "GET /v1/admin/me": me(["capacity:view"]),
       [MATRIX]: () => json({ code: "not_found", entity: "account" }, 404),
     });
-    renderDesk(<CapacitySkillsPage />);
+    renderDeskInShell(<CapacitySkillsPage />);
     await screen.findByText("The skills matrix could not be loaded");
     expect(screen.getByText("That account is not granted to you.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();

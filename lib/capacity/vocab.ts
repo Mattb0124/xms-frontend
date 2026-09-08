@@ -213,6 +213,21 @@ const MONTH_NAMES = [
   "December",
 ];
 
+/**
+ * The months the strip's Month dimension offers, oldest last: six ahead and
+ * twelve back from the anchor, plus the chosen month itself when a saved link
+ * names one from outside that window. A month has no finite list of its own,
+ * so it is given one rather than a native `<input type="month">`, which takes
+ * the platform's own widget where the render draws a 32px control.
+ */
+export function monthOptions(chosen: string, now: Date = new Date()): string[] {
+  const anchor = currentMonth(now);
+  const months: string[] = [];
+  for (let ahead = 6; ahead >= -12; ahead -= 1) months.push(addMonths(anchor, ahead));
+  if (!months.includes(chosen)) months.push(chosen);
+  return [...months].sort().reverse();
+}
+
 /** "September 2026" from "2026-09" or "2026-09-01". */
 export function monthLabel(month: string): string {
   const index = Number(month.slice(5, 7)) - 1;

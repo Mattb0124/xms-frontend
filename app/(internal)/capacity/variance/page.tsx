@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo } from "react";
-import { AdminGate, INPUT, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { AdminGate, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { CapacityTabs } from "@/components/capacity/capacity-tabs";
+import { MonthSelect } from "@/components/capacity/month-select";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { EmptyBanner } from "@/components/xms/empty-banner";
-import { FilterBar, type FilterCriterion } from "@/components/xms/filter-bar";
+import { FilterSelect } from "@/components/xms/filter-select";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { varianceFilterFromSearch, varianceFilterToSearch, type VariancePageFilter } from "@/lib/capacity/filters";
@@ -19,9 +20,10 @@ import { useMe } from "@/redux/me";
 import { useListPeopleQuery } from "@/redux/rosterApi";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
-const CONTROL = cn(INPUT, "h-[30px] text-[12px]");
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[13px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 align-middle whitespace-nowrap";
+// The shared table measures: 11px above and below in the header, 13 by 14 in
+// a cell (hand-off section 4).
+const HEAD = "text-xms-ink px-[14px] py-[11px] text-left text-[13px] font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-[14px] py-[13px] align-middle whitespace-nowrap";
 
 /** Largest variances first (functional 5.6), by absolute hours; ties by name. */
 export function sortByVariance(lines: VarianceLine[]): VarianceLine[] {
@@ -68,20 +70,28 @@ function VarianceScreen() {
     const account = accounts.data?.find((row) => row.id === id);
     return account ? `${account.key} ${account.name}` : id.slice(0, 8);
   };
-  const personName = (id: string) => people.data?.find((row) => row.id === id)?.display_name ?? id.slice(0, 8);
-  const criteria: FilterCriterion[] = [];
-  if (filter.account) criteria.push({ key: "account", label: "Account", value: accountName(filter.account) });
-  if (filter.person) criteria.push({ key: "person", label: "Person", value: personName(filter.person) });
-
   return (
     <>
+      {/* The three dimensions stand on the grey strip, where the strip used to
+          carry a Month pill that did nothing and chips for whatever was set,
+          while the controls that set them were a row of labelled selects in
+          the page body. */}
       <HeaderFilters>
-        <FilterBar
-          primary={{ label: "Month", value: monthLabel(filter.month) }}
-          criteria={criteria}
-          onRemove={(key) => apply({ ...filter, [key]: undefined })}
-          onAdd={() => undefined}
-          onClearAll={() => apply({ month: filter.month })}
+        <MonthSelect primary month={filter.month} onChange={(month) => apply({ ...filter, month })} />
+        <FilterSelect
+          label="Account"
+          value={filter.account ?? ""}
+          options={(accounts.data ?? []).map((account) => ({
+            value: account.id,
+            label: `${account.key} ${account.name}`,
+          }))}
+          onChange={(value) => apply({ ...filter, account: value || undefined })}
+        />
+        <FilterSelect
+          label="Person"
+          value={filter.person ?? ""}
+          options={(people.data ?? []).map((person) => ({ value: person.id, label: person.display_name }))}
+          onChange={(value) => apply({ ...filter, person: value || undefined })}
         />
       </HeaderFilters>
       <HeaderAction>
@@ -91,61 +101,6 @@ function VarianceScreen() {
       </HeaderAction>
       <CapacityTabs active="variance" search={varianceFilterToSearch({ month: filter.month })} />
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Variance filters">
-          <label className="flex flex-col gap-1 text-[12px]">
-            <span className="text-xms-label">Month</span>
-            <input
-              type="month"
-              aria-label="Month"
-              className={cn(CONTROL, "xms-mono w-[160px]")}
-              value={filter.month}
-              onChange={(event) => {
-                if (event.target.value) apply({ ...filter, month: event.target.value });
-              }}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px]">
-            <span className="text-xms-label">Account</span>
-            <select
-              aria-label="Filter by account"
-              className={cn(CONTROL, "w-[200px]")}
-              value={filter.account ?? ""}
-              disabled={!accounts.data}
-              onChange={(event) => apply({ ...filter, account: event.target.value || undefined })}
-            >
-              <option value="">{accounts.data ? "Any account" : "Accounts need tickets:view"}</option>
-              {(accounts.data ?? []).map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.key} {account.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-[12px]">
-            <span className="text-xms-label">Person</span>
-            <select
-              aria-label="Filter by person"
-              className={cn(CONTROL, "w-[200px]")}
-              value={filter.person ?? ""}
-              onChange={(event) => apply({ ...filter, person: event.target.value || undefined })}
-            >
-              <option value="">Anyone</option>
-              {(people.data ?? []).map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.display_name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className={cn(SECONDARY_BUTTON, "h-[30px] text-[12px] md:hidden")}
-            disabled
-            title="Export waits for an export route."
-          >
-            Export
-          </button>
-        </div>
         {report.isLoading && !report.data ? <Skeleton lines={8} /> : null}
         {report.isError ? (
           <EmptyBanner

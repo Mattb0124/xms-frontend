@@ -19,6 +19,7 @@ import {
   minutesToHoursText,
   monthEnd,
   monthLabel,
+  monthOptions,
   monthStart,
   remainingLabel,
   weightedMinutes,
@@ -110,6 +111,20 @@ describe("capacity vocab", () => {
     expect(monthLabel("2026-09")).toBe("September 2026");
     expect(monthLabel("2026-12-01")).toBe("December 2026");
     expect(currentMonth(new Date(2026, 8, 7))).toBe("2026-09");
+  });
+
+  // The Month dimension on the strip has to be given a list, since a month
+  // has none of its own.
+  it("offers six months ahead and twelve back, newest first, and never loses the chosen one", () => {
+    const options = monthOptions("2026-09", new Date(2026, 8, 7));
+    expect(options).toHaveLength(19);
+    expect(options[0]).toBe("2027-03");
+    expect(options.at(-1)).toBe("2025-09");
+    expect(options).toContain("2026-09");
+    expect([...options].sort().reverse()).toEqual(options);
+    const saved = monthOptions("2024-01", new Date(2026, 8, 7));
+    expect(saved).toContain("2024-01");
+    expect(saved.at(-1)).toBe("2024-01");
   });
 
   it("converts grid cell text to minutes and back", () => {

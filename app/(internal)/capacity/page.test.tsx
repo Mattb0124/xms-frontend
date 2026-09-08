@@ -13,7 +13,7 @@ import {
   OTHER_PERSON_ID,
 } from "@/test-kit/capacity";
 import { PERSON_ID } from "@/test-kit/roster";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({ search: "", replace: vi.fn(), push: vi.fn() }));
 
@@ -81,7 +81,7 @@ describe("CapacityPage", () => {
 
   it("fails closed without capacity:view and never asks for the month", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["tickets:view", "tickets:work"]) });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     await screen.findByText("Not permitted");
     expect(screen.getByText(/needs the capacity:view permission/)).toBeInTheDocument();
     expect(calls.some((call) => call.key === "GET /v1/capacity")).toBe(false);
@@ -93,7 +93,7 @@ describe("CapacityPage", () => {
       "GET /v1/admin/me": me(["capacity:view"]),
       "GET /v1/capacity": () => json(aCapacityView()),
     });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     const table = await screen.findByRole("table", { name: "Capacity by person" });
     const view = calls.find((call) => call.key === "GET /v1/capacity");
     expect(decodeURIComponent(view?.search ?? "")).toBe(
@@ -125,7 +125,9 @@ describe("CapacityPage", () => {
     expect(within(table).getByRole("columnheader", { name: ACCOUNT_ID.slice(0, 8) })).toBeInTheDocument();
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Save allocations/ })).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Filter by account")).toBeDisabled();
+    // Without the directory the dimension has nothing to offer but "all",
+    // where it used to be a disabled select saying so in its own option.
+    expect(within(screen.getByLabelText("Account")).getAllByRole("option")).toHaveLength(1);
     const totals = screen.getByTestId("capacity-totals");
     expect(totals.querySelector("[data-total-available]")).toHaveTextContent("263.5 h");
     expect(totals.querySelector("[data-total-allocated]")).toHaveTextContent("200 h");
@@ -168,7 +170,7 @@ describe("CapacityPage", () => {
           }),
         ),
     });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     const overlay = await screen.findByTestId("demand-overlay");
     expect(overlay).toHaveTextContent("No demand entered for September 2026.");
     expect(within(overlay).getByRole("link", { name: "Enter demand" })).toHaveAttribute(
@@ -185,13 +187,13 @@ describe("CapacityPage", () => {
       "GET /v1/accounts": () => json(ACCOUNTS),
       "GET /v1/groups": () => json([{ id: "g-1", name: "OneStream squad" }]),
     });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     await screen.findByRole("table", { name: "Capacity by person" });
     fireEvent.change(screen.getByLabelText("Month"), { target: { value: "2026-10" } });
     expect(navigation.replace).toHaveBeenLastCalledWith(`/capacity${capacityFilterToSearch({ month: "2026-10" })}`);
-    await waitFor(() => expect(screen.getByLabelText("Filter by group")).not.toBeDisabled());
+    await waitFor(() => expect(within(screen.getByLabelText("Group")).getAllByRole("option").length).toBe(2));
     // No month in the URL means the current month, which is never written back.
-    fireEvent.change(screen.getByLabelText("Filter by group"), { target: { value: "g-1" } });
+    fireEvent.change(screen.getByLabelText("Group"), { target: { value: "g-1" } });
     expect(navigation.replace).toHaveBeenLastCalledWith("/capacity?group=g-1");
   });
 
@@ -210,7 +212,7 @@ describe("CapacityPage", () => {
           ],
         }),
     });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     await screen.findByRole("table", { name: "Capacity by person" });
     await screen.findByRole("columnheader", { name: "BRK" });
     const save = screen.getByRole("button", { name: "Save allocations" });
@@ -247,7 +249,7 @@ describe("CapacityPage", () => {
       "GET /v1/groups": () => json([]),
       "PUT /v1/allocations": () => json({ code: "stale_version", entity: "allocation", current: 5 }, 409),
     });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     await screen.findByRole("columnheader", { name: "BRK" });
     fireEvent.change(screen.getByLabelText("Ana Silva on BRK"), { target: { value: "80" } });
     fireEvent.click(screen.getByRole("button", { name: "Save allocations (1)" }));
@@ -265,7 +267,7 @@ describe("CapacityPage", () => {
       "GET /v1/accounts": () => json(ACCOUNTS),
       "GET /v1/groups": () => json([]),
     });
-    renderDesk(<CapacityPage />);
+    renderDeskInShell(<CapacityPage />);
     await screen.findByRole("columnheader", { name: "AUS" });
     expect(screen.queryByRole("columnheader", { name: "NOR" })).not.toBeInTheDocument();
     const chooser = screen.getByLabelText("Add account");

@@ -13,7 +13,7 @@ import {
   OTHER_ACCOUNT_ID,
   OTHER_DEMAND_ID,
 } from "@/test-kit/capacity";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({ search: "", replace: vi.fn(), push: vi.fn() }));
 
@@ -98,7 +98,7 @@ describe("CapacityDemandPage", () => {
 
   it("fails closed without capacity:view and never asks for the demand", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["tickets:view", "capacity:manage"]) });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     await screen.findByText("Not permitted");
     expect(calls.some((call) => call.key === LIST)).toBe(false);
   });
@@ -109,7 +109,7 @@ describe("CapacityDemandPage", () => {
       "GET /v1/admin/me": me(["capacity:view"]),
       [LIST]: () => json(aDemandList()),
     });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     const table = await screen.findByRole("table", { name: "Demand lines" });
     expect(decodeURIComponent(calls.find((call) => call.key === LIST)?.search ?? "")).toBe(
       `?from=2026-09&to=2026-12&account=${ACCOUNT_ID}`,
@@ -137,7 +137,7 @@ describe("CapacityDemandPage", () => {
     expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
     expect(screen.queryByRole("form", { name: "Add demand" })).not.toBeInTheDocument();
     expect(screen.queryByRole("form", { name: "Import demand" })).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Filter by account")).toBeDisabled();
+    expect(within(screen.getByLabelText("Account")).getAllByRole("option")).toHaveLength(1);
     expect(screen.getByRole("link", { name: "Demand" })).toHaveAttribute("aria-current", "page");
   });
 
@@ -147,17 +147,17 @@ describe("CapacityDemandPage", () => {
       [LIST]: () => json(aDemandList({ rows: [] })),
       "GET /v1/accounts": () => json(ACCOUNTS),
     });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     await screen.findByText("No demand in this range.");
-    const from = screen.getByLabelText("From month") as HTMLInputElement;
-    const to = screen.getByLabelText("To month") as HTMLInputElement;
+    const from = screen.getByLabelText("From") as HTMLInputElement;
+    const to = screen.getByLabelText("To") as HTMLInputElement;
     const [year, month] = from.value.split("-").map(Number);
     const expectedTo = new Date(Date.UTC(year, month - 1 + 3, 1));
     expect(to.value).toBe(`${expectedTo.getUTCFullYear()}-${String(expectedTo.getUTCMonth() + 1).padStart(2, "0")}`);
     fireEvent.change(to, { target: { value: from.value } });
     expect(navigation.replace).toHaveBeenLastCalledWith(`/capacity/demand?to=${from.value}`);
-    await screen.findByRole("option", { name: "AUS Austral Mining" });
-    fireEvent.change(screen.getByLabelText("Filter by account"), { target: { value: OTHER_ACCOUNT_ID } });
+    await screen.findByRole("option", { name: "Account: AUS Austral Mining" });
+    fireEvent.change(screen.getByLabelText("Account"), { target: { value: OTHER_ACCOUNT_ID } });
     expect(navigation.replace).toHaveBeenLastCalledWith(`/capacity/demand?account=${OTHER_ACCOUNT_ID}`);
   });
 
@@ -173,7 +173,7 @@ describe("CapacityDemandPage", () => {
       "GET /v1/accounts": () => json(ACCOUNTS),
       [`DELETE /v1/demand/${DEMAND_ID}`]: () => json({ removed: DEMAND_ID }),
     });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     const table = await screen.findByRole("table", { name: "Demand lines" });
     const pipeline = table.querySelector(`[data-demand="${DEMAND_ID}"]`) as HTMLElement;
     fireEvent.click(within(pipeline).getByRole("button", { name: "Remove" }));
@@ -199,7 +199,7 @@ describe("CapacityDemandPage", () => {
         return json(attempt === 2 ? aDemandRow() : aProjectDemandRow(), 201);
       },
     });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     const form = await screen.findByRole("form", { name: "Add demand" });
     await within(form).findByRole("option", { name: "BRK Brookfield" });
     expect(within(form).getByLabelText("Demand month")).toHaveValue("2026-12");
@@ -275,7 +275,7 @@ describe("CapacityDemandPage", () => {
         return json(anImportResult(), 201);
       },
     });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     const form = await screen.findByRole("form", { name: "Import demand" });
     expect(form.querySelector("[data-template-columns]")).toHaveTextContent(
       "source, account, prospect, month, hours, probability, role",
@@ -323,7 +323,7 @@ describe("CapacityDemandPage", () => {
       [LIST]: () => json(aDemandList({ rows: [] })),
       "POST /v1/demand/import": () => json(anImportResult({ rows: [aProjectDemandRow({ source: "import" })] }), 201),
     });
-    renderDesk(<CapacityDemandPage />);
+    renderDeskInShell(<CapacityDemandPage />);
     const form = await screen.findByRole("form", { name: "Import demand" });
     const text = "source,account,month,hours\nproject,BRK,2026-12,40\n";
     const file = new File([text], "demand.csv", { type: "text/csv" });

@@ -2,26 +2,24 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
-import { AdminGate, INPUT } from "@/components/admin/primitives";
+import { AdminGate } from "@/components/admin/primitives";
 import { CapacityTabs } from "@/components/capacity/capacity-tabs";
 import { AddDemandForm } from "@/components/capacity/demand-form";
 import { ImportDemandPanel } from "@/components/capacity/demand-import";
 import { DemandTable } from "@/components/capacity/demand-table";
+import { MonthSelect } from "@/components/capacity/month-select";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { EmptyBanner } from "@/components/xms/empty-banner";
-import { FilterBar, type FilterCriterion } from "@/components/xms/filter-bar";
+import { FilterSelect } from "@/components/xms/filter-select";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { capacityError, describeCapacityError } from "@/lib/capacity/errors";
 import { demandFilterFromSearch, demandFilterToSearch, type DemandPageFilter } from "@/lib/capacity/filters";
 import { demandSubject, monthLabel } from "@/lib/capacity/vocab";
 import { useTrack } from "@/lib/telemetry/provider";
-import { cn } from "@/lib/utils";
 import { useListDemandQuery, useRemoveDemandMutation, type DemandRow } from "@/redux/capacityApi";
 import { useMe } from "@/redux/me";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
-
-const CONTROL = cn(INPUT, "h-[30px] text-[12px]");
 
 function DemandScreen() {
   const router = useRouter();
@@ -40,13 +38,6 @@ function DemandScreen() {
   const track = useTrack("capacity.demand.remove");
 
   const apply = (next: DemandPageFilter) => router.replace(`${pathname}${demandFilterToSearch(next)}`);
-  const accountName = (id: string) => {
-    const account = accounts.data?.find((row) => row.id === id);
-    return account ? `${account.key} ${account.name}` : id.slice(0, 8);
-  };
-  const criteria: FilterCriterion[] = [];
-  if (filter.account) criteria.push({ key: "account", label: "Account", value: accountName(filter.account) });
-
   const onRemove = async (row: DemandRow) => {
     setRemoving(row.id);
     try {
@@ -66,67 +57,33 @@ function DemandScreen() {
 
   return (
     <>
+      {/* From, To and Account stand on the grey strip. Two native month
+          inputs and a select sat in the page body under a strip that showed
+          the range as a pill that did nothing. */}
       <HeaderFilters>
-        <FilterBar
-          primary={{ label: "Months", value: `${monthLabel(filter.from)} to ${monthLabel(filter.to)}` }}
-          criteria={criteria}
-          onRemove={(key) => apply({ ...filter, [key]: undefined })}
-          onAdd={() => undefined}
-          onClearAll={() => apply({ from: filter.from, to: filter.to })}
+        <MonthSelect
+          label="From"
+          primary
+          month={filter.from}
+          onChange={(month) => apply({ ...filter, from: month, to: filter.to < month ? month : filter.to })}
+        />
+        <MonthSelect
+          label="To"
+          month={filter.to}
+          onChange={(month) => apply({ ...filter, to: month < filter.from ? filter.from : month })}
+        />
+        <FilterSelect
+          label="Account"
+          value={filter.account ?? ""}
+          options={(accounts.data ?? []).map((account) => ({
+            value: account.id,
+            label: `${account.key} ${account.name}`,
+          }))}
+          onChange={(value) => apply({ ...filter, account: value || undefined })}
         />
       </HeaderFilters>
       <CapacityTabs active="demand" />
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Demand filters">
-          <label className="flex flex-col gap-1 text-[12px]">
-            <span className="text-xms-label">From</span>
-            <input
-              type="month"
-              aria-label="From month"
-              className={cn(CONTROL, "xms-mono w-[160px]")}
-              value={filter.from}
-              onChange={(event) => {
-                if (event.target.value)
-                  apply({
-                    ...filter,
-                    from: event.target.value,
-                    to: filter.to < event.target.value ? event.target.value : filter.to,
-                  });
-              }}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px]">
-            <span className="text-xms-label">To</span>
-            <input
-              type="month"
-              aria-label="To month"
-              min={filter.from}
-              className={cn(CONTROL, "xms-mono w-[160px]")}
-              value={filter.to}
-              onChange={(event) => {
-                if (event.target.value && event.target.value >= filter.from)
-                  apply({ ...filter, to: event.target.value });
-              }}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-[12px]">
-            <span className="text-xms-label">Account</span>
-            <select
-              aria-label="Filter by account"
-              className={cn(CONTROL, "w-[220px]")}
-              value={filter.account ?? ""}
-              disabled={!accounts.data}
-              onChange={(event) => apply({ ...filter, account: event.target.value || undefined })}
-            >
-              <option value="">{accounts.data ? "Any account" : "Accounts need tickets:view"}</option>
-              {(accounts.data ?? []).map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.key} {account.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
         {list.isLoading && !list.data ? <Skeleton lines={8} /> : null}
         {list.isError ? (
           <EmptyBanner

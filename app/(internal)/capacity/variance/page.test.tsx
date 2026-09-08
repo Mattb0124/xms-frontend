@@ -4,7 +4,7 @@ import CapacityVariancePage, { sortByVariance, varianceTone } from "@/app/(inter
 import { varianceFilterToSearch } from "@/lib/capacity/filters";
 import { ACCOUNT_ID, aVarianceLine, aVarianceReport, OTHER_ACCOUNT_ID, OTHER_PERSON_ID } from "@/test-kit/capacity";
 import { aPerson, PERSON_ID } from "@/test-kit/roster";
-import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { json, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 
 const navigation = vi.hoisted(() => ({ search: "", replace: vi.fn(), push: vi.fn() }));
 
@@ -58,7 +58,7 @@ describe("CapacityVariancePage", () => {
 
   it("fails closed without capacity:view", async () => {
     const calls = stubFetch({ "GET /v1/admin/me": me(["tickets:view"]) });
-    renderDesk(<CapacityVariancePage />);
+    renderDeskInShell(<CapacityVariancePage />);
     await screen.findByText("Not permitted");
     expect(calls.some((call) => call.key === "GET /v1/capacity/variance")).toBe(false);
   });
@@ -71,7 +71,7 @@ describe("CapacityVariancePage", () => {
       "GET /v1/accounts": () => json(ACCOUNTS),
       "GET /v1/roster/people": () => json([aPerson()]),
     });
-    renderDesk(<CapacityVariancePage />);
+    renderDeskInShell(<CapacityVariancePage />);
     const table = await screen.findByRole("table", { name: "Planned versus actual" });
     expect(decodeURIComponent(calls.find((call) => call.key === "GET /v1/capacity/variance")?.search ?? "")).toBe(
       `?month=2026-09&account=${ACCOUNT_ID}&person=${PERSON_ID}`,
@@ -112,13 +112,13 @@ describe("CapacityVariancePage", () => {
       "GET /v1/accounts": () => json(ACCOUNTS),
       "GET /v1/roster/people": () => json([aPerson(), aPerson({ id: OTHER_PERSON_ID, display_name: "Ben Ito" })]),
     });
-    renderDesk(<CapacityVariancePage />);
+    renderDeskInShell(<CapacityVariancePage />);
     await screen.findByText("Nothing planned or logged for this month.");
-    await screen.findByRole("option", { name: "Ben Ito" });
-    fireEvent.change(screen.getByLabelText("Filter by person"), { target: { value: OTHER_PERSON_ID } });
+    await screen.findByRole("option", { name: "Person: Ben Ito" });
+    fireEvent.change(screen.getByLabelText("Person"), { target: { value: OTHER_PERSON_ID } });
     expect(navigation.replace).toHaveBeenLastCalledWith(`/capacity/variance?person=${OTHER_PERSON_ID}`);
-    await screen.findByRole("option", { name: "AUS Austral Mining" });
-    fireEvent.change(screen.getByLabelText("Filter by account"), { target: { value: OTHER_ACCOUNT_ID } });
+    await screen.findByRole("option", { name: "Account: AUS Austral Mining" });
+    fireEvent.change(screen.getByLabelText("Account"), { target: { value: OTHER_ACCOUNT_ID } });
     expect(navigation.replace).toHaveBeenLastCalledWith(`/capacity/variance?account=${OTHER_ACCOUNT_ID}`);
   });
 });
