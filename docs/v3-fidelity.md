@@ -484,3 +484,183 @@ text inside them is different text.
 - The prototype source (`XMS-v3-standalone.html`) is a base64 bundle rather
   than readable markup, so every measurement here comes from the rendered PNGs
   and from WIREFRAMES sections 4 and 8, not from the prototype's CSS.
+
+## 9. Pass three
+
+Screenshots for this pass are in
+`C:/Users/matt.brown/Documents/repos/xms-work/shots-v3-pass3/`, at the same
+1500 by 1020, and every percentage below is `pixelmatch` at threshold 0.2 with
+`includeAA`, cropped to the app frame the renders share (x 20, y 60, 1460 by
+660).
+
+| Render         | Before | After | Shot                                        |
+| -------------- | ------ | ----- | ------------------------------------------- |
+| 01 Queue       | 7.4%   | 7.2%  | `after/01-queue.png`                        |
+| 02 Ticket      | 7.4%   | 7.3%  | `after/02-ticket.png`                       |
+| 03 Activity    | n/a    | 7.1%  | `after/03-activity.png`                     |
+| 04 Time        | n/a    | 6.8%  | `after/04-time.png`                         |
+| 05 Resolution  | n/a    | 5.9%  | `after/05-resolution.png`                   |
+| 06 Links       | n/a    | 6.3%  | `after/06-links.png`                        |
+| 07 Sync        | n/a    | 6.2%  | `after/07-sync.png`                         |
+| 08 My work     | 5.4%   | 6.6%  | `after/08-mywork-list.png` (as `ana.costa`) |
+| 09 Dispatch    | 7.1%   | 7.2%  | `after/09-dispatch.png`                     |
+| 10 Operations  | 14.9%  | 8.0%  | `after/10-operations.png`                   |
+| 11 Quarantine  | 11.3%  | 2.8%  | `after/11-quarantine.png`                   |
+| 12 All overlay | 12.8%  | 3.3%  | `after/12-overlay-all.png`                  |
+| 13 Favourites  | 20.4%  | 19.1% | `after/13-overlay-fav.png`                  |
+| 14 History     | 22.7%  | 21.5% | `after/14-overlay-history.png`              |
+| 15 Axel panel  | 7.5%   | 7.5%  | `after/15-axel.png`                         |
+
+Renders 01 to 09 were re-measured after the shared chrome moved and none of
+them drifted: they sit between 5.9% and 7.3%, which is this seed's own floor
+(different accounts, different keys, different counts). 08 reads a point
+higher than pass two because the list is now seven rows rather than one, so
+there is more text to differ. 13 and 14 hold seven favourites and six visits
+this browser does not have, so they are measured against empty lists; the
+frame, the header and the row geometry are measured in the notes below. 15 is
+340px of a 1460px band over a Queue seeded with other tickets, so the number
+does not move.
+
+### 9a. My work: the list is the desk the tiles count
+
+The tiles said "7 assigned across 2 accounts" over a Needs attention list of
+one row, because the list was filtered to the breached and the long-stale
+before the render's own order was applied. Render 08 draws eleven assigned
+over six rows carrying New, In progress and Awaiting client, so the list is
+every open ticket the first tile counts, on the tightest clock, then the
+unassigned work in my groups; the scorecards are what narrow it (note 1).
+
+`needsAttention` is gone rather than loosened: there is no second rule for
+what the list holds. Its test is replaced by one that pins the new rule, that
+the list length equals the first tile's own count over the same tickets.
+
+Still differs: the seeded reader's open work includes tickets in Resolved and
+Fulfilled, because `GET /v1/tickets?open=true` counts them as open on this
+stack. The list and the tile agree, which is what was wrong; what "open"
+means is the server's.
+
+### 9b. The pinned sidebar is six rows for every reader, per role
+
+Operations needs `reports:view-portfolio`. A consultant does not hold it, and
+the pin was a boolean filtered by permission, so the row silently vanished and
+the sidebar came back five rows tall where render 08 draws six.
+
+Of the reviewer's two options this took the second. A pinned row that cannot
+be opened must not be drawn either, and routing it somewhere else would be a
+label that lies, so the pinned set is defined per role: `Screen.pinned` is a
+rank instead of a flag, the render's own six take ranks 1 to 6 (My work,
+Queue, Dispatch, Quarantine, My timesheet, Operations), and Solutions,
+Accounts and Groups stand behind them at 7 to 9. `pinnedScreens` returns the
+highest-ranked screens the reader may open, capped at `PINNED_ROWS`. A reader
+holding everything gets exactly the render's six in the render's order; a
+consultant gets six with Solutions in the sixth place. Nothing is drawn from
+outside the ranked list, so no sidebar is populated by accident.
+
+The footer's number is the whole tree the reader may open, which was already
+what the All overlay lists, and now says so: a test renders the sidebar and
+the overlay from one permission set and asserts the footer count equals the
+overlay's row count. For `ana.costa` that is fifteen.
+
+### 9c. Operations (render 10)
+
+The synthesis line takes the AI tint. It is written from the same snapshots
+the tiles read (note 1), so it belongs to the vocabulary the product gives
+generated text, `.xms-ai` on `--xms-ai-bg` over `--xms-ai-border`, at the
+prototype's 18 by 20px and 15px on a 1.6 line. On the shell's navy it read as
+a system banner, which is the one thing it is not.
+
+Everything else is the prototype's own dashboard markup:
+
+| Piece          | Value                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------- |
+| Tiles          | three across, 14px gap, 18px padding, delta on the number's baseline, 26px mono on 1.1                     |
+| Panel grid     | two across, 14px gap                                                                                       |
+| Dashboard card | 18px padding, no rule under the header, 16px to the body (`Panel`'s new `bare`)                            |
+| Panel header   | title 15px semibold, then a short note beside it on one baseline (`Panel`'s new `note`)                    |
+| Bars           | 150px of plot, 126px tallest bar, 12px between columns, 8px to an 11px mono label, 4px top radius          |
+| Breakdown row  | 14px label taking the room, a fixed 130 by 8 meter, 48px of mono on the right, 10px rows on a row hairline |
+| Period control | the strip's primary dimension, the 32px control in the link colour                                         |
+
+The count above each bar went with the redraw: the render draws none and it
+was taking a fifth of the plot height. The value is on the column's `title`
+instead, so it still reaches a reader and a screen reader.
+
+The period control was three 28px radio pills, a control shape no other
+screen has; it is now `StripSelect`, which is what every screen's primary
+dimension is. The period range moved beside it, off a line of its own that
+render 10 does not draw. Its duplicate in the page body is gone, and with it
+the reason it existed: `renderDeskInShell` in `test-kit/desk.tsx` mounts a
+real toolbar band, so a test drives the control the reader actually sees
+rather than a second copy kept in the product for the test's benefit.
+
+Still differs: render 10 draws "Open by state" and "Portfolio burn". Neither
+is on `GET /v1/dashboards/operations`: `Measures` carries `open_by_priority`
+and `open_by_type` but no state breakdown, and the per-account strip carries
+no consumption, so neither panel can be drawn without a server change. The
+built screen keeps SLA attainment, Outcomes and Time in their place, which
+the render does not draw.
+
+### 9d. Quarantine (render 11)
+
+Render 11 is the prototype's own "not restyled yet" card, so the screen takes
+the grammar every other list screen stands on.
+
+The screen was named twice: the toolbar band said Quarantine and a page title
+row under it said it again, with the sentence that explains the screen, a
+"Show decided" tick box and a "Queue" link. The row is gone. The one control
+that changes what the list holds is the strip's primary dimension,
+"Show: awaiting review (n)"; the sentence is the card's own subtitle beside
+its title, where render 08 puts one; and the link is gone, because Queue is a
+pinned row in the sidebar.
+
+The empty state is stated once, in the card, where the rows would be. It had
+been said twice, in an ink banner above the card and again inside it, in
+different words.
+
+### 9e. The three overlays (renders 12 to 14)
+
+The All overlay's rows were two and three lines tall, because the registry's
+purpose sentence was drawn beside the label. Render 12 gives every screen one
+line: an icon, the name, the count. The purpose is the row's `title`
+attribute instead. The sections were laid out as columns, so nine sections
+read as nine stacks side by side; each section is now full width with its
+screens in two columns under it, which is the prototype's own grid.
+
+A pinned row draws a pin and every other row a plain circle, so the six pins
+are read at a glance rather than by comparing one glyph's opacity against the
+next. The glyph follows the sidebar exactly (`sidebarItems`), since the
+`pinned` rank runs past the sixth row.
+
+Frame and colour, all the prototype's: left 186, 640 by 520, a translucent
+`#172D66` at .88 over a 14px blur, a `#60A5FA` edge with no top, an 8px
+bottom radius, a `#3B82F6` header band at 48px with a 230px filter field, and
+rows at 9 by 16 with a white .16 hover, a white .22 count chip and a white
+.18 rule on the listed rows. They are `--xms-overlay-*` tokens and an
+`.xms-overlay*` class set, so the component carries no colour.
+
+The 14px blur is the `backdrop-blur-[14px]` utility on the element rather
+than a declaration in `xms-scope.css`: Tailwind composes `backdrop-filter` in
+its own utilities layer, which wins over anything `@layer components` says,
+so the CSS declaration was dead and was silently doing nothing.
+
+Favourites and History take the same row: the target's own mark rather than
+one star for everything, the label, and the meta in the render's own lower
+case ("saved view", "screen"). The screen icon map moved into `icons.tsx` as
+`screenIcon`, since the sidebar row and the overlay row must draw the same
+screen the same way.
+
+### 9f. The Axel panel frame (render 15)
+
+The body is held, so this is the frame the held body will stand in. Every
+value is the prototype's own `aside`: the header is 56px, the finder bar's
+own height, so the panel's name sits on the line the toolbar title sits on
+rather than a half-line above it; the sparkle is 17px and the close 18px,
+both in label grey, since neither is AI content, only its chrome; the context
+word beside the name is 12px mono; the body stands on `--xms-quiet-bg` at
+16px of padding, so a suggestion card will read as a card rather than as part
+of the panel; the ask field is 64px on `--xms-line-strong` at 14px with 12px
+of padding; and the panel's left edge is `--xms-line-region`, a step darker
+than a card hairline.
+
+The ask field takes the system's 4px control radius rather than the
+prototype's one-off 5px, which appears nowhere else in the file.
