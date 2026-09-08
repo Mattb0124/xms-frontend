@@ -108,6 +108,45 @@ describe("DenseTable", () => {
     expect(onRowClick).toHaveBeenCalledWith(ROWS[1]);
   });
 
+  /**
+   * Review finding 19: table rows were not focusable (tabindex null, no
+   * role), so a row could only be opened through its key link. Design System
+   * section 6: "list rows focusable and openable with Enter".
+   */
+  it("makes an openable row a tab stop that opens on Enter and on Space", () => {
+    const onRowClick = vi.fn();
+    render(
+      <DenseTable
+        title="Queue"
+        count={3}
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        selected={new Set()}
+        onSelectionChange={() => {}}
+        onRowClick={onRowClick}
+      />,
+    );
+    const row = screen.getByRole("row", { name: /Azure Files mount/ });
+    expect(row).toHaveAttribute("tabindex", "0");
+    row.focus();
+    expect(document.activeElement).toBe(row);
+    fireEvent.keyDown(row, { key: "Enter" });
+    expect(onRowClick).toHaveBeenCalledWith(ROWS[1]);
+    fireEvent.keyDown(row, { key: " " });
+    expect(onRowClick).toHaveBeenCalledTimes(2);
+    // Other keys pass through, and a key pressed inside a control is its own.
+    fireEvent.keyDown(row, { key: "a" });
+    fireEvent.keyDown(within(row).getByLabelText("Select CS0001199"), { key: "Enter" });
+    expect(onRowClick).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves a row that opens nothing out of the tab order", () => {
+    render(<DenseTable title="Queue" count={3} columns={COLUMNS} rows={ROWS} rowKey={(r) => r.key} />);
+    expect(screen.getByRole("row", { name: /Azure Files mount/ })).not.toHaveAttribute("tabindex");
+  });
+
   it("shows the empty state when there are no rows", () => {
     render(
       <DenseTable

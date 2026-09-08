@@ -1,9 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { FinderBar } from "@/components/shell/finder-bar";
 import { FinderOverlay } from "@/components/shell/finder-overlay";
+import { Shell } from "@/components/shell/shell";
 import { visibleScreens } from "@/lib/routes";
+import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -99,5 +101,51 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "cs0001204" } });
     fireEvent.keyDown(input, { key: "Enter" });
     expect(push).toHaveBeenCalledWith("/tickets/CS0001204");
+  });
+});
+
+/**
+ * Review finding 19: the "/" shortcut did not focus global search. The
+ * wireframe (section 2) gives global search the "/" shortcut, and the
+ * finder bar's search control opens the same overlay, so "/" must land in
+ * its filter box with the caret ready.
+ */
+describe("the / shortcut", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    window.localStorage.clear();
+  });
+
+  const desk = () => {
+    stubFetch({
+      "GET /v1/admin/me": () =>
+        json({ principal: { kind: "internal", userId: "u1", displayName: "Ana Silva", accountIds: [], permissions: ["tickets:view"] } }),
+      "GET /v1/notifications/unread-count": () => json({ count: 0 }),
+    });
+    return renderDesk(
+      <Shell>
+        <input aria-label="In the page" />
+      </Shell>,
+    );
+  };
+
+  it("opens the finder and puts the caret in its search box", async () => {
+    desk();
+    await screen.findByTestId("finder-bar");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.keyDown(window, { key: "/" });
+    const box = await screen.findByLabelText("Filter screens");
+    await waitFor(() => expect(document.activeElement).toBe(box));
+    // Escape closes it again.
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByLabelText("Filter screens")).toBeNull());
+  });
+
+  it("stays out of the way while the reader is typing", async () => {
+    desk();
+    const field = await screen.findByLabelText("In the page");
+    field.focus();
+    fireEvent.keyDown(field, { key: "/" });
+    expect(screen.queryByLabelText("Filter screens")).toBeNull();
   });
 });

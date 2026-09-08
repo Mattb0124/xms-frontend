@@ -160,13 +160,30 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
               const key = rowKey(row);
               const isSelected = selected.has(key);
               return (
+                // An openable row is reachable from the keyboard and opens on
+                // Enter (Design System section 6, review finding 19): without
+                // a tab stop the only way in was the key link. A keypress that
+                // started inside the row, in the checkbox or the key link,
+                // belongs to that control and is left alone.
                 <tr
                   key={key}
                   data-row-key={key}
                   data-selected={isSelected ? "true" : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onKeyDown={
+                    onRowClick
+                      ? (event) => {
+                          if (event.target !== event.currentTarget) return;
+                          if (event.key !== "Enter" && event.key !== " ") return;
+                          event.preventDefault();
+                          onRowClick(row);
+                        }
+                      : undefined
+                  }
                   className={cn(
                     "border-xms-line hover:bg-xms-row-hover h-[47px] border-b",
+                    "focus-visible:outline-xms-accent focus-visible:outline-2 focus-visible:-outline-offset-2",
                     isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
                     onRowClick && "cursor-pointer",
                   )}
