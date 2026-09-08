@@ -21,17 +21,39 @@ export type UsageEventType = (typeof USAGE_EVENT_TYPES)[number];
 /** Structured facts only: identifiers, names from registries, counts, durations. Never free text. */
 export type UsageAttrs = Record<string, string | number | boolean | null>;
 
+/**
+ * One event on the wire. This is the API's ClientEventDto exactly (backend
+ * `src/modules/telemetry/telemetry.module.ts`): `type`, and optionally
+ * `occurred_at`, `account_id`, `request_id`, `entity_kind`, `entity_id` and
+ * `attrs`. The global ValidationPipe runs with `whitelist` and
+ * `forbidNonWhitelisted`, so a single undeclared key fails the whole batch:
+ * the client used to send `event_type`, `screen` and `client_ts`, every batch
+ * was rejected 400, and the usage dashboard had never seen one client event
+ * (frontend review finding 3). Nothing may be added here that the DTO does
+ * not declare, and `account_id` is deliberately never sent, since the API
+ * takes the account from the principal.
+ *
+ * The screen id travels as `entity_kind: "screen"` with `entity_id`, which
+ * the API stores in its own columns rather than inside attrs.
+ */
 export interface UsageEvent {
-  event_type: UsageEventType;
-  screen?: string;
+  type: UsageEventType;
+  occurred_at: string;
+  request_id?: string;
+  entity_kind?: "screen";
+  entity_id?: string;
   attrs: UsageAttrs;
-  client_ts: string;
-  request_id: string | null;
+}
+
+/** What the API answered: `ok` false re-queues the batch; `rejected` counts events it refused. */
+export interface TelemetrySendResult {
+  ok: boolean;
+  rejected?: number;
 }
 
 export interface TelemetryTransport {
-  /** Resolves true when the batch was accepted; false to retry. */
-  send(events: UsageEvent[], options: { keepalive: boolean }): Promise<boolean>;
+  /** Resolves ok when the batch was accepted; not ok to retry. */
+  send(events: UsageEvent[], options: { keepalive: boolean }): Promise<TelemetrySendResult>;
 }
 
 export interface TelemetryOptions {
@@ -56,6 +78,8 @@ export class TelemetryClient {
   private readonly setTimer: (fn: () => void, ms: number) => unknown;
   private readonly clearTimer: (handle: unknown) => void;
   dropped = 0;
+  /** Events the API accepted the batch but refused: an unknown type, or an account the principal has no grant on. */
+  rejected = 0;
 
   constructor(private readonly options: TelemetryOptions) {
     this.flushIntervalMs = options.flushIntervalMs ?? 10_000;
@@ -78,12 +102,13 @@ export class TelemetryClient {
   track(type: UsageEventType, attrs: UsageAttrs = {}, screen?: string): void {
     if (!this.enabled) return;
     if (!(USAGE_EVENT_TYPES as readonly string[]).includes(type)) return;
+    const requestId = currentRequestId();
     this.queue.push({
-      event_type: type,
-      screen,
+      type,
+      occurred_at: this.now().toISOString(),
       attrs,
-      client_ts: this.now().toISOString(),
-      request_id: currentRequestId(),
+      ...(screen ? { entity_kind: "screen" as const, entity_id: screen } : {}),
+      ...(requestId ? { request_id: requestId } : {}),
     });
     if (this.queue.length >= this.maxBatch) {
       void this.flush();
@@ -107,8 +132,16 @@ export class TelemetryClient {
     const batch = this.queue.splice(0, this.maxBatch);
     this.inflight = true;
     try {
-      const ok = await this.options.transport.send(batch, { keepalive: options.keepalive ?? false });
-      if (!ok) {
+      const result = await this.options.transport.send(batch, { keepalive: options.keepalive ?? false });
+      if (result.rejected) {
+        // The API answers 200 with a rejected count; a silent drop is how the
+        // contract mismatch went unnoticed for the life of the screen.
+        this.rejected += result.rejected;
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(`[telemetry] the API rejected ${result.rejected} of ${batch.length} events`);
+        }
+      }
+      if (!result.ok) {
         // Retry once by re-queuing at the front; a second failure is counted, not hidden.
         if (batch.length + this.queue.length <= this.maxBatch * 4) this.queue.unshift(...batch);
         else this.dropped += batch.length;
@@ -122,19 +155,31 @@ export class TelemetryClient {
   }
 }
 
-/** Default transport: POST /v1/telemetry with the bearer; 2xx means accepted. */
+/**
+ * Default transport: POST /v1/telemetry with the bearer. A 2xx means the
+ * batch was taken; the body carries `{ accepted, rejected }` and the rejected
+ * count is passed back so a mismatch surfaces instead of disappearing.
+ */
 export function fetchTransport(baseUrl: string, getToken: () => Promise<string | null>): TelemetryTransport {
   return {
     async send(events, { keepalive }) {
       const token = await getToken();
-      if (!token) return false;
+      if (!token) return { ok: false };
       const response = await fetch(`${baseUrl}/v1/telemetry`, {
         method: "POST",
         keepalive,
         headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
         body: JSON.stringify({ events }),
       });
-      return response.ok;
+      if (!response.ok) return { ok: false };
+      let rejected = 0;
+      try {
+        const parsed = (await response.json()) as { rejected?: unknown };
+        if (typeof parsed?.rejected === "number") rejected = parsed.rejected;
+      } catch {
+        rejected = 0;
+      }
+      return { ok: true, rejected };
     },
   };
 }
