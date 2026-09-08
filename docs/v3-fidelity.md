@@ -664,3 +664,152 @@ than a card hairline.
 
 The ask field takes the system's 4px control radius rather than the
 prototype's one-off 5px, which appears nowhere else in the file.
+
+## 10. The ticket record, defect by defect
+
+Seven defects the reviewer found on the running stack, against renders 02 to
+07 and the prototype template. Diffs are cropped to the app frame as above.
+
+| Render        | Before | After |
+| ------------- | ------ | ----- |
+| 02 Ticket     | 7.4%   | 7.3%  |
+| 03 Activity   | 7.1%   | 7.2%  |
+| 04 Time       | 6.8%   | 6.1%  |
+| 05 Resolution | 5.9%   | 6.3%  |
+| 06 Links      | 6.3%   | 6.0%  |
+| 07 Sync       | 6.2%   | 6.2%  |
+
+The numbers barely move because they are already at this seed's floor: the
+render's ticket is CS0001204 on Brookfield UK with four thread messages, four
+time entries, four links and a live ServiceNow link, and the seeded ticket
+has none of those. What changed is measured below.
+
+### 10a. No row anywhere shows an identifier
+
+The Contract property read "82881bb9-a9f8-40a4-83eb-846388075612" while the
+rail beside it read "CT10001 Managed services retainer" for the same
+contract. The row was a select whose only option, whenever the account's
+contract directory was out of reach, was built from the id, with the id as
+its label. The directory is behind `contracts:view` and is what the row needs
+to offer a _choice_; naming the contract the ticket already carries needs
+nothing but the ticket, so the row reads the position route the rail reads.
+For a reader who cannot be offered the choice it is the name and nothing
+else. The Account row had the same fallback and takes the same rule.
+
+The Activity tab had the same defect in its own words: "changed assignee id
+[empty] e783a8ab-8d9b-4ad2-a7a6-dd4aadc5753c". The timeline carries no name
+to put in its place, so the row says what happened and stops there, "set
+assignee", "cleared assignee", "changed group"; a readable change is still
+spelled out in full with both values. `changeSentence` and `isIdentifier` in
+`activity-tab.tsx` hold that rule, and tests assert that neither the
+properties panel nor an activity row prints a uuid.
+
+### 10b. The properties list is the render's own rows
+
+Impact and urgency are one row, "Low · Medium", because neither says anything
+without the other: they are the two axes of the matrix the priority under
+them comes out of. Priority is one line, "P4 · derived from the matrix". Both
+needed a shared-component addition, `RecordField`'s `second` and
+`inlineHint`, stacked-layout only, so the admin forms are untouched; a paired
+control keeps its own key, so each commits and rolls back on its own. The
+contract sits after the priority, as it does in the render.
+
+Still differs: render 02 carries a "Configuration item" row between Category
+and Impact / urgency. `TicketView` has no configuration item, so the row
+cannot be drawn without a server change. The render's Out of scope, External
+reference and Watchers rows are the record's Scope, Sync and Watching cards
+in this build, which is where the reader can act on them.
+
+### 10c. Service levels, and the clock in the record bar
+
+The card read "Response met" over a second line, "Target 8h 00m, breached by
+43d 21h", which repeated in other words what the line above had just said and
+which the render does not draw at all. Render 02 gives each clock one line, a
+meter and, where there is a pause, its caption: "Response · met 15:36",
+"Resolution · 3h 12m of 24h left". A met clock now says when it stopped, from
+the ticket's own `first_response_at` and `resolved_at`. `meterDetail` is gone
+rather than hidden. The meter's track is the row hairline grey the prototype
+draws behind every meter; on the blue tint a blue fill barely read as a fill.
+
+The record bar's clock chip had a blue dot that never changed, so a breached
+clock looked like a healthy one until you read the minus sign. It is the
+countdown chip the lists carry, with the dot taking the signal, and it says
+what it is counting ("3h 12m left") while the clock runs.
+
+Still differs: a met meter fills on the complete trio where the render fills
+it slate. Green for met was decided in an earlier review (finding 11) to keep
+a met clock out of the amber at-risk band, and it is the same green the
+Operations attainment meter uses; one meaning, one colour. The minus sign on
+a breach is the house treatment set in pass two and render 08's own column
+("-38m"): a word says the clock has gone, the number says by how much.
+
+### 10d. The Time tab (render 04)
+
+The tab opened on the log form: minutes with six quick chips, date, start
+time, activity, billable class, an after-hours tick box, a description and a
+button, standing permanently above a seven-column table of the entries it was
+about. Render 04 opens on the entries. It is a card headed "Time on this
+ticket" with "shortcut t · under five seconds to log" beside it and Add entry
+on the right, then a row per entry, then the total. Every field is still in
+the form, behind Add entry and the `t` shortcut, in the house sheet; the
+shortcut is ignored while the reader is typing.
+
+The row is the render's: who, what, the class as a quiet pill on the chip
+fill, the hours in mono on the right, decimal ("2.08", total "6.75 h"). Two
+things the render has no cell for are kept, because a timesheet without them
+cannot be checked: the entry's day is a quiet mono suffix on the name, and
+the description continues the activity, which is how the render's own rows
+read ("Rework, linked adjustment").
+
+### 10e. The Links tab (render 06)
+
+The tab opened on the form, a select and a field and a blue button, with "No
+links." underneath it: the answer to "what is this linked to" was below the
+way to add one. Render 06 draws the links, each a one-word relation pill, the
+key and the title, and puts "+ Add link by key" under them. The direction
+("Duplicate of", "Duplicated by") is on the row's title, which is where a
+pill sized for one word can carry it.
+
+### 10f. The Resolution tab (render 05)
+
+The tab was a label-left grid at 160px, which read as a settings screen, and
+on an unresolved ticket it said one sentence and nothing else. Render 05
+stacks each field's label over its value down the full width and draws the
+close discipline under them. `recordDisciplineItems` builds that list from
+what the ticket carries, where the resolve dialog builds the same list from
+the draft being typed.
+
+Still differs: the render draws the values in 42px bordered boxes. They stay
+text here. A box reads as editable, nothing on this tab is editable, and the
+render's own note 1 says the state pill is the only route through the state
+machine, which is where the resolve form lives.
+
+### 10g. The Sync tab (render 07)
+
+The tab carried the render's facts as a stack of sentences at 11 and 12px, so
+the external number, the direction, the last exchange and the kill switch
+each read as a different kind of thing. It is now the render's two blocks:
+what a person needs to be told, on the note ground, then the facts in mono,
+one a line. The rail keeps its compact stack, because 262px has room for
+neither block.
+
+Still differs: the render's note ends in "Accept · Keep ours". Nothing in
+this application resolves a sync conflict by hand; policy decides it and the
+run log names both sides, which is what the note says instead of offering two
+controls that would do nothing.
+
+### 10h. The seventh tab
+
+`USER-EXPERIENCE.md` section 3.4 and `WIREFRAMES.md` line 102 both fix the
+work area at six tabs, "Conversation, Activity, Time, Resolution, Links,
+Sync", and mark it Adopted; email appears there only as metadata inside
+Conversation ("email metadata on email-originated messages, expand raw
+email"), which is what the conversation thread already draws.
+
+Email stays as a seventh tab, last, on the same `TabBar` as the other six. It
+is not the metadata the spec places in Conversation: it is the delivery log,
+the inbound messages with their disposition and what they were matched by,
+and the outbound messages with their delivery state, bounces included. The
+spec gives that surface no other home and the record needs it, so it is a
+deliberate addition outside the adopted set rather than a drawing this build
+disagrees with.
