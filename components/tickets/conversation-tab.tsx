@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import { DropZone, ScanAcknowledgement, UploadList, useUploads } from "@/components/tickets/attachments";
-import { ActorChip, type ActorKind } from "@/components/xms/actor-chip";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -51,7 +50,13 @@ export function Composer({
     <form
       aria-label="Composer"
       data-mode={mode}
-      className={cn("xms-card flex flex-col", note && "border-xms-line-strong bg-xms-tint")}
+      // The prototype's composer (`proto-v3/template.pretty.html`): a card at
+      // a 5px radius whose header stands on the quiet ground, not the record's
+      // own 6px card with a tinted body for a note.
+      className={cn(
+        "border-xms-line bg-xms-card flex flex-col overflow-hidden rounded-[5px] border",
+        note && "border-xms-line-strong",
+      )}
       onSubmit={async (event) => {
         event.preventDefault();
         if (!body.trim() || blockedReason) return;
@@ -60,7 +65,7 @@ export function Composer({
       }}
     >
       <div
-        className="border-xms-line flex items-center gap-2 border-b px-3 py-2"
+        className="border-xms-line bg-xms-quiet-bg flex items-center gap-2 border-b px-[14px] py-3"
         role="tablist"
         aria-label="Composer mode"
       >
@@ -70,8 +75,10 @@ export function Composer({
           aria-selected={mode === "reply"}
           onClick={() => setMode("reply")}
           className={cn(
-            "h-[28px] rounded-[999px] px-[14px] text-[13px] font-medium",
-            mode === "reply" ? "bg-xms-accent text-white" : "text-xms-body hover:bg-xms-tint",
+            "rounded-[999px] px-[13px] py-[7px] text-[12px] leading-none",
+            mode === "reply"
+              ? "bg-xms-accent font-semibold text-white"
+              : "text-xms-body hover:bg-xms-row-hover font-medium",
           )}
         >
           Public reply
@@ -82,8 +89,8 @@ export function Composer({
           aria-selected={note}
           onClick={() => setMode("note")}
           className={cn(
-            "h-[28px] rounded-[999px] px-[14px] text-[13px] font-medium",
-            note ? "bg-xms-navy text-white" : "text-xms-body hover:bg-xms-tint",
+            "rounded-[999px] px-[13px] py-[7px] text-[12px] leading-none",
+            note ? "bg-xms-navy font-semibold text-white" : "text-xms-body hover:bg-xms-row-hover font-medium",
           )}
         >
           Work note
@@ -99,7 +106,7 @@ export function Composer({
             type="button"
             disabled
             title="The Axel drafting turn is not wired yet."
-            className="border-xms-line bg-xms-card text-xms-body h-[28px] rounded-[6px] border px-3 text-[13px] disabled:opacity-50"
+            className="border-xms-note-line bg-xms-quiet-fill text-xms-body rounded-[4px] border px-[11px] py-[7px] text-[12px] leading-none font-medium disabled:opacity-50"
           >
             Draft with Axel
           </button>
@@ -107,7 +114,7 @@ export function Composer({
             type="button"
             disabled
             title="There is no reply template catalog on the API yet."
-            className="border-xms-line bg-xms-card text-xms-body h-[28px] rounded-[6px] border px-3 text-[13px] disabled:opacity-50"
+            className="border-xms-line-strong bg-xms-card text-xms-body rounded-[4px] border px-[11px] py-[7px] text-[12px] leading-none font-medium disabled:opacity-50"
           >
             Template
           </button>
@@ -120,18 +127,20 @@ export function Composer({
         disabled={readOnly || pending}
         placeholder={note ? "Internal note for the team" : "Reply to the requester"}
         onChange={(event) => setBody(event.target.value)}
-        className="text-xms-ink w-full resize-y bg-transparent px-3 py-2 text-[13px] outline-none"
+        className="text-xms-ink min-h-[76px] w-full resize-y bg-transparent px-[14px] py-[14px] text-[13px] outline-none"
       />
-      {attachments ? <div className="border-xms-line flex flex-col gap-2 border-t px-3 py-2">{attachments}</div> : null}
-      <div className="border-xms-line flex items-center gap-2 border-t px-3 py-2">
-        <span className="text-xms-label text-[12px]">
+      {attachments ? (
+        <div className="border-xms-line flex flex-col gap-2 border-t px-[14px] py-3">{attachments}</div>
+      ) : null}
+      <div className="border-xms-line flex items-center gap-[10px] border-t px-[14px] py-3">
+        <span className="text-xms-muted text-[12px] leading-none">
           {blockedReason ?? (note ? "Visible to the team only" : recipientLine)}
         </span>
         <button
           type="submit"
           disabled={readOnly || pending || !body.trim() || Boolean(blockedReason)}
           className={cn(
-            "ml-auto h-[32px] rounded-[6px] px-4 text-[13px] font-semibold text-white disabled:opacity-50",
+            "ml-auto rounded-[4px] px-4 py-[10px] text-[13px] leading-none font-semibold text-white disabled:opacity-50",
             note ? "bg-xms-navy" : "bg-xms-accent hover:bg-xms-accent-hover",
           )}
         >
@@ -142,59 +151,63 @@ export function Composer({
   );
 }
 
-function actorKind(kind: string | undefined): ActorKind {
-  switch (kind) {
-    case "portal_user":
-    case "system":
-    case "ai":
-    case "api_client":
-    case "sync":
-      return kind;
-    default:
-      return "user";
-  }
-}
-
 export function formatStamp(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return `${date.toISOString().slice(0, 10)} ${date.toISOString().slice(11, 16)}`;
 }
 
-/** One message in the thread; work notes take the tint and the Internal chip. */
+/** The two letters the prototype's 34px avatar carries. */
+export function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  const letters = parts.length === 1 ? parts[0].slice(0, 2) : `${parts[0][0]}${parts[parts.length - 1][0]}`;
+  return letters.toUpperCase();
+}
+
+const THREAD_PILL = "rounded-[999px] px-[9px] py-[4px] text-[11px] leading-none font-medium whitespace-nowrap";
+
+/**
+ * One message in the thread, measured off the prototype's own markup: a 34px
+ * initials circle, then the author at `600 14px/1.3`, a channel pill, an
+ * optional marker pill and the instant, over the body. Rows are separated by
+ * a hairline and by nothing else.
+ *
+ * The built row was a card per message, tinted for a work note, so a thread of
+ * four read as four stacked cards inside the work area's own card.
+ */
 export function MessageRow({ item, viaEmail }: { item: TimelineItem; viaEmail?: boolean }) {
   const note = item.kind === "work_note";
+  const name = item.actor_name ?? "Unknown";
   return (
-    <article
-      data-kind={item.kind}
-      className={cn(
-        "flex flex-col gap-2 rounded-[6px] px-4 py-3",
-        note ? "bg-xms-tint border-xms-line border" : "xms-card",
-      )}
-    >
-      <header className="flex flex-wrap items-center gap-2 text-[12px]">
-        <ActorChip name={item.actor_name ?? "Unknown"} kind={actorKind(item.actor_kind)} />
-        <span
-          className={cn(
-            "rounded-[999px] px-2 py-[1px] text-[11px]",
-            note ? "bg-xms-navy text-white" : "bg-xms-accent-tint text-xms-accent",
-          )}
-        >
-          {note ? "Internal" : `Public${item.source ? ` · ${item.source}` : ""}`}
-        </span>
-        {item.is_first_response ? (
-          <span className="aix-state-pill" data-state="complete">
-            First response
+    <article data-kind={item.kind} className="border-xms-line-row flex gap-[13px] border-b py-4 last:border-b-0">
+      <span
+        aria-hidden
+        className={cn(
+          "xms-mono h-[34px] w-[34px] flex-none rounded-[999px] text-center text-[11px] leading-[34px] font-semibold",
+          note ? "bg-xms-navy text-white" : "bg-xms-nav-wash text-xms-accent-hover",
+        )}
+      >
+        {initialsOf(name)}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex flex-wrap items-center gap-[9px]">
+          <span className="text-xms-ink text-[14px] leading-[1.3] font-semibold">{name}</span>
+          <span className={cn(THREAD_PILL, note ? "bg-xms-navy text-white" : "bg-xms-chip text-xms-label")}>
+            {note ? "Internal" : `Public${item.source ? ` · ${item.source}` : ""}`}
           </span>
-        ) : null}
-        {viaEmail ? (
-          <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[11px]" data-via="email">
-            via email
-          </span>
-        ) : null}
-        <span className="xms-mono text-xms-label ml-auto">{formatStamp(item.created_at)}</span>
-      </header>
-      <p className="text-xms-ink text-[13px] whitespace-pre-wrap">{item.body}</p>
+          {item.is_first_response ? (
+            <span className={cn(THREAD_PILL, "bg-xms-accent-tint text-xms-accent-hover")}>First response</span>
+          ) : null}
+          {viaEmail ? (
+            <span className={cn(THREAD_PILL, "bg-xms-chip text-xms-label")} data-via="email">
+              via email
+            </span>
+          ) : null}
+          <span className="text-xms-muted text-[12px] leading-none">{formatStamp(item.created_at)}</span>
+        </header>
+        <p className="text-xms-ink mt-[10px] text-[14px] leading-[1.6] whitespace-pre-wrap">{item.body}</p>
+      </div>
     </article>
   );
 }
@@ -255,17 +268,22 @@ export function ConversationTab({ ticketKey, requesterLine, readOnly }: Conversa
           }
         }}
       />
-      <div className="flex items-center gap-2 text-[12px]">
-        <span className="xms-caption">Thread</span>
-        <label className="text-xms-label ml-auto flex items-center gap-1">
+      {/* The prototype draws the thread with no header of its own: no THREAD
+          eyebrow and no toggle, because its thread is a fixture. The eyebrow
+          is gone and the one control that changes what the thread holds
+          stands alone on its right. */}
+      <div className="mt-[6px] flex items-center">
+        <label className="text-xms-label ml-auto flex items-center gap-[6px] text-[12px]">
           <input type="checkbox" checked={showNotes} onChange={(event) => setShowNotes(event.target.checked)} />
           Show work notes
         </label>
       </div>
       {isLoading ? <Skeleton lines={4} /> : null}
-      {messages.map((item) => (
-        <MessageRow key={item.id} item={item} viaEmail={emailComments.has(item.id)} />
-      ))}
+      <div className="flex flex-col">
+        {messages.map((item) => (
+          <MessageRow key={item.id} item={item} viaEmail={emailComments.has(item.id)} />
+        ))}
+      </div>
       {data && messages.length === 0 ? <p className="text-xms-label text-[13px]">No messages yet.</p> : null}
     </div>
   );
