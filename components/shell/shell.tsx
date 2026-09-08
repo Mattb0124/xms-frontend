@@ -8,7 +8,7 @@ import { FinderBar, type FinderKind } from "@/components/shell/finder-bar";
 import { FinderOverlay, type HistoryEntry } from "@/components/shell/finder-overlay";
 import { AxelPanel } from "@/components/shell/axel-panel";
 import { NotificationsMenu } from "@/components/shell/notifications-menu";
-import { PinnedSidebar } from "@/components/shell/pinned-sidebar";
+import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
 import { initials } from "@/components/xms/actor-chip";
 import { HISTORY_KEY, PINS_KEY, STARS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
 import { matchScreen, visibleScreens } from "@/lib/routes";
@@ -110,7 +110,8 @@ export function Shell({ children }: { children: ReactNode }) {
       stars.map((path) => ({
         path,
         label: matchScreen(path.split("?")[0])?.label ?? path,
-        type: path.includes("?") ? "Saved view" : "Screen",
+        // Render 13 words the meta in lower case: "saved view", "screen".
+        type: path.includes("?") ? "saved view" : "screen",
       })),
     [stars],
   );
@@ -211,7 +212,12 @@ export function Shell({ children }: { children: ReactNode }) {
         <FinderOverlay
           kind={finder}
           screens={screens}
-          pinned={new Set([...pins, ...screens.filter((s) => s.pinned).map((s) => s.path)])}
+          // Exactly what the sidebar is showing this reader, so the pin
+          // glyph in the overlay and the row in the sidebar always agree.
+          // It used to be every ranked screen, which since the ranks run past
+          // the sixth would have drawn a pin on rows the sidebar does not
+          // carry.
+          pinned={new Set(sidebarItems(me.permissions, new Set(pins)).map((screen) => screen.path))}
           onTogglePin={togglePin}
           favourites={favourites}
           counts={counts}

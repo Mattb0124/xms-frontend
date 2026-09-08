@@ -84,7 +84,10 @@ describe("FinderOverlay, the All finder", () => {
     expect(pack).not.toBeNull();
     expect(pack).toHaveAttribute("data-navigable", "false");
     expect(pack!.tagName).toBe("SPAN");
-    expect(within(pack as HTMLElement).getByText("opens from a record")).toBeInTheDocument();
+    // Render 12 gives every screen one line, so the row says why it is not
+    // a link on its title rather than in a second run of words beside the
+    // label.
+    expect(pack).toHaveAttribute("title", expect.stringContaining("Opens from a record."));
   });
 
   it("links a record screen to its list parent", () => {

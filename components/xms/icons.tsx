@@ -5,7 +5,7 @@
  * section 6, `xms-ui.css` `.xms-icon`). Decorative by default: a caller that
  * needs a name passes one and the icon stops being hidden.
  */
-import type { SVGProps } from "react";
+import type { ComponentType, SVGProps } from "react";
 
 /**
  * The one icon scale, named by the job rather than by the number, so a size
@@ -324,6 +324,46 @@ export function PinIcon({ filled, ...props }: IconProps & { filled?: boolean }) 
       <path d="M12 13v8" />
     </Icon>
   );
+}
+
+/**
+ * The empty slot beside an unpinned screen in the All overlay. Render 12
+ * draws a pin on a pinned row and a plain circle on every other one, so the
+ * six that are pinned are read at a glance instead of by comparing the
+ * opacity of one glyph against the next.
+ */
+export function CircleIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="8" />
+    </Icon>
+  );
+}
+
+/**
+ * One icon per screen id (v3 renders 01, 08, 09, 12). The sidebar row and the
+ * All overlay row draw the same mark for the same screen, so the map lives
+ * here rather than in either of them. Anything without an entry falls back to
+ * the neutral book, so a newly registered route is never drawn without a mark.
+ */
+const SCREEN_ICON: Record<string, ComponentType<IconProps>> = {
+  "my-work": GridIcon,
+  queue: InboxIcon,
+  dispatch: ShuffleIcon,
+  quarantine: ShieldIcon,
+  my_time: ClockIcon,
+  timesheet: ClockIcon,
+  time: ClockIcon,
+  operations: ChartIcon,
+  solutions: BookIcon,
+  knowledge: BookIcon,
+  accounts: PeopleIcon,
+  roster: PeopleIcon,
+  ticket_groups: PeopleIcon,
+};
+
+export function screenIcon(screen: string | undefined): ComponentType<IconProps> {
+  return (screen && SCREEN_ICON[screen]) || BookIcon;
 }
 
 export function SwitchIcon(props: IconProps) {

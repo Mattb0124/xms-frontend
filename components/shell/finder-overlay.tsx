@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FinderKind } from "@/components/shell/finder-bar";
-import { ICON, CloseIcon, PinIcon, SearchIcon } from "@/components/xms/icons";
-import { SECTIONS, isDynamicPath, navigableHref, type Screen } from "@/lib/routes";
+import { ICON, CircleIcon, ClockIcon, CloseIcon, PinIcon, SearchIcon, screenIcon } from "@/components/xms/icons";
+import { SECTIONS, isDynamicPath, matchScreen, navigableHref, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export interface HistoryEntry {
@@ -43,17 +43,19 @@ function relative(iso: string, now = Date.now()): string {
  */
 function ScreenRow({ screen, screens, onClose }: { screen: Screen; screens: Screen[]; onClose: () => void }) {
   const href = navigableHref(screen, screens);
-  const label = (
-    <>
-      <span className="font-medium">{screen.label}</span>
-      {screen.purpose ? <span className="ml-2 text-[12px] text-white/50">{screen.purpose}</span> : null}
-    </>
-  );
+  // The purpose stays on the row as its title, never beside the label: the
+  // render draws one line per screen and the sentence wrapped every row onto
+  // two and three of them.
+  const title = screen.purpose;
   if (!href) {
     return (
-      <span className="flex-1 text-[13px] text-white/70" data-screen={screen.screen} data-navigable="false">
-        {label}
-        <span className="ml-2 text-[11px] text-white/40">opens from a record</span>
+      <span
+        className="min-w-0 flex-1 truncate text-white/70"
+        data-screen={screen.screen}
+        data-navigable="false"
+        title={title ? `${title} Opens from a record.` : "Opens from a record."}
+      >
+        {screen.label}
       </span>
     );
   }
@@ -62,9 +64,10 @@ function ScreenRow({ screen, screens, onClose }: { screen: Screen; screens: Scre
       href={href}
       onClick={onClose}
       data-screen={screen.screen}
-      className="flex-1 text-[13px] text-white hover:no-underline"
+      title={title}
+      className="min-w-0 flex-1 truncate text-white hover:no-underline"
     >
-      {label}
+      {screen.label}
     </Link>
   );
 }
@@ -100,105 +103,114 @@ export function FinderOverlay(props: FinderOverlayProps) {
         type="button"
         aria-label="Close finder"
         onClick={props.onClose}
-        className="absolute inset-0 bg-black/40"
+        className="bg-xms-overlay-scrim absolute inset-0"
       />
+      {/* The panel hangs from the bar at the prototype's own left 186 and 640
+          by 520, translucent over the dimmed workspace rather than opaque. */}
       <div
         role="dialog"
         aria-label={title}
-        className="bg-xms-navy-overlay absolute top-0 left-[208px] flex max-h-[76vh] w-[640px] flex-col rounded-b-[6px] text-white shadow-2xl"
+        className="xms-overlay absolute top-0 left-[186px] flex flex-col backdrop-blur-[14px]"
       >
-        <header className="border-xms-navy-line flex items-center gap-3 border-b px-4 py-3">
-          <span className="text-[15px] font-semibold">{title}</span>
+        <header className="xms-overlay-head flex shrink-0 items-center gap-[10px]">
+          <span className="text-[15px] leading-none font-semibold">{title}</span>
+          <span className="flex-1" />
           {props.kind === "all" ? (
-            <span className="border-xms-navy-line bg-xms-navy ml-auto flex h-8 w-[240px] items-center gap-2 rounded-[4px] border px-2">
-              <SearchIcon size={ICON.control} className="shrink-0 text-white/50" />
+            <span className="xms-overlay-field flex items-center gap-2">
+              <SearchIcon size={ICON.action} className="shrink-0" />
               <input
                 ref={input}
                 value={filter}
                 onChange={(event) => setFilter(event.target.value)}
                 placeholder="Filter screens"
                 aria-label="Filter screens"
-                className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-white/45"
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-white/70"
               />
             </span>
           ) : null}
-          <button
-            type="button"
-            onClick={props.onClose}
-            className="ml-2 text-white/60 hover:text-white"
-            aria-label="Close"
-          >
-            <CloseIcon size={ICON.field} />
+          <button type="button" onClick={props.onClose} aria-label="Close">
+            <CloseIcon size={ICON.tool} />
           </button>
         </header>
-        <div className="overflow-auto p-4">
+        {/* One scrolling column: each section is full width with its screens
+            in two columns under it, which is how the render reads a tree of
+            eight sections down 520px rather than eight columns across. */}
+        <div className="flex-1 overflow-auto pt-[10px] pb-4">
           {props.kind === "all" ? (
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <>
               {grouped.map((group) => (
                 <section key={group.section}>
-                  <p className="xms-caption mb-1 text-white/60">{group.section}</p>
-                  <ul className="flex flex-col">
-                    {group.screens.map((screen) => (
-                      <li
-                        key={screen.path}
-                        className="hover:bg-xms-navy-overlay flex items-center gap-2 rounded-[4px] px-2 py-1"
-                      >
-                        <button
-                          type="button"
-                          aria-label={props.pinned.has(screen.path) ? `Unpin ${screen.label}` : `Pin ${screen.label}`}
-                          aria-pressed={props.pinned.has(screen.path)}
-                          onClick={() => props.onTogglePin(screen.path)}
-                          className={cn(
-                            "shrink-0",
-                            props.pinned.has(screen.path) ? "text-white" : "text-white/35 hover:text-white",
-                          )}
-                        >
-                          <PinIcon size={ICON.action} filled={props.pinned.has(screen.path)} />
-                        </button>
-                        <ScreenRow screen={screen} screens={props.screens} onClose={props.onClose} />
-                        {typeof props.counts?.[screen.screen] === "number" ? (
-                          <span className="xms-mono shrink-0 rounded-[999px] bg-white/12 px-[7px] py-[1px] text-[11px] text-white/80">
-                            {props.counts[screen.screen]}
-                          </span>
-                        ) : null}
-                      </li>
-                    ))}
+                  <p className="xms-overlay-caption">{group.section}</p>
+                  <ul className="grid grid-cols-2">
+                    {group.screens.map((screen) => {
+                      const isPinned = props.pinned.has(screen.path);
+                      return (
+                        <li key={screen.path} className="xms-overlay-row">
+                          <button
+                            type="button"
+                            aria-label={isPinned ? `Unpin ${screen.label}` : `Pin ${screen.label}`}
+                            aria-pressed={isPinned}
+                            onClick={() => props.onTogglePin(screen.path)}
+                            className={cn("shrink-0", isPinned ? "text-white" : "text-white/45 hover:text-white")}
+                          >
+                            {isPinned ? <PinIcon size={ICON.action} /> : <CircleIcon size={ICON.action} />}
+                          </button>
+                          <ScreenRow screen={screen} screens={props.screens} onClose={props.onClose} />
+                          {typeof props.counts?.[screen.screen] === "number" ? (
+                            <span className="xms-overlay-badge">{props.counts[screen.screen]}</span>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </section>
               ))}
-              {grouped.length === 0 ? <p className="text-[13px] text-white/60">No screens match.</p> : null}
-            </div>
+              {grouped.length === 0 ? <p className="px-4 py-2 text-[13px] text-white/70">No screens match.</p> : null}
+            </>
           ) : props.kind === "favourites" ? (
-            <ul className="flex flex-col gap-1">
-              {favourites.map((item) => (
-                <li
-                  key={item.path}
-                  className="hover:bg-xms-navy-overlay flex items-center gap-3 rounded-[4px] px-2 py-1"
-                >
-                  <Link href={item.path} onClick={props.onClose} className="text-[13px] text-white hover:no-underline">
-                    {item.label}
-                  </Link>
-                  <span className="xms-caption ml-auto text-white/50">{item.type}</span>
-                </li>
-              ))}
+            <ul>
+              {favourites.map((item) => {
+                // The target's own mark, so a row reads the same here as it
+                // does in the sidebar (render 13).
+                const Glyph = screenIcon(matchScreen(item.path.split("?")[0])?.screen);
+                return (
+                  <li key={item.path} className="xms-overlay-row is-listed">
+                    <Glyph size={ICON.field} className="shrink-0" />
+                    <Link
+                      href={item.path}
+                      onClick={props.onClose}
+                      className="min-w-0 flex-1 truncate text-white hover:no-underline"
+                    >
+                      {item.label}
+                    </Link>
+                    <span className="shrink-0 text-[12px]">{item.type}</span>
+                  </li>
+                );
+              })}
               {favourites.length === 0 ? (
-                <li className="text-[13px] text-white/60">Star a view from the workspace pill to see it here.</li>
+                <li className="px-4 py-2 text-[13px] text-white/70">
+                  Star a view from the workspace pill to see it here.
+                </li>
               ) : null}
             </ul>
           ) : (
-            <ul className="flex flex-col gap-1">
+            <ul>
               {history.map((entry) => (
-                <li
-                  key={entry.path + entry.at}
-                  className="hover:bg-xms-navy-overlay flex items-center gap-3 rounded-[4px] px-2 py-1"
-                >
-                  <Link href={entry.path} onClick={props.onClose} className="text-[13px] text-white hover:no-underline">
+                <li key={entry.path + entry.at} className="xms-overlay-row is-listed">
+                  <ClockIcon size={ICON.field} className="shrink-0" />
+                  <Link
+                    href={entry.path}
+                    onClick={props.onClose}
+                    className="min-w-0 flex-1 truncate text-white hover:no-underline"
+                  >
                     {entry.label}
                   </Link>
-                  <span className="xms-mono ml-auto text-[11px] text-white/50">{relative(entry.at)}</span>
+                  <span className="shrink-0 text-[12px]">{relative(entry.at)}</span>
                 </li>
               ))}
-              {history.length === 0 ? <li className="text-[13px] text-white/60">Nothing visited yet.</li> : null}
+              {history.length === 0 ? (
+                <li className="px-4 py-2 text-[13px] text-white/70">Nothing visited yet.</li>
+              ) : null}
             </ul>
           )}
         </div>

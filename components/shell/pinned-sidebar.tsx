@@ -1,21 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ComponentType } from "react";
-import {
-  ICON,
-  BookIcon,
-  ChartIcon,
-  ClockIcon,
-  GridIcon,
-  InboxIcon,
-  PencilIcon,
-  PeopleIcon,
-  ShieldIcon,
-  ShuffleIcon,
-  StarIcon,
-  type IconProps,
-} from "@/components/xms/icons";
+import { ICON, GridIcon, PencilIcon, StarIcon, screenIcon } from "@/components/xms/icons";
 import { Skeleton } from "@/components/xms/skeleton";
 import { pinnedScreens, visibleScreens, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -38,28 +24,6 @@ export interface PinnedSidebarProps {
   onBrowseAll: () => void;
   onEditPins: () => void;
 }
-
-/**
- * One icon per screen id (v3 renders 01, 08, 09): the sidebar in the renders
- * is an icon, a label and a right-aligned count, and the built sidebar had
- * only the label. Anything without an entry falls back to the neutral book, so
- * a newly pinned route is never drawn without a mark.
- */
-const SCREEN_ICON: Record<string, ComponentType<IconProps>> = {
-  "my-work": GridIcon,
-  queue: InboxIcon,
-  dispatch: ShuffleIcon,
-  quarantine: ShieldIcon,
-  my_time: ClockIcon,
-  timesheet: ClockIcon,
-  time: ClockIcon,
-  operations: ChartIcon,
-  solutions: BookIcon,
-  knowledge: BookIcon,
-  accounts: PeopleIcon,
-  roster: PeopleIcon,
-  ticket_groups: PeopleIcon,
-};
 
 export function sidebarItems(permissions: ReadonlySet<string> | undefined, extraPins: ReadonlySet<string>): Screen[] {
   if (!permissions) return [];
@@ -115,7 +79,7 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
             {items.map((screen) => {
               const active = props.currentPath === screen.path;
               const count = props.counts?.[screen.screen];
-              const ScreenIcon = SCREEN_ICON[screen.screen] ?? BookIcon;
+              const ScreenIcon = screenIcon(screen.screen);
               return (
                 <Link
                   key={screen.path}
