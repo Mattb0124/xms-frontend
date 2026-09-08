@@ -10,6 +10,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // Many jsdom files run in parallel; a component test that takes 2 s on its
+    // own can exceed the 5 s default under that load. The gate must fail on
+    // real breakage, never on scheduling.
+    testTimeout: 20_000,
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules/**", ".next/**", "e2e/**"],
     coverage: { provider: "v8", reporter: ["text", "lcov"] },

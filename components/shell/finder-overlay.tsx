@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FinderKind } from "@/components/shell/finder-bar";
-import { SECTIONS, type Screen } from "@/lib/routes";
+import { SECTIONS, isDynamicPath, navigableHref, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export interface HistoryEntry {
@@ -32,6 +32,40 @@ function relative(iso: string, now = Date.now()): string {
   return `${Math.round(hours / 24)}d ago`;
 }
 
+/**
+ * One row in the All overlay. A screen with a dynamic segment has no address
+ * of its own, so it links to its list parent when there is one the viewer may
+ * open and is otherwise rendered as plain text. Nothing here ever builds an
+ * href from a path pattern (frontend review finding 1).
+ */
+function ScreenRow({ screen, screens, onClose }: { screen: Screen; screens: Screen[]; onClose: () => void }) {
+  const href = navigableHref(screen, screens);
+  const label = (
+    <>
+      <span className="font-medium">{screen.label}</span>
+      {screen.purpose ? <span className="ml-2 text-[12px] text-white/50">{screen.purpose}</span> : null}
+    </>
+  );
+  if (!href) {
+    return (
+      <span className="flex-1 text-[13px] text-white/70" data-screen={screen.screen} data-navigable="false">
+        {label}
+        <span className="ml-2 text-[11px] text-white/40">opens from a record</span>
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      onClick={onClose}
+      data-screen={screen.screen}
+      className="flex-1 text-[13px] text-white hover:no-underline"
+    >
+      {label}
+    </Link>
+  );
+}
+
 /** One overlay, three data sources (Wireframes v2 section 2). Navy panel under the finder bar. */
 export function FinderOverlay(props: FinderOverlayProps) {
   const [filter, setFilter] = useState("");
@@ -49,6 +83,11 @@ export function FinderOverlay(props: FinderOverlayProps) {
       (group) => group.screens.length > 0,
     );
   }, [props.screens, filter]);
+
+  // A stored pin or visit can only ever be a concrete path; a pattern here
+  // would reach a Link and crash the router, so it is dropped rather than shown.
+  const favourites = useMemo(() => props.favourites.filter((item) => !isDynamicPath(item.path)), [props.favourites]);
+  const history = useMemo(() => props.history.filter((entry) => !isDynamicPath(entry.path)), [props.history]);
 
   const title =
     props.kind === "all"
@@ -103,16 +142,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                         key={screen.path}
                         className="hover:bg-xms-navy-overlay flex items-center gap-2 rounded-[4px] px-2 py-1"
                       >
-                        <Link
-                          href={screen.path.replace("[key]", "")}
-                          onClick={props.onClose}
-                          className="flex-1 text-[13px] text-white hover:no-underline"
-                        >
-                          <span className="font-medium">{screen.label}</span>
-                          {screen.purpose ? (
-                            <span className="ml-2 text-[12px] text-white/50">{screen.purpose}</span>
-                          ) : null}
-                        </Link>
+                        <ScreenRow screen={screen} screens={props.screens} onClose={props.onClose} />
                         <button
                           type="button"
                           aria-label={props.pinned.has(screen.path) ? `Unpin ${screen.label}` : `Pin ${screen.label}`}
@@ -134,7 +164,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
             </div>
           ) : props.kind === "favourites" ? (
             <ul className="flex flex-col gap-1">
-              {props.favourites.map((item) => (
+              {favourites.map((item) => (
                 <li
                   key={item.path}
                   className="hover:bg-xms-navy-overlay flex items-center gap-3 rounded-[4px] px-2 py-1"
@@ -145,13 +175,13 @@ export function FinderOverlay(props: FinderOverlayProps) {
                   <span className="xms-caption ml-auto text-white/50">{item.type}</span>
                 </li>
               ))}
-              {props.favourites.length === 0 ? (
+              {favourites.length === 0 ? (
                 <li className="text-[13px] text-white/60">Star a view from the workspace pill to see it here.</li>
               ) : null}
             </ul>
           ) : (
             <ul className="flex flex-col gap-1">
-              {props.history.map((entry) => (
+              {history.map((entry) => (
                 <li
                   key={entry.path + entry.at}
                   className="hover:bg-xms-navy-overlay flex items-center gap-3 rounded-[4px] px-2 py-1"
@@ -162,7 +192,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                   <span className="xms-mono ml-auto text-[11px] text-white/50">{relative(entry.at)}</span>
                 </li>
               ))}
-              {props.history.length === 0 ? <li className="text-[13px] text-white/60">Nothing visited yet.</li> : null}
+              {history.length === 0 ? <li className="text-[13px] text-white/60">Nothing visited yet.</li> : null}
             </ul>
           )}
         </div>

@@ -432,6 +432,29 @@ export function pinnedScreens(permissions: ReadonlySet<string> | string[] | unde
   return visibleScreens(permissions).filter((screen) => screen.pinned);
 }
 
+/** A path carrying a dynamic segment (`/accounts/[id]`) is a pattern, not an address. */
+export function isDynamicPath(path: string): boolean {
+  return path.includes("[");
+}
+
+/**
+ * The address a registry row may be linked to, or `null` when it has none.
+ *
+ * A concrete path is its own address. A pattern has no address of its own,
+ * so it borrows its list parent when that parent is itself a screen the
+ * caller may see; otherwise the row is not navigable and the caller must
+ * render it without a link. A dynamic href reaching a `next/link` throws
+ * "Dynamic href found in <Link>" and takes the whole application down
+ * (frontend review finding 1), so no caller builds one by hand.
+ */
+export function navigableHref(screen: Screen, permitted: readonly Screen[] = SCREENS): string | null {
+  if (!isDynamicPath(screen.path)) return screen.path;
+  const parent = screen.path.replace(/\/\[[^\]]+\]/g, "");
+  if (isDynamicPath(parent)) return null;
+  const target = parent === "" ? "/" : parent;
+  return permitted.some((row) => row.path === target) ? target : null;
+}
+
 function toPattern(path: string): RegExp {
   const source = path.replace(/[.*+?^${}()|\\]/g, "\\$&").replace(/\[[^\]]+\]/g, "[^/]+");
   return new RegExp(`^${source}/?$`);
