@@ -16,6 +16,7 @@ import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
+import { deadlineLine, isHeld, reviewPill } from "@/lib/reporting/review";
 import {
   CADENCES,
   cadenceLabel,
@@ -33,6 +34,7 @@ import {
   RECIPIENT_KINDS,
   recipientLabel,
   requestedByLabel,
+  reviewRequiredNote,
   runNowBody,
   scheduleBody,
   scheduleError,
@@ -61,6 +63,17 @@ const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
 const SMALL = "h-[26px] px-2 text-[12px]";
 
 export { DeliveryList };
+
+/**
+ * The review state beside the run's own status (functional 5.8), on the
+ * `--state-*` signal trios: a held run needs somebody, a run past its
+ * deadline is overdue, and a run review never touched carries nothing.
+ */
+function ReviewPill({ status }: { status: string }) {
+  const pill = reviewPill(status);
+  if (!pill) return null;
+  return <SignalPill tone={pill.tone} label={pill.label} />;
+}
 
 function userOptions(users: UserRecord[] | undefined) {
   return (users ?? []).filter((user) => user.status !== "deactivated");
@@ -155,6 +168,7 @@ function ScheduleForm({
   accountId,
   title,
   draft,
+  graceHours,
   onChange,
   onSubmit,
   onCancel,
@@ -164,6 +178,8 @@ function ScheduleForm({
   accountId: string;
   title: string;
   draft: ScheduleDraft;
+  /** The schedule's own grace period, so the sentence states the deadline it really gives. */
+  graceHours?: number;
   onChange: (next: ScheduleDraft) => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -259,6 +275,18 @@ function ScheduleForm({
             onChange={(event) => onChange({ ...draft, enabled: event.target.checked })}
           />
         </FieldRow>
+        <FieldRow label="Review before sending" htmlFor="sched-review">
+          <div className="flex items-start gap-3">
+            <input
+              id="sched-review"
+              type="checkbox"
+              className="mt-[3px] h-4 w-4"
+              checked={draft.review_required}
+              onChange={(event) => onChange({ ...draft, review_required: event.target.checked })}
+            />
+            <span className="text-xms-label max-w-[520px] text-[12px]">{reviewRequiredNote(graceHours)}</span>
+          </div>
+        </FieldRow>
         <div className="flex flex-col gap-2">
           <span className="text-xms-label text-[12px]">Distribution</span>
           {draft.distribution.length === 0 ? (
@@ -330,10 +358,16 @@ function RunNowPanel({
       const outcome = await runNow({ id: schedule.id, accountId, body: runNowBody(start, end) }).unwrap();
       setResult(outcome);
       track({ account_id: accountId, schedule_id: schedule.id, run_id: outcome.run_id, status: outcome.status });
+      // A schedule with review required holds its run: nothing was sent, and
+      // saying it was would be the one thing functional 5.8 forbids.
       push({
-        title: outcome.status === "sent" ? "Report pack sent" : "Report pack built, nobody reached",
+        title: isHeld(outcome.status)
+          ? "Report pack held for review"
+          : outcome.status === "sent"
+            ? "Report pack sent"
+            : "Report pack built, nobody reached",
         detail: `${outcome.period.start} to ${outcome.period.end}`,
-        tone: outcome.status === "sent" ? "success" : "error",
+        tone: outcome.status === "failed" ? "error" : "success",
       });
     } catch (caught) {
       setError(describeScheduleError(scheduleError(caught)));
@@ -357,11 +391,24 @@ function RunNowPanel({
               {result.period.start} to {result.period.end}
             </span>
             <RunStatusPill status={result.status} />
+            <ReviewPill status={result.status} />
+            {isHeld(result.status) ? (
+              <Link href={`/reports/runs/${result.run_id}`} className="text-xms-accent font-medium hover:underline">
+                Review it
+              </Link>
+            ) : null}
             <Link href={`/reports/packs/${result.pack_id}`} className="text-xms-accent hover:underline">
               Open pack
             </Link>
           </p>
-          <DeliveryList delivery={result.delivery} />
+          {isHeld(result.status) ? (
+            <p className="text-xms-label text-[12px]">
+              {deadlineLine({ status: result.status, review_due_at: result.review_due_at }) ??
+                "It is waiting on a reviewer; nothing has been sent."}
+            </p>
+          ) : (
+            <DeliveryList delivery={result.delivery} />
+          )}
         </div>
       ) : (
         <form
@@ -446,7 +493,10 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                     </span>
                   </td>
                   <td className={CELL}>
-                    <RunStatusPill status={run.status} />
+                    <span className="flex flex-wrap items-center gap-2">
+                      <RunStatusPill status={run.status} />
+                      <ReviewPill status={run.status} />
+                    </span>
                     {run.error ? <span className="text-xms-label block text-[11px]">{run.error}</span> : null}
                   </td>
                   <td className={CELL}>
@@ -473,13 +523,20 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                     </div>
                   </td>
                   <td className={cn(CELL, "text-right")}>
-                    {run.pack_id ? (
-                      <Link href={`/reports/packs/${run.pack_id}`} className="text-xms-accent hover:underline">
-                        Open pack
-                      </Link>
-                    ) : (
-                      <span className="text-xms-muted">No pack</span>
-                    )}
+                    <span className="flex flex-wrap items-center justify-end gap-3">
+                      {isHeld(run.status) ? (
+                        <Link href={`/reports/runs/${run.id}`} className="text-xms-accent font-medium hover:underline">
+                          Review
+                        </Link>
+                      ) : null}
+                      {run.pack_id ? (
+                        <Link href={`/reports/packs/${run.pack_id}`} className="text-xms-accent hover:underline">
+                          Open pack
+                        </Link>
+                      ) : (
+                        <span className="text-xms-muted">No pack</span>
+                      )}
+                    </span>
                   </td>
                 </tr>
               );
@@ -502,6 +559,8 @@ interface Editing {
   id: string | null;
   version: number | null;
   draft: ScheduleDraft;
+  /** The row's own grace period, so the review sentence names the real deadline. */
+  graceHours?: number;
 }
 
 /**
@@ -599,6 +658,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
                 <th className={HEAD}>Period</th>
                 <th className={HEAD}>Next run</th>
                 <th className={HEAD}>Recipients</th>
+                <th className={HEAD}>Review</th>
                 <th className={HEAD}>Enabled</th>
                 <th className={cn(HEAD, "text-right")}>Actions</th>
               </tr>
@@ -615,6 +675,17 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
                       <span className="text-xms-muted">Nobody</span>
                     ) : (
                       <span className="text-[12px]">{schedule.distribution.map(recipientLabel).join(", ")}</span>
+                    )}
+                  </td>
+                  <td className={CELL} data-review={schedule.review_required ? "required" : "off"}>
+                    {schedule.review_required ? (
+                      <SignalPill
+                        tone="needs-input"
+                        label="Held for review"
+                        title={reviewRequiredNote(schedule.review_grace_hours)}
+                      />
+                    ) : (
+                      <span className="text-xms-muted">Sends on run</span>
                     )}
                   </td>
                   <td className={CELL}>
@@ -635,6 +706,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
                             id: schedule.id,
                             version: schedule.version,
                             draft: draftFromSchedule(schedule),
+                            graceHours: schedule.review_grace_hours,
                           });
                         }}
                       >
@@ -654,7 +726,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
               ))}
               {schedules.data.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-xms-label px-4 py-8 text-center text-[13px]">
+                  <td colSpan={8} className="text-xms-label px-4 py-8 text-center text-[13px]">
                     No schedule yet. Add one to build and send report packs on a cadence.
                   </td>
                 </tr>
@@ -668,6 +740,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
           accountId={accountId}
           title={editing.id ? "Edit schedule" : "New schedule"}
           draft={editing.draft}
+          graceHours={editing.graceHours}
           onChange={(draft) => setEditing({ ...editing, draft })}
           onSubmit={() => void save()}
           onCancel={() => setEditing(null)}

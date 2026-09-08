@@ -6,27 +6,32 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { StatePill } from "@/components/xms/state-pill";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { runStatusLabel } from "@/lib/reporting/review";
 import { openExternal } from "@/lib/safe-url";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useMe } from "@/redux/me";
 import { useGenerateWsrMutation, useReportRunsQuery, type ReportRun } from "@/redux/reportingApi";
 
+/**
+ * The run status on the v3 state ramp. Review before send (functional 5.8)
+ * added four states a run now passes through, so the ramp carries them all
+ * rather than dropping the unknown ones into the closed grey: both held
+ * states wait on a person, `approved` and `sending` are on their way out, and
+ * a cancelled run takes the closed vocabulary's `skipped`.
+ */
 const RUN_RAMP: Record<string, string> = {
   generating: "in-progress",
   ready_for_review: "awaiting-approval",
+  awaiting_review: "awaiting-approval",
+  approved: "in-progress",
+  sending: "in-progress",
   sent: "resolved",
+  skipped: "closed",
   failed: "closed",
 };
 
-const RUN_LABEL: Record<string, string> = {
-  generating: "Generating",
-  ready_for_review: "Ready for review",
-  sent: "Sent",
-  failed: "Failed",
-};
-
 export function RunStatusPill({ status }: { status: string }) {
-  return <StatePill state={RUN_RAMP[status] ?? "closed"} label={RUN_LABEL[status] ?? status.replace(/_/g, " ")} />;
+  return <StatePill state={RUN_RAMP[status] ?? "closed"} label={runStatusLabel(status)} />;
 }
 
 /**

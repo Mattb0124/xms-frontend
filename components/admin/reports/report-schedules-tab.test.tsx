@@ -1,9 +1,9 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReportSchedulesTab } from "@/components/admin/reports/report-schedules-tab";
-import { WEEKLY_RUN_DAY_MESSAGE } from "@/lib/reporting/schedules";
+import { reviewRequiredNote, WEEKLY_RUN_DAY_MESSAGE } from "@/lib/reporting/schedules";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
-import { aDelivery, aRun, aSchedule, INTERNAL_USER_ID, SCHEDULE_ID } from "@/test-kit/reporting";
+import { aDelivery, aRun, aSchedule, INTERNAL_USER_ID, REVIEW_RUN_ID, SCHEDULE_ID } from "@/test-kit/reporting";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" }));
 
@@ -123,6 +123,126 @@ describe("ReportSchedulesTab", () => {
     expect(failed).toHaveTextContent("Not delivered yet");
     expect(failed).toHaveTextContent("No pack");
     expect(within(failed).queryByRole("link", { name: "Open pack" })).not.toBeInTheDocument();
+  });
+
+  it("marks the schedules that hold their runs and the runs that are waiting, linking each held run to the review", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["reports:manage"]),
+      [SCHEDULES]: () =>
+        json([
+          aSchedule({ review_required: true, review_grace_hours: 48 }),
+          aSchedule({ id: "s-2", name: "Quarter review", review_required: false }),
+        ]),
+      [RUNS]: () =>
+        json([
+          aRun({ id: REVIEW_RUN_ID, status: "ready_for_review", delivery: null, pack_id: "pack-held" }),
+          aRun({
+            id: "run-late",
+            status: "awaiting_review",
+            delivery: null,
+            pack_id: "pack-late",
+            period_start: "2026-08-24",
+            period_end: "2026-08-30",
+          }),
+          aRun({ id: "run-old", status: "sent", period_start: "2026-08-17", period_end: "2026-08-23" }),
+        ]),
+      ...directories,
+    });
+    renderDesk(<ReportSchedulesTab accountId="acct-1" />);
+
+    const table = await screen.findByRole("table", { name: "Report schedules" });
+    const holding = within(table).getByRole("row", { name: /Weekly status report/ });
+    const held = within(holding).getByText("Held for review");
+    expect(held).toHaveAttribute("data-state", "needs-input");
+    expect(held).toHaveAttribute("title", expect.stringContaining("48 hours"));
+    expect(within(table).getByRole("row", { name: /Quarter review/ })).toHaveTextContent("Sends on run");
+
+    const runs = screen.getByRole("table", { name: "Report runs" });
+    const waiting = within(runs).getByRole("row", { name: /2026-08-31 to 2026-09-06/ });
+    // The run's own status and its review state, the second on the signal trios.
+    expect(within(waiting).getAllByText("Ready for review").length).toBe(2);
+    expect(within(waiting).getByText("Ready for review", { selector: ".aix-state-pill" })).toHaveAttribute(
+      "data-state",
+      "needs-input",
+    );
+    expect(within(waiting).getByRole("link", { name: "Review" })).toHaveAttribute(
+      "href",
+      `/reports/runs/${REVIEW_RUN_ID}`,
+    );
+    // A held run has delivered nothing, and the row says so rather than
+    // counting recipients it never wrote to.
+    expect(waiting.querySelector("[data-delivery-summary]")).toHaveTextContent("Not delivered yet");
+
+    const overdue = within(runs).getByRole("row", { name: /2026-08-24 to 2026-08-30/ });
+    expect(within(overdue).getByText("Awaiting review", { selector: ".aix-state-pill" })).toHaveAttribute(
+      "data-state",
+      "overdue",
+    );
+    expect(within(overdue).getByRole("link", { name: "Review" })).toHaveAttribute("href", "/reports/runs/run-late");
+
+    // A run review never touched carries no review pill and no review link.
+    const decided = within(runs).getByRole("row", { name: /2026-08-17 to 2026-08-23/ });
+    expect(within(decided).queryByRole("link", { name: "Review" })).not.toBeInTheDocument();
+    expect(decided.querySelector(".aix-state-pill")).toBeNull();
+  });
+
+  it("carries the review switch with a sentence, and sends the flag with the schedule", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["reports:manage"]),
+      [SCHEDULES]: () => json([]),
+      [RUNS]: () => json([]),
+      [CREATE]: () => json(aSchedule({ id: "new", review_required: true }), 201),
+      ...directories,
+    });
+    renderDesk(<ReportSchedulesTab accountId="acct-1" />);
+    await screen.findByText(/No schedule yet/);
+    fireEvent.click(screen.getByRole("button", { name: "New schedule" }));
+    const form = await screen.findByRole("form", { name: "Schedule" });
+
+    const toggle = within(form).getByLabelText("Review before sending");
+    expect(toggle).not.toBeChecked();
+    expect(form).toHaveTextContent(reviewRequiredNote());
+    fireEvent.change(within(form).getByLabelText("Name"), { target: { value: "Weekly" } });
+    fireEvent.click(toggle);
+    fireEvent.click(within(form).getByRole("button", { name: "Save" }));
+
+    await screen.findByText("Schedule created");
+    expect(calls.find((call) => call.key === CREATE)?.body).toMatchObject({ review_required: true });
+  });
+
+  it("says a run of a review schedule was held, not sent, and offers the review", async () => {
+    stubFetch({
+      "GET /v1/admin/me": me(["reports:manage"]),
+      [SCHEDULES]: () => json([aSchedule({ review_required: true })]),
+      [RUNS]: () => json([]),
+      [RUN_NOW]: () =>
+        json(
+          {
+            run_id: REVIEW_RUN_ID,
+            pack_id: "pack-held",
+            period: { start: "2026-08-31", end: "2026-09-06" },
+            delivery: [],
+            status: "ready_for_review",
+            review_due_at: "2026-09-08T06:00:00Z",
+          },
+          201,
+        ),
+      ...directories,
+    });
+    renderDesk(<ReportSchedulesTab accountId="acct-1" />);
+    await screen.findByRole("table", { name: "Report schedules" });
+    fireEvent.click(screen.getByRole("button", { name: "Run Weekly status report now" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Run" }));
+
+    await screen.findByText("Report pack held for review");
+    const result = screen.getByTestId("run-now-result");
+    expect(within(result).getByText("Approve or cancel it before 2026-09-08 06:00.")).toBeTruthy();
+    expect(within(result).getByRole("link", { name: "Review it" })).toHaveAttribute(
+      "href",
+      `/reports/runs/${REVIEW_RUN_ID}`,
+    );
+    // Nothing was delivered, so no outcome list is drawn at all.
+    expect(within(result).queryByRole("list", { name: "Delivery outcomes" })).not.toBeInTheDocument();
   });
 
   it("creates a monthly schedule with a contact recipient, sending the body the API takes", async () => {
