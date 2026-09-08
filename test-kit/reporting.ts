@@ -11,6 +11,7 @@ import type {
   ReportRun,
   ReportSchedule,
   ScheduleRun,
+  SecurityDashboard as SecurityData,
 } from "@/redux/reportingApi";
 
 export const SCHEDULE_ID = "33333333-3333-4333-8333-333333333333";
@@ -269,6 +270,42 @@ export function anAuditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
     entity_id: "t-1",
     outcome: "success",
     attrs: { old: { state: "new" }, new: { state: "assigned" } },
+    ...overrides,
+  };
+}
+
+/**
+ * The Security dashboard as the API answers it over a seven day window: a
+ * denial and a failed sign-in in the stream, two clients the limiter turned
+ * away, a paused subscription and a tripped instance, one quarantined file
+ * and one open dead letter queue.
+ */
+export function aSecurityDashboard(overrides: Partial<SecurityData> = {}): SecurityData {
+  return {
+    by_type: [
+      { event_type: "authz.permission.denied", outcome: "denied", n: 12 },
+      { event_type: "auth.signin.failed", outcome: "denied", n: 4 },
+      { event_type: "admin.role.updated", outcome: "success", n: 2 },
+      { event_type: "data.export.produced", outcome: "success", n: 3 },
+      { event_type: "abuse.rate_limited", outcome: "denied", n: 3 },
+      { event_type: "abuse.webhook.bad_signature", outcome: "denied", n: 1 },
+    ],
+    signin_failures: [{ actor_id: "user-ada", ip_hash: "ip-9f2c", n: 4 }],
+    isolation_probes: [{ actor_id: "user-eve", n: 2 }],
+    abuse_by_kind: [
+      { event_type: "abuse.rate_limited", n: 3 },
+      { event_type: "abuse.webhook.bad_signature", n: 1 },
+    ],
+    rate_limited_clients: [
+      { actor_id: "client-a", principal_kind: "api_client", n: 2 },
+      { actor_id: "client-b", principal_kind: "api_client", n: 1 },
+    ],
+    paused_integrations: [
+      { kind: "webhook", reason: "continuous_failure", n: 1 },
+      { kind: "connector", reason: "error ratio", n: 1 },
+    ],
+    quarantined_attachments: [{ origin: "email", n: 1 }],
+    open_dead_letters: [{ queue: "outbox", n: 5, oldest: "2026-09-01T04:00:00Z" }],
     ...overrides,
   };
 }

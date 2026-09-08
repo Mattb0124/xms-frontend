@@ -71,10 +71,32 @@ export interface AccountDashboard {
   notable?: Notable[];
 }
 
+/**
+ * The Security dashboard (Audit & Analytics 7.1, XA-03). Every figure is
+ * counted on the server from a table that exists and the browser only
+ * renders it. The five later lists are optional because an API older than
+ * the figure does not send them, and the screen leaves the tile and the
+ * panel out rather than printing a zero it never read.
+ *
+ * Two of them read the present rather than the window, because neither
+ * `acct.webhook_subscriptions` nor `acct.connector_instances` timestamps a
+ * pause and `sys.dead_letters` is a backlog and not a rate. Their panels say
+ * so, rather than letting the period pills imply otherwise.
+ */
 export interface SecurityDashboard {
   by_type: Array<{ event_type: string; outcome: string; n: number }>;
   signin_failures: Array<{ actor_id: string; ip_hash: string | null; n: number }>;
   isolation_probes: Array<{ actor_id: string; n: number }>;
+  /** The `abuse.*` group: rate limits, bad webhook signatures, mail loops, rejected uploads, CSP reports. */
+  abuse_by_kind?: Array<{ event_type: string; n: number }>;
+  /** Who the rate limiter turned away, most often first. */
+  rate_limited_clients?: Array<{ actor_id: string; principal_kind: string | null; n: number }>;
+  /** What is paused right now: webhook subscriptions and tripped connector instances, by reason. */
+  paused_integrations?: Array<{ kind: string; reason: string; n: number }>;
+  /** Files the scanner held back in the window, by where they came from. */
+  quarantined_attachments?: Array<{ origin: string; n: number }>;
+  /** Queues with work nobody has claimed back, and the oldest failure in each. */
+  open_dead_letters?: Array<{ queue: string; n: number; oldest: string }>;
 }
 
 export interface UsageCount {
