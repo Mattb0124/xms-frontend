@@ -11,6 +11,7 @@ import { AccountContractsTab } from "@/components/admin/contracts/account-contra
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
+import { ReportSchedulesTab } from "@/components/admin/reports/report-schedules-tab";
 import { AccountBudgetView } from "@/components/time/budget-view";
 import {
   AccountStatusPill,
@@ -55,6 +56,7 @@ const TABS = [
   { key: "contracts", label: "Contracts" },
   { key: "budget", label: "Budget" },
   { key: "billing", label: "Billing" },
+  { key: "reports", label: "Report packs" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
   { key: "configuration", label: "Configuration" },
@@ -316,6 +318,7 @@ function AccountRecordScreen() {
       {tab === "contracts" ? <AccountContractsTab accountId={id} /> : null}
       {tab === "budget" ? <AccountBudgetView accountId={id} /> : null}
       {tab === "billing" ? <BillingPeriodsTab accountId={id} /> : null}
+      {tab === "reports" ? <ReportSchedulesTab accountId={id} /> : null}
       {tab === "intake" ? <IntakeTab accountId={id} /> : null}
       {tab === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
       {tab === "configuration" ? <AccountConfigTab accountId={id} /> : null}
@@ -325,7 +328,7 @@ function AccountRecordScreen() {
 
 /**
  * Registered as `admin.account`: Overview, Settings, Access, Calendars,
- * Contracts, Budget, Billing, Intake, Connectors and Configuration tabs with the
+ * Contracts, Budget, Billing, Report packs, Intake, Connectors and Configuration tabs with the
  * status actions and the skills coverage chips under the record bar
  * (capacity:view); `?tab=` picks the opening tab.
  */

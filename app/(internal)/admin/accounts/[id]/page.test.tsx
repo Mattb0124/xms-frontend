@@ -4,6 +4,7 @@ import AdminAccountRecordPage, { initialTab } from "@/app/(internal)/admin/accou
 import { aSkillsMatrixAccount } from "@/redux/capacityApi.test";
 import { aBudget } from "@/redux/timeApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
+import { aRun, aSchedule } from "@/test-kit/reporting";
 
 const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
 let search = "tab=budget";
@@ -37,6 +38,7 @@ describe("initialTab", () => {
   it("opens the tab a link names and falls back to the overview", () => {
     expect(initialTab(new URLSearchParams("tab=budget"))).toBe("budget");
     expect(initialTab(new URLSearchParams("tab=contracts"))).toBe("contracts");
+    expect(initialTab(new URLSearchParams("tab=reports"))).toBe("reports");
     expect(initialTab(new URLSearchParams("tab=nonsense"))).toBe("overview");
     expect(initialTab(new URLSearchParams(""))).toBe("overview");
     expect(initialTab(null)).toBe("overview");
@@ -57,6 +59,33 @@ describe("AdminAccountRecordPage", () => {
     await screen.findByLabelText("CT10001 Support retainer");
     expect(screen.getByRole("tab", { name: "Budget" })).toHaveAttribute("aria-selected", "true");
     expect(calls.some((call) => call.key === `GET /v1/accounts/${ACCOUNT_ID}/budget`)).toBe(true);
+  });
+
+  it("opens the Report packs tab under reports:manage, reading the schedules and the runs for this account", async () => {
+    search = "tab=reports";
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts", "reports:manage"]),
+      [`GET /v1/admin/accounts/${ACCOUNT_ID}`]: account,
+      "GET /v1/reporting/schedules": () => json([aSchedule({ account_id: ACCOUNT_ID })]),
+      "GET /v1/reporting/runs": () => json([aRun({ account_id: ACCOUNT_ID })]),
+    });
+    renderDesk(<AdminAccountRecordPage />);
+    await screen.findByRole("table", { name: "Report schedules" });
+    expect(screen.getByRole("tab", { name: "Report packs" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Weekly on Monday at 06:00")).toBeInTheDocument();
+    expect(calls.find((call) => call.key === "GET /v1/reporting/schedules")?.search).toBe(`?account=${ACCOUNT_ID}`);
+    expect(calls.find((call) => call.key === "GET /v1/reporting/runs")?.search).toBe(`?account=${ACCOUNT_ID}`);
+  });
+
+  it("fails closed on the Report packs tab without reports:manage", async () => {
+    search = "tab=reports";
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts", "tickets:view"]),
+      [`GET /v1/admin/accounts/${ACCOUNT_ID}`]: account,
+    });
+    renderDesk(<AdminAccountRecordPage />);
+    await screen.findByText(/Needs the reports:manage permission/);
+    expect(calls.some((call) => call.key.startsWith("GET /v1/reporting/"))).toBe(false);
   });
 
   it("fails closed on the Budget tab without tickets:view and leaves the skills lens alone without capacity:view", async () => {
