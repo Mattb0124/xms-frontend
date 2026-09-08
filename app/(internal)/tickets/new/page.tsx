@@ -11,6 +11,7 @@ import {
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "@/components/admin/primitives";
+import { HeaderAction } from "@/components/shell/content-header-bar";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
 import { DropZone } from "@/components/tickets/attachments";
 import { formatBytes, uploadAttachment } from "@/lib/attachments/upload";
@@ -156,6 +157,7 @@ function NewTicketForm() {
 
   return (
     <form
+      id="new-ticket"
       className="flex flex-col gap-4"
       aria-label="New ticket"
       onSubmit={(event) => {
@@ -163,20 +165,19 @@ function NewTicketForm() {
         if (canSubmit) void submit();
       }}
     >
-      <div className="flex items-center gap-3">
-        <Link href="/tickets" className="text-xms-label hover:text-xms-ink text-[12px]">
-          ← Queue
+      {/* The screen was named twice, "New ticket" on the strip and "Ticket ·
+          New record" in a title row under it, with a "← Queue" link the ticket
+          record itself already dropped. The two actions are the screen's, so
+          they stand in the toolbar right, which is where Quarantine's own
+          title row went in pass three. */}
+      <HeaderAction>
+        <Link href="/tickets" className={`${SECONDARY_BUTTON} inline-flex items-center`}>
+          Cancel
         </Link>
-        <h1 className="text-xms-ink text-[18px] font-semibold">Ticket · New record</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <Link href="/tickets" className={`${SECONDARY_BUTTON} inline-flex items-center`}>
-            Cancel
-          </Link>
-          <button type="submit" disabled={!canSubmit} className={PRIMARY_BUTTON}>
-            Submit
-          </button>
-        </div>
-      </div>
+        <button type="submit" form="new-ticket" disabled={!canSubmit} className={PRIMARY_BUTTON}>
+          Submit
+        </button>
+      </HeaderAction>
       {error ? (
         <div className="rounded-[6px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-4 py-2">
           <InlineError message={error} />
