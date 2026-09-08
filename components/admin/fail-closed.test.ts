@@ -127,6 +127,7 @@ const CONTRACTS_VIEW_READS = [
   },
   { hook: "useRateCardsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/rate-cards" },
   { hook: "useBillingPeriodsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/billing-periods" },
+  { hook: "useListEngagementsQuery", slice: "redux/ticketsApi.ts", route: "/v1/accounts/${accountId}/engagements" },
 ];
 
 /**
@@ -144,6 +145,10 @@ const CONTRACT_SURFACES: { file: string; permission?: string; mountedIn?: string
     file: "components/admin/contracts/rate-cards.tsx",
     mountedIn: "components/admin/contracts/account-contracts-tab.tsx",
   },
+  { file: "components/admin/contracts/engagements-panel.tsx", permission: "contracts:view" },
+  // The account dashboard's header chips: they read the engagements route, so
+  // they hold their own contracts:view gate and never the screen's weaker one.
+  { file: "components/admin/contracts/renewal-chip.tsx", permission: "contracts:view" },
   { file: "components/admin/finance/finance-tab.tsx", permission: "contracts:view" },
   { file: "components/tickets/properties-panel.tsx", permission: "contracts:view" },
   { file: "components/tickets/time-tab.tsx", permission: "contracts:view" },
@@ -152,13 +157,12 @@ const CONTRACT_SURFACES: { file: string; permission?: string; mountedIn?: string
 
 /**
  * The contracts:view routes no client screen reads yet: the account time
- * list, a contract's periods and its engagements. Nothing may build these
- * URLs without landing in the table above.
+ * list and a contract's periods. Nothing may build these URLs without
+ * landing in the table above.
  */
 const NOT_READ_YET = [
   { name: "the account time list", pattern: /\/v1\/accounts\/\$\{[^}]+\}\/time[`"'?]/ },
   { name: "the contract periods", pattern: /\/contracts\/\$\{[^}]+\}\/periods/ },
-  { name: "the account engagements", pattern: /\/v1\/accounts\/\$\{[^}]+\}\/engagements/ },
 ];
 
 /** The permission the ticket record's contract card keeps: its route stayed on tickets:view. */

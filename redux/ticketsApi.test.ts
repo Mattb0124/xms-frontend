@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
-import { ticketsApi, type Contract, type TicketView } from "@/redux/ticketsApi";
+import { ticketsApi, type Contract, type Engagement, type TicketView } from "@/redux/ticketsApi";
 import { json, stubFetch } from "@/test-kit/portal";
 
 export const ACCOUNT_ID = "77777777-7777-4777-8777-777777777777";
@@ -15,6 +15,7 @@ export function aContract(overrides: Partial<Contract> = {}): Contract {
     model: "retainer",
     status: "active",
     currency: "USD",
+    engagement_id: null,
     after_hours_handling: "none",
     after_hours_multiplier: null,
     threshold_percents: [50, 75, 90, 100],
@@ -28,6 +29,43 @@ export function aContract(overrides: Partial<Contract> = {}): Contract {
     version: 1,
     ...overrides,
   };
+}
+
+export const ENGAGEMENT_ID = "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1";
+export const OWNER_USER_ID = "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a";
+
+/**
+ * A constructed engagement: active, a renewal a year out, a month of notice
+ * and no alert fired yet. Nothing here is copied from a live account.
+ */
+export function anEngagement(overrides: Partial<Engagement> = {}): Engagement {
+  return {
+    id: ENGAGEMENT_ID,
+    account_id: ACCOUNT_ID,
+    name: "Managed services 2026",
+    owner_user_id: OWNER_USER_ID,
+    renewal_date: "2027-03-31",
+    notice_period_days: 30,
+    status: "active",
+    renewal_alerts_fired: [],
+    created_at: "2026-04-01T09:00:00.000Z",
+    updated_at: "2026-04-01T09:00:00.000Z",
+    version: 1,
+    ...overrides,
+  };
+}
+
+/** The same engagement inside the widest lead window, with two alerts already sent. */
+export function anExpiringEngagement(overrides: Partial<Engagement> = {}): Engagement {
+  return anEngagement({
+    id: "e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2",
+    name: "Hosting renewal",
+    renewal_date: "2026-10-01",
+    status: "expiring",
+    renewal_alerts_fired: [90, 60],
+    version: 4,
+    ...overrides,
+  });
 }
 
 export const TICKET_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";

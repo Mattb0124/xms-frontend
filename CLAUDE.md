@@ -103,7 +103,9 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         responses newest first with the score pill, the ticket link, the comment, the respondent by name and
                         address or Anonymous, and the date, over a from and to range with the API's ninety-day default), with the skills
                         coverage chips above the tabs under capacity:view ("Single point of failure: OneStream", "Gap: SAP"
-                        from the account lens; hidden when nothing is flagged) (CAP-07),
+                        from the account lens; hidden when nothing is flagged) (CAP-07) and the renewal chips above them
+                        under contracts:view (one per engagement the server marked expiring, red once inside the notice
+                        period; hidden when none is),
                         /reports/packs/[id] (frozen numbers, narrative, PPTX link),
                         /admin/audit (P2.11.5: condition builder over the three streams, results, record drawer with old and new
                         values, "Show this request" pivot, Load more, Export CSV with audit:export), /admin/security and
@@ -124,9 +126,13 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         through the API with its key, since /v1/webhooks answers API client principals only); the
                         account record carries the same skills coverage chips under the record bar (capacity:view; CAP-07)
                         and has an Intake tab (inbound aliases, enable and disable, add) (P1.6.5), a Calendars tab (list
-                        with the default marked, New calendar), a Contracts tab (key, name, model, status, after-hours
-                        handling and the budget rules under contracts:view; under contracts:manage an inline rules editor per
-                        row: handling with its multiplier, overage rule with the multiplier only under allow_rate, rollover
+                        with the default marked, New calendar), a Contracts tab (an Engagements panel first: name, owner,
+                        renewal date, notice period with its decide-by date, status pill and alerts fired, with New
+                        engagement and Edit under contracts:manage; then the contracts (key, name, engagement, model,
+                        status, after-hours
+                        handling and the budget rules) under contracts:view; under contracts:manage an inline rules editor per
+                        row: the engagement it is filed under, handling with its multiplier, overage rule with the
+                        multiplier only under allow_rate, rollover
                         rule with the cap only under cap, thresholds as a comma list, notify client, forecast window, the
                         required technology codes as a comma list (lower-cased, deduplicated, the server's code pattern, up
                         to fifty; listed by name in a Technologies column), saved as one set through PATCH with the
@@ -258,12 +264,31 @@ lib/time/after-hours    class and handling labels, describeHandling ("Premium 1.
 lib/time/budget         formatHours ("1.5 h"), formatMoney and formatAmount, budgetTone (good, warn, breach), consumedPercent,
                         forecastSentence and forecastBasis, thresholdMarkers and thresholdLabel, unratedNote, the overage and
                         rollover vocab (OVERAGE_RULES, ROLLOVER_RULES, describeOverage, describeRollover), overageBlockedMessage
-components/admin/contracts/  account-contracts-tab (DenseTable of contracts with handlingCell, rulesCell and the Technologies
-                        column, ContractRulesEditor over patchContract with draftFromContract, parseThresholds,
+components/admin/contracts/  engagements-panel (EngagementsPanel above the contracts list: name, owner (named from the
+                        internal directory under admin:users, the short id otherwise), renewal date, notice period with
+                        its decide-by date, the status pill Active, Expiring or Ended, and which renewal alerts have
+                        fired; New engagement and Edit under contracts:manage over one EngagementForm, the status
+                        control on an edit only and sent only when it was changed by hand so a moved renewal date can
+                        still decide it; renewal_date_required and stale_version worded, the list read again either
+                        way), renewal-chip (AccountRenewalChips on the account dashboard header: one chip per
+                        engagement the server marked expiring, "Hosting renewal renews in 23 days", amber until the
+                        notice period is entered and red after it; contracts:view, nothing rendered when nothing is
+                        expiring),
+                        account-contracts-tab (DenseTable of contracts with handlingCell, rulesCell, the Engagement
+                        column and the Technologies
+                        column, ContractRulesEditor over patchContract with draftFromContract, the engagement picker
+                        (an emptied picker sends engagement_id null, never undefined), parseThresholds,
                         parseTechnologyCodes, validateRules and rulesBody (technology_codes with the rule set);
                         multiplier_required, cap_required and stale_version worded), rate-cards (RateCardsPanel with
                         a disclosure per contract and the Account default section, NewRateCardForm with validateRateCard and
                         toRateCardBody, describeRateCardError for rate_card_exists and duplicate_role)
+lib/contracts/engagements  ENGAGEMENT_STATUS labels and tones, renewalLabel, noticeLabel and noticeDeadline, alertsLabel
+                        (0 reads as the notice period), ownerLabel and engagementName, expiringEngagements with
+                        renewalChipLabel, renewalChipTone and renewalChipTitle, the EngagementDraft with
+                        emptyEngagementDraft, draftFromEngagement, validateEngagement (NOTICE_NEEDS_RENEWAL, the
+                        server's renewal_date_required refused first), engagementBody (null, never an empty string) and
+                        patchEngagementBody (the status only when changed by hand), engagementError and
+                        describeEngagementError
 lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, activity types and billable classes from
                         GET /v1/catalogs), priority preview matrix, sla helpers (tighter clock, local countdown, meter),
                         queue-views (system views and the URL grammar, breached is a server parameter), transition-errors
@@ -401,7 +426,9 @@ redux/                  api.ts (base API, me endpoint, waitingOnMe over /v1/me/w
                         links, watchers, notifications, directory lookups, account contracts with after_hours_handling,
                         after_hours_multiplier and the budget rules (threshold_percents, threshold_notify_client, overage_rule,
                         overage_multiplier, rollover_rule, rollover_cap_hours, forecast_window_days) and technology_codes,
-                        patchContract with the version over the whole rule set, invalidating SkillsMatrix), portalApi.ts (the
+                        patchContract with the version over the whole rule set (engagement_id included), invalidating
+                        SkillsMatrix; listEngagements, createEngagement and patchEngagement on the account's
+                        `:engagements` tag, the list reloaded even when a patch is refused), portalApi.ts (the
                         /v1/portal mirror, the searchArticles placeholder, portalSurveys with pending and answered,
                         answerPortalSurvey reloading the list even when refused, and answerSurveyLink posting the token to
                         /v1/csat/:id/answer on the PortalSurveys tag), reportingApi.ts also accountCsat with from and to on

@@ -2,6 +2,7 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
+import { AccountRenewalChips } from "@/components/admin/contracts/renewal-chip";
 import { AdminGate } from "@/components/admin/primitives";
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { AccountDashboard } from "@/components/reporting/account-dashboard";
@@ -43,6 +44,7 @@ function AccountScreen({ accountId }: { accountId: string }) {
   const active = tabs.some((row) => row.key === tab) ? tab : "dashboard";
   return (
     <>
+      <AccountRenewalChips accountId={accountId} />
       <AccountCoverageChips accountId={accountId} />
       <TabBar tabs={tabs} active={active} onChange={setTab} className="mb-4" />
       {active === "dashboard" ? <AccountDashboard accountId={accountId} /> : null}
@@ -57,8 +59,9 @@ function AccountScreen({ accountId }: { accountId: string }) {
  * "View as client" and the Reports card, the Budget view as a tab
  * (`?tab=budget`, the target of the threshold notifications) for readers
  * with contracts:view and no admin:accounts, and the Satisfaction tab
- * (`?tab=satisfaction`, CSAT per account); the skills coverage chips sit
- * above the tabs under capacity:view.
+ * (`?tab=satisfaction`, CSAT per account); the renewal chips for any
+ * engagement the server marked expiring sit above the tabs under
+ * contracts:view, and the skills coverage chips under capacity:view.
  */
 export default function AccountPage() {
   const params = useParams<{ id: string }>();

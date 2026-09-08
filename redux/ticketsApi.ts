@@ -206,6 +206,45 @@ export type OverageRule = "block" | "allow_flag" | "allow_rate";
 /** What happens to unused hours at period end (Time & Budget 5.4). */
 export type RolloverRule = "none" | "carry_month" | "carry_term" | "cap";
 
+/**
+ * The commercial envelope a contract sits inside (Time, Contracts & Budget
+ * technical 2.1): active until the renewal date is inside the widest lead
+ * window, expiring inside it, ended once it has passed. The server decides
+ * the status and fires the renewal alerts; the browser renders them.
+ */
+export type EngagementStatus = "active" | "expiring" | "ended";
+
+export interface Engagement {
+  id: string;
+  account_id: string;
+  name: string;
+  owner_user_id: string | null;
+  /** ISO date, or null when the engagement has no renewal to plan for. */
+  renewal_date: string | null;
+  /** Days before the renewal date by which a decision must already be made. */
+  notice_period_days: number | null;
+  status: EngagementStatus;
+  /** The lead times already alerted on (90, 60, 30) and 0 for the notice boundary. */
+  renewal_alerts_fired: number[];
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+export interface CreateEngagementBody {
+  name: string;
+  owner_user_id?: string | null;
+  renewal_date?: string | null;
+  notice_period_days?: number | null;
+}
+
+/** PATCH body: the version the screen holds plus the fields to change (contracts:manage). */
+export interface PatchEngagementBody extends CreateEngagementBody {
+  version: number;
+  /** Sent only when a person sets it by hand; otherwise a moved renewal date decides it. */
+  status?: EngagementStatus;
+}
+
 export interface Contract {
   id: string;
   key: string;
@@ -213,6 +252,8 @@ export interface Contract {
   model: string;
   status: string;
   currency: string;
+  /** The engagement this contract is filed under (technical 2.1); null until one is chosen. */
+  engagement_id: string | null;
   after_hours_handling: AfterHoursHandling;
   /** Numeric as a string ("1.500") under premium_rate; null otherwise. */
   after_hours_multiplier: string | null;
@@ -235,6 +276,8 @@ export interface Contract {
 /** PATCH body: the version the screen holds plus the rule fields to change (contracts:manage). */
 export interface PatchContractBody {
   version: number;
+  /** The engagement on this account the contract is filed under; null files it under none. */
+  engagement_id?: string | null;
   after_hours_handling?: AfterHoursHandling;
   after_hours_multiplier?: number | null;
   threshold_percents?: number[];
@@ -376,6 +419,30 @@ export const ticketsApi = xmsApi.injectEndpoints({
       query: (accountId) => `/v1/accounts/${accountId}/contracts`,
       providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:contracts` }],
     }),
+    /** Engagements on one account (contracts:view to read, contracts:manage to write). */
+    listEngagements: build.query<Engagement[], string>({
+      query: (accountId) => `/v1/accounts/${accountId}/engagements`,
+      providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:engagements` }],
+    }),
+    createEngagement: build.mutation<Engagement, { accountId: string; body: CreateEngagementBody }>({
+      query: ({ accountId, body }) => ({ url: `/v1/accounts/${accountId}/engagements`, method: "POST", body }),
+      invalidatesTags: (_result, error, { accountId }) =>
+        error ? [] : [{ type: "Account", id: `${accountId}:engagements` }],
+    }),
+    /**
+     * A refused patch reloads the list too, so a stale version shows the row
+     * as it now stands rather than leaving the screen holding the old one.
+     */
+    patchEngagement: build.mutation<Engagement, { accountId: string; engagementId: string; body: PatchEngagementBody }>(
+      {
+        query: ({ accountId, engagementId, body }) => ({
+          url: `/v1/accounts/${accountId}/engagements/${engagementId}`,
+          method: "PATCH",
+          body,
+        }),
+        invalidatesTags: (_result, _error, { accountId }) => [{ type: "Account", id: `${accountId}:engagements` }],
+      },
+    ),
     patchContract: build.mutation<Contract, { accountId: string; contractId: string; body: PatchContractBody }>({
       query: ({ accountId, contractId, body }) => ({
         url: `/v1/accounts/${accountId}/contracts/${contractId}`,
@@ -422,4 +489,7 @@ export const {
   useListDirectoryGroupsQuery,
   useListAccountContractsQuery,
   usePatchContractMutation,
+  useListEngagementsQuery,
+  useCreateEngagementMutation,
+  usePatchEngagementMutation,
 } = ticketsApi;

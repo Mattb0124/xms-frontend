@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EngagementsPanel } from "@/components/admin/contracts/engagements-panel";
 import { RateCardsPanel } from "@/components/admin/contracts/rate-cards";
 import { useSkillName } from "@/components/capacity/account-coverage";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
@@ -16,14 +17,17 @@ import {
   describeHandling,
   formatMultiplier,
 } from "@/lib/time/after-hours";
+import { engagementName } from "@/lib/contracts/engagements";
 import { describeOverage, describeRollover, OVERAGE_RULES, ROLLOVER_RULES } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import {
   useListAccountContractsQuery,
+  useListEngagementsQuery,
   usePatchContractMutation,
   type AfterHoursHandling,
   type Contract,
+  type Engagement,
   type OverageRule,
   type PatchContractBody,
   type RolloverRule,
@@ -65,6 +69,8 @@ export function validateHandling(handling: AfterHoursHandling, multiplier: strin
 
 /** The rule set as the editor holds it; numbers stay text until they are sent. */
 export interface RulesDraft {
+  /** The engagement the contract is filed under; empty for none (technical 2.1). */
+  engagementId: string;
   handling: AfterHoursHandling;
   multiplier: string;
   overageRule: OverageRule;
@@ -85,6 +91,7 @@ function numberText(value: string | null, fallback: string): string {
 
 export function draftFromContract(contract: Contract): RulesDraft {
   return {
+    engagementId: contract.engagement_id ?? "",
     handling: contract.after_hours_handling,
     multiplier: numberText(contract.after_hours_multiplier, "1.5"),
     overageRule: contract.overage_rule,
@@ -167,6 +174,9 @@ export function validateRules(draft: RulesDraft): string | null {
 export function rulesBody(version: number, draft: RulesDraft): PatchContractBody {
   return {
     version,
+    // Explicit null files the contract under no engagement; the server takes
+    // undefined as "leave it alone", which is not what an emptied picker means.
+    engagement_id: draft.engagementId === "" ? null : draft.engagementId,
     after_hours_handling: draft.handling,
     ...(draft.handling === "premium_rate" ? { after_hours_multiplier: Number(draft.multiplier) } : {}),
     threshold_percents: parseThresholds(draft.thresholds) ?? [],
@@ -218,21 +228,24 @@ const ROLLOVER_HELP: Record<RolloverRule, string> = {
 
 /**
  * The inline editor for one contract's rules (TB-09, TB-11, TB-13): the
- * after-hours handling with its multiplier, the overage rule with its
- * multiplier under allow_rate, the rollover rule with its cap under cap,
- * the thresholds as a comma list, the client notification and the
- * forecast window, saved as one set through PATCH with the version the
- * screen holds. multiplier_required, cap_required and a stale version
- * come back in the screen's words; the stale one also reloads the list.
+ * engagement the contract is filed under, the after-hours handling with its
+ * multiplier, the overage rule with its multiplier under allow_rate, the
+ * rollover rule with its cap under cap, the thresholds as a comma list, the
+ * client notification and the forecast window, saved as one set through
+ * PATCH with the version the screen holds. multiplier_required, cap_required
+ * and a stale version come back in the screen's words; the stale one also
+ * reloads the list.
  */
 function ContractRulesEditor({
   accountId,
   contract,
+  engagements,
   onDone,
   refetch,
 }: {
   accountId: string;
   contract: Contract;
+  engagements: Engagement[];
   onDone: () => void;
   refetch: () => unknown;
 }) {
@@ -276,6 +289,31 @@ function ContractRulesEditor({
   return (
     <Panel title={`Contract rules for ${contract.key}`} caption={`${contract.name}, version ${contract.version}`}>
       <div className="flex flex-col gap-4 text-[12px]" data-rules-editor={contract.id}>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-xms-ink font-semibold">Engagement</legend>
+          <label className="flex flex-col gap-1">
+            <span className="text-xms-label">Filed under</span>
+            <select
+              aria-label="Engagement"
+              className={cn(INPUT, "w-[320px]")}
+              value={draft.engagementId}
+              onChange={(event) => set({ engagementId: event.target.value })}
+            >
+              <option value="">Not filed under an engagement</option>
+              {engagements.map((engagement) => (
+                <option key={engagement.id} value={engagement.id}>
+                  {engagement.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="text-xms-label">
+            {engagements.length === 0
+              ? "This account has no engagement yet. Add one above and the contract can be filed under it."
+              : "The engagement carries the renewal date and the notice period this contract is renewed against."}
+          </p>
+        </fieldset>
+
         <fieldset className="flex flex-col gap-2">
           <legend className="text-xms-ink font-semibold">After hours</legend>
           <div className="flex flex-wrap items-end gap-3">
@@ -441,17 +479,21 @@ function ContractRulesEditor({
 }
 
 /**
- * The account record's Contracts tab: the account's contracts (key, name,
- * model, status, after-hours handling, budget rules) under contracts:view,
- * the permission the API puts on /v1/accounts/:id/contracts and on the rate
- * cards beneath, with an inline edit of the rules under contracts:manage.
- * The API decides either way.
+ * The account record's Contracts tab: the engagements this account's
+ * contracts are filed under, then the contracts themselves (key, name,
+ * engagement, model, status, after-hours handling, budget rules) under
+ * contracts:view, the permission the API puts on /v1/accounts/:id/contracts,
+ * on the engagements above and on the rate cards beneath, with an inline
+ * edit of the rules under contracts:manage. The API decides either way.
  */
 export function AccountContractsTab({ accountId }: { accountId: string }) {
   const me = useMe();
   const canRead = me.hasPermission("contracts:view");
   const canEdit = me.hasPermission("contracts:manage");
   const contracts = useListAccountContractsQuery(accountId, { skip: !canRead });
+  // The same list the Engagements panel above reads, so the picker and the
+  // column name the engagement rather than showing its id.
+  const engagements = useListEngagementsQuery(accountId, { skip: !canRead });
   const skillName = useSkillName();
   const [editing, setEditing] = useState<string | null>(null);
   const rows = contracts.data ?? [];
@@ -468,6 +510,16 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
   const columns: DenseColumn<Contract>[] = [
     { key: "key", title: "Key", mono: true, sortValue: (row) => row.key },
     { key: "name", title: "Name", sortValue: (row) => row.name },
+    {
+      key: "engagement",
+      title: "Engagement",
+      sortValue: (row) => engagementName(row.engagement_id, engagements.data ?? []),
+      render: (row) => (
+        <span className="text-xms-body text-[12px]" data-engagement={row.id}>
+          {engagementName(row.engagement_id, engagements.data ?? [])}
+        </span>
+      ),
+    },
     {
       key: "model",
       title: "Model",
@@ -537,6 +589,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <EngagementsPanel accountId={accountId} />
       <DenseTable
         title="Contracts"
         count={rows.length}
@@ -551,6 +604,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
           key={`${current.id}:${current.version}`}
           accountId={accountId}
           contract={current}
+          engagements={engagements.data ?? []}
           onDone={() => setEditing(null)}
           refetch={contracts.refetch}
         />

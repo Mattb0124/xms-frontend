@@ -11,7 +11,15 @@ import {
   validateHandling,
   validateRules,
 } from "@/components/admin/contracts/account-contracts-tab";
-import { ACCOUNT_ID, CONTRACT_ID, aCompTimeContract, aContract, aPremiumContract } from "@/redux/ticketsApi.test";
+import {
+  ACCOUNT_ID,
+  CONTRACT_ID,
+  ENGAGEMENT_ID,
+  aCompTimeContract,
+  aContract,
+  aPremiumContract,
+  anEngagement,
+} from "@/redux/ticketsApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => `/admin/accounts/${ACCOUNT_ID}` }));
@@ -22,9 +30,11 @@ const me = (permissions: string[]) => () =>
 const LIST = `GET /v1/accounts/${ACCOUNT_ID}/contracts`;
 const PATCH = `PATCH /v1/accounts/${ACCOUNT_ID}/contracts/${CONTRACT_ID}`;
 const CARDS = `GET /v1/accounts/${ACCOUNT_ID}/rate-cards`;
+const ENGAGEMENTS = `GET /v1/accounts/${ACCOUNT_ID}/engagements`;
 
-/** The column-default rules as the PATCH carries them (no multiplier, no cap). */
+/** The column-default rules as the PATCH carries them (no multiplier, no cap, filed under nothing). */
 const DEFAULT_RULES = {
+  engagement_id: null,
   threshold_percents: [50, 75, 90, 100],
   threshold_notify_client: false,
   overage_rule: "allow_flag",
@@ -67,6 +77,7 @@ describe("contract rule words", () => {
     expect(parseThresholds("1,2,3,4,5,6,7,8,9,10,11")).toBeNull();
     const draft = draftFromContract(aContract());
     expect(draft).toEqual({
+      engagementId: "",
       handling: "none",
       multiplier: "1.5",
       overageRule: "allow_flag",
@@ -125,9 +136,11 @@ describe("contract rule words", () => {
         notifyClient: true,
         forecastWindow: "5",
         technologies: "OneStream, anaplan",
+        engagementId: ENGAGEMENT_ID,
       }),
     ).toEqual({
       version: 3,
+      engagement_id: ENGAGEMENT_ID,
       after_hours_handling: "premium_rate",
       after_hours_multiplier: 1.5,
       threshold_percents: [80, 100],
@@ -155,6 +168,10 @@ describe("contract rule words", () => {
       overage_rule: "block",
       rollover_rule: "carry_term",
     });
+    // An emptied picker files the contract under nothing, and says so with an
+    // explicit null: undefined would read as "leave the engagement alone".
+    expect(rulesBody(3, { ...draft, engagementId: "" }).engagement_id).toBeNull();
+    expect(draftFromContract(aContract({ engagement_id: ENGAGEMENT_ID })).engagementId).toBe(ENGAGEMENT_ID);
   });
 });
 
@@ -171,9 +188,10 @@ describe("AccountContractsTab", () => {
   it("lists the contracts with their handling and rules and offers no edit without contracts:manage", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["admin:accounts", "contracts:view"]),
+      [ENGAGEMENTS]: () => json([anEngagement()]),
       [LIST]: () =>
         json([
-          aContract(),
+          aContract({ engagement_id: ENGAGEMENT_ID }),
           aPremiumContract({ id: "c-2", key: "CT10002", name: "Premium block", model: "prepaid_block" }),
           aCompTimeContract({
             id: "c-3",
@@ -198,7 +216,35 @@ describe("AccountContractsTab", () => {
       "Overage blocked; carries a month; thresholds 50, 75, 90, 100%",
     );
     expect(document.querySelector('[data-technologies="c-3"]')).toHaveTextContent("No codes");
+    // The Engagement column names the engagement the contract is filed under.
+    expect(document.querySelector(`[data-engagement="${CONTRACT_ID}"]`)).toHaveTextContent("Managed services 2026");
+    expect(document.querySelector('[data-engagement="c-3"]')).toHaveTextContent("Not filed");
     expect(screen.queryByRole("button", { name: /Edit rules/ })).not.toBeInTheDocument();
+  });
+
+  it("files a contract under an engagement through the rules editor", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts", "contracts:view", "contracts:manage"]),
+      [ENGAGEMENTS]: () => json([anEngagement()]),
+      [LIST]: () => json([aContract()]),
+      [CARDS]: () => json([]),
+      [PATCH]: () => json(aContract({ engagement_id: ENGAGEMENT_ID, version: 2 })),
+    });
+    renderDesk(<AccountContractsTab accountId={ACCOUNT_ID} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit rules for CT10001" }));
+    const editor = screen.getByLabelText("Contract rules for CT10001");
+    const picker = within(editor).getByLabelText("Engagement");
+    expect(picker).toHaveValue("");
+    fireEvent.change(picker, { target: { value: ENGAGEMENT_ID } });
+    fireEvent.click(within(editor).getByRole("button", { name: "Save rules" }));
+
+    await waitFor(() => expect(calls.some((call) => call.key === PATCH)).toBe(true));
+    expect(calls.find((call) => call.key === PATCH)?.body).toEqual({
+      version: 1,
+      after_hours_handling: "none",
+      ...DEFAULT_RULES,
+      engagement_id: ENGAGEMENT_ID,
+    });
   });
 
   it("lists the required technologies by code and saves them through the rules editor", async () => {
@@ -369,6 +415,7 @@ describe("AccountContractsTab", () => {
     await screen.findByText("CT10001: None; Overage at 1.25x; carries to term, capped at 20 h; thresholds 80, 100%.");
     const expected = {
       version: 1,
+      engagement_id: null,
       after_hours_handling: "none",
       threshold_percents: [80, 100],
       threshold_notify_client: true,
@@ -392,6 +439,7 @@ describe("AccountContractsTab", () => {
     await waitFor(() => expect(calls.filter((call) => call.key === PATCH)).toHaveLength(4));
     expect(calls.filter((call) => call.key === PATCH)[3].body).toEqual({
       version: 1,
+      engagement_id: null,
       after_hours_handling: "none",
       threshold_percents: [50, 75, 90, 100],
       threshold_notify_client: false,
