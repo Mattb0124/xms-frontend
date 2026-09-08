@@ -154,6 +154,14 @@ export interface TransitionBody {
   to: string;
   pause_reason?: PauseReason;
   note?: string;
+  /**
+   * The reason that carries a change past its window rules (TM-18): it
+   * acknowledges a freeze or a clash on the same configuration item when
+   * scheduling, and it is the override reason when implementing outside the
+   * window, which additionally needs `tickets:override-change-window`.
+   * Either way the server lands it on the audit.
+   */
+  change_window_reason?: string;
   resolution?: ResolutionBody;
 }
 
@@ -375,6 +383,51 @@ export interface TicketGroupFilter {
   account_id?: string;
   kind?: TicketGroupKind;
   status?: TicketGroupStatus;
+}
+
+/**
+ * The change calendar (TM-18): the change windows overlapping a range, with
+ * their freezes and the changes planned inside them. A cancelled window is
+ * left out by the server, and a window without both ends is not a window.
+ */
+export interface ChangeCalendarWindow {
+  id: string;
+  account_id: string;
+  name: string;
+  status: TicketGroupStatus;
+  starts_at: string;
+  ends_at: string;
+  freeze_windows: FreezeWindow[];
+  tickets: TicketGroupTicket[];
+}
+
+export interface ChangeCalendar {
+  from: string;
+  to: string;
+  windows: ChangeCalendarWindow[];
+}
+
+/**
+ * Whether an instant is inside a window of one account, answered from the
+ * same pure rules the transition gate uses, so what this screen says and
+ * what the server enforces cannot disagree. `inside` is true only when a
+ * window holds the instant and no freeze covers it; `frozen` is true when
+ * every window holding it is frozen.
+ */
+export interface WindowAtWindow {
+  id: string;
+  name: string;
+  status: TicketGroupStatus;
+  starts_at: string;
+  ends_at: string;
+  freeze: FreezeWindow | null;
+}
+
+export interface WindowAt {
+  at: string;
+  inside: boolean;
+  frozen: boolean;
+  windows: WindowAtWindow[];
 }
 
 /** How a contract handles a non-standard after-hours class (TB-13): a premium multiplier, comp time, or nothing. */
@@ -692,8 +745,31 @@ export const ticketsApi = xmsApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: "TicketGroups", id: "list" },
         { type: "TicketGroups", id },
+        { type: "TicketGroups", id: "calendar" },
       ],
     }),
+
+    /**
+     * The change calendar (TM-18), both under `tickets:view`: the windows
+     * overlapping a range, and whether an instant is inside one. The second
+     * answers from the same rules the transition gate uses, so the screen and
+     * the server cannot disagree about whether work may go out now.
+     */
+    changeCalendar: build.query<ChangeCalendar, { from: string; to: string; account_id?: string }>({
+      query: ({ from, to, account_id }) => ({
+        url: "/v1/change-calendar",
+        params: { from, to, ...(account_id ? { account_id } : {}) },
+      }),
+      providesTags: [{ type: "TicketGroups", id: "calendar" }],
+    }),
+    changeWindowAt: build.query<WindowAt, { account_id: string; at?: string }>({
+      query: ({ account_id, at }) => ({
+        url: "/v1/change-calendar/at",
+        params: { account_id, ...(at ? { at } : {}) },
+      }),
+      providesTags: [{ type: "TicketGroups", id: "calendar" }],
+    }),
+
     listAccountContracts: build.query<Contract[], string>({
       query: (accountId) => `/v1/accounts/${accountId}/contracts`,
       providesTags: (_result, _error, accountId) => [{ type: "Account", id: `${accountId}:contracts` }],
@@ -777,6 +853,8 @@ export const {
   useListTicketGroupsQuery,
   useCreateTicketGroupMutation,
   usePatchTicketGroupMutation,
+  useChangeCalendarQuery,
+  useChangeWindowAtQuery,
   useListAccountContractsQuery,
   usePatchContractMutation,
   useListEngagementsQuery,

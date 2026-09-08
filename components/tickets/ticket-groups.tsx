@@ -12,9 +12,12 @@ import {
   describeTicketGroupError,
   ticketGroupKindLabel,
   ticketGroupStatusLabel,
+  toFreezeDrafts,
+  toFreezeWindows,
   toInstant,
   toLocalInput,
   validateTicketGroup,
+  type FreezeDraft,
   type TicketGroupDraft,
 } from "@/lib/tickets/groups";
 import { cn } from "@/lib/utils";
@@ -57,6 +60,7 @@ function emptyDraft(accountId: string): TicketGroupDraft {
     status: "planned",
     startsAt: "",
     endsAt: "",
+    freezes: [],
   };
 }
 
@@ -70,7 +74,68 @@ function toDraft(group: TicketGroup): TicketGroupDraft {
     status: group.status,
     startsAt: toLocalInput(group.starts_at),
     endsAt: toLocalInput(group.ends_at),
+    freezes: toFreezeDrafts(group.freeze_windows),
   };
+}
+
+/**
+ * The freezes on one window (TM-18): the spans during which nothing may be
+ * scheduled, with the reason each is there. The API stores them on the
+ * window, so the whole set travels with every save and a removed row is
+ * removed by being absent.
+ */
+function FreezeRows({ freezes, onChange }: { freezes: FreezeDraft[]; onChange: (freezes: FreezeDraft[]) => void }) {
+  const edit = (index: number, change: Partial<FreezeDraft>) =>
+    onChange(freezes.map((freeze, order) => (order === index ? { ...freeze, ...change } : freeze)));
+  return (
+    <div className="flex flex-col gap-2" data-freezes>
+      <span className="text-xms-label">Freezes</span>
+      {freezes.map((freeze, index) => (
+        <div key={index} className="flex flex-wrap items-end gap-2">
+          <input
+            aria-label={`Freeze ${index + 1} starts`}
+            type="datetime-local"
+            value={freeze.startsAt}
+            onChange={(event) => edit(index, { startsAt: event.target.value })}
+            className={cn(INPUT, "xms-mono w-[200px]")}
+          />
+          <input
+            aria-label={`Freeze ${index + 1} ends`}
+            type="datetime-local"
+            value={freeze.endsAt}
+            onChange={(event) => edit(index, { endsAt: event.target.value })}
+            className={cn(INPUT, "xms-mono w-[200px]")}
+          />
+          <input
+            aria-label={`Freeze ${index + 1} reason`}
+            value={freeze.reason}
+            placeholder="Why nothing may go out"
+            onChange={(event) => edit(index, { reason: event.target.value })}
+            className={cn(INPUT, "w-[240px]")}
+          />
+          <button
+            type="button"
+            onClick={() => onChange(freezes.filter((_, order) => order !== index))}
+            className="text-xms-accent pb-2 text-[12px] hover:underline"
+          >
+            Remove freeze
+          </button>
+        </div>
+      ))}
+      {freezes.length === 0 ? (
+        <p className="text-xms-label">No freezes. Anything inside the window may be scheduled.</p>
+      ) : null}
+      <div>
+        <button
+          type="button"
+          onClick={() => onChange([...freezes, { startsAt: "", endsAt: "", reason: "" }])}
+          className={SECONDARY_BUTTON}
+        >
+          Add freeze
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -190,6 +255,7 @@ function GroupForm({
           A change window needs both ends. The times are read in this browser&apos;s zone and sent as instants.
         </p>
       </div>
+      <FreezeRows freezes={draft.freezes} onChange={(freezes) => setDraft({ ...draft, freezes })} />
       <label className="flex flex-col gap-1">
         <span className="text-xms-label">Description</span>
         <input
@@ -275,6 +341,7 @@ export function TicketGroupsCatalog() {
             status: draft.status,
             starts_at: toInstant(draft.startsAt),
             ends_at: toInstant(draft.endsAt),
+            freeze_windows: toFreezeWindows(draft.freezes),
           },
         }).unwrap();
         push({ title: `${draft.name.trim()} saved`, tone: "success" });
@@ -287,6 +354,7 @@ export function TicketGroupsCatalog() {
           status: draft.status,
           starts_at: toInstant(draft.startsAt),
           ends_at: toInstant(draft.endsAt),
+          freeze_windows: toFreezeWindows(draft.freezes),
         }).unwrap();
         push({ title: `${draft.name.trim()} created`, tone: "success" });
       }

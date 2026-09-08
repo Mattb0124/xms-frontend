@@ -14,7 +14,13 @@
  * answers with is turned into a sentence rather than a code.
  */
 import { apiError } from "@/lib/admin/api-error";
-import type { RoutableType, RoutingRuleInput, TicketGroupKind, TicketGroupStatus } from "@/redux/ticketsApi";
+import type {
+  FreezeWindow,
+  RoutableType,
+  RoutingRuleInput,
+  TicketGroupKind,
+  TicketGroupStatus,
+} from "@/redux/ticketsApi";
 
 /** The problems an `invalid_schedule` refusal carries; the API sends them under `problems`. */
 export function refusalProblems(error: unknown): string[] {
@@ -58,6 +64,18 @@ export function ticketGroupStatusLabel(status: string): string {
   return TICKET_GROUP_STATUS_LABEL[status as TicketGroupStatus] ?? status.replace(/_/g, " ");
 }
 
+/**
+ * One freeze as the form holds it (TM-18): a span during which nothing may
+ * be scheduled, with the reason it is there. The API stores freezes on the
+ * window itself, so the whole set travels with every save.
+ */
+export interface FreezeDraft {
+  /** Local datetime strings as the form holds them ("2026-10-01T18:00"), or "". */
+  startsAt: string;
+  endsAt: string;
+  reason: string;
+}
+
 export interface TicketGroupDraft {
   accountId: string;
   kind: TicketGroupKind;
@@ -68,6 +86,7 @@ export interface TicketGroupDraft {
   /** Local datetime strings as the form holds them ("2026-10-01T18:00"), or "". */
   startsAt: string;
   endsAt: string;
+  freezes: FreezeDraft[];
 }
 
 export const GROUP_NAME_REQUIRED = "A group needs a name.";
@@ -75,6 +94,8 @@ export const GROUP_NAME_TOO_LONG = "A name is at most 160 characters.";
 export const GROUP_ACCOUNT_REQUIRED = "A group belongs to one account. Choose one.";
 export const CHANGE_WINDOW_ENDS_REQUIRED = "A change window needs a start and an end.";
 export const ENDS_AFTER_STARTS = "The end has to be after the start.";
+export const FREEZE_ENDS_REQUIRED = "Every freeze needs a start and an end.";
+export const FREEZE_ENDS_AFTER_STARTS = "A freeze has to end after it starts.";
 
 /**
  * Refused here in the API's own limits before it is asked: 160 characters,
@@ -90,7 +111,37 @@ export function validateTicketGroup(draft: TicketGroupDraft): string[] {
     problems.push(CHANGE_WINDOW_ENDS_REQUIRED);
   if (draft.startsAt !== "" && draft.endsAt !== "" && Date.parse(draft.endsAt) <= Date.parse(draft.startsAt))
     problems.push(ENDS_AFTER_STARTS);
+  // The API's own freeze rules (`freezeProblems`): a freeze with no end, or
+  // an end before its start, is not a rule anyone can apply.
+  if (draft.freezes.some((freeze) => freeze.startsAt === "" || freeze.endsAt === ""))
+    problems.push(FREEZE_ENDS_REQUIRED);
+  if (
+    draft.freezes.some(
+      (freeze) =>
+        freeze.startsAt !== "" && freeze.endsAt !== "" && Date.parse(freeze.endsAt) <= Date.parse(freeze.startsAt),
+    )
+  )
+    problems.push(FREEZE_ENDS_AFTER_STARTS);
   return problems;
+}
+
+/** The freezes as the API stores them; a blank reason travels as no reason at all. */
+export function toFreezeWindows(freezes: readonly FreezeDraft[]): FreezeWindow[] {
+  return freezes.flatMap((freeze) => {
+    const starts = toInstant(freeze.startsAt);
+    const ends = toInstant(freeze.endsAt);
+    if (!starts || !ends) return [];
+    return [{ starts_at: starts, ends_at: ends, ...(freeze.reason.trim() ? { reason: freeze.reason.trim() } : {}) }];
+  });
+}
+
+/** The stored freezes as the form holds them. */
+export function toFreezeDrafts(freezes: readonly FreezeWindow[] | undefined): FreezeDraft[] {
+  return (freezes ?? []).map((freeze) => ({
+    startsAt: toLocalInput(freeze.starts_at),
+    endsAt: toLocalInput(freeze.ends_at),
+    reason: freeze.reason ?? "",
+  }));
 }
 
 /** A local datetime from the form as the ISO instant the API takes, or null. */

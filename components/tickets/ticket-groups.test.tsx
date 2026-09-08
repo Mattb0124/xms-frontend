@@ -91,6 +91,32 @@ describe("TicketGroupsCatalog", () => {
     expect(String(body.starts_at)).toMatch(/Z$/);
   });
 
+  it("edits the freezes on a window and sends the whole set, a removed one by being absent", async () => {
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["tickets:view", "tickets:work"]),
+      "GET /v1/accounts": accounts,
+      [LIST]: () => json([aTicketGroup()]),
+      [`PATCH /v1/ticket-groups/${aTicketGroup().id}`]: () => json(aTicketGroup({ version: 2 })),
+    });
+    renderDesk(<TicketGroupsCatalog />);
+    fireEvent.click(await screen.findByText("October release window"));
+    const form = within(await screen.findByRole("form", { name: "Edit group" }));
+    // The stored freeze is in the form, reason and all.
+    expect(form.getByLabelText("Freeze 1 reason")).toHaveValue("Month-end close");
+
+    fireEvent.click(form.getByText("Add freeze"));
+    // A freeze nobody finished is refused here, in the API's own rule.
+    fireEvent.click(form.getByText("Save group"));
+    await screen.findByText("Every freeze needs a start and an end.");
+    expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(false);
+
+    fireEvent.click(form.getAllByText("Remove freeze")[1]);
+    fireEvent.click(form.getAllByText("Remove freeze")[0]);
+    fireEvent.click(form.getByText("Save group"));
+    await waitFor(() => expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(true));
+    expect(calls.find((call) => call.key.startsWith("PATCH "))?.body).toMatchObject({ freeze_windows: [] });
+  });
+
   it("words the API's own refusal of a schedule", async () => {
     stubFetch({
       "GET /v1/admin/me": me(["tickets:view", "tickets:work"]),

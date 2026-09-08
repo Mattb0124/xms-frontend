@@ -1,5 +1,11 @@
 import type { ToastTone } from "@/components/xms/toast";
 import { apiError, describeError, type ApiError } from "@/lib/admin/api-error";
+import {
+  changeWindowDetail,
+  changeWindowRefusal,
+  changeWindowTitle,
+  type ChangeWindowRefusal,
+} from "@/lib/tickets/change-window";
 
 /** The typed 409 bodies of POST /tickets/:key/transitions (Ticket Management technical 3.3). */
 export interface TransitionError extends ApiError {
@@ -8,6 +14,8 @@ export interface TransitionError extends ApiError {
   to?: string;
   allowed?: string[];
   version?: number;
+  /** The window rules' own refusal (TM-10, TM-18), where this was one. */
+  changeWindow?: ChangeWindowRefusal;
 }
 
 export const MISSING_ITEM_COPY: Record<string, string> = {
@@ -17,6 +25,9 @@ export const MISSING_ITEM_COPY: Record<string, string> = {
   time_logged: "logged time or a time exemption reason",
   pause_reason: "a pause reason",
   unknown_resolution_code: "a resolution code from the catalog",
+  // A Change cannot reach Scheduled unless it belongs to a change window
+  // with both ends (TM-10); the close-discipline check answers it.
+  change_window: "a change window with a start and an end",
 };
 
 export interface ToastCopy {
@@ -37,6 +48,8 @@ export function transitionError(error: unknown): TransitionError {
     if (Array.isArray(data.allowed)) parsed.allowed = data.allowed.map(String);
     if (typeof data.version === "number") parsed.version = data.version;
   }
+  const window = changeWindowRefusal(error);
+  if (window) parsed.changeWindow = window;
   return parsed;
 }
 
@@ -74,6 +87,21 @@ export function describeTransitionError(error: TransitionError): ToastCopy {
         detail: "Closed and cancelled tickets cannot be edited.",
         tone: "error",
         reload: true,
+      };
+    // The four window refusals (TM-10, TM-18). The record's own sheet handles
+    // them, because each one can be carried with a reason; this copy is the
+    // fallback for a caller that offers no sheet.
+    case "change_freeze":
+    case "change_conflict":
+    case "change_window_required":
+    case "outside_change_window":
+      return {
+        title: error.changeWindow ? changeWindowTitle(error.changeWindow) : "Not moved",
+        detail: error.changeWindow
+          ? changeWindowDetail(error.changeWindow)
+          : "The change window rules refused this move.",
+        tone: "error",
+        reload: false,
       };
     default:
       return { title: "Not saved", detail: describeError(error), tone: "error", reload: false };

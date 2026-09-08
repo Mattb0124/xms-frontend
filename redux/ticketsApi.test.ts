@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStore } from "@/redux/store";
 import {
   ticketsApi,
+  type ChangeCalendarWindow,
   type Contract,
   type Engagement,
   type FreezeWindow,
@@ -9,6 +10,7 @@ import {
   type TicketGroup,
   type TicketScope,
   type TicketView,
+  type WindowAt,
 } from "@/redux/ticketsApi";
 import { json, stubFetch } from "@/test-kit/portal";
 import { aSavedView, SAVED_VIEW_ID } from "@/test-kit/views";
@@ -481,5 +483,128 @@ describe("ticketsApi groups", () => {
     expect(moved.share_ref).toBeNull();
     expect(calls[0].body).toMatchObject({ share: "group", share_ref: GROUP_ID });
     expect(calls[1].body).toMatchObject({ share: "private", share_ref: null });
+  });
+});
+
+/**
+ * A constructed calendar window (TM-18): October's release window with one
+ * freeze inside it and one change planned in it. The calendar answers a
+ * window with both ends and never a cancelled one, so the fixture has both.
+ */
+export function aChangeWindow(overrides: Partial<ChangeCalendarWindow> = {}): ChangeCalendarWindow {
+  return {
+    id: TICKET_GROUP_ID,
+    account_id: ACCOUNT_ID,
+    name: "October release window",
+    status: "planned",
+    starts_at: "2026-10-03T18:00:00Z",
+    ends_at: "2026-10-04T02:00:00Z",
+    freeze_windows: [aFreeze()],
+    tickets: [
+      {
+        id: "t-change",
+        key: "CS1000420",
+        type: "change",
+        state: "scheduled",
+        priority: "p3",
+        short_description: "Deploy the consolidation hotfix",
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/** The instant answer for an account inside an open window. */
+export function anOpenWindowAt(overrides: Partial<WindowAt> = {}): WindowAt {
+  return {
+    at: "2026-10-03T19:00:00Z",
+    inside: true,
+    frozen: false,
+    windows: [
+      {
+        id: TICKET_GROUP_ID,
+        name: "October release window",
+        status: "active",
+        starts_at: "2026-10-03T18:00:00Z",
+        ends_at: "2026-10-04T02:00:00Z",
+        freeze: null,
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/** The change calendar routes, both under tickets:view (TM-18). */
+describe("ticketsApi change calendar", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("asks for the range, and for one account when one is chosen", async () => {
+    const calls = stubFetch({
+      "GET /v1/change-calendar": () =>
+        json({ from: "2026-10-01T00:00:00.000Z", to: "2026-11-01T00:00:00.000Z", windows: [aChangeWindow()] }),
+    });
+    const store = makeStore();
+    const calendar = await store
+      .dispatch(
+        ticketsApi.endpoints.changeCalendar.initiate({
+          from: "2026-10-01T00:00:00.000Z",
+          to: "2026-11-01T00:00:00.000Z",
+        }),
+      )
+      .unwrap();
+    expect(calendar.windows[0].tickets.map((ticket) => ticket.key)).toEqual(["CS1000420"]);
+    expect(calendar.windows[0].freeze_windows[0].reason).toBe("Month-end close");
+    await store
+      .dispatch(
+        ticketsApi.endpoints.changeCalendar.initiate({
+          from: "2026-10-01T00:00:00.000Z",
+          to: "2026-11-01T00:00:00.000Z",
+          account_id: ACCOUNT_ID,
+        }),
+      )
+      .unwrap();
+    expect(calls.map((call) => call.search)).toEqual([
+      "?from=2026-10-01T00%3A00%3A00.000Z&to=2026-11-01T00%3A00%3A00.000Z",
+      `?from=2026-10-01T00%3A00%3A00.000Z&to=2026-11-01T00%3A00%3A00.000Z&account_id=${ACCOUNT_ID}`,
+    ]);
+  });
+
+  it("asks whether an account is inside a window right now, and lets the window itself answer", async () => {
+    const calls = stubFetch({ "GET /v1/change-calendar/at": () => json(anOpenWindowAt()) });
+    const store = makeStore();
+    const at = await store.dispatch(ticketsApi.endpoints.changeWindowAt.initiate({ account_id: ACCOUNT_ID })).unwrap();
+    expect(at.inside).toBe(true);
+    expect(at.frozen).toBe(false);
+    expect(at.windows[0].freeze).toBeNull();
+    expect(calls[0].search).toBe(`?account_id=${ACCOUNT_ID}`);
+  });
+
+  it("re-reads the calendar after a window is edited, because moving one moves the month", async () => {
+    let reads = 0;
+    stubFetch({
+      "GET /v1/change-calendar": () => {
+        reads += 1;
+        return json({ from: "2026-10-01T00:00:00.000Z", to: "2026-11-01T00:00:00.000Z", windows: [aChangeWindow()] });
+      },
+      [`PATCH /v1/ticket-groups/${TICKET_GROUP_ID}`]: () => json(aTicketGroup({ version: 2 })),
+    });
+    const store = makeStore();
+    const subscription = store.dispatch(
+      ticketsApi.endpoints.changeCalendar.initiate({
+        from: "2026-10-01T00:00:00.000Z",
+        to: "2026-11-01T00:00:00.000Z",
+      }),
+    );
+    await subscription.unwrap();
+    await store
+      .dispatch(
+        ticketsApi.endpoints.patchTicketGroup.initiate({
+          id: TICKET_GROUP_ID,
+          body: { version: 1, freeze_windows: [] },
+        }),
+      )
+      .unwrap();
+    await vi.waitFor(() => expect(reads).toBe(2));
+    subscription.unsubscribe();
   });
 });

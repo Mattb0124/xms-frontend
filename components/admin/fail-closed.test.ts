@@ -612,12 +612,17 @@ const GROUP_READS = [
     route: 'url: "/v1/ticket-groups", method: "POST"',
   },
   { hook: "usePatchTicketGroupMutation", slice: "redux/ticketsApi.ts", route: "/v1/ticket-groups/${id}" },
+  // The change calendar (TM-18), both routes on tickets:view.
+  { hook: "useChangeCalendarQuery", slice: "redux/ticketsApi.ts", route: '"/v1/change-calendar"' },
+  { hook: "useChangeWindowAtQuery", slice: "redux/ticketsApi.ts", route: '"/v1/change-calendar/at"' },
 ];
 
 const GROUP_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
   { file: "components/admin/config/routing-rules.tsx", permission: "tickets:view" },
   { file: "components/tickets/ticket-groups.tsx", mountedIn: "app/(internal)/tickets/groups/page.tsx" },
   { file: "app/(internal)/tickets/groups/page.tsx", permission: "tickets:view" },
+  { file: "components/tickets/change-calendar.tsx", mountedIn: "app/(internal)/tickets/change-calendar/page.tsx" },
+  { file: "app/(internal)/tickets/change-calendar/page.tsx", permission: "tickets:view" },
 ];
 
 describe("the routing defaults and the group catalog are read behind tickets:view", () => {
@@ -635,10 +640,11 @@ describe("the routing defaults and the group catalog are read behind tickets:vie
     const callers = callersOf(hooks);
     expect(callers.length).toBeGreaterThan(0);
     expect(callers.filter((file) => !listed.has(file))).toEqual([]);
-    // The catalog's page is listed as the gate its body is mounted behind and
-    // calls no hook of its own, which is exactly the shape the first rule of
-    // this file asks for.
+    // The two pages are listed as the gates their bodies are mounted behind
+    // and call no hook of their own, which is exactly the shape the first
+    // rule of this file asks for.
     expect(callers).not.toContain("app/(internal)/tickets/groups/page.tsx");
+    expect(callers).not.toContain("app/(internal)/tickets/change-calendar/page.tsx");
   });
 
   it("gates each surface on tickets:view, by its own guard or by the screen that mounts it", () => {
@@ -665,8 +671,12 @@ describe("the routing defaults and the group catalog are read behind tickets:vie
     // offers New group and the edit form only with tickets:work.
     expect(read("components/admin/config/routing-rules.tsx")).toContain('hasPermission("admin:config")');
     expect(read("components/tickets/ticket-groups.tsx")).toContain('hasPermission("tickets:work")');
-    // The catalog is registered on the read key, so no weaker reader is
-    // offered the link and no stronger one is needed to open it.
+    // The catalog and the calendar are registered on the read key, so no
+    // weaker reader is offered the link and no stronger one is needed.
     expect(read("lib/routes.ts")).toMatch(/screen: "ticket_groups",[\s\S]*?permission: "tickets:view"/);
+    expect(read("lib/routes.ts")).toMatch(/screen: "change_calendar",[\s\S]*?permission: "tickets:view"/);
+    // The calendar writes nothing at all: it is the one screen in this map
+    // with no mutation hook on it.
+    expect(read("components/tickets/change-calendar.tsx")).not.toContain("Mutation(");
   });
 });

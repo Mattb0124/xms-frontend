@@ -69,6 +69,14 @@ export const SCREENS: Screen[] = [
     purpose: "Projects and change windows, with the schedule each one carries.",
   },
   {
+    path: "/tickets/change-calendar",
+    screen: "change_calendar",
+    label: "Change calendar",
+    section: "Tickets",
+    permission: "tickets:view",
+    purpose: "Change windows and freezes over a month, and whether work may go out right now.",
+  },
+  {
     path: "/tickets/new",
     screen: "ticket.new",
     label: "New ticket",

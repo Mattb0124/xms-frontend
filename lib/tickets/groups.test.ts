@@ -4,6 +4,8 @@ import {
   describeGroupError,
   describeTicketGroupError,
   ENDS_AFTER_STARTS,
+  FREEZE_ENDS_AFTER_STARTS,
+  FREEZE_ENDS_REQUIRED,
   GROUP_ACCOUNT_REQUIRED,
   GROUP_NAME_REQUIRED,
   refusalProblems,
@@ -11,6 +13,8 @@ import {
   RULE_GROUP_REQUIRED,
   ticketGroupKindLabel,
   ticketGroupStatusLabel,
+  toFreezeDrafts,
+  toFreezeWindows,
   toInstant,
   toLocalInput,
   toRoutingRuleInputs,
@@ -32,6 +36,7 @@ function aGroupDraft(overrides: Partial<TicketGroupDraft> = {}): TicketGroupDraf
     status: "planned",
     startsAt: "2026-10-03T18:00",
     endsAt: "2026-10-04T02:00",
+    freezes: [],
     ...overrides,
   };
 }
@@ -80,6 +85,44 @@ describe("validateTicketGroup", () => {
       GROUP_NAME_REQUIRED,
       GROUP_ACCOUNT_REQUIRED,
     ]);
+  });
+});
+
+/**
+ * The freezes on a window (TM-18): the API's own rule is that a freeze with
+ * no end, or an end before its start, is not a rule anyone can apply, and it
+ * stores the whole set on the window.
+ */
+describe("the freezes on a window", () => {
+  it("refuses a half-written freeze and one that ends before it starts", () => {
+    expect(
+      validateTicketGroup(aGroupDraft({ freezes: [{ startsAt: "2026-10-03T20:00", endsAt: "", reason: "" }] })),
+    ).toEqual([FREEZE_ENDS_REQUIRED]);
+    expect(
+      validateTicketGroup(
+        aGroupDraft({ freezes: [{ startsAt: "2026-10-03T21:00", endsAt: "2026-10-03T20:00", reason: "" }] }),
+      ),
+    ).toEqual([FREEZE_ENDS_AFTER_STARTS]);
+  });
+
+  it("sends the whole set as instants, and a blank reason as no reason at all", () => {
+    const sent = toFreezeWindows([
+      { startsAt: "2026-10-03T20:00", endsAt: "2026-10-03T21:00", reason: " Month-end close " },
+      { startsAt: "2026-10-03T22:00", endsAt: "2026-10-03T23:00", reason: "  " },
+      // A row nobody finished writing is not a freeze and is not sent.
+      { startsAt: "", endsAt: "2026-10-04T01:00", reason: "" },
+    ]);
+    expect(sent).toHaveLength(2);
+    expect(sent[0].reason).toBe("Month-end close");
+    expect(sent[1].reason).toBeUndefined();
+    expect(sent[0].starts_at).toMatch(/Z$/);
+  });
+
+  it("round-trips the stored set back into the form", () => {
+    const drafts = toFreezeDrafts([{ starts_at: "2026-10-03T20:00:00Z", ends_at: "2026-10-03T21:00:00Z" }]);
+    expect(drafts[0].reason).toBe("");
+    expect(toFreezeWindows(drafts)[0].starts_at).toBe("2026-10-03T20:00:00.000Z");
+    expect(toFreezeDrafts(undefined)).toEqual([]);
   });
 });
 
