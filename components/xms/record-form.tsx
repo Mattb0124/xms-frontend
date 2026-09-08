@@ -17,6 +17,8 @@ export interface RecordField {
   readOnly?: boolean;
   /** Mono rendering for keys, dates and external references. */
   mono?: boolean;
+  /** A caption under the value, in sentence case: "Derived from the matrix". */
+  hint?: string;
 }
 
 export interface RecordFormProps {
@@ -31,6 +33,23 @@ export interface RecordFormProps {
 
 const CONTROL =
   "border-xms-line bg-xms-card text-xms-ink focus:border-xms-accent h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
+
+// Label 104px, value takes the rest and may shrink below its content, which is
+// what lets a long value wrap instead of being clipped (review finding 9).
+const ROW = "grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-1";
+
+/**
+ * The words a read-only field shows: a select shows its option's label, not
+ * the stored code, and nothing recorded reads as "Not set" rather than as an
+ * empty box (frontend review finding 9).
+ */
+export function readOnlyText(field: RecordField): string {
+  if (field.kind === "select") {
+    const option = (field.options ?? []).find((entry) => entry.value === field.value);
+    if (option) return option.label;
+  }
+  return field.value;
+}
 
 function Field({
   field,
@@ -67,7 +86,28 @@ function Field({
   };
 
   const id = `record-field-${field.key}`;
-  const common = { id, disabled: field.readOnly || pending, "aria-busy": pending || undefined };
+  // A value nobody can change is text, not a disabled input: an input-shaped
+  // box reads as editable, and a fixed-height box clips "AUS - Austral Mining"
+  // to "AUS - Austral M" with no ellipsis and no tooltip (review finding 9).
+  if (field.readOnly) {
+    const text = readOnlyText(field);
+    return (
+      <div className={cn(ROW, "items-baseline")} data-field={field.key}>
+        <span className="text-xms-label text-[12px]">{field.label}</span>
+        <span className="flex flex-col gap-[2px]">
+          <span
+            data-readonly-value
+            title={text || undefined}
+            className={cn("text-xms-ink text-[13px] break-words", field.mono && "xms-mono", !text && "text-xms-muted")}
+          >
+            {text || "Not set"}
+          </span>
+          {field.hint ? <span className="text-xms-label text-[12px]">{field.hint}</span> : null}
+        </span>
+      </div>
+    );
+  }
+  const common = { id, disabled: pending, "aria-busy": pending || undefined };
   let control;
   if (field.kind === "select") {
     control = (
@@ -103,11 +143,14 @@ function Field({
     );
   }
   return (
-    <div className="grid grid-cols-[140px_1fr] items-center gap-3" data-field={field.key}>
+    <div className={cn(ROW, "items-center")} data-field={field.key}>
       <label htmlFor={id} className="text-xms-label text-[12px]">
         {field.label}
       </label>
-      {control}
+      <span className="flex min-w-0 flex-col gap-[2px]">
+        {control}
+        {field.hint ? <span className="text-xms-label text-[12px]">{field.hint}</span> : null}
+      </span>
     </div>
   );
 }

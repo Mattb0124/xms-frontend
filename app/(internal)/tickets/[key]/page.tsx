@@ -110,7 +110,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           </span>
         ) : null}
       </div>
-      <div className="grid gap-4 xl:grid-cols-[300px_1fr_300px]">
+      <div className="grid gap-4 xl:grid-cols-[320px_1fr_300px]">
         <PropertiesPanel ticket={ticket} readOnly={readOnly} />
         <Panel title="Work area" flush>
           <div className="px-4 pt-2">
