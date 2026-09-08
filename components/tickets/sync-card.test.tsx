@@ -5,6 +5,14 @@ import { aLink, aRun } from "@/redux/connectorsApi.test";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 describe("SyncCardView", () => {
+  it("shows the external number as plain text when the instance base URL is not a web address", () => {
+    // The base URL is server-supplied and lands in an href (security review
+    // finding 26); a hostile one must not become a link.
+    render(<SyncCardView links={[aLink({ base_url: "javascript:alert(1)" })]} runs={[aRun()]} />);
+    expect(screen.queryByRole("link", { name: "CS0012345" })).not.toBeInTheDocument();
+    expect(screen.getByText("CS0012345")).toBeInTheDocument();
+  });
+
   it("renders nothing without links", () => {
     const { container } = render(<SyncCardView links={[]} runs={[aRun()]} />);
     expect(container).toBeEmptyDOMElement();

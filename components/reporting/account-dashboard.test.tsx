@@ -81,7 +81,9 @@ describe("AccountDashboard", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Generate weekly report" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Generate weekly report" }));
     await waitFor(() => expect(screen.getByText("Weekly report generated")).toBeInTheDocument());
-    expect(open).toHaveBeenCalledWith("https://files.test/pack-2.pptx", "_blank", "noopener");
+    // The presigned URL is server-supplied, so it is validated and opened
+    // with no opener and no referrer (security review findings 26 and 38).
+    expect(open).toHaveBeenCalledWith("https://files.test/pack-2.pptx", "_blank", "noopener,noreferrer");
     expect(calls.filter((call) => call.key === "GET /v1/accounts/acct-1/reports").length).toBeGreaterThanOrEqual(2);
   });
 

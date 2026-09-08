@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { StatePill } from "@/components/xms/state-pill";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { openExternal } from "@/lib/safe-url";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useMe } from "@/redux/me";
 import { useGenerateWsrMutation, useReportRunsQuery, type ReportRun } from "@/redux/reportingApi";
@@ -45,7 +46,7 @@ export function ReportsCard({ accountId }: { accountId: string }) {
       const result = await generate(accountId).unwrap();
       track({ account_id: accountId, run_id: result.run_id, pack_type: "wsr" });
       push({ title: "Weekly report generated", detail: "The download opens in a new tab.", tone: "success" });
-      window.open(result.download, "_blank", "noopener");
+      openExternal(result.download);
     } catch (error) {
       push({ title: "Report not generated", detail: describeError(apiError(error)), tone: "error" });
     }

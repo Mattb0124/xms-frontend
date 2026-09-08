@@ -332,4 +332,13 @@ describe("connector errors", () => {
     expect(formatSeconds(125)).toBe("2m 5s");
     expect(formatSeconds(3 * 3600 + 12 * 60)).toBe("3h 12m");
   });
+
+  // The instance base URL is server-supplied and lands in an href, so it is
+  // validated here rather than trusted from a DTO three services away
+  // (security review finding 26).
+  it("refuses a record URL built on a base that is not a web address", () => {
+    for (const base of ["javascript:alert(1)", "data:text/html,x", "//evil.test", "", "not a url"]) {
+      expect(externalRecordUrl(base, "sn_customerservice_case", "abc123"), base).toBeNull();
+    }
+  });
 });

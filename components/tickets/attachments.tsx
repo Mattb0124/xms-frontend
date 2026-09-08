@@ -13,6 +13,7 @@ import {
   uploadAttachment,
   type UploadStage,
 } from "@/lib/attachments/upload";
+import { openExternal } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
 import {
   useDeleteAttachmentMutation,
@@ -292,7 +293,7 @@ export function useOpenDownload(portal?: boolean) {
     async (attachment: Attachment) => {
       try {
         const result = await download({ id: attachment.id, portal }).unwrap();
-        window.open(result.url, "_blank", "noopener");
+        openExternal(result.url);
       } catch (error) {
         const parsed = apiError(error);
         push({

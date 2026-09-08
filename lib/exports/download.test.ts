@@ -69,3 +69,39 @@ describe("saveBlob", () => {
     click.mockRestore();
   });
 });
+
+/**
+ * The Content-Disposition filename is server-supplied and goes straight into
+ * `a.download`. Browsers sanitise it themselves; this is the layer that does
+ * not depend on that (security review finding 38).
+ */
+describe("the download filename", () => {
+  const bell = String.fromCharCode(7);
+
+  it("strips path separators, control characters and bidi overrides from the header name", () => {
+    expect(fileNameFromDisposition('attachment; filename="../../etc/passwd"', "export.csv")).toBe("etc_passwd");
+    expect(fileNameFromDisposition(`attachment; filename="rep${bell}ort.csv"`, "export.csv")).toBe("report.csv");
+    // %E2%80%AE is the right-to-left override, which makes "fdp.exe" read as "exe.pdf".
+    expect(fileNameFromDisposition("attachment; filename*=UTF-8''annual%E2%80%AEfdp.exe", "export.csv")).toBe(
+      "annualfdp.exe",
+    );
+  });
+
+  it("falls back when nothing usable is left", () => {
+    expect(fileNameFromDisposition('attachment; filename="///"', "export.csv")).toBe("export.csv");
+    expect(fileNameFromDisposition(null, "export.csv")).toBe("export.csv");
+  });
+
+  it("sanitises again in saveBlob and marks the anchor noopener noreferrer", () => {
+    const createObjectURL = vi.fn(() => "blob:xms/2");
+    const revokeObjectURL = vi.fn();
+    Object.assign(URL, { createObjectURL, revokeObjectURL });
+    let seen: { download: string; rel: string } | null = null;
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      seen = { download: this.download, rel: this.rel };
+    });
+    saveBlob(new Blob(["x"]), "../../etc/passwd");
+    expect(seen).toEqual({ download: "etc_passwd", rel: "noopener noreferrer" });
+    click.mockRestore();
+  });
+});

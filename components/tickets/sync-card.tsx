@@ -4,6 +4,7 @@ import { LinkStatePill, OutcomePill } from "@/components/admin/connectors/pills"
 import { formatDate } from "@/components/admin/primitives";
 import { RailCard } from "@/components/xms/rail-card";
 import { externalRecordUrl, modeLabel } from "@/lib/connectors/vocab";
+import { EXTERNAL_REL } from "@/lib/safe-url";
 import { useTicketSyncQuery, type SyncRun, type TicketSyncLink } from "@/redux/connectorsApi";
 
 /** What the consultant must know about sending (ServiceNow Sync functional 5.3 and 5.5). */
@@ -30,6 +31,33 @@ function ConflictNote({ link }: { link: TicketSyncLink }) {
   );
 }
 
+/**
+ * The external record number. It links to the client instance only when the
+ * instance base URL is one we will navigate to; otherwise the number still
+ * shows, as plain text (security review finding 26).
+ */
+function ExternalRecordLink({ link }: { link: TicketSyncLink }) {
+  const href = externalRecordUrl(link.base_url, link.table_name, link.external_sys_id);
+  if (href === null) {
+    return (
+      <span className="xms-mono text-xms-body text-[13px] font-medium" data-external={link.external_number}>
+        {link.external_number}
+      </span>
+    );
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel={EXTERNAL_REL}
+      className="xms-mono text-xms-accent text-[13px] font-medium"
+      data-external={link.external_number}
+    >
+      {link.external_number}
+    </a>
+  );
+}
+
 export function SyncCardView({ links, runs }: { links: TicketSyncLink[]; runs: SyncRun[] }) {
   if (links.length === 0) return null;
   return (
@@ -44,15 +72,7 @@ export function SyncCardView({ links, runs }: { links: TicketSyncLink[]; runs: S
               data-link-state={link.state}
             >
               <div className="flex flex-wrap items-center gap-2">
-                <a
-                  href={externalRecordUrl(link.base_url, link.table_name, link.external_sys_id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="xms-mono text-xms-accent text-[13px] font-medium"
-                  data-external={link.external_number}
-                >
-                  {link.external_number}
-                </a>
+                <ExternalRecordLink link={link} />
                 <LinkStatePill state={link.state} />
               </div>
               <p className="text-xms-label text-[12px]">

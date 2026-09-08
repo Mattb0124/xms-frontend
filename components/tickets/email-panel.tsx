@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { StatePill } from "@/components/xms/state-pill";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { openExternal } from "@/lib/safe-url";
 import {
   useGetTicketEmailQuery,
   useLazyGetInboundRawQuery,
@@ -144,7 +145,7 @@ export function EmailPanel({ ticketKey }: { ticketKey: string }) {
   const viewRaw = async (row: InboundMessage) => {
     try {
       const result = await getRaw(row.id).unwrap();
-      window.open(result.url, "_blank", "noopener");
+      openExternal(result.url);
     } catch (error) {
       push({ title: "Not available", detail: describeError(apiError(error)), tone: "error" });
     }

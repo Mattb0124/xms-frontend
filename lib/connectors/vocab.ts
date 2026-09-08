@@ -4,6 +4,8 @@
  * XMS_FIELDS table: the fields a map may target and their default system of
  * record. The server validates; this list only drives the pickers.
  */
+import { isExternalHref, safeHref } from "@/lib/safe-url";
+
 export type ConnectorMode = "off" | "ingest_only" | "bidirectional";
 export type ConnectorHealth = "healthy" | "degraded" | "failing" | "tripped";
 export type KillSwitchState = "armed" | "tripped";
@@ -187,10 +189,18 @@ export function mapStateLabel(state: MapState): string {
   return state.charAt(0).toUpperCase() + state.slice(1);
 }
 
-/** The ServiceNow record URL for a linked ticket (opens the form in the client instance). */
-export function externalRecordUrl(baseUrl: string, tableName: string, sysId: string): string {
-  const base = baseUrl.replace(/\/+$/, "");
-  return `${base}/nav_to.do?uri=${encodeURIComponent(`${tableName}.do?sys_id=${sysId}`)}`;
+/**
+ * The ServiceNow record URL for a linked ticket (opens the form in the client
+ * instance), or null when the instance base URL is not a URL we will navigate
+ * to. The base URL comes from a connector record the API stored, so it is
+ * checked here rather than trusted from a DTO three services away (security
+ * review finding 26).
+ */
+export function externalRecordUrl(baseUrl: string, tableName: string, sysId: string): string | null {
+  const base = safeHref(baseUrl);
+  if (base === null || !isExternalHref(base)) return null;
+  const trimmed = base.replace(/\/+$/, "");
+  return `${trimmed}/nav_to.do?uri=${encodeURIComponent(`${tableName}.do?sys_id=${sysId}`)}`;
 }
 
 /** Seconds as "2m 5s" or "3h 12m"; used for the inbound lag and run durations. */

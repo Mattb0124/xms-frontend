@@ -13,6 +13,7 @@ import {
   type UploadStage,
 } from "@/lib/attachments/upload";
 import { formatDateTime } from "@/lib/portal/client-language";
+import { openExternal } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
 import { useLazyDownloadAttachmentQuery, useListAttachmentsQuery, type Attachment } from "@/redux/attachmentsApi";
 
@@ -161,7 +162,7 @@ export function PortalAttachmentList({ requestKey }: { requestKey: string }) {
             onClick={() =>
               download({ id: attachment.id, portal: true })
                 .unwrap()
-                .then((result) => window.open(result.url, "_blank", "noopener"))
+                .then((result) => openExternal(result.url))
                 .catch((error) =>
                   push({ title: "Not available", detail: describeError(apiError(error)), tone: "error" }),
                 )

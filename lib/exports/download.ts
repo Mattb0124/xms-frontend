@@ -1,4 +1,5 @@
 import { getBearerToken } from "@/lib/auth/token";
+import { EXTERNAL_REL, safeFileName } from "@/lib/safe-url";
 import { API_BASE_URL } from "@/redux/api";
 
 /**
@@ -31,21 +32,27 @@ export class DownloadError extends Error {
   }
 }
 
-/** Reads the filename from a Content-Disposition header (quoted, bare or RFC 5987). */
+/**
+ * Reads the filename from a Content-Disposition header (quoted, bare or
+ * RFC 5987). The header is server-supplied and the value goes straight into
+ * `a.download`, so it is sanitised before it leaves here: path separators,
+ * control characters and bidi overrides out, leading dots dropped, length
+ * capped (security review finding 38).
+ */
 export function fileNameFromDisposition(header: string | null, fallback: string): string {
   if (!header) return fallback;
   const extended = /filename\*\s*=\s*(?:UTF-8|utf-8)''([^;]+)/.exec(header);
   if (extended?.[1]) {
     try {
-      return decodeURIComponent(extended[1].trim());
+      return safeFileName(decodeURIComponent(extended[1].trim()), fallback);
     } catch {
       return fallback;
     }
   }
   const quoted = /filename\s*=\s*"([^"]+)"/.exec(header);
-  if (quoted?.[1]) return quoted[1];
+  if (quoted?.[1]) return safeFileName(quoted[1], fallback);
   const bare = /filename\s*=\s*([^;]+)/.exec(header);
-  return bare?.[1]?.trim() || fallback;
+  return safeFileName(bare?.[1]?.trim(), fallback);
 }
 
 export async function fetchDownload(
@@ -89,8 +96,10 @@ export function saveBlob(blob: Blob, fileName: string, doc: Document = document)
   const url = URL.createObjectURL(blob);
   const anchor = doc.createElement("a");
   anchor.href = url;
-  anchor.download = fileName;
-  anchor.rel = "noopener";
+  // Sanitised again here: saveBlob is exported, so a caller may reach it with
+  // a name that did not come through fileNameFromDisposition.
+  anchor.download = safeFileName(fileName, "download");
+  anchor.rel = EXTERNAL_REL;
   doc.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

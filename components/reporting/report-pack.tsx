@@ -7,6 +7,7 @@ import { NotablePanel, OutcomesPanel, SlaPanel, TileStrip } from "@/components/r
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
+import { EXTERNAL_REL, safeHref } from "@/lib/safe-url";
 import { useReportPackQuery } from "@/redux/reportingApi";
 
 /**
@@ -31,16 +32,7 @@ export function ReportPackView({ packId }: { packId: string }) {
         <span className="xms-mono text-xms-label text-[12px]">
           {formatPeriod({ start: data.period_start, end: data.period_end })}
         </span>
-        {data.download ? (
-          <a
-            href={data.download}
-            target="_blank"
-            rel="noopener"
-            className={`${PRIMARY_BUTTON} ml-auto inline-flex items-center`}
-          >
-            Download PPTX
-          </a>
-        ) : null}
+        <PackDownload url={data.download} />
       </div>
       <TileStrip measures={data.measures} />
       <div className="grid gap-4 lg:grid-cols-2">
@@ -52,5 +44,21 @@ export function ReportPackView({ packId }: { packId: string }) {
       </Panel>
       <NotablePanel notable={data.notable} />
     </div>
+  );
+}
+
+/**
+ * The presigned PPTX link. The URL is server-supplied, so it is validated
+ * before it reaches an href, and it carries noreferrer as well as noopener so
+ * the presigned path does not leak in a Referer (security review findings 26
+ * and 38).
+ */
+function PackDownload({ url }: { url: string | null | undefined }) {
+  const href = safeHref(url);
+  if (href === null) return null;
+  return (
+    <a href={href} target="_blank" rel={EXTERNAL_REL} className={`${PRIMARY_BUTTON} ml-auto inline-flex items-center`}>
+      Download PPTX
+    </a>
   );
 }
