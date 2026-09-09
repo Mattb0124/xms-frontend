@@ -162,8 +162,6 @@ export function Shell({ children }: { children: ReactNode }) {
         onWorkspace={() => setFinder((open) => (open === "favourites" ? null : "favourites"))}
         workspaceOpen={finder === "favourites"}
         onSearchFocus={() => setFinder("all")}
-        onAxel={() => setAxel((open) => !open)}
-        axelOpen={axel}
         unreadCount={unread?.count ?? 0}
         onNotifications={() => setNotifications((open) => !open)}
         userInitials={me.principal?.displayName ? initials(me.principal.displayName) : "?"}

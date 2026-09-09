@@ -29,7 +29,6 @@ describe("FinderBar", () => {
         onToggleStar={onToggleStar}
         onWorkspace={() => {}}
         onSearchFocus={() => {}}
-        onAxel={() => {}}
         unreadCount={3}
         onNotifications={() => {}}
         userInitials="MB"

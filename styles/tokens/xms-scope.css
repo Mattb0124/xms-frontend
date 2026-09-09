@@ -595,10 +595,10 @@
  * A tab is not a control with a box: its selected mark is a straight rule on
  * the row edge, so the radius here curved both ends of it upward. Anything
  * that draws its own edge instead of a box opts out with rounded-none. */
-.xms-scope button:not([role="tab"]):not(.xms-square),
-.xms-scope select,
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-.xms-scope textarea {
+.xms-scope button:not([role="tab"]):not(.xms-square):not([class*="rounded-"]),
+.xms-scope select:not([class*="rounded-"]),
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([class*="rounded-"]),
+.xms-scope textarea:not([class*="rounded-"]) {
   border-radius: var(--xms-radius-control);
 }
 .xms-scope button[role="tab"] {

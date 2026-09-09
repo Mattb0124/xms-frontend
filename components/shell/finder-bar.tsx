@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ICON, BellIcon, ChevronDownIcon, SearchIcon, SparkleIcon, StarIcon } from "@/components/xms/icons";
+import { ICON, BellIcon, ChevronDownIcon, SearchIcon, StarIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type FinderKind = "all" | "favourites" | "history" | "workspaces";
@@ -18,8 +18,6 @@ export interface FinderBarProps {
   onWorkspace: () => void;
   workspaceOpen?: boolean;
   onSearchFocus: () => void;
-  onAxel: () => void;
-  axelOpen?: boolean;
   unreadCount: number;
   onNotifications: () => void;
   userInitials: string;
@@ -119,30 +117,20 @@ export function FinderBar(props: FinderBarProps) {
         <button
           type="button"
           onClick={props.onSearchFocus}
-          className="bg-xms-card flex h-[34px] w-[330px] shrink-0 items-center gap-2 rounded-[999px] px-3 text-left"
+          className="bg-xms-navy-overlay border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border px-3 text-left"
         >
-          <SearchIcon size={ICON.action} className="text-xms-muted shrink-0" />
-          <span className="text-xms-placeholder flex-1 truncate text-[13px]">Search tickets, accounts, solutions</span>
-          <kbd className="xms-mono border-xms-line text-xms-muted rounded-[4px] border px-[5px] py-[1px] text-[11px]">
+          <SearchIcon size={ICON.action} className="shrink-0 text-white/55" />
+          <span className="flex-1 truncate text-[13px] text-white/60">Search</span>
+          <kbd className="xms-mono rounded-[4px] border border-white/20 px-[5px] py-[1px] text-[11px] text-white/55">
             /
           </kbd>
         </button>
 
         <button
           type="button"
-          onClick={props.onAxel}
-          aria-expanded={props.axelOpen ?? false}
-          className="bg-xms-navy-overlay border-xms-navy-line ml-3 flex h-[34px] shrink-0 items-center gap-[6px] rounded-[999px] border pr-4 pl-3 text-[13px] font-medium text-white"
-        >
-          <SparkleIcon size={ICON.action} className="text-xms-ai-accent" />
-          Axel
-        </button>
-
-        <button
-          type="button"
           aria-label={`Notifications, ${props.unreadCount} unread`}
           onClick={props.onNotifications}
-          className="relative ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-white/85 hover:text-white"
+          className="relative ml-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-white/85 hover:text-white"
         >
           <BellIcon size={ICON.bar} />
           {/* The badge sits on the bell and takes no room in the row, so a
