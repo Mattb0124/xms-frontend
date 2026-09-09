@@ -111,6 +111,33 @@ export const QUEUE_DEFAULT_SORT = { key: "sla", direction: "asc" } as const;
  * padding and the card border leaves about 1180 for the visible cells, which
  * is why Short description takes the slack and everything else is fixed.
  */
+
+/**
+ * The order the design brief states: the key, then what a case is (state,
+ * priority), then what it says, then the people and the account, then the
+ * clocks. The description is the one column that grows, and it is given the
+ * width to hold a sentence on one or two lines rather than four.
+ */
+const COLUMN_ORDER = [
+  "key",
+  "state",
+  "priority",
+  "short_description",
+  "contact",
+  "channel",
+  "account",
+  "csm",
+  "assignee",
+  "sla",
+  "updated",
+  "opened",
+] as const;
+
+function inBriefOrder<Row>(columns: DenseColumn<Row>[]): DenseColumn<Row>[] {
+  const rank = new Map<string, number>(COLUMN_ORDER.map((key, index) => [key, index]));
+  return [...columns].sort((a, b) => (rank.get(a.key) ?? 99) - (rank.get(b.key) ?? 99));
+}
+
 export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptions): DenseColumn<TicketView>[] {
   const columns: DenseColumn<TicketView>[] = [
     {
@@ -124,6 +151,7 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       key: "short_description",
       title: "Short description",
       wrap: true,
+      width: "minmax(320px, 1fr)",
       sortValue: (row) => row.short_description,
       render: (row) => <span className="text-xms-ink block max-w-[520px] leading-[1.35]">{row.short_description}</span>,
     },
@@ -176,13 +204,6 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
           {channelLabel(row.source)}
         </span>
       ),
-    },
-    {
-      key: "type",
-      title: "Type",
-      width: "112px",
-      sortValue: (row) => row.type,
-      render: (row) => <span className="text-xms-body">{typeLabel(row.type)}</span>,
     },
     {
       key: "priority",
@@ -244,7 +265,8 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       render: (row) => <Stamp iso={row.updated_at} />,
     },
   ];
-  return hideAccount ? columns.filter((column) => column.key !== "account") : columns;
+  const ordered = inBriefOrder(hideAccount ? columns.filter((column) => column.key !== "account") : columns);
+  return ordered;
 }
 
 /**

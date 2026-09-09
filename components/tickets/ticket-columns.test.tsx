@@ -39,35 +39,33 @@ describe("the Queue columns", () => {
   it("runs in the prototype's order", () => {
     expect(ticketColumns({ accounts }).map((column) => column.title)).toEqual([
       "Key",
-      "Short description",
-      "Account",
-      "Contact",
-      "CSM",
-      "Channel",
-      "Type",
-      "Priority",
       "State",
-      "Opened",
+      "Priority",
+      "Short description",
+      "Contact",
+      "Channel",
+      "Account",
+      "CSM",
       "Assigned to",
       "SLA",
       "Updated",
+      "Opened",
     ]);
   });
 
   it("drops only the account column on a single-account list", () => {
     expect(ticketColumns({ accounts, hideAccount: true }).map((column) => column.key)).toEqual([
       "key",
+      "state",
+      "priority",
       "short_description",
       "contact",
-      "csm",
       "channel",
-      "type",
-      "priority",
-      "state",
-      "opened",
+      "csm",
       "assignee",
       "sla",
       "updated",
+      "opened",
     ]);
   });
 
@@ -144,12 +142,12 @@ describe("the Queue columns", () => {
   // The reviewer took the colour off these two, on every list and not only on
   // the Queue: a row carries state, priority and the clock, and nothing else
   // competes with them.
-  it("draws Account and Type as plain text, on the Queue and on Needs attention alike", () => {
+  it("draws the account and the channel as plain text, on the Queue and on Needs attention alike", () => {
     const rows = [aTicketView({ key: "CS1000005", type: "incident" })];
     const { unmount } = render(
       <DenseTable<TicketView> title="Queue" columns={ticketColumns({ accounts })} rows={rows} rowKey={(r) => r.key} />,
     );
-    expect(screen.getByText("Incident")).not.toHaveClass("xms-type");
+    expect(screen.getByText("Portal")).not.toHaveClass("xms-type");
     expect(document.querySelector(".xms-account")).toBeNull();
     unmount();
 
