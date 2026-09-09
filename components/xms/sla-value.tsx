@@ -56,7 +56,7 @@ export function formatSla(snapshot: SlaSnapshot, now: Date = new Date()): SlaDis
 
 const TONE_CLASS: Record<SlaTone, string> = {
   ok: "text-xms-ink",
-  warn: "text-[color:var(--state-needs-input-text)]",
+  warn: "text-[color:var(--xms-sla-warn)]",
   breach: "text-[color:var(--state-overdue-text)]",
   paused: "text-xms-sla-paused",
   met: "text-[color:var(--state-complete-text)]",
@@ -65,7 +65,7 @@ const TONE_CLASS: Record<SlaTone, string> = {
 
 const TONE_DOT: Record<SlaTone, string> = {
   ok: "bg-[color:var(--xms-account-none)]",
-  warn: "bg-xms-accent",
+  warn: "bg-[color:var(--xms-sla-warn)]",
   breach: "bg-[color:var(--xms-sla-breach)]",
   paused: "bg-[color:var(--xms-sla-paused)]",
   met: "bg-[color:var(--state-complete-text)]",

@@ -54,7 +54,7 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
     // breakpoint it floats over the content instead of taking 238px out of a
     // 390px viewport (finding 8).
     <aside
-      className="bg-xms-card border-xms-line sticky z-20 flex shrink-0 flex-col border-r max-md:fixed max-md:bottom-0 max-md:left-0 max-md:z-30 max-md:shadow-2xl"
+      className="xms-layer-sidebar bg-xms-card border-xms-line sticky flex shrink-0 flex-col border-r max-md:fixed max-md:bottom-0 max-md:left-0 max-md:z-30 max-md:shadow-2xl"
       style={{
         width: "var(--xms-sidebar-w)",
         top: "var(--xms-finder-bar-h)",

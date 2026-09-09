@@ -24,7 +24,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
     <aside
       aria-label={`Axel, ${context}`}
       data-testid="axel-panel"
-      className="bg-xms-card border-xms-line-region sticky flex shrink-0 flex-col border-l"
+      className="xms-layer-drawer bg-xms-card border-xms-line-region sticky flex shrink-0 flex-col border-l"
       style={{
         width: "var(--xms-axel-panel-w)",
         top: "var(--xms-finder-bar-h)",

@@ -87,12 +87,12 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
         <HeaderSearchContext.Provider value={searchSlot}>
           <HeaderPanelContext.Provider value={panelApi}>
             <div
-              className="bg-xms-bar border-xms-bar-line flex shrink-0 items-center gap-[10px] border-b px-4"
+              className="xms-layer-strip bg-xms-bar border-xms-bar-line flex shrink-0 items-center gap-[10px] border-b px-4"
               style={{ height: "var(--xms-header-bar-h)" }}
               data-testid="content-header-bar"
             >
               <button type="button" aria-label="Toggle sidebar" onClick={onToggleSidebar} className={ICON_BUTTON}>
-                <MenuIcon size={ICON.tool} />
+                <MenuIcon size={ICON.bar} />
               </button>
               {panel.present ? (
                 <button
@@ -102,7 +102,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                   onClick={() => setPanelOpen((open) => !open)}
                   className={cn(ICON_BUTTON, "relative", panelOpen && "bg-xms-card text-xms-accent")}
                 >
-                  <FunnelIcon size={ICON.field} />
+                  <FunnelIcon size={ICON.bar} />
                   {panel.count > 0 ? (
                     <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[9px] font-semibold text-white">
                       {panel.count}
@@ -133,7 +133,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                 data-testid="header-filter-slot"
               />
               <button type="button" aria-label="Screen settings" onClick={onSettings} className={ICON_BUTTON}>
-                <GearIcon size={ICON.field} />
+                <GearIcon size={ICON.bar} />
               </button>
               {/* The render's local search sits between the gear and the primary
                 action. A screen that has one portals it here; the placeholder

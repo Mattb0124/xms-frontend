@@ -35,8 +35,8 @@ describe("IntakeTab", () => {
         <AliasStatePill state="disabled_by_loop_guard" reason="3 suppressions in 10 minutes" />
       </>,
     );
-    expect(screen.getByText("Active")).toHaveAttribute("data-state", "resolved");
-    expect(screen.getByText("Disabled by admin")).toHaveAttribute("data-state", "closed");
+    expect(screen.getByText("Active").closest("[data-state]")).toHaveAttribute("data-state", "resolved");
+    expect(screen.getByText("Disabled by admin").closest("[data-state]")).toHaveAttribute("data-state", "closed");
     expect(screen.getByText("Disabled by loop guard: 3 suppressions in 10 minutes")).toHaveAttribute(
       "data-alias-state",
       "disabled_by_loop_guard",

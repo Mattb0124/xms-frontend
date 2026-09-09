@@ -16,12 +16,27 @@ export interface PriorityPillProps {
   className?: string;
 }
 
-/** P1 and P2 light up on the signal trios; P3 and P4 stay quiet so the column reads by exception. */
+/** The word beside each number, so a priority reads without a legend. */
+const PRIORITY_LABEL: Record<Priority, string> = {
+  p1: "Critical",
+  p2: "High",
+  p3: "Moderate",
+  p4: "Low",
+};
+
+/**
+ * A coloured dot beside numbered text, the same grammar as the state mark:
+ * only P1 earns red, P2 is slate and P3 and P4 stay quiet, so the column
+ * reads by exception rather than as a wall of chips.
+ */
 export function PriorityPill({ priority, className }: PriorityPillProps) {
   const trio = TRIO[priority];
   return (
-    <span className={cn("aix-state-pill xms-mono", className)} data-state={trio} data-priority={priority}>
-      {priority.toUpperCase()}
+    <span className={cn("xms-priority-mark", className)} data-state={trio} data-priority={priority}>
+      <span aria-hidden className="xms-priority-dot" />
+      <span className="xms-priority-label">
+        {priority.slice(1)} - {PRIORITY_LABEL[priority]}
+      </span>
     </span>
   );
 }

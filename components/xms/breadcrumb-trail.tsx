@@ -38,10 +38,7 @@ export function BreadcrumbTrail({ segments, onRemove, onSaveView, saved, classNa
               onClick={() => onRemove?.(segment.key)}
               aria-label={`Remove ${segment.label}`}
               aria-current={index === segments.length - 1 ? "page" : undefined}
-              className={cn(
-                "hover:underline",
-                index === segments.length - 1 ? "text-xms-accent-hover font-medium" : "text-xms-accent",
-              )}
+              className={cn("xms-link", index === segments.length - 1 && "font-medium")}
             >
               {segment.label}
             </button>

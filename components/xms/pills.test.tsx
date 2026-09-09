@@ -20,8 +20,8 @@ describe("StatePill", () => {
 
   it("renders the ramp attribute and a readable label", () => {
     render(<StatePill state="awaiting_client" />);
-    const pill = screen.getByText("Awaiting client");
-    expect(pill).toHaveClass("xms-state");
+    const pill = screen.getByText("Awaiting client").closest("[data-state]")!;
+    expect(pill).toHaveClass("xms-state-mark");
     expect(pill).toHaveAttribute("data-state", "awaiting-client");
   });
 });
@@ -37,9 +37,9 @@ describe("PriorityPill", () => {
         <PriorityPill priority="p3" />
       </>,
     );
-    expect(screen.getByText("P1")).toHaveAttribute("data-state", "overdue");
-    expect(screen.getByText("P2")).not.toHaveAttribute("data-state");
-    expect(screen.getByText("P3")).not.toHaveAttribute("data-state");
+    expect(screen.getByText("1 - Critical").closest("[data-priority]")).toHaveAttribute("data-state", "overdue");
+    expect(screen.getByText("2 - High").closest("[data-priority]")).not.toHaveAttribute("data-state");
+    expect(screen.getByText("3 - Moderate").closest("[data-priority]")).not.toHaveAttribute("data-state");
   });
 });
 

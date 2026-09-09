@@ -104,7 +104,10 @@
   /* SLA and priority signals reuse the --state-* trios from house.css.
    * These two are the wireframe's clock colours for the mono SLA value. */
   --xms-sla-breach: #dc2626;
-  --xms-sla-warn: #e8c766;
+  /* At risk is amber, so the SLA column is an honest traffic light: red
+   * breach, amber at risk, grey on track, grey pause. It borrowed the link
+   * blue, which now belongs to links alone. */
+  --xms-sla-warn: #b45309;
   --xms-sla-paused: #9aa3b2;
 
   /* v3 state ramp: ticket state pills only */
@@ -151,7 +154,33 @@
   /* 32px on the grey strip, 38px in a card toolbar (hand-off section 4). */
   --xms-control-h-lg: 38px;
   --xms-gutter: 20px;
-  --xms-shadow-card: var(--aix-shadow-card);
+  /* The AIX shadow fingerprint. Every shadow ends on the same 1px
+   * blue-tinted ring; the cast in front of it says which layer the surface
+   * stands on. Five layers: the shell off the canvas, the sidebar and the
+   * grey strip casting onto the content in front of them, a card with a
+   * light lift, the Axel drawer floating in from the right, and the sticky
+   * table header with a hairline of its own so rows scroll under it. */
+  --xms-ring: 0 0 0 1px rgba(37, 99, 235, 0.04);
+  --xms-shadow-shell: 0 1px 3px rgba(37, 99, 235, 0.08), 0 4px 16px rgba(37, 99, 235, 0.06), var(--xms-ring);
+  --xms-shadow-sidebar: 1px 0 3px rgba(37, 99, 235, 0.08), var(--xms-ring);
+  --xms-shadow-strip:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 2px 6px rgba(37, 99, 235, 0.08), var(--xms-ring);
+  --xms-shadow-card: 0 1px 3px rgba(37, 99, 235, 0.08), var(--xms-ring);
+  --xms-shadow-drawer: -6px 0 18px rgba(37, 99, 235, 0.1), var(--xms-ring);
+  --xms-shadow-thead: 0 1px 0 var(--xms-line-row);
+
+  /* The decorative icon ramp: blue-grey, a step short of the link colour, so
+   * a mark reads as drawn rather than as something to click. The strip's own
+   * near-black leans the same way at the same weight. */
+  --xms-icon: #5a7099;
+  --xms-icon-strong: #4c6289;
+  --xms-icon-quiet: #7488a5;
+  --xms-ink-strip: #33455f;
+
+  /* Blue belongs to links alone: the colour and a faint persistent underline
+   * together. A state or a mark that borrowed it now stands on its own hue. */
+  --xms-link-underline: #a9c4f5;
+  --xms-state-progress: #0369a1;
 
   color: var(--xms-body);
   background: var(--xms-bg);
@@ -220,6 +249,46 @@
     background: var(--xms-card);
     border: 1px solid var(--xms-line);
     border-radius: var(--xms-radius-card);
+    box-shadow: var(--xms-shadow-card);
+  }
+
+  /* A hyperlink, and nothing else: the blue plus a faint underline that
+   * stands whether or not the pointer is over it. A case number, a contact,
+   * an assignee, a breadcrumb segment and "Save as view" are links; a filled
+   * blue button or an active nav row is not, because a solid chip never
+   * reads as one. */
+  .xms-link {
+    color: var(--xms-accent);
+    text-decoration: underline;
+    text-decoration-color: var(--xms-link-underline);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  .xms-link:hover {
+    color: var(--xms-accent-hover);
+    text-decoration-color: var(--xms-accent-hover);
+  }
+
+  /* The layers, each casting onto what stands in front of it. */
+  .xms-layer-sidebar {
+    position: relative;
+    z-index: 10;
+    box-shadow: var(--xms-shadow-sidebar);
+  }
+  .xms-layer-strip {
+    position: relative;
+    z-index: 20;
+    box-shadow: var(--xms-shadow-strip);
+  }
+  .xms-layer-drawer {
+    box-shadow: var(--xms-shadow-drawer);
+  }
+  .xms-sticky-head th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--xms-card);
+    box-shadow: var(--xms-shadow-thead);
   }
 
   /* 11px uppercase eyebrow: PINNED, PROPERTIES, SERVICE LEVELS ...
@@ -394,6 +463,50 @@
   .xms-state[data-state="awaiting-client"]   { color: var(--xms-state-awaiting-client-fg);   background: var(--xms-state-awaiting-client-bg);   border-color: var(--xms-state-awaiting-client-br); }
   .xms-state[data-state="awaiting-approval"] { color: var(--xms-state-awaiting-approval-fg); background: var(--xms-state-awaiting-approval-bg); border-color: var(--xms-state-awaiting-approval-br); }
   .xms-state[data-state="resolved"]          { color: var(--xms-state-resolved-fg);          background: var(--xms-state-resolved-bg);          border-color: var(--xms-state-resolved-br); }
+
+  /* State as a mark beside plain text. The glyph carries the colour and the
+   * label stays ink, so a list of thirty rows reads as text rather than as
+   * thirty filled chips. In progress stands on a deeper cyan: blue belongs to
+   * links alone. */
+  .xms-state-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font: 500 13px/1.2 var(--xms-font);
+    white-space: nowrap;
+    color: var(--xms-state-closed-fg);
+  }
+  .xms-state-mark .xms-state-label {
+    color: var(--xms-ink);
+  }
+  .xms-state-mark[data-state="new"] { color: var(--xms-state-new-fg); }
+  .xms-state-mark[data-state="in-progress"] { color: var(--xms-state-progress); }
+  .xms-state-mark[data-state="awaiting-client"] { color: var(--xms-state-awaiting-client-fg); }
+  .xms-state-mark[data-state="awaiting-approval"] { color: var(--xms-state-awaiting-approval-fg); }
+  .xms-state-mark[data-state="resolved"] { color: var(--xms-state-resolved-fg); }
+
+  /* Priority: a coloured dot beside numbered text, "2 - High". Only P1 earns
+   * red; P2 is slate and the rest stay quiet, so the column reads by
+   * exception. */
+  .xms-priority-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font: 500 13px/1.2 var(--xms-font);
+    white-space: nowrap;
+  }
+  .xms-priority-mark .xms-priority-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--xms-quiet-line);
+    flex: none;
+  }
+  .xms-priority-mark .xms-priority-label {
+    color: var(--xms-ink);
+  }
+  .xms-priority-mark[data-priority="p1"] .xms-priority-dot { background: var(--xms-state-overdue-fg, #dc2626); }
+  .xms-priority-mark[data-priority="p2"] .xms-priority-dot { background: var(--xms-label); }
 
   /* Type bar: <span class="xms-type" data-type="incident">Incident</span> */
   .xms-type {

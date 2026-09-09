@@ -33,6 +33,12 @@
   --color-xms-line-row: var(--xms-line-row);
   --color-xms-bg: var(--xms-bg);
   --color-xms-card: var(--xms-card);
+  /* The blue-grey ramp a decorative mark is drawn on, and the strip ink. */
+  --color-xms-icon: var(--xms-icon);
+  --color-xms-icon-strong: var(--xms-icon-strong);
+  --color-xms-icon-quiet: var(--xms-icon-quiet);
+  --color-xms-ink-strip: var(--xms-ink-strip);
+  --color-xms-state-progress: var(--xms-state-progress);
   --color-xms-tint: var(--xms-tint);
   --color-xms-line: var(--xms-line);
   --color-xms-line-strong: var(--xms-line-strong);

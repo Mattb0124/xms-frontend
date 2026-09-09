@@ -58,6 +58,6 @@ describe("email panel copy", () => {
     fireEvent.click(screen.getByRole("button", { name: "View raw" }));
     expect(onViewRaw).toHaveBeenCalledWith(expect.objectContaining({ id: "in-1" }));
     expect(screen.getByText("Reply")).toBeInTheDocument();
-    expect(screen.getByText("bounced")).toHaveAttribute("data-state", "awaiting-client");
+    expect(screen.getByText("bounced").closest("[data-state]")).toHaveAttribute("data-state", "awaiting-client");
   });
 });

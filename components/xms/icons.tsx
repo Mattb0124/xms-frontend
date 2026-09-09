@@ -27,9 +27,9 @@ export const ICON = {
   /** A row's leading mark: the sidebar rows, a card header's funnel. */
   row: 18,
   /** A standing tool on the strip: the gear. */
-  tool: 19,
-  /** The largest in the system: the hamburger and the bell. */
-  bar: 20,
+  tool: 20,
+  /** The largest in the system: the hamburger, the funnel, the gear, the bell. */
+  bar: 22,
 } as const;
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "children"> {
