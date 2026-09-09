@@ -280,8 +280,10 @@ describe("the icon scale", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("runs 13 to 19 on the one canvas, with the glyph size below the hand-off floor named as such", () => {
-    expect(Object.values(ICON)).toEqual([13, 14, 15, 16, 17, 18, 19]);
+  it("runs 14 to 20 on the one canvas, one rung above the hand-off floor", () => {
+    // The set moved up a rung on 2026-09-09: the hand-off allows 14 to 19 and
+    // the marks read small against the prototype at the bottom of it.
+    expect(Object.values(ICON)).toEqual([14, 15, 16, 17, 18, 19, 20]);
     const source = readFileSync("components/xms/icons.tsx", "utf8");
     expect(source).toContain('viewBox="0 0 24 24"');
     expect(source).toContain("strokeWidth={1.5}");

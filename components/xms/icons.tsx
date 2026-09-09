@@ -17,19 +17,19 @@ import type { ComponentType, SVGProps } from "react";
  */
 export const ICON = {
   /** Inside a dense cell: the sort glyph on a column header, a chip's cross. */
-  glyph: 13,
+  glyph: 14,
   /** Inside a control, beside words: a pill's chevron, a button's plus. */
-  control: 14,
+  control: 15,
   /** A control's own mark: the strip's chevron, the finder star, the sparkle. */
-  action: 15,
+  action: 16,
   /** A field's adornment: the magnifier in a search field. */
-  field: 16,
+  field: 17,
   /** A row's leading mark: the sidebar rows, a card header's funnel. */
-  row: 17,
+  row: 18,
   /** A standing tool on the strip: the gear. */
-  tool: 18,
+  tool: 19,
   /** The largest in the system: the hamburger and the bell. */
-  bar: 19,
+  bar: 20,
 } as const;
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "children"> {

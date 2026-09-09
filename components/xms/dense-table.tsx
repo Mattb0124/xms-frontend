@@ -132,18 +132,14 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
     // sideways instead of the table (frontend review finding 8).
     <section className={cn("xms-card flex min-w-0 flex-col", props.className)} aria-label={props.title}>
       <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
+        {/* The search field opens the header: a reader looking for a row
+            starts at the left edge of the card, not at its far corner. The
+            title follows it and the card's own actions close the row. */}
+        {props.search ? <div className="min-w-0 max-w-[360px] flex-1">{props.search}</div> : null}
         {props.titleHidden ? null : (
           <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">{props.title}</span>
         )}
-        {/* Render 08 sets the subtitle beside the title, not under it: "Needs
-            attention  mine first, then group unassigned". */}
-        {props.subtitle ? <span className="text-xms-muted -ml-[6px] text-[13px]">{props.subtitle}</span> : null}
-        {props.search ? <div className="ml-auto min-w-0 max-w-full flex-1">{props.search}</div> : null}
-        {props.actions ? (
-          <div className={cn("flex shrink-0 items-center gap-2", props.search ? undefined : "ml-auto")}>
-            {props.actions}
-          </div>
-        ) : null}
+        {props.actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{props.actions}</div> : null}
       </header>
       {props.banner}
       {/* Horizontal overflow scrolls inside the card, never the page
