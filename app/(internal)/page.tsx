@@ -156,6 +156,9 @@ export default function MyWorkPage() {
             columns={attentionCols}
             rows={attention}
             rowKey={(row) => row.key}
+            // Worst first: P1 above P4, since a person reads this list from the
+            // top and stops when the day runs out.
+            defaultSort={{ key: "priority", direction: "asc" }}
             onRowClick={(row) => router.push(`/tickets/${row.key}`)}
             emptyState="Nothing needs a nudge right now."
           />

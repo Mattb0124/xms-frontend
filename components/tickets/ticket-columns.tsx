@@ -187,11 +187,12 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
  * only pill on the row is the state.
  */
 export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView>[] {
-  const wanted = new Set(["key", "short_description", "account", "state", "sla"]);
+  const wanted = new Set(["key", "short_description", "account", "priority", "state", "sla"]);
   const widths: Record<string, string | undefined> = {
     key: "82px",
     short_description: undefined,
     account: "128px",
+    priority: "126px",
     state: "132px",
     sla: "92px",
   };
