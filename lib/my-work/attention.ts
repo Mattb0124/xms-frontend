@@ -40,9 +40,44 @@ function byClock(a: TicketView, b: TicketView): number {
  * ticket the "Assigned to me" tile counts, on the tightest clock, and the
  * scorecards are what narrow it (note 1).
  */
+/**
+ * What a person can act on this minute.
+ *
+ * A settled case needs nothing from whoever settled it: it stays open only
+ * until the requester or the clock closes it. A case waiting on the client, a
+ * third party or an approval is not theirs to move either, and its clock is
+ * paused while it waits. Both stay out of the list, and the scorecards go on
+ * counting everything open, so the numbers above the list and the work inside
+ * it answer two different questions on purpose.
+ */
+const SETTLED = new Set(["resolved", "fulfilled", "completed", "done", "closed", "cancelled"]);
+
+const WAITING_ON_OTHERS = new Set([
+  "awaiting-client",
+  "awaiting-third-party",
+  "awaiting-approval",
+  "blocked",
+  "on-hold",
+  "scheduled",
+]);
+
+function stateSlug(state: string | undefined): string {
+  return String(state ?? "")
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-");
+}
+
+export function needsAttention(ticket: TicketView): boolean {
+  const state = stateSlug(ticket.state);
+  return !SETTLED.has(state) && !WAITING_ON_OTHERS.has(state);
+}
+
 export function attentionOrder(mine: TicketView[], group: TicketView[]): TicketView[] {
   const seen = new Set(mine.map((ticket) => ticket.key));
-  return [...[...mine].sort(byClock), ...group.filter((ticket) => !seen.has(ticket.key)).sort(byClock)];
+  return [
+    ...[...mine].filter(needsAttention).sort(byClock),
+    ...group.filter((ticket) => !seen.has(ticket.key) && needsAttention(ticket)).sort(byClock),
+  ];
 }
 
 export type TileKey = "assigned" | "breached" | "at_risk" | "awaiting";

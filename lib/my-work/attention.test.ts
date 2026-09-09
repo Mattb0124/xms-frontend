@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attentionOrder, isAtRisk, isBreached, TILES, underLens } from "@/lib/my-work/attention";
+import { attentionOrder, isAtRisk, isBreached, TILES, underLens, needsAttention } from "@/lib/my-work/attention";
 import { aTicketView } from "@/test-kit/tickets";
 import type { TicketView } from "@/redux/ticketsApi";
 
@@ -34,15 +34,27 @@ const freshAwaiting = aTicketView({
 });
 
 describe("what the list holds", () => {
-  it("holds every ticket the first scorecard counts, and not a narrower set", () => {
-    // Render 08 draws eleven assigned over a list carrying New, In progress
-    // and Awaiting client, so the list and the tile are one desk. The list
-    // used to be filtered to the breached and the long-stale, which is how
-    // "7 assigned" came to stand over one row.
+  it("holds what a person can act on now, and leaves the rest to the scorecards", () => {
+    // Matt, 2026-09-09: "my work should only show things that need action
+    // now", and "if a ticket is resolved, why would it need my attention?".
+    // A case waiting on the client is not this desk's to move and its clock
+    // is paused; a settled case needs nothing at all. The scorecards go on
+    // counting every open case, so the number above the list and the work
+    // inside it answer two different questions.
     const mine = [breached, atRisk, easy, staleAwaiting, freshAwaiting];
     const rows = attentionOrder(mine, []);
-    expect(rows).toHaveLength(TILES[0].value({ mine, breached: 1, atRisk: 1, awaiting: 2 }));
-    expect(new Set(rows.map((row) => row.key))).toEqual(new Set(mine.map((row) => row.key)));
+    expect(new Set(rows.map((row) => row.key))).toEqual(new Set([breached.key, atRisk.key, easy.key]));
+    // The tile still counts the whole desk, waiting cases included.
+    expect(TILES[0].value({ mine, breached: 1, atRisk: 1, awaiting: 2 })).toBe(mine.length);
+  });
+
+  it("drops a settled case, whatever word the state machine uses for it", () => {
+    for (const state of ["resolved", "fulfilled", "completed", "done", "closed", "cancelled"]) {
+      expect(needsAttention({ ...easy, state })).toBe(false);
+    }
+    for (const state of ["new", "triage", "in_progress", "investigating"]) {
+      expect(needsAttention({ ...easy, state })).toBe(true);
+    }
   });
 
   it("reads the clock the same way the scorecards do", () => {

@@ -153,8 +153,6 @@ export default function MyWorkPage() {
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
           <DenseTable<TicketView>
             title="Needs attention"
-            subtitle="mine first, then group unassigned"
-            headless
             columns={attentionCols}
             rows={attention}
             rowKey={(row) => row.key}

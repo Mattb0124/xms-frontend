@@ -98,7 +98,8 @@ function StateGlyph({ kind }: { kind: string }) {
   if (kind === "spinner")
     return (
       <svg {...common}>
-        <path d="M21 12a9 9 0 1 1-6.2-8.56" />
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
       </svg>
     );
   if (kind === "pause")
