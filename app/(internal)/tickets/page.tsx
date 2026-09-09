@@ -372,25 +372,6 @@ function CasesScreen() {
               </optgroup>
             ) : null}
           </StripSelect>
-          {/* The standing dimensions, drawn whether or not they filter:
-              "Account: all" until a value is chosen. Setting one back to all
-              is what removes it, so there is no cross to hunt for. */}
-          {STANDING.map((key) => (
-            <FilterSelect
-              key={key}
-              label={CHIP_LABEL[key]}
-              value={parsed.chips.find((chip) => chip.key === key)?.value ?? ""}
-              options={chipOptions(key)}
-              onChange={(value) =>
-                navigate({
-                  chips:
-                    value === ""
-                      ? withoutChip(parsed.chips, key)
-                      : addChip(withoutChip(parsed.chips, key), { key, value }),
-                })
-              }
-            />
-          ))}
         </div>
       </HeaderFilters>
       {/* Everything the grammar can say that the standing dimensions cannot:
@@ -425,7 +406,32 @@ function CasesScreen() {
           readout that stood between them is gone with the card's own count
           badge: the sidebar carries the number the queue is measured by, and
           repeating it twice more on the screen it names was noise. */}
+      {/* The band under the strip carries the filter state: the standing
+          dimensions, the trail that restates them in words, and Save as view.
+          It wraps to a second line rather than pushing the strip into a
+          scrollbar, which is what the design brief asks of both. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* The standing dimensions, drawn whether or not they filter:
+            "Account: all" until a value is chosen. Setting one back to all
+            is what removes it, so there is no cross to hunt for. */}
+          {STANDING.map((key) => (
+            <FilterSelect
+              key={key}
+              label={CHIP_LABEL[key]}
+              value={parsed.chips.find((chip) => chip.key === key)?.value ?? ""}
+              options={chipOptions(key)}
+              onChange={(value) =>
+                navigate({
+                  chips:
+                    value === ""
+                      ? withoutChip(parsed.chips, key)
+                      : addChip(withoutChip(parsed.chips, key), { key, value }),
+                })
+              }
+            />
+          ))}
+        </div>
         <BreadcrumbTrail segments={trail} onRemove={removeSegment} className="min-w-0 flex-1" />
         <SavedViewsBar
           params={exportParams}
@@ -455,6 +461,10 @@ function CasesScreen() {
         <DenseTable<TicketView>
           title="Cases"
           titleHidden
+          bleed
+          // The bands run to both edges of the work area, so the list pulls
+          // itself back out of the page's own 20px gutter.
+          className="-mx-5"
           columns={columns}
           rows={rows}
           rowKey={(row) => row.key}

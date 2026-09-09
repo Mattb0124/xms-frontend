@@ -64,6 +64,12 @@ export interface DenseTableProps<Row> {
   search?: ReactNode;
   /** The icon controls to the right of the search field (filter, columns). */
   actions?: ReactNode;
+  /**
+   * A list screen stands as bands edge to edge rather than as a card on a
+   * page: no radius, no side border, and the page's own gutter removed
+   * around it. A record screen keeps the card.
+   */
+  bleed?: boolean;
   /** Between header and rows: the selection bar, in practice. */
   banner?: ReactNode;
   footer?: ReactNode;
@@ -130,7 +136,15 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
     // min-w-0 keeps the card from growing to the table's intrinsic width: without
     // it the document was wider than the viewport and the whole page scrolled
     // sideways instead of the table (frontend review finding 8).
-    <section className={cn("xms-card flex min-w-0 flex-col", props.className)} aria-label={props.title}>
+    <section
+      className={cn(
+        "flex min-w-0 flex-col",
+        // A list screen is bands edge to edge; every other surface is a card.
+        props.bleed ? "bg-xms-card border-xms-line border-y" : "xms-card",
+        props.className,
+      )}
+      aria-label={props.title}
+    >
       <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
         {/* The search field opens the header: a reader looking for a row
             starts at the left edge of the card, not at its far corner. A card
