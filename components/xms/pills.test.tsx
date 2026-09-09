@@ -64,11 +64,9 @@ describe("KeyLink", () => {
     const link = screen.getByRole("link", { name: "CS0001204" });
     expect(link).toHaveAttribute("href", "/tickets/CS0001204");
     // A case number is a link, so it keeps the underline and hover of
-    // .xms-link; it is also a display key, so .xms-key puts it in IBM Plex Mono
-    // per the wireframes (ADR-17, ADR-18). Both, not one or the other: the
-    // link face alone sets the family through its `font` shorthand, which drew
-    // every key in the Queue in the sans face while the record bar drew the
-    // same key in mono.
+    // .xms-link; .xms-key adds the tabular figures and the weight a key needs.
+    // Both, not one or the other: the link face alone sets the family through
+    // its `font` shorthand, which drew the same key two different ways.
     expect(link).toHaveClass("xms-link");
     expect(link).toHaveClass("xms-key");
   });

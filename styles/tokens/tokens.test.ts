@@ -149,10 +149,13 @@ describe("the display key face", () => {
     expect(key).toBeGreaterThan(link);
   });
 
-  it("puts the key in the mono family with tabular figures", () => {
+  it("puts the key in the UI family with tabular figures", () => {
+    // Matt, 2026-09-09: a display key is text a person reads and follows, so it
+    // wears the UI face like every other link. Tabular figures keep a column
+    // of keys lined up without the mono face setting them apart.
     const rule = scope.slice(scope.indexOf(".xms-key {"));
     const body = rule.slice(0, rule.indexOf("}"));
-    expect(body).toContain("var(--xms-mono)");
+    expect(body).toContain("var(--xms-font)");
     expect(body).toContain("tabular-nums");
     expect(body).toContain("var(--xms-accent)");
   });

@@ -452,8 +452,12 @@
    * .xms-link so the shorthand there cannot put a key back in the sans face,
    * while the link keeps its underline and hover. Use the KeyLink and KeyText
    * components rather than this class directly. */
+  /* A display key is text a person reads and follows, not a code: the UI
+   * face at 13px, with tabular figures so a column of them still lines up.
+   * It was mono, which made every key read as a machine identifier and set
+   * it apart from every other link on the screen. */
   .xms-key {
-    font-family: var(--xms-mono);
+    font-family: var(--xms-font);
     font-variant-numeric: tabular-nums;
     font-size: 13px;
     font-weight: 500;
