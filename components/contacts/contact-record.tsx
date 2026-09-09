@@ -48,7 +48,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
         label: "Phone",
         value: contact.phone ?? "",
         readOnly: !canEdit,
-        hint: canEdit ? undefined : "Ask an account administrator to add one.",
+        hint: !canEdit && !contact.phone ? "Ask an account administrator to add one." : undefined,
       },
       { key: "job_title", label: "Job title", value: contact.job_title ?? "", readOnly: !canEdit },
       {
@@ -56,7 +56,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
         label: "Time zone",
         value: contact.time_zone ?? "",
         readOnly: !canEdit,
-        hint: "Where they sit, so a call lands in their working day.",
+        hint: contact.time_zone ? undefined : "Where they sit, so a call lands in their working day.",
       },
       { key: "notes", label: "Notes", value: contact.notes ?? "", kind: "textarea", readOnly: !canEdit },
     ];
