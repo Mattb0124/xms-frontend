@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { formatDate } from "@/components/admin/primitives";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
+import { CalendarSubscribe } from "@/components/tickets/calendar-subscribe";
 import { FilterSelect } from "@/components/xms/filter-select";
 import { KeyLink } from "@/components/xms/key-link";
 import { MonthSelect } from "@/components/xms/month-select";
@@ -146,6 +147,9 @@ export function ChangeCalendarScreen() {
           onChange={setAccountId}
         />
       </HeaderFilters>
+      {/* The feed the screen can be read through, for anyone who would rather
+          see the windows in their own calendar than open this one. */}
+      <CalendarSubscribe />
       <Panel
         title="Right now"
         caption="CHANGE WINDOWS"
