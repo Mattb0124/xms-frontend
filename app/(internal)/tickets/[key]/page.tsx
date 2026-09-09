@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminGate } from "@/components/admin/primitives";
+import { HeaderFilters, HeaderSearch, HeaderSearchField } from "@/components/shell/content-header-bar";
+import { StripSelect } from "@/components/xms/filter-select";
 import { ActivityTab } from "@/components/tickets/activity-tab";
 import { AttachmentsCard } from "@/components/tickets/attachments";
 import { EmailPanel } from "@/components/tickets/email-panel";
@@ -46,6 +48,15 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   const { push } = useToast();
   const [tab, setTab] = useState("conversation");
   const [more, setMore] = useState(false);
+  // The strip is shared chrome, and the prototype draws it on the record as
+
+  // it draws it on the Queue. Here it states what the thread holds and what
+
+  // to find in it, which is why the conversation card carries no toggle.
+
+  const [shows, setShows] = useState<"all" | "replies" | "notes">("all");
+
+  const [find, setFind] = useState("");
   // One catalogs call, once the account is known: asking before the ticket
   // arrives fetched the bare catalogs and then the account's (finding 24).
   const catalogs = useCatalogs(ticket?.account_id, { skip: !ticket });
@@ -181,7 +192,13 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           <TabBar tabs={WORK_AREA_TABS} active={tab} onChange={setTab} />
           <div className="p-[18px]">
             {tab === "conversation" ? (
-              <ConversationTab ticketKey={ticket.key} requesterLine={requesterLine} readOnly={readOnly} />
+              <ConversationTab
+                ticketKey={ticket.key}
+                requesterLine={requesterLine}
+                readOnly={readOnly}
+                shows={shows}
+                find={find}
+              />
             ) : null}
             {tab === "activity" ? <ActivityTab ticketKey={ticket.key} /> : null}
             {tab === "email" ? <EmailPanel ticketKey={ticket.key} /> : null}
@@ -199,6 +216,27 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             {tab === "sync" ? <SyncCard ticketId={ticket.id} flush /> : null}
           </div>
         </section>
+        {tab === "conversation" ? (
+          <>
+            <HeaderFilters>
+              <StripSelect
+                primary
+                label="Show"
+                value={shows}
+                display={shows === "all" ? "Everything" : shows === "replies" ? "Public replies" : "Work notes"}
+                onChange={(value) => setShows(value as "all" | "replies" | "notes")}
+              >
+                <option value="all">Show: Everything</option>
+                <option value="replies">Show: Public replies</option>
+                <option value="notes">Show: Work notes</option>
+              </StripSelect>
+            </HeaderFilters>
+            <HeaderSearch>
+              <HeaderSearchField value={find} onChange={setFind} label="Search this ticket" />
+            </HeaderSearch>
+          </>
+        ) : null}
+
         <div className="flex flex-col gap-[14px]">
           <ServiceLevels
             sla={ticket.sla}

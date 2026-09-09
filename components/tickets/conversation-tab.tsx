@@ -216,23 +216,44 @@ export interface ConversationTabProps {
   ticketKey: string;
   requesterLine: string;
   readOnly?: boolean;
+  /** What the strip's filter says the thread holds. */
+  shows?: "all" | "replies" | "notes";
+  /** What the strip's search field is looking for in it. */
+  find?: string;
 }
 
 /** Public comments and work notes interleaved (User Experience section 10 default), newest last. */
-export function ConversationTab({ ticketKey, requesterLine, readOnly }: ConversationTabProps) {
+export function ConversationTab({
+  ticketKey,
+  requesterLine,
+  readOnly,
+  shows = "all",
+  find = "",
+}: ConversationTabProps) {
   const { data, isLoading } = useGetTimelineQuery(ticketKey, { refetchOnFocus: true });
   const [addComment, comment] = useAddCommentMutation();
   const [addNote, note] = useAddWorkNoteMutation();
   const { push } = useToast();
   const trackReply = useTrack("reply.send");
   const trackNote = useTrack("note.add");
-  const [showNotes, setShowNotes] = useState(true);
   const [mode, setMode] = useState<ComposerMode>("reply");
   const [acknowledged, setAcknowledged] = useState(false);
   const uploads = useUploads(ticketKey, { visibility: () => (mode === "note" ? "internal" : "public") });
   const { data: email } = useGetTicketEmailQuery(ticketKey);
   const emailComments = new Set((email?.inbound ?? []).map((row) => row.comment_id).filter(Boolean));
-  const messages = (data ?? []).filter((item) => item.kind === "comment" || (showNotes && item.kind === "work_note"));
+  // The strip states what the thread holds and what to find in it. The
+  // prototype draws no toggle over the thread, and the strip is where a
+  // screen says what it is showing.
+  const needle = find.trim().toLowerCase();
+  const messages = (data ?? [])
+    .filter((item) =>
+      shows === "replies"
+        ? item.kind === "comment"
+        : shows === "notes"
+          ? item.kind === "work_note"
+          : item.kind === "comment" || item.kind === "work_note",
+    )
+    .filter((item) => (needle ? `${item.body ?? ""} ${item.actor_name ?? ""}`.toLowerCase().includes(needle) : true));
   const blockedReason = uploads.scanning && !acknowledged ? "A file is still being scanned." : undefined;
   return (
     <div className="flex flex-col gap-4">
@@ -268,16 +289,6 @@ export function ConversationTab({ ticketKey, requesterLine, readOnly }: Conversa
           }
         }}
       />
-      {/* The prototype draws the thread with no header of its own: no THREAD
-          eyebrow and no toggle, because its thread is a fixture. The eyebrow
-          is gone and the one control that changes what the thread holds
-          stands alone on its right. */}
-      <div className="mt-[6px] flex items-center">
-        <label className="text-xms-label ml-auto flex items-center gap-[6px] text-[12px]">
-          <input type="checkbox" checked={showNotes} onChange={(event) => setShowNotes(event.target.checked)} />
-          Show work notes
-        </label>
-      </div>
       {isLoading ? <Skeleton lines={4} /> : null}
       <div className="flex flex-col">
         {messages.map((item) => (
