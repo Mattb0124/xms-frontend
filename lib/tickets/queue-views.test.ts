@@ -55,7 +55,17 @@ describe("queue views", () => {
     ];
     const search = chipsToSearch("mine", chips, "brookfield", 50);
     expect(search.toString()).toBe("view=mine&type=incident&state=new%2Cassigned&q=brookfield&limit=50");
-    expect(chipsFromSearch(search)).toEqual({ view: "mine", chips, q: "brookfield", limit: 50, saved: null });
+    // The sort is part of the address too, and the default one stays out of it.
+    expect(chipsFromSearch(search)).toEqual({
+      view: "mine",
+      chips,
+      q: "brookfield",
+      limit: 50,
+      saved: null,
+      sort: "updated_desc",
+    });
+    expect(chipsToSearch("mine", chips, "", 25, "priority").toString()).toContain("sort=priority");
+    expect(chipsFromSearch(new URLSearchParams("sort=nonsense")).sort).toBe("updated_desc");
     expect(chipsToSearch("open", [], "", 25).toString()).toBe("");
     expect(chipsFromSearch(new URLSearchParams("limit=7"))).toMatchObject({ view: "open", limit: 25 });
     // The saved view id names the list rather than filtering it, so it reads

@@ -173,8 +173,14 @@ export function addChip(chips: Chip[], chip: Chip): Chip[] {
   return [...kept, chip];
 }
 
-/** URL search params for the screen: view, chips, q, limit. */
-export function chipsToSearch(view: string, chips: Chip[], q: string, limit: number): URLSearchParams {
+/** URL search params for the screen: view, chips, q, limit, sort. */
+export function chipsToSearch(
+  view: string,
+  chips: Chip[],
+  q: string,
+  limit: number,
+  sort?: TicketListParams["sort"],
+): URLSearchParams {
   const search = new URLSearchParams();
   if (view !== DEFAULT_VIEW) search.set("view", view);
   for (const key of CHIP_KEYS) {
@@ -184,6 +190,7 @@ export function chipsToSearch(view: string, chips: Chip[], q: string, limit: num
   }
   if (q) search.set("q", q);
   if (limit !== 25) search.set("limit", String(limit));
+  if (sort && sort !== "updated_desc") search.set("sort", sort);
   return search;
 }
 
@@ -198,6 +205,8 @@ export function chipsFromSearch(search: URLSearchParams): {
    * the filter, and the id leaves the URL as soon as one of them changes.
    */
   saved: string | null;
+  /** What the list is ordered on; the column header still reverses it. */
+  sort: TicketListParams["sort"];
 } {
   const chips: Chip[] = [];
   for (const key of CHIP_KEYS) {
@@ -223,6 +232,11 @@ export function chipsFromSearch(search: URLSearchParams): {
     chips,
     q: search.get("q") ?? "",
     limit: [10, 25, 50, 100].includes(limit) ? limit : 25,
+    sort: (["updated_desc", "created_desc", "priority"] as const).includes(
+      search.get("sort") as TicketListParams["sort"] & string,
+    )
+      ? (search.get("sort") as TicketListParams["sort"])
+      : "updated_desc",
     saved: search.get("saved"),
   };
 }

@@ -57,6 +57,7 @@ import {
   viewToParams,
   type Chip,
   type ChipKey,
+  type TicketListParams,
 } from "@/lib/tickets/queue-views";
 import { applyDefinition, savedViewSearch } from "@/lib/tickets/saved-views";
 import { PRIORITIES, TICKET_TYPES } from "@/lib/tickets/vocab";
@@ -186,12 +187,20 @@ function CasesScreen() {
   // Changing a criterion drops the saved view id: the list is no longer the
   // saved one, and a name over a different list would be a lie. The page size
   // leaves it alone, since it does not change what is being listed.
-  const navigate = (next: { view?: string; chips?: Chip[]; q?: string; limit?: number; conditions?: Condition[] }) => {
+  const navigate = (next: {
+    view?: string;
+    chips?: Chip[];
+    q?: string;
+    limit?: number;
+    conditions?: Condition[];
+    sort?: TicketListParams["sort"];
+  }) => {
     const target = chipsToSearch(
       next.view ?? parsed.view,
       next.chips ?? parsed.chips,
       next.q ?? parsed.q,
       next.limit ?? parsed.limit,
+      next.sort ?? parsed.sort,
     );
     const nextConditions = next.conditions ?? conditions;
     if (nextConditions.length > 0) target.set(CONDITIONS_PARAM, serializeConditions(nextConditions));
@@ -372,6 +381,19 @@ function CasesScreen() {
               </optgroup>
             ) : null}
           </StripSelect>
+          {/* What the list is ordered on, beside the dimension that says what
+              it is showing. The direction stays on the column header, which
+              is where a reader reverses it. */}
+          <FilterSelect
+            label="Sort"
+            value={parsed.sort ?? "updated_desc"}
+            options={[
+              { value: "updated_desc", label: "Last updated" },
+              { value: "created_desc", label: "Newest" },
+              { value: "priority", label: "Priority" },
+            ]}
+            onChange={(value) => navigate({ sort: (value || undefined) as TicketListParams["sort"] })}
+          />
         </div>
       </HeaderFilters>
       {/* Everything the grammar can say that the standing dimensions cannot:
@@ -394,12 +416,34 @@ function CasesScreen() {
         />
       </HeaderSearch>
       <HeaderAction>
-        {me.hasPermission("tickets:create") ? (
-          <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
-            <PlusIcon size={ICON.action} />
-            New
-          </Link>
-        ) : null}
+        {/* "Actions on selected rows", beside the primary button. It is drawn
+            disabled with nothing ticked rather than appearing and vanishing,
+            so the row of controls never moves under the pointer. The same
+            four actions stand in the selection bar over the rows. */}
+        <span className="flex items-center gap-2">
+          <select
+            aria-label="Actions on selected rows"
+            disabled={selected.size === 0}
+            value=""
+            onChange={(event) => {
+              const action = event.target.value;
+              event.currentTarget.value = "";
+              if (action === "assign") void assignSelected();
+              if (action === "watch") void watchSelected();
+            }}
+            className="border-xms-control-line bg-xms-card text-xms-body h-[var(--xms-header-pill-h)] rounded-[var(--xms-radius-control)] border px-[10px] text-[13px] disabled:opacity-50"
+          >
+            <option value="">{selected.size === 0 ? "Actions on selected rows" : `Actions on ${selected.size}`}</option>
+            <option value="assign">Assign to me</option>
+            <option value="watch">Watch</option>
+          </select>
+          {me.hasPermission("tickets:create") ? (
+            <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
+              <PlusIcon size={ICON.action} />
+              New
+            </Link>
+          ) : null}
+        </span>
       </HeaderAction>
 
       {/* The condition trail and Save as view are one line. The open-ticket
