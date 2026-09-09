@@ -365,3 +365,25 @@ describe("the full-width rule", () => {
     expect(readFileSync("styles/tokens/xms-scope.css", "utf8")).not.toMatch(/content-max|1200px/);
   });
 });
+
+/**
+ * A hyperlink is one thing everywhere: #2563EB, a faint persistent underline,
+ * Inter at 13px. The rule lives once in the scope, so a component that reaches
+ * for the accent colour and a hover underline of its own is a link drawn twice.
+ */
+describe("a link is drawn once", () => {
+  it("states the colour, the underline and the face in the scope", () => {
+    const scope = readFileSync("styles/tokens/xms-scope.css", "utf8");
+    expect(scope).toContain(".xms-link {");
+    expect(scope).toContain("color: var(--xms-accent)");
+    expect(scope).toContain("font: 400 13px/1.3 var(--xms-font)");
+    expect(scope).toContain("text-decoration-color: var(--xms-link-underline)");
+  });
+
+  it("leaves no component styling a link by hand", () => {
+    const offenders = sourceFiles().filter((file) =>
+      /text-xms-accent hover:underline/.test(readFileSync(file, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+});

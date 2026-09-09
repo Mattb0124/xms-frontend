@@ -188,7 +188,7 @@ export function ChangeCalendarScreen() {
         ) : windows.length === 0 ? (
           <p className="text-xms-label p-4 text-[13px]">
             No change window falls in this month.{" "}
-            <Link href="/tickets/groups" className="text-xms-accent hover:underline">
+            <Link href="/tickets/groups" className="xms-link">
               The groups catalog
             </Link>{" "}
             is where one is created.

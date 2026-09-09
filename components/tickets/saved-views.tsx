@@ -204,7 +204,7 @@ export function SavedViewsBar({
   if (!available)
     return (
       <div className="flex flex-wrap items-center gap-2 text-[12px]" data-testid="saved-views">
-        <button type="button" onClick={onToggleStar} aria-pressed={starred} className="text-xms-accent hover:underline">
+        <button type="button" onClick={onToggleStar} aria-pressed={starred} className="xms-link">
           {starred ? "Starred" : "Star this list"}
         </button>
         <span className="text-xms-label">
@@ -216,7 +216,7 @@ export function SavedViewsBar({
   return (
     <div className="flex flex-col gap-2" data-testid="saved-views">
       <div className="flex flex-wrap items-center gap-3 text-[12px]">
-        <button type="button" onClick={openForm} className="text-xms-accent hover:underline">
+        <button type="button" onClick={openForm} className="xms-link">
           Save as view
         </button>
         {current ? (
@@ -226,11 +226,7 @@ export function SavedViewsBar({
             </span>
             {owned ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => setRenaming(current.name)}
-                  className="text-xms-accent hover:underline"
-                >
+                <button type="button" onClick={() => setRenaming(current.name)} className="xms-link">
                   Rename
                 </button>
                 <select

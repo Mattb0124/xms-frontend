@@ -59,11 +59,15 @@ describe("TypeBar and AccountDot", () => {
 });
 
 describe("KeyLink", () => {
-  it("links to the ticket route in mono", () => {
+  it("links to the ticket route as a link, in the one link face", () => {
     render(<KeyLink ticketKey="CS0001204" />);
     const link = screen.getByRole("link", { name: "CS0001204" });
     expect(link).toHaveAttribute("href", "/tickets/CS0001204");
-    expect(link).toHaveClass("xms-mono");
+    // A case number is a link, so it wears the link face rather than the mono
+
+    // one that made it read as a code.
+
+    expect(link).toHaveClass("xms-link");
   });
 });
 

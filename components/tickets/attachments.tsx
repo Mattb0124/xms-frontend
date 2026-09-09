@@ -143,7 +143,7 @@ export function DropZone({
         type="button"
         disabled={disabled}
         onClick={() => input.current?.click()}
-        className={cn("text-xms-accent ml-auto hover:underline", portal && "text-[14px]")}
+        className={cn("xms-link ml-auto", portal && "text-[14px]")}
       >
         {portal ? "Add a file" : "Choose file"}
       </button>
@@ -265,7 +265,7 @@ export function AttachmentRow({
               type="button"
               disabled={attachment.scan_state !== "clean"}
               onClick={() => onDownload(attachment)}
-              className="text-xms-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+              className="xms-link disabled:cursor-not-allowed disabled:opacity-50"
             >
               Download
             </button>

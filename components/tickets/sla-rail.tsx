@@ -131,7 +131,7 @@ export function WatchCard({ ticketKey, watching = true }: { ticketKey: string; w
               .then((result) => setMuted(result.muted))
               .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
           }
-          className="text-xms-accent hover:underline"
+          className="xms-link"
         >
           {muted ? "Watch" : "Unwatch"}
         </button>

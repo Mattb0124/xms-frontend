@@ -12,7 +12,7 @@ export interface KeyLinkProps {
 export function KeyLink({ ticketKey, href, className }: KeyLinkProps) {
   const target = href ?? `/tickets/${ticketKey}`;
   return (
-    <Link href={target} className={cn("xms-link xms-mono text-[13px] font-medium", className)} data-key={ticketKey}>
+    <Link href={target} className={cn("xms-link", className)} data-key={ticketKey}>
       {ticketKey}
     </Link>
   );

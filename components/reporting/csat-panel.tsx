@@ -243,7 +243,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
                   </td>
                   <td className={cn(CELL, "xms-mono")}>
                     {response.ticket_key ? (
-                      <Link href={`/tickets/${response.ticket_key}`} className="text-xms-accent hover:underline">
+                      <Link href={`/tickets/${response.ticket_key}`} className="xms-link">
                         {response.ticket_key}
                       </Link>
                     ) : (

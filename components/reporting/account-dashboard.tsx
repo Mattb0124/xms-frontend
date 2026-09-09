@@ -69,11 +69,11 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
           </>
         ) : null}
         <div className="ml-auto flex items-center gap-3 text-[12px]">
-          <Link href={queueBase} className="text-xms-accent hover:underline">
+          <Link href={queueBase} className="xms-link">
             Open the queue
           </Link>
           {me.hasPermission("admin:accounts") ? (
-            <Link href={`/admin/accounts/${accountId}`} className="text-xms-accent hover:underline">
+            <Link href={`/admin/accounts/${accountId}`} className="xms-link">
               Account record
             </Link>
           ) : null}

@@ -105,7 +105,7 @@ export function ReportsCard({ accountId }: { accountId: string }) {
                 </td>
                 <td className="px-4 py-2 text-right">
                   {run.pack_id_resolved ? (
-                    <a href={`/reports/packs/${run.pack_id_resolved}`} className="text-xms-accent hover:underline">
+                    <a href={`/reports/packs/${run.pack_id_resolved}`} className="xms-link">
                       Open pack
                     </a>
                   ) : (

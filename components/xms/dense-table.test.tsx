@@ -53,7 +53,7 @@ function bodyKeys(): string[] {
 }
 
 describe("DenseTable", () => {
-  it("draws mono key links and SLA values, and no row count", () => {
+  it("draws key links and mono SLA values, and no row count", () => {
     render(<Harness />);
     // The card header carried the row count beside the title. Both the badge
     // and the word "Count" that labelled it are gone: the reviewer reads the
@@ -61,7 +61,7 @@ describe("DenseTable", () => {
     expect(screen.queryByText("42")).not.toBeInTheDocument();
     const link = screen.getByRole("link", { name: "CS0001204" });
     expect(link).toHaveAttribute("href", "/tickets/CS0001204");
-    expect(link).toHaveClass("xms-mono");
+    expect(link).toHaveClass("xms-link");
     expect(screen.getByText("2h 00m")).toHaveAttribute("data-tone", "ok");
     expect(screen.getByText("-22h 00m")).toHaveAttribute("data-tone", "breach");
   });

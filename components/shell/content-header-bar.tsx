@@ -31,7 +31,7 @@ export interface ContentHeaderBarProps {
 }
 
 const ICON_BUTTON =
-  "text-xms-label hover:text-xms-ink hover:bg-xms-card flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]";
+  "text-xms-icon hover:text-xms-accent hover:bg-xms-card flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]";
 
 /**
  * The height of every control standing in the toolbar band, from render 01:

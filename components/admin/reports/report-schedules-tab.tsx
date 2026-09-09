@@ -397,7 +397,7 @@ function RunNowPanel({
                 Review it
               </Link>
             ) : null}
-            <Link href={`/reports/packs/${result.pack_id}`} className="text-xms-accent hover:underline">
+            <Link href={`/reports/packs/${result.pack_id}`} className="xms-link">
               Open pack
             </Link>
           </p>
@@ -530,7 +530,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                         </Link>
                       ) : null}
                       {run.pack_id ? (
-                        <Link href={`/reports/packs/${run.pack_id}`} className="text-xms-accent hover:underline">
+                        <Link href={`/reports/packs/${run.pack_id}`} className="xms-link">
                           Open pack
                         </Link>
                       ) : (

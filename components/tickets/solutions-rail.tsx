@@ -76,12 +76,7 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
       glyph={<BookIcon size={ICON.action} className="text-xms-label shrink-0" />}
       action={
         !readOnly && canAuthor ? (
-          <button
-            type="button"
-            onClick={() => void propose()}
-            disabled={proposing.isLoading}
-            className="text-xms-accent hover:underline"
-          >
+          <button type="button" onClick={() => void propose()} disabled={proposing.isLoading} className="xms-link">
             Propose an article
           </button>
         ) : null
