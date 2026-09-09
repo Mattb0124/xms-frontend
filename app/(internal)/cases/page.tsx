@@ -62,13 +62,12 @@ import {
 import { applyDefinition, savedViewSearch } from "@/lib/tickets/saved-views";
 import { PRIORITIES, TICKET_TYPES } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
+import { outcomeLine, useApplyBulkMutation, type BulkBody } from "@/redux/bulkApi";
 import { useMe } from "@/redux/me";
 import {
   useListDirectoryGroupsQuery,
   useListGrantedAccountsQuery,
   useListTicketsQuery,
-  usePatchTicketMutation,
-  useTransitionTicketMutation,
   useWatchTicketMutation,
   type SavedView,
   type TicketView,
@@ -163,9 +162,8 @@ function CasesScreen() {
   // yet, and the per-browser star stays the fallback for exactly that.
   const { views: savedViews, available: savedAvailable } = useSavedViews();
   const currentSaved = savedViews.find((entry) => entry.id === parsed.saved) ?? null;
-  const [patch] = usePatchTicketMutation();
+  const [applyBulk] = useApplyBulkMutation();
   const [watch] = useWatchTicketMutation();
-  const [transition] = useTransitionTicketMutation();
   const trackAssign = useTrack("dispatch.assign");
 
   const accountsById = useMemo(() => new Map((accounts ?? []).map((account) => [account.id, account])), [accounts]);
@@ -253,46 +251,50 @@ function CasesScreen() {
     }
   };
 
+  /**
+   * One call for the whole selection (TM-16). Each case carries the version
+   * the reader read, and each comes back with its own outcome: a batch is not
+   * a transaction, so the bar says how many moved and names what stopped the
+   * rest, in the words of the refusal.
+   */
+  const runBulk = async (body: BulkBody, verb: string) => {
+    const targets = rows.filter((row) => selected.has(row.key));
+    if (targets.length === 0) return;
+    try {
+      const result = await applyBulk({
+        ...body,
+        tickets: targets.map((row) => ({ key: row.key, version: row.version })),
+      }).unwrap();
+      const refused = result.results.filter((outcome) => outcome.outcome !== "ok");
+      push({
+        title: `${result.succeeded} ${verb}`,
+        detail:
+          refused.length > 0
+            ? refused
+                .slice(0, 3)
+                .map((outcome) => `${outcome.key}: ${outcomeLine(outcome)}`)
+                .join("; ") + (refused.length > 3 ? `, and ${refused.length - 3} more` : "")
+            : undefined,
+        tone: refused.length > 0 ? "info" : "success",
+      });
+      setSelected(new Set());
+    } catch (error) {
+      push({ title: "Nothing was changed", detail: describeError(apiError(error)), tone: "error" });
+    }
+  };
+
   const assignSelected = async () => {
     const userId = me.principal?.userId;
     if (!userId) return;
-    const targets = rows.filter((row) => selected.has(row.key));
-    let done = 0;
-    for (const ticket of targets) {
-      try {
-        await patch({ key: ticket.key, body: { version: ticket.version, assignee_id: userId } }).unwrap();
-        done += 1;
-      } catch (error) {
-        push({ title: `${ticket.key} not assigned`, detail: describeError(apiError(error)), tone: "error" });
-      }
-    }
-    trackAssign({ count: done, via: "bulk" });
-    push({ title: `${done} assigned to you`, tone: "success" });
-    setSelected(new Set());
+    trackAssign({ count: selected.size, via: "bulk" });
+    await runBulk({ action: "assign", assignee_id: userId, tickets: [] }, "assigned to you");
   };
 
-  /**
-   * Change state on the selection (v3 render 01). There is no
-   * `POST /v1/tickets/bulk` yet, so the bar does what a reader would do by
-   * hand: it sends the same per-ticket transition the record's own state menu
-   * sends, one after another, and names each one the state machine refused.
-   * When the bulk route lands this becomes a single call and the bar does not
-   * change shape.
-   */
-  const changeStateSelected = async (to: string) => {
-    const targets = rows.filter((row) => selected.has(row.key));
-    let done = 0;
-    for (const ticket of targets) {
-      try {
-        await transition({ key: ticket.key, body: { version: ticket.version, to } }).unwrap();
-        done += 1;
-      } catch (error) {
-        push({ title: `${ticket.key} did not move`, detail: describeError(apiError(error)), tone: "error" });
-      }
-    }
-    push({ title: `${done} moved to ${to.replace(/_/g, " ")}`, tone: "success" });
-    setSelected(new Set());
-  };
+  const changeStateSelected = async (to: string) =>
+    runBulk({ action: "transition", to, tickets: [] }, `moved to ${to.replace(/_/g, " ")}`);
+
+  const setPrioritySelected = async (priority: string) =>
+    runBulk({ action: "set_priority", priority, tickets: [] }, `set to ${priority.toUpperCase()}`);
 
   const watchSelected = async () => {
     for (const key of selected) {
@@ -564,9 +566,10 @@ function CasesScreen() {
             </>
           }
           banner={
-            // The render's four bulk actions (section 8.4). Assign and Change
-            // state loop the per-ticket routes until POST /v1/tickets/bulk
-            // lands; Add tag has no route at all yet and says so rather than
+            // The bar's actions (section 8.4), each one call to
+            // POST /v1/tickets/bulk. A batch is not a transaction: the toast
+            // says how many moved and names what stopped the rest. Add tag is
+            // the one action with no route behind it and says so rather than
             // pretending to be live.
             <SelectionBar count={selected.size} onDismiss={() => setSelected(new Set())}>
               <BulkAction
@@ -589,6 +592,28 @@ function CasesScreen() {
                       {state.replace(/_/g, " ")}
                     </option>
                   ))}
+                </select>
+                <ChevronDownIcon
+                  size={ICON.glyph}
+                  className="text-xms-accent pointer-events-none absolute right-[7px]"
+                />
+              </span>
+              <span className="relative inline-flex items-center">
+                <select
+                  aria-label="Set priority"
+                  value=""
+                  onChange={(event) => {
+                    const priority = event.target.value;
+                    event.currentTarget.value = "";
+                    if (priority) void setPrioritySelected(priority);
+                  }}
+                  className="border-xms-line-strong bg-xms-card text-xms-body h-[30px] appearance-none rounded-[4px] border pr-[22px] pl-[10px] text-[13px]"
+                >
+                  <option value="">Priority</option>
+                  <option value="p1">1 - Critical</option>
+                  <option value="p2">2 - High</option>
+                  <option value="p3">3 - Moderate</option>
+                  <option value="p4">4 - Low</option>
                 </select>
                 <ChevronDownIcon
                   size={ICON.glyph}

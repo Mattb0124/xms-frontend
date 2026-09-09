@@ -8,7 +8,6 @@ import { PriorityPill } from "@/components/xms/priority-pill";
 import { SlaValue } from "@/components/xms/sla-value";
 import { StatePill } from "@/components/xms/state-pill";
 import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
-import { typeLabel } from "@/lib/tickets/vocab";
 import type { GrantedAccount, TicketView } from "@/redux/ticketsApi";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
