@@ -137,7 +137,7 @@ describe("PropertiesPanel", () => {
     );
   });
 
-  it("shows the whole account and requester as text, with no second Assigned to row", async () => {
+  it("shows the account in full and the requester by name, with no second Assigned to row", async () => {
     stub(["tickets:view"]);
     const { container } = renderDesk(<PropertiesPanel ticket={aTicketView()} />);
     await waitFor(() =>
@@ -146,7 +146,9 @@ describe("PropertiesPanel", () => {
       ),
     );
     expect(container.querySelector('[data-field="requester"] [data-readonly-value]')).toHaveTextContent(
-      "Pat Client <pat.client@example.test>",
+      // The prototype's row is the person's name on one line; the address is
+      // on the composer footer, which names who a public reply reaches.
+      "Pat Client",
     );
     // One control for one concept: the picker names the assignee itself.
     expect(screen.queryByText("Assigned to")).toBeNull();

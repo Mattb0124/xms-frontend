@@ -13,7 +13,7 @@ import { LinksTab } from "@/components/tickets/links-tab";
 import { PropertiesPanel } from "@/components/tickets/properties-panel";
 import { ResolutionTab } from "@/components/tickets/resolution-tab";
 import { ScopeCard } from "@/components/tickets/scope-card";
-import { RequesterCard, ServiceLevels, WatchCard } from "@/components/tickets/sla-rail";
+import { ServiceLevels, WatchCard } from "@/components/tickets/sla-rail";
 import { SolutionsRail } from "@/components/tickets/solutions-rail";
 import { SyncCard } from "@/components/tickets/sync-card";
 import { TimeTab } from "@/components/tickets/time-tab";
@@ -24,7 +24,7 @@ import { PriorityPill } from "@/components/xms/priority-pill";
 import { RecordForm } from "@/components/xms/record-form";
 import { Skeleton } from "@/components/xms/skeleton";
 import { SlaValue } from "@/components/xms/sla-value";
-import { ICON, MoreIcon } from "@/components/xms/icons";
+import { ChevronDownIcon, ICON, MoreIcon } from "@/components/xms/icons";
 import { TabBar } from "@/components/xms/tab-bar";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -206,16 +206,29 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             pausedReason={ticket.state_label}
             metAt={{ response: ticket.first_response_at, resolution: ticket.resolved_at }}
           />
-          {/* The prototype's rail is Service levels, Contract, Similar
-              solutions, in that order. Scope, Attachments, Requester and
-              Watching are this build's own and follow them, so nothing the
-              render draws is pushed below something it does not. */}
+          {/* The prototype's rail carries three cards and no more: Service
+              levels, Contract, Similar solutions, ending at 980px in its own
+              markup. Scope, attachments and watching are this build's own, so
+              they stand behind one disclosure underneath rather than adding a
+              fourth, fifth and sixth card to a column the prototype ends. The
+              requester card is gone: the property names the person and the
+              composer footer names the address. */}
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
-          <ScopeCard ticket={ticket} />
-          <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
-          <RequesterCard ticket={ticket} />
-          <WatchCard ticketKey={ticket.key} watching={ticket.watching ?? true} />
+          <details className="xms-card group p-0">
+            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[13px] font-medium">
+              <ChevronDownIcon
+                size={ICON.control}
+                className="text-xms-ink-faint transition-transform group-open:rotate-0 -rotate-90"
+              />
+              More on this ticket
+            </summary>
+            <div className="flex flex-col gap-[14px] px-4 pb-4">
+              <ScopeCard ticket={ticket} />
+              <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
+              <WatchCard ticketKey={ticket.key} watching={ticket.watching ?? true} />
+            </div>
+          </details>
         </div>
       </div>
     </div>

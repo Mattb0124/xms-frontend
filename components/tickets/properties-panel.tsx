@@ -75,7 +75,11 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
       {
         key: "requester",
         label: "Requester",
-        value: ticket.requester ? `${ticket.requester.display_name} <${ticket.requester.email}>` : "",
+        // The prototype's row is the person's name on one line. The address
+        // belongs to the composer footer, which already names who a public
+        // reply reaches; putting it here wrapped the value and moved every
+        // row under it down by 19px.
+        value: ticket.requester ? ticket.requester.display_name : "",
         readOnly: true,
       },
       {
