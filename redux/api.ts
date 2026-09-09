@@ -67,6 +67,7 @@ export const xmsApi = createApi({
     "Me",
     "Waiting",
     "Accounts",
+    "Contact",
     "Account",
     "Users",
     "User",

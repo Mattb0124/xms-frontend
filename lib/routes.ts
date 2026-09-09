@@ -47,6 +47,14 @@ export const SCREENS: Screen[] = [
     purpose: "The working list for everything case-shaped.",
   },
   {
+    path: "/contacts/[id]",
+    screen: "contact",
+    label: "Contact",
+    section: "Cases",
+    permission: "tickets:view",
+    purpose: "One contact: how to reach them, the account they belong to, what they have raised.",
+  },
+  {
     path: "/tickets/dispatch",
     screen: "dispatch",
     label: "Dispatch",

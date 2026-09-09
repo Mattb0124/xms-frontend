@@ -25,6 +25,8 @@ export interface TicketListParams {
   breached?: boolean;
   /** The out-of-scope flag (TM-11); one or more values of `OUT_OF_SCOPE`. */
   out_of_scope?: string[];
+  /** One contact's own cases, for the record that names them. */
+  requester_contact_id?: string;
   q?: string;
   /**
    * The filter builder's set, base64url JSON of `{ conditions, match }`, as

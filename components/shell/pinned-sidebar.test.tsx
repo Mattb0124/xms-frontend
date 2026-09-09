@@ -47,7 +47,7 @@ describe("PinnedSidebar", () => {
     // beside it, not a label with the count spliced into the sentence.
     const browse = screen.getByRole("button", { name: /Browse all screens/ });
     expect(browse).toBeEnabled();
-    expect(browse).toHaveTextContent("14");
+    expect(browse).toHaveTextContent("15");
   });
 
   it("never shows a pin the user is not permitted to see", () => {

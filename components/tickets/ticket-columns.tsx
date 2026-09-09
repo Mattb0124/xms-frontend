@@ -111,16 +111,15 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       render: (row) => <span className="text-xms-body">{accounts.get(row.account_id)?.name ?? "Account"}</span>,
     },
     {
-      // The person who raised it. There is no contact record of its own yet,
-      // so the name opens the account's own contacts, which is where a
-      // requester is administered.
+      // The person who raised it, and their own record: the number, the role
+      // and the hours a consultant needs before ringing them.
       key: "contact",
       title: "Contact",
       width: "150px",
       sortValue: (row) => row.requester?.display_name ?? "",
       render: (row) =>
         row.requester ? (
-          <TextLink href={`/accounts/${row.account_id}?tab=contacts`}>{row.requester.display_name}</TextLink>
+          <TextLink href={`/contacts/${row.requester.id}`}>{row.requester.display_name}</TextLink>
         ) : (
           <span className="text-xms-muted">No contact</span>
         ),
