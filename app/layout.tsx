@@ -12,8 +12,10 @@ import "./globals.css";
 // Inter and left every screen in the platform sans (reviewer finding 6).
 
 export const metadata: Metadata = {
-  title: "XMS",
-  description: "Xelerated Managed Services: tickets, SLAs, contracts and knowledge for the DMS practice.",
+  // The tab reads the product name in full. XMS is the short form the
+  // interface uses; a browser tab is where a person meets the name first.
+  title: "X Managed Services",
+  description: "X Managed Services: cases, SLAs, contracts and knowledge for the DMS practice.",
 };
 
 /**
