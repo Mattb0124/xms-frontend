@@ -135,6 +135,8 @@ export interface PatchTicketBody {
   short_description?: string;
   description?: string | null;
   category?: string | null;
+  /** The item the case is raised against; the server refuses one from another account. */
+  configuration_item_id?: string | null;
   impact?: Level | null;
   urgency?: Level | null;
   priority?: Priority;

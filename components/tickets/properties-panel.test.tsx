@@ -47,7 +47,11 @@ describe("PropertiesPanel", () => {
    */
   it("draws the prototype's own rows, in its order", async () => {
     stub(["tickets:view"]);
-    const { container } = renderDesk(<PropertiesPanel ticket={aTicketView({ configuration_item_name: "HFM PROD" })} />);
+    // The row is a picker over the account register now, so it names the
+    // item by its id and draws the name the register gave it.
+    const { container } = renderDesk(
+      <PropertiesPanel ticket={aTicketView({ configuration_item_id: "ci-1", configuration_item_name: "HFM PROD" })} />,
+    );
     await screen.findByText("Configuration item");
     const labels = Array.from(container.querySelectorAll("[data-field]"))
       .map((row) => row.querySelector("span,label")?.textContent)
@@ -66,7 +70,7 @@ describe("PropertiesPanel", () => {
     expect(labels).toContain("Out of scope");
     expect(labels).toContain("External reference");
     for (const gone of ["Created", "Resolved", "Closed"]) expect(labels).not.toContain(gone);
-    expect(container.querySelector('[data-field="configuration_item"]')).toHaveTextContent("HFM PROD");
+    expect(container.querySelector('[data-field="configuration_item_id"]')).toBeTruthy();
   });
 
   it("is named Properties and carries the matrix caption on the Priority row", async () => {

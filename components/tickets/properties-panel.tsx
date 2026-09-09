@@ -9,6 +9,7 @@ import { apiError, describeError } from "@/lib/admin/api-error";
 import { describeGroupError } from "@/lib/tickets/groups";
 import { scopeLabel } from "@/lib/tickets/scope";
 import { LEVELS, PRIORITIES, SOURCE_LABEL, TICKET_TYPES } from "@/lib/tickets/vocab";
+import { useListConfigurationItemsQuery } from "@/redux/configurationItemsApi";
 import { useMe } from "@/redux/me";
 import {
   useListAccountContractsQuery,
@@ -61,6 +62,14 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
   const { data: directoryGroups } = useListDirectoryGroupsQuery();
   const groupName = directoryGroups?.find((group) => group.id === ticket.group_id)?.name ?? "";
 
+  // The account's register, for the row that names one. It is skipped where
+  // the panel is read only, so a reader who cannot change the row does not
+  // fetch a list to choose from.
+  const { data: configurationItems } = useListConfigurationItemsQuery(
+    { accountId: ticket.account_id, status: "active", limit: 200 },
+    { skip: readOnly },
+  );
+
   const fields = useMemo<RecordField[]>(
     () => [
       {
@@ -92,13 +101,19 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
       },
       { key: "category", label: "Category", value: ticket.category ?? "", readOnly },
       // The prototype puts the configuration item between Category and the
-      // matrix. It is the ticket's own name for it, so the row needs no
-      // second call and never prints an id.
+      // matrix. The row names it rather than printing its id, and offers the
+      // account's own register to change it: the server refuses an item from
+      // another account, so the list is the account's and nothing else.
       {
-        key: "configuration_item",
+        key: "configuration_item_id",
         label: "Configuration item",
-        value: ticket.configuration_item_name ?? "",
-        readOnly: true,
+        value: ticket.configuration_item_id ?? "",
+        kind: "select",
+        options: [
+          { value: "", label: "Not set" },
+          ...(configurationItems ?? []).map((item) => ({ value: item.id, label: item.name })),
+        ],
+        readOnly,
       },
       // Render 02 draws impact and urgency as one row, "2 - Multiple users ·
       // 2 - High", because neither says anything without the other: they are
@@ -188,6 +203,9 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
     switch (key) {
       case "category":
         body.category = value === "" ? null : value;
+        break;
+      case "configuration_item_id":
+        body.configuration_item_id = value === "" ? null : value;
         break;
       case "contract_id":
         body.contract_id = value;
