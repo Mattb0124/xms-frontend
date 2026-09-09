@@ -16,6 +16,8 @@ export interface DenseColumn<Row> {
   title: string;
   /** Sortable columns read a primitive from the row through this accessor. */
   sortValue?: (row: Row) => string | number | null | undefined;
+  /** A cell that carries prose, so it wraps rather than staying on one line. */
+  wrap?: boolean;
   render?: (row: Row) => ReactNode;
   width?: string;
   align?: "left" | "right";
@@ -277,7 +279,8 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       key={column.key}
                       className={cn(
                         // 13px vertical, 14px horizontal (hand-off section 4).
-                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] py-[13px] align-middle whitespace-nowrap",
+                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] py-[13px] align-top",
+                        column.wrap ? undefined : "whitespace-nowrap",
                         column.mono && "xms-mono",
                         column.align === "right" && "text-right",
                       )}

@@ -2,6 +2,7 @@
 
 import { shortName } from "@/components/xms/actor-chip";
 import type { DenseColumn } from "@/components/xms/dense-table";
+import { ICON } from "@/components/xms/icons";
 import { KeyLink, TextLink } from "@/components/xms/key-link";
 import { PriorityPill } from "@/components/xms/priority-pill";
 import { SlaValue } from "@/components/xms/sla-value";
@@ -26,6 +27,32 @@ export function openedDate(iso: string, now: Date = new Date()): string {
 }
 
 /** "3m ago", "2h ago", "4d ago" for the Updated column. */
+
+/** The two lines a stamp is drawn on: the day above, the clock beneath. */
+export function stampLines(iso: string, now: Date = new Date()): { day: string; time: string } {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return { day: "", time: "" };
+  return {
+    day: openedDate(iso, now),
+    time: `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`,
+  };
+}
+
+/** How a case arrived, in a word, with the mark that says it without reading. */
+export const CHANNEL_LABEL: Record<string, string> = {
+  email: "Email",
+  portal: "Portal",
+  phone: "Phone",
+  internal: "Internal",
+  sync: "Sync",
+  api: "API",
+  chat: "Chat",
+};
+
+export function channelLabel(source: string): string {
+  return CHANNEL_LABEL[source] ?? source.charAt(0).toUpperCase() + source.slice(1);
+}
+
 export function relativeTime(iso: string, now: Date = new Date()): string {
   const diff = Math.max(0, now.getTime() - new Date(iso).getTime());
   const minutes = Math.floor(diff / 60_000);
@@ -96,12 +123,9 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
     {
       key: "short_description",
       title: "Short description",
+      wrap: true,
       sortValue: (row) => row.short_description,
-      render: (row) => (
-        <span className="text-xms-ink block max-w-[420px] truncate" title={row.short_description}>
-          {row.short_description}
-        </span>
-      ),
+      render: (row) => <span className="text-xms-ink block max-w-[520px] leading-[1.35]">{row.short_description}</span>,
     },
     {
       key: "account",
@@ -142,6 +166,18 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       },
     },
     {
+      key: "channel",
+      title: "Channel",
+      width: "116px",
+      sortValue: (row) => channelLabel(row.source),
+      render: (row) => (
+        <span className="text-xms-body inline-flex items-center gap-[7px]">
+          <ChannelGlyph source={row.source} />
+          {channelLabel(row.source)}
+        </span>
+      ),
+    },
+    {
       key: "type",
       title: "Type",
       width: "112px",
@@ -170,7 +206,7 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       width: "104px",
       mono: true,
       sortValue: (row) => row.created_at,
-      render: (row) => <span className="text-xms-label">{openedDate(row.created_at)}</span>,
+      render: (row) => <Stamp iso={row.created_at} />,
     },
     {
       key: "assignee",
@@ -205,7 +241,7 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       hidden: !showClocks,
       mono: true,
       sortValue: (row) => row.updated_at,
-      render: (row) => <span className="text-xms-label">{relativeTime(row.updated_at)}</span>,
+      render: (row) => <Stamp iso={row.updated_at} />,
     },
   ];
   return hideAccount ? columns.filter((column) => column.key !== "account") : columns;
@@ -247,4 +283,69 @@ export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView
           }
         : {}),
     }));
+}
+
+/** A stamp on two lines: the day above, the clock beneath, both quiet. */
+function Stamp({ iso }: { iso: string }) {
+  const { day, time } = stampLines(iso);
+  if (!day) return null;
+  return (
+    <span className="text-xms-label flex flex-col leading-[1.3]">
+      <span>{day}</span>
+      <span className="xms-mono text-xms-muted text-[12px]">{time}</span>
+    </span>
+  );
+}
+
+/**
+ * The mark beside a channel. Drawn on the same 24px canvas as every other
+ * icon, on the blue-grey ramp: it says how the case arrived, and it is not
+ * something to click.
+ */
+function ChannelGlyph({ source }: { source: string }) {
+  const common = {
+    width: ICON.glyph,
+    height: ICON.glyph,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+    className: "text-xms-icon shrink-0",
+  };
+  if (source === "email")
+    return (
+      <svg {...common}>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3.5 7 8.5 6 8.5-6" />
+      </svg>
+    );
+  if (source === "phone")
+    return (
+      <svg {...common}>
+        <path d="M6 3h3l2 5-2.5 1.5a12 12 0 0 0 6 6L16 13l5 2v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4 5.2 2 2 0 0 1 6 3Z" />
+      </svg>
+    );
+  if (source === "portal")
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z" />
+      </svg>
+    );
+  if (source === "sync")
+    return (
+      <svg {...common}>
+        <path d="M4 10a8 8 0 0 1 13.5-4.5L20 8" />
+        <path d="M20 14a8 8 0 0 1-13.5 4.5L4 16" />
+      </svg>
+    );
+  return (
+    <svg {...common}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M9 9h6M9 13h6" />
+    </svg>
+  );
 }
