@@ -218,7 +218,18 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                   data-row-key={key}
                   data-selected={isSelected ? "true" : undefined}
                   tabIndex={onRowClick ? 0 : undefined}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onClick={
+                    onRowClick
+                      ? (event) => {
+                          // A row opens its record, but a link inside a cell
+                          // opens what it names: the contact, the CSM, the
+                          // person it is assigned to. Without this the row
+                          // swallowed every one of them.
+                          if ((event.target as HTMLElement).closest("a,button,input,select,textarea,label")) return;
+                          onRowClick(row);
+                        }
+                      : undefined
+                  }
                   onKeyDown={
                     onRowClick
                       ? (event) => {

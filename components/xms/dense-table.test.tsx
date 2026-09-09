@@ -153,4 +153,28 @@ describe("DenseTable", () => {
     );
     expect(screen.getByText("Nothing in Breached")).toBeInTheDocument();
   });
+
+  it("lets a link inside a row open what it names, not the row's own record", () => {
+    const onRowClick = vi.fn();
+    render(
+      <DenseTable
+        title="Cases"
+        columns={[
+          { key: "key", title: "Key", render: (row: { key: string }) => <span>{row.key}</span> },
+          {
+            key: "contact",
+            title: "Contact",
+            render: () => <a href="/contacts/abc">Sam Owner</a>,
+          },
+        ]}
+        rows={[{ key: "CS0000001" }]}
+        rowKey={(row: { key: string }) => row.key}
+        onRowClick={onRowClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Sam Owner" }));
+    expect(onRowClick).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("CS0000001"));
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+  });
 });
