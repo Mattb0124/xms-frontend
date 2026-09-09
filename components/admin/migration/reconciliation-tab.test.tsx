@@ -96,7 +96,7 @@ describe("ReconciliationTab", () => {
       "GET /v1/migration/reconciliation": () => json([aReport({ can_sign: false, sign_blocker: "signer_ran_batch" })]),
     });
     renderDesk(<ReconciliationTab accountId={ACCOUNT_ID} />);
-    await screen.findByText("Batch report");
+    await screen.findAllByRole("region", { name: "Batch report" });
     expect(screen.getByRole("button", { name: "Sign off" })).toBeDisabled();
     expect(screen.getByText("You ran this batch; a second person must sign")).toBeInTheDocument();
   });
@@ -111,7 +111,7 @@ describe("ReconciliationTab", () => {
       },
     });
     renderDesk(<ReconciliationTab accountId={ACCOUNT_ID} />);
-    await screen.findByText("Batch report");
+    await screen.findAllByRole("region", { name: "Batch report" });
     expect(screen.getByRole("link", { name: `batch ${BATCH_ID.slice(0, 8)}` })).toHaveAttribute(
       "href",
       `/admin/migration/${BATCH_ID}`,

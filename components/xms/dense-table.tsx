@@ -133,10 +133,14 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
     <section className={cn("xms-card flex min-w-0 flex-col", props.className)} aria-label={props.title}>
       <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
         {/* The search field opens the header: a reader looking for a row
-            starts at the left edge of the card, not at its far corner. The
-            title follows it and the card's own actions close the row. */}
-        {props.search ? <div className="min-w-0 max-w-[360px] flex-1">{props.search}</div> : null}
-        {props.titleHidden ? null : (
+            starts at the left edge of the card, not at its far corner. A card
+            that carries one needs no title beside it, since the strip above
+            already names the screen and the field says what it searches; the
+            title stays on the card's accessible name for anyone not reading
+            the screen. The card's own actions close the row. */}
+        {props.search ? (
+          <div className="min-w-0 max-w-[360px] flex-1">{props.search}</div>
+        ) : props.titleHidden ? null : (
           <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">{props.title}</span>
         )}
         {props.actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{props.actions}</div> : null}
