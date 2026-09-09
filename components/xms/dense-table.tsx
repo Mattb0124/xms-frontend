@@ -260,7 +260,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     // One hairline and a hover fill separate two rows, and
                     // nothing else does (hand-off rule 1).
                     "border-xms-line-row hover:bg-xms-row-hover border-b",
-                    isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
+                    isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent-hover)]",
                     onRowClick && "cursor-pointer",
                   )}
                 >

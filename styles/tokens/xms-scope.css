@@ -607,6 +607,13 @@
 .xms-scope button[role="tab"] {
   border-radius: 0;
 }
+/* A ticked box takes the same deeper blue the selected row and a link
+ * carry, rather than the browser's own brighter default. */
+.xms-scope input[type="checkbox"],
+.xms-scope input[type="radio"] {
+  accent-color: var(--xms-accent-hover);
+}
+
 .xms-scope ::placeholder {
   color: var(--xms-placeholder);
 }
