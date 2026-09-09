@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyText } from "@/components/xms/key-link";
 import { useState } from "react";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
@@ -349,7 +350,7 @@ function ContractRateCards({
         onClick={() => setOpen((value) => !value)}
       >
         <span className="xms-mono text-xms-label w-3 text-[11px]">{open ? "v" : ">"}</span>
-        <span className="xms-mono text-xms-accent text-[12px]">{contract.key}</span>
+        <KeyText ticketKey={contract.key} />
         <span className="truncate">{contract.name}</span>
         <span className="xms-mono text-xms-label ml-auto text-[11px]">{contract.currency}</span>
       </button>

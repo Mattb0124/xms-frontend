@@ -439,10 +439,26 @@
     color: var(--xms-note-ink);
   }
 
-  /* Mono value: ticket keys, SLA values, counts */
+  /* Mono value: SLA values, counts, identifiers that are not display keys */
   .xms-mono {
     font-family: var(--xms-mono);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* The display key, one treatment everywhere it is drawn: a ticket (CS0001204),
+   * an article (KB000123), an account key. IBM Plex Mono per the wireframes,
+   * tabular figures so a column of keys aligns, and the accent so a key reads as
+   * the record's own identifier whether or not it links. Declared after
+   * .xms-link so the shorthand there cannot put a key back in the sans face,
+   * while the link keeps its underline and hover. Use the KeyLink and KeyText
+   * components rather than this class directly. */
+  .xms-key {
+    font-family: var(--xms-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--xms-accent);
   }
 
   /* Ticket state pill on the v3 ramp: <span class="xms-state" data-state="awaiting-client"> */

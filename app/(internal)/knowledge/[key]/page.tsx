@@ -14,7 +14,7 @@ import {
 } from "@/components/knowledge/primitives";
 import { VisibilityTab } from "@/components/knowledge/visibility-tab";
 import { EmptyBanner } from "@/components/xms/empty-banner";
-import { KeyLink } from "@/components/xms/key-link";
+import { TextLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { RailCard } from "@/components/xms/rail-card";
 import { RecordForm } from "@/components/xms/record-form";
@@ -238,7 +238,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
           <PropertiesRail article={article} canEdit={canEdit} onCommit={commit} />
           {article.source_ticket_id ? (
             <RailCard caption="Origin">
-              <KeyLink ticketKey="Source ticket" href={`/tickets/${article.source_ticket_id}`} />
+              <TextLink href={`/tickets/${article.source_ticket_id}`}>Source ticket</TextLink>
             </RailCard>
           ) : null}
         </div>

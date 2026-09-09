@@ -99,13 +99,7 @@ function ExternalRecordLink({ link }: { link: TicketSyncLink }) {
     );
   }
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel={EXTERNAL_REL}
-      className="xms-mono text-xms-accent text-[13px] font-medium"
-      data-external={link.external_number}
-    >
+    <a href={href} target="_blank" rel={EXTERNAL_REL} className="xms-key" data-external={link.external_number}>
       {link.external_number}
     </a>
   );

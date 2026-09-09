@@ -17,7 +17,7 @@ import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-b
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { FilterSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
-import { KeyLink } from "@/components/xms/key-link";
+import { KeyText, TextLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { useTrack } from "@/lib/telemetry/provider";
@@ -38,7 +38,7 @@ const COLUMNS: DenseColumn<UserRecord>[] = [
     title: "Email",
     mono: true,
     sortValue: (row) => row.email,
-    render: (row) => <KeyLink ticketKey={row.email} href={`/admin/users/${row.id}`} />,
+    render: (row) => <TextLink href={`/admin/users/${row.id}`}>{row.email}</TextLink>,
   },
   { key: "name", title: "Name", sortValue: (row) => fullName(row), render: (row) => fullName(row) },
   { key: "kind", title: "Kind", sortValue: (row) => row.kind },
@@ -154,7 +154,7 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
                   checked={accountIds.has(account.id)}
                   onChange={() => setAccountIds(toggle(accountIds, account.id))}
                 />
-                <span className="xms-mono text-xms-accent">{account.key}</span>
+                <KeyText ticketKey={account.key} />
                 <span className="text-xms-ink">{account.name}</span>
               </label>
             ))}

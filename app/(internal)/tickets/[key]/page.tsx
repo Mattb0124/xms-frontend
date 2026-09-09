@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { KeyText } from "@/components/xms/key-link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminGate } from "@/components/admin/primitives";
@@ -89,7 +90,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           sidebar and the browser are the way back. The title is still editable
           on click, through the stacked field's own text-until-clicked shape. */}
       <div className="mb-[14px] flex flex-wrap items-center gap-[10px]">
-        <span className="xms-mono text-xms-accent text-[13px] font-medium">{ticket.key}</span>
+        <KeyText ticketKey={ticket.key} />
         <div className="min-w-0 max-w-[520px] flex-1">
           <RecordForm
             layout="stacked"

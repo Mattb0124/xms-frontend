@@ -135,3 +135,25 @@ describe("xms token contract", () => {
     }
   });
 });
+
+describe("the display key face", () => {
+  it("declares .xms-key after .xms-link so the link shorthand cannot reclaim the family", () => {
+    // .xms-link sets `font: 400 13px/1.3 var(--xms-font)`, and the shorthand
+    // carries the family. Both are single-class selectors in the same layer, so
+    // source order alone decides which family a key ends up in. Declared the
+    // other way round, every KeyLink silently returns to the sans face.
+    const link = scope.indexOf(".xms-link {");
+    const key = scope.indexOf(".xms-key {");
+    expect(link).toBeGreaterThan(-1);
+    expect(key).toBeGreaterThan(-1);
+    expect(key).toBeGreaterThan(link);
+  });
+
+  it("puts the key in the mono family with tabular figures", () => {
+    const rule = scope.slice(scope.indexOf(".xms-key {"));
+    const body = rule.slice(0, rule.indexOf("}"));
+    expect(body).toContain("var(--xms-mono)");
+    expect(body).toContain("tabular-nums");
+    expect(body).toContain("var(--xms-accent)");
+  });
+});

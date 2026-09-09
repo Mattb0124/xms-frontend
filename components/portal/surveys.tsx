@@ -119,10 +119,7 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
                   data-kind={surveyKind(survey)}
                 >
                   {survey.ticket_key ? (
-                    <Link
-                      href={`/portal/requests/${survey.ticket_key}`}
-                      className="xms-mono text-xms-accent text-[13px] hover:underline"
-                    >
+                    <Link href={`/portal/requests/${survey.ticket_key}`} className="xms-key hover:underline">
                       {survey.ticket_key}
                     </Link>
                   ) : (

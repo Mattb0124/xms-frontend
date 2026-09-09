@@ -12,7 +12,7 @@ import {
 } from "@/components/admin/primitives";
 import { HeaderAction } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
-import { KeyLink } from "@/components/xms/key-link";
+import { TextLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { StatePill } from "@/components/xms/state-pill";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -23,7 +23,7 @@ const COLUMNS: DenseColumn<GroupRecord>[] = [
     key: "name",
     title: "Group",
     sortValue: (row) => row.name,
-    render: (row) => <KeyLink ticketKey={row.name} href={`/admin/groups/${row.id}`} className="font-sans" />,
+    render: (row) => <TextLink href={`/admin/groups/${row.id}`}>{row.name}</TextLink>,
   },
   { key: "service_line", title: "Service line", sortValue: (row) => row.service_line ?? "" },
   { key: "description", title: "Description", sortValue: (row) => row.description },

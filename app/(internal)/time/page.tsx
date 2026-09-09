@@ -8,6 +8,7 @@ import { BucketLog } from "@/components/time/bucket-log";
 import { shiftWeek, Timesheet, weekOf } from "@/components/time/timesheet";
 import { StripSelect } from "@/components/xms/filter-select";
 import { ICON, CloseIcon, PlusIcon } from "@/components/xms/icons";
+import { KeyText } from "@/components/xms/key-link";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { useTrack } from "@/lib/telemetry/provider";
@@ -83,7 +84,7 @@ function TicketLog() {
         </button>
         {resolved ? (
           <span className="text-xms-ink text-[13px]">
-            <span className="xms-mono text-xms-accent">{resolved.key}</span> {resolved.title}
+            <KeyText ticketKey={resolved.key} /> {resolved.title}
           </span>
         ) : null}
         {error ? (

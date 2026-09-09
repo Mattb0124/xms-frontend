@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AccountDot } from "@/components/xms/account-dot";
 import { ActorChip, initials } from "@/components/xms/actor-chip";
-import { KeyLink } from "@/components/xms/key-link";
+import { KeyLink, KeyText, TextLink } from "@/components/xms/key-link";
 import { PriorityPill } from "@/components/xms/priority-pill";
 import { formatSla, SlaValue } from "@/components/xms/sla-value";
 import { rampFor, StatePill } from "@/components/xms/state-pill";
@@ -59,15 +59,36 @@ describe("TypeBar and AccountDot", () => {
 });
 
 describe("KeyLink", () => {
-  it("links to the ticket route as a link, in the one link face", () => {
+  it("links to the ticket route wearing both the link face and the key face", () => {
     render(<KeyLink ticketKey="CS0001204" />);
     const link = screen.getByRole("link", { name: "CS0001204" });
     expect(link).toHaveAttribute("href", "/tickets/CS0001204");
-    // A case number is a link, so it wears the link face rather than the mono
-
-    // one that made it read as a code.
-
+    // A case number is a link, so it keeps the underline and hover of
+    // .xms-link; it is also a display key, so .xms-key puts it in IBM Plex Mono
+    // per the wireframes (ADR-17, ADR-18). Both, not one or the other: the
+    // link face alone sets the family through its `font` shorthand, which drew
+    // every key in the Queue in the sans face while the record bar drew the
+    // same key in mono.
     expect(link).toHaveClass("xms-link");
+    expect(link).toHaveClass("xms-key");
+  });
+});
+
+describe("KeyText", () => {
+  it("wears the key face with no link, for a key with nothing to open", () => {
+    render(<KeyText ticketKey="CS0001204" />);
+    const key = screen.getByText("CS0001204");
+    expect(key).toHaveClass("xms-key");
+    expect(key).not.toHaveClass("xms-link");
+  });
+});
+
+describe("TextLink", () => {
+  it("stays in the sans link face, because prose is not a key", () => {
+    render(<TextLink href="/admin/roles/r1">Service desk</TextLink>);
+    const link = screen.getByRole("link", { name: "Service desk" });
+    expect(link).toHaveClass("xms-link");
+    expect(link).not.toHaveClass("xms-key");
   });
 });
 

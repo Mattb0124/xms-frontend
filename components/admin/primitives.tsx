@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyText } from "@/components/xms/key-link";
 import { useState, type ReactNode } from "react";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -125,7 +126,7 @@ export function RecordBar({
 }) {
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      {keyText ? <span className="xms-mono text-xms-accent text-[13px] font-medium">{keyText}</span> : null}
+      {keyText ? <KeyText ticketKey={keyText} /> : null}
       <h1 className="text-xms-ink text-[18px] font-semibold">{title}</h1>
       {pill}
       {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}

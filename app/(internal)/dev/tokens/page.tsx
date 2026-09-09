@@ -1,3 +1,4 @@
+import { KeyText } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { DEPLOY_TARGET, IS_LOCAL_TARGET } from "@/lib/auth/dev-mode";
 
@@ -76,7 +77,7 @@ export default function TokensPage() {
           <span className="aix-state-pill" data-state="overdue">
             Breached
           </span>
-          <span className="xms-mono text-xms-accent">CS0001204</span>
+          <KeyText ticketKey="CS0001204" />
         </div>
       </section>
 

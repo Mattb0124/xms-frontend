@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyText } from "@/components/xms/key-link";
 import { useEffect, useState } from "react";
 import { INPUT } from "@/components/admin/primitives";
 import { useLazySearchSolutionsQuery, type SearchHit } from "@/redux/knowledgeApi";
@@ -35,7 +36,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
   if (value) {
     return (
       <div className="flex items-center gap-2 text-[12px]" data-testid="picked-solution">
-        <span className="xms-mono text-xms-accent">{value.key}</span>
+        <KeyText ticketKey={value.key} />
         <span className="text-xms-ink truncate">{value.title}</span>
         <button
           type="button"
@@ -70,7 +71,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
               onClick={() => onChange({ id: hit.id, key: hit.display_key, title: hit.title })}
               className="hover:bg-xms-tint flex w-full items-center gap-2 px-2 py-1.5 text-left"
             >
-              <span className="xms-mono text-xms-accent">{hit.display_key}</span>
+              <KeyText ticketKey={hit.display_key} />
               <span className="text-xms-ink truncate">{hit.title}</span>
               {hit.is_global ? <span className="text-xms-label ml-auto text-[11px]">Global</span> : null}
             </button>

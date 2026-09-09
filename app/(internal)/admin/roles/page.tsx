@@ -14,7 +14,7 @@ import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-b
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { StripSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
-import { KeyLink } from "@/components/xms/key-link";
+import { TextLink } from "@/components/xms/key-link";
 import { Panel } from "@/components/xms/panel";
 import { StatePill } from "@/components/xms/state-pill";
 import { apiError, describeError } from "@/lib/admin/api-error";
@@ -25,7 +25,7 @@ const COLUMNS: DenseColumn<RoleRecord>[] = [
     key: "name",
     title: "Role",
     sortValue: (row) => row.name,
-    render: (row) => <KeyLink ticketKey={row.name} href={`/admin/roles/${row.id}`} className="font-sans" />,
+    render: (row) => <TextLink href={`/admin/roles/${row.id}`}>{row.name}</TextLink>,
   },
   { key: "catalog", title: "Catalog", sortValue: (row) => row.catalog },
   { key: "count", title: "Permissions", mono: true, align: "right", sortValue: (row) => row.permissions.length },
