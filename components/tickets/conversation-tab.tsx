@@ -96,20 +96,11 @@ export function Composer({
           Work note
         </button>
         {note ? <span className="xms-caption ml-2">Internal, never leaves</span> : null}
-        {/* Draft with Axel and Template sit on the right of the composer's own
-            header in the render (02). Neither has a route behind it yet: the
-            Axel turn surface is held and there is no template catalog, so both
-            are drawn disabled with the reason on them rather than as controls
-            that do nothing when clicked. */}
+        {/* Template sits on the right of the composer's own header in the
+            render (02), drawn disabled with its reason: there is no template
+            catalog on the API yet. Draft with Axel stood beside it and is out
+            until the drafting turn behind it exists. */}
         <span className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            disabled
-            title="The Axel drafting turn is not wired yet."
-            className="border-xms-note-line bg-xms-quiet-fill text-xms-body rounded-[4px] border px-[11px] py-[7px] text-[12px] leading-none font-medium disabled:opacity-50"
-          >
-            Draft with Axel
-          </button>
           <button
             type="button"
             disabled

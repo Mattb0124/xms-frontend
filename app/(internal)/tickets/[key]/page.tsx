@@ -134,16 +134,11 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             Read only: {ticket.state_label}
           </span>
         ) : null}
-        {/* Ask Axel and the more menu sit on the right of the record bar
-            (render 02). Ask Axel opens the shell's own Axel panel; the panel
-            body is held, so it opens the frame and nothing more. */}
+        {/* The more menu sits on the right of the record bar. The render puts
+            Ask Axel beside it, and it is out until the Axel turn surface it
+            opens is built: a control that opens an empty frame is not a
+            control. */}
         <span className="ml-auto flex items-center gap-2">
-          <Link
-            href={`/tickets/${ticket.key}?axel=1`}
-            className="border-xms-note-line bg-xms-quiet-fill text-xms-body hover:text-xms-accent inline-flex items-center rounded-[5px] border px-[15px] py-[11px] text-[13px] leading-none font-semibold hover:no-underline"
-          >
-            Ask Axel
-          </Link>
           <button
             type="button"
             aria-label="More actions"

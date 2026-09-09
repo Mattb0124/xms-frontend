@@ -58,7 +58,7 @@ export function FinderBar(props: FinderBarProps) {
             is the way back to the home screen, which is what the mark it
             replaced was. */}
         <Link href="/" className="flex shrink-0 items-center" aria-label="The Hackett Group, home">
-          <Image src="/thehackettgroup_logo.svg" alt="The Hackett Group" width={196} height={24} priority unoptimized />
+          <Image src="/thehackettgroup_logo.svg" alt="The Hackett Group" width={172} height={21} priority unoptimized />
         </Link>
         <nav aria-label="Finders" className="ml-5 flex shrink-0 items-center gap-1">
           {FINDERS.map((finder) => (

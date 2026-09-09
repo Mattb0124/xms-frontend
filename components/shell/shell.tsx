@@ -11,7 +11,7 @@ import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
 import { initials } from "@/components/xms/actor-chip";
 import { HISTORY_KEY, PINS_KEY, STARS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
-import { matchScreen, visibleScreens } from "@/lib/routes";
+import { isDynamicPath, matchScreen, visibleScreens } from "@/lib/routes";
 import { NARROW_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { useListQuarantineQuery } from "@/redux/emailApi";
 import { useMe } from "@/redux/me";
@@ -218,7 +218,12 @@ export function Shell({ children }: { children: ReactNode }) {
           // the sixth would have drawn a pin on rows the sidebar does not
           // carry.
           pinned={new Set(sidebarItems(me.permissions, new Set(pins)).map((screen) => screen.path))}
-          onTogglePin={togglePin}
+          // A dynamic path is a pattern, not an address, so it can never be
+          // an address the sidebar links; the pin is refused rather than
+          // stored and filtered out again on the way back.
+          onTogglePin={(path: string) => {
+            if (!isDynamicPath(path)) togglePin(path);
+          }}
           favourites={favourites}
           counts={counts}
           history={history}

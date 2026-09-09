@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ICON, GridIcon, PencilIcon, StarIcon, screenIcon } from "@/components/xms/icons";
 import { Skeleton } from "@/components/xms/skeleton";
-import { pinnedScreens, visibleScreens, type Screen } from "@/lib/routes";
+import { pinnedScreens, visibleScreens, type Screen, isDynamicPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export interface StarredView {
@@ -33,7 +33,13 @@ export function sidebarItems(permissions: ReadonlySet<string> | undefined, extra
   // ranked screen that fell outside this reader's six is still one they may
   // choose to pin.
   const already = new Set(defaults.map((screen) => screen.path));
-  const extras = visibleScreens(permissions).filter((s) => extraPins.has(s.path) && !already.has(s.path));
+  // A dynamic path is a pattern, not an address: `/reports/packs/[id]` in a
+  // Link is a runtime error in the app router. One can be pinned by hand from
+  // the record it belongs to, so the pattern is refused here as well as at the
+  // pin itself.
+  const extras = visibleScreens(permissions).filter(
+    (s) => extraPins.has(s.path) && !already.has(s.path) && !isDynamicPath(s.path),
+  );
   return [...defaults, ...extras];
 }
 
