@@ -50,7 +50,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   const [more, setMore] = useState(false);
   // The strip is shared chrome, and the prototype draws it on the record as
 
-  // it draws it on the Queue. Here it states what the thread holds and what
+  // it draws it on the Cases list. Here it states what the thread holds and what
 
   // to find in it, which is why the conversation card carries no toggle.
 
@@ -70,7 +70,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
     return (
       <EmptyBanner
         title={`${ticketKey} is not on your accounts`}
-        action={{ label: "Back to the Queue", href: "/tickets" }}
+        action={{ label: "Back to Cases", href: "/tickets" }}
       />
     );
   }
@@ -158,7 +158,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             role="menuitem"
             className="hover:bg-xms-row-hover text-xms-body rounded-[4px] px-3 py-2 hover:no-underline"
           >
-            Back to the Queue
+            Back to Cases
           </Link>
           <button
             type="button"

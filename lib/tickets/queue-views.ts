@@ -1,5 +1,5 @@
 /**
- * The Queue's system views and the URL grammar (User Experience 3.2,
+ * The Cases list's system views and the URL grammar (User Experience 3.2,
  * Wireframes v2 section 3.1): the view is a named preset of list params,
  * the chips are extra criteria, and both live in the URL so a pasted link
  * reproduces the exact list (TM-15).
@@ -74,7 +74,7 @@ export const QUEUE_VIEWS: QueueView[] = [
   { key: "unassigned", label: "Unassigned", params: { open: true, unassigned: true } },
   { key: "breached", label: "Breached", params: { open: true, breached: true } },
   { key: "p1", label: "P1", params: { open: true, priority: ["p1"] } },
-  // Functional 5.x names "Flagged out of scope" among the Queue's own
+  // Functional 5.x names "Flagged out of scope" among the Cases list's own
   // presets, and the flag is the thing an approver comes here for: the work
   // waiting on their decision, not every ticket the flag ever touched.
   { key: "flagged", label: "Flagged out of scope", params: { open: true, out_of_scope: ["flagged"] } },

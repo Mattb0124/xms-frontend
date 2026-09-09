@@ -27,7 +27,7 @@ import { useListGrantedAccountsQuery, useListTicketsQuery, type TicketView } fro
  *
  * There is one list, not two. The screen carried "Needs attention" and "My
  * open tickets" under it, and the render and section 3.3 both name one:
- * everything the second list held is in the Queue behind "Show: mine", which
+ * everything the second list held is in the Cases list behind "Show: mine", which
  * the strip's own dimension opens.
  */
 export default function MyWorkPage() {
@@ -141,7 +141,7 @@ export default function MyWorkPage() {
           breached > 0
             ? `${breached} of your tickets ${breached === 1 ? "has" : "have"} breached; start there.`
             : mine.length === 0
-              ? "Nothing is assigned to you. The Queue has the unassigned work."
+              ? "Nothing is assigned to you. The Cases list has the unassigned work."
               : `${mine.length} open on your desk, ${atRisk} at risk.`
         }
       />

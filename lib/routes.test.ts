@@ -17,7 +17,7 @@ describe("the pinned set is per role, and always six rows", () => {
   it("gives a reader who holds everything the render's own six, in the render's order", () => {
     expect(pinnedScreens(EVERYTHING).map((screen) => screen.label)).toEqual([
       "My work",
-      "Queue",
+      "Cases",
       "Dispatch",
       "Quarantine",
       "My timesheet",
@@ -30,7 +30,7 @@ describe("the pinned set is per role, and always six rows", () => {
     // the row vanished and the sidebar came back five rows tall.
     const labels = pinnedScreens(CONSULTANT).map((screen) => screen.label);
     expect(labels).toHaveLength(PINNED_ROWS);
-    expect(labels).toEqual(["My work", "Queue", "Dispatch", "Quarantine", "My timesheet", "Solutions"]);
+    expect(labels).toEqual(["My work", "Cases", "Dispatch", "Quarantine", "My timesheet", "Solutions"]);
     expect(labels).not.toContain("Operations");
   });
 
@@ -62,10 +62,10 @@ describe("route registry", () => {
     expect(labels).not.toContain("Admin");
   });
 
-  it("shows Admin to admin:accounts and Queue to tickets:view", () => {
+  it("shows Admin to admin:accounts and Cases to tickets:view", () => {
     const labels = visibleScreens(new Set(["admin:accounts", "tickets:view"])).map((s) => s.label);
     expect(labels).toContain("Admin");
-    expect(labels).toContain("Queue");
+    expect(labels).toContain("Cases");
     expect(labels).not.toContain("Users");
     expect(labels).not.toContain("Dispatch");
   });
@@ -78,7 +78,7 @@ describe("route registry", () => {
   });
 
   it("matches concrete paths, including dynamic segments", () => {
-    expect(matchScreen("/tickets")?.screen).toBe("queue");
+    expect(matchScreen("/tickets")?.screen).toBe("cases");
     expect(matchScreen("/tickets/CS0001204")?.screen).toBe("ticket");
     expect(matchScreen("/tickets/dispatch")?.screen).toBe("dispatch");
     expect(matchScreen("/nowhere")).toBeUndefined();

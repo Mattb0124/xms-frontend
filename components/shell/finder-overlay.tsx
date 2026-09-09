@@ -3,7 +3,17 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FinderKind } from "@/components/shell/finder-bar";
-import { ICON, CircleIcon, ClockIcon, CloseIcon, PinIcon, SearchIcon, screenIcon } from "@/components/xms/icons";
+import {
+  ICON,
+  CircleIcon,
+  ClockIcon,
+  CloseIcon,
+  InboxIcon,
+  PinIcon,
+  SearchIcon,
+  screenIcon,
+} from "@/components/xms/icons";
+import { QUEUE_VIEWS } from "@/lib/tickets/queue-views";
 import { SECTIONS, isDynamicPath, matchScreen, navigableHref, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -95,7 +105,14 @@ export function FinderOverlay(props: FinderOverlayProps) {
   const favourites = useMemo(() => props.favourites.filter((item) => !isDynamicPath(item.path)), [props.favourites]);
   const history = useMemo(() => props.history.filter((entry) => !isDynamicPath(entry.path)), [props.history]);
 
-  const title = props.kind === "all" ? "All screens" : props.kind === "favourites" ? "Favourites" : "History";
+  const title =
+    props.kind === "all"
+      ? "All screens"
+      : props.kind === "favourites"
+        ? "Favourites"
+        : props.kind === "workspaces"
+          ? "Workspaces"
+          : "History";
 
   return (
     <div className="fixed inset-0 z-40" style={{ top: "var(--xms-finder-bar-h)" }}>
@@ -167,6 +184,22 @@ export function FinderOverlay(props: FinderOverlayProps) {
               ))}
               {grouped.length === 0 ? <p className="px-4 py-2 text-[13px] text-white/70">No screens match.</p> : null}
             </>
+          ) : props.kind === "workspaces" ? (
+            <ul>
+              {QUEUE_VIEWS.map((view) => (
+                <li key={view.key} className="xms-overlay-row is-listed">
+                  <InboxIcon size={ICON.field} className="shrink-0" />
+                  <Link
+                    href={`/tickets?view=${view.key}`}
+                    onClick={props.onClose}
+                    className="min-w-0 flex-1 truncate text-white hover:no-underline"
+                  >
+                    {view.label}
+                  </Link>
+                  <span className="shrink-0 text-[12px]">System</span>
+                </li>
+              ))}
+            </ul>
           ) : props.kind === "favourites" ? (
             <ul>
               {favourites.map((item) => {

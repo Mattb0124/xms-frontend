@@ -348,7 +348,7 @@ export function CircleIcon(props: IconProps) {
  */
 const SCREEN_ICON: Record<string, ComponentType<IconProps>> = {
   "my-work": GridIcon,
-  queue: InboxIcon,
+  cases: InboxIcon,
   dispatch: ShuffleIcon,
   quarantine: ShieldIcon,
   my_time: ClockIcon,

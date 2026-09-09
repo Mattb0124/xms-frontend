@@ -204,7 +204,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
         return (
           <div key={index} className="flex items-center gap-2" data-condition-row>
             <span className="xms-mono text-xms-muted w-8 text-[11px]">{index === 0 ? "" : "AND"}</span>
-            {/* The Queue's builder settled this in pass two: a bare select
+            {/* The Cases list's builder settled this in pass two: a bare select
                 takes the platform's height, padding and chevron, so a row of
                 them reads as browser widgets rather than as the reference's
                 32px controls. */}

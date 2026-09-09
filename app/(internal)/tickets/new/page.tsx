@@ -166,7 +166,7 @@ function NewTicketForm() {
       }}
     >
       {/* The screen was named twice, "New ticket" on the strip and "Ticket ·
-          New record" in a title row under it, with a back link to the Queue the ticket
+          New record" in a title row under it, with a back link to the Cases list the ticket
           record itself already dropped. The two actions are the screen's, so
           they stand in the toolbar right, which is where Quarantine's own
           title row went in pass three. */}

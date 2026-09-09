@@ -188,7 +188,7 @@ function QuarantineScreen() {
     <div className="flex flex-col gap-4">
       <h1 className="sr-only">Quarantine</h1>
       {/* The screen's one dimension, on the strip, where every other screen
-          keeps its own. It was a checkbox and a "Queue ->" link on a page
+          keeps its own. It was a checkbox and a "Cases ->" link on a page
           title row under the toolbar, so the screen was named twice, the
           shell's own row of controls stood empty, and the one control that
           changes what the list holds was a tick box no other screen has. */}

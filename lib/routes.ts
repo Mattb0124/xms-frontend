@@ -8,7 +8,7 @@
  */
 
 export type Section =
-  "Home" | "Tickets" | "Intake" | "Knowledge" | "Time" | "Accounts" | "Capacity" | "Reports" | "Admin";
+  "Home" | "Cases" | "Intake" | "Knowledge" | "Time" | "Accounts" | "Capacity" | "Reports" | "Admin";
 
 export interface Screen {
   path: string;
@@ -39,18 +39,18 @@ export const SCREENS: Screen[] = [
   },
   {
     path: "/tickets",
-    screen: "queue",
-    label: "Queue",
-    section: "Tickets",
+    screen: "cases",
+    label: "Cases",
+    section: "Cases",
     permission: "tickets:view",
     pinned: 2,
-    purpose: "The working list for everything ticket-shaped.",
+    purpose: "The working list for everything case-shaped.",
   },
   {
     path: "/tickets/dispatch",
     screen: "dispatch",
     label: "Dispatch",
-    section: "Tickets",
+    section: "Cases",
     permission: "tickets:work",
     pinned: 3,
     purpose: "Unassigned tickets with group and assignee pickers.",
@@ -68,7 +68,7 @@ export const SCREENS: Screen[] = [
     path: "/tickets/groups",
     screen: "ticket_groups",
     label: "Groups",
-    section: "Tickets",
+    section: "Cases",
     permission: "tickets:view",
     pinned: 9,
     purpose: "Projects and change windows, with the schedule each one carries.",
@@ -77,7 +77,7 @@ export const SCREENS: Screen[] = [
     path: "/tickets/change-calendar",
     screen: "change_calendar",
     label: "Change calendar",
-    section: "Tickets",
+    section: "Cases",
     permission: "tickets:view",
     purpose: "Change windows and freezes over a month, and whether work may go out right now.",
   },
@@ -85,7 +85,7 @@ export const SCREENS: Screen[] = [
     path: "/tickets/new",
     screen: "ticket.new",
     label: "New ticket",
-    section: "Tickets",
+    section: "Cases",
     permission: "tickets:create",
     purpose: "Full-screen record form.",
   },
@@ -93,7 +93,7 @@ export const SCREENS: Screen[] = [
     path: "/tickets/[key]",
     screen: "ticket",
     label: "Ticket",
-    section: "Tickets",
+    section: "Cases",
     permission: "tickets:view",
     purpose: "The record: conversation, activity, time, resolution.",
   },
@@ -433,16 +433,16 @@ export const SCREENS: Screen[] = [
 export const PORTAL_SCREENS: Screen[] = [
   { path: "/portal", screen: "portal.home", label: "Home", section: "Home", permission: null },
   { path: "/portal/sign-in", screen: "portal.sign-in", label: "Sign in", section: "Home", permission: null },
-  { path: "/portal/requests", screen: "portal.requests", label: "My requests", section: "Tickets", permission: null },
-  { path: "/portal/requests/new", screen: "portal.new", label: "New request", section: "Tickets", permission: null },
-  { path: "/portal/requests/[key]", screen: "portal.request", label: "Request", section: "Tickets", permission: null },
-  { path: "/portal/surveys", screen: "portal.surveys", label: "Surveys", section: "Tickets", permission: null },
-  { path: "/portal/surveys/[id]", screen: "portal.survey", label: "Survey", section: "Tickets", permission: null },
+  { path: "/portal/requests", screen: "portal.requests", label: "My requests", section: "Cases", permission: null },
+  { path: "/portal/requests/new", screen: "portal.new", label: "New request", section: "Cases", permission: null },
+  { path: "/portal/requests/[key]", screen: "portal.request", label: "Request", section: "Cases", permission: null },
+  { path: "/portal/surveys", screen: "portal.surveys", label: "Surveys", section: "Cases", permission: null },
+  { path: "/portal/surveys/[id]", screen: "portal.survey", label: "Survey", section: "Cases", permission: null },
 ];
 
 export const SECTIONS: Section[] = [
   "Home",
-  "Tickets",
+  "Cases",
   "Intake",
   "Knowledge",
   "Time",

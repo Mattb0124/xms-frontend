@@ -62,7 +62,7 @@ const COLUMNS: DenseColumn<Article>[] = [
   },
 ];
 
-/** The Solutions list (User Experience 3.7): the same list grammar as the Queue over the knowledge base. */
+/** The Solutions list (User Experience 3.7): the same list grammar as the Cases list over the knowledge base. */
 function KnowledgeList() {
   const router = useRouter();
   const pathname = usePathname();
@@ -98,7 +98,7 @@ function KnowledgeList() {
   return (
     <div className="flex flex-col gap-4">
       {/* The three dimensions stand on the grey strip as drawn controls, as
-          they do on the Queue and on Groups. The primary one carries the
+          they do on the Cases list and on Groups. The primary one carries the
           number of rows behind it, which is the reference's "Show: Active
           (7)". */}
       <HeaderFilters>
@@ -145,7 +145,7 @@ function KnowledgeList() {
           rowKey={(row) => row.display_key}
           onRowClick={(row) => router.push(`/knowledge/${row.display_key}`)}
           search={
-            // The Queue's own card search, at the same 38px and 400px.
+            // The Cases list's own card search, at the same 38px and 400px.
             <form
               className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
               onSubmit={(event) => {

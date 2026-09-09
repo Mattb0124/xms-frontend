@@ -32,7 +32,7 @@ function renderAll() {
 describe("navigableHref", () => {
   it("gives a concrete screen its own path", () => {
     expect(
-      navigableHref({ path: "/tickets", screen: "queue", label: "Queue", section: "Tickets", permission: null }),
+      navigableHref({ path: "/tickets", screen: "queue", label: "Queue", section: "Cases", permission: null }),
     ).toBe("/tickets");
   });
 

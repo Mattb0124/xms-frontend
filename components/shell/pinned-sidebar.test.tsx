@@ -27,7 +27,7 @@ describe("PinnedSidebar", () => {
     expect(screen.queryByText("Admin")).not.toBeInTheDocument();
   });
 
-  it("shows Admin when pinned by an administrator, and Queue with tickets:view", () => {
+  it("shows Admin when pinned by an administrator, and Cases with tickets:view", () => {
     const permissions = new Set(["admin:accounts", "tickets:view"]);
     expect(sidebarItems(permissions, new Set(["/admin"])).map((s) => s.label)).toContain("Admin");
     render(
@@ -35,12 +35,12 @@ describe("PinnedSidebar", () => {
         {...base}
         permissions={permissions}
         extraPins={new Set(["/admin"])}
-        counts={{ queue: 42 }}
+        counts={{ cases: 42 }}
         currentPath="/tickets"
       />,
     );
     expect(screen.getByRole("link", { name: /Admin/ })).toHaveAttribute("href", "/admin");
-    const queue = screen.getByRole("link", { name: /Queue/ });
+    const queue = screen.getByRole("link", { name: /Cases/ });
     expect(queue).toHaveAttribute("aria-current", "page");
     expect(queue).toHaveTextContent("42");
     // v3 render 01: the footer is a label with the tree count right-aligned
@@ -80,7 +80,7 @@ describe("PinnedSidebar", () => {
     // permission this reader does not hold.
     expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
       "My work",
-      "Queue",
+      "Cases",
       "Dispatch",
       "Quarantine",
       "My timesheet",

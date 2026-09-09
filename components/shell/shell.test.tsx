@@ -24,7 +24,7 @@ describe("FinderBar", () => {
       <FinderBar
         activeFinder="all"
         onFinder={onFinder}
-        workspaceLabel="Queue"
+        workspaceLabel="Cases"
         starred={false}
         onToggleStar={onToggleStar}
         onWorkspace={() => {}}
@@ -46,7 +46,7 @@ describe("FinderBar", () => {
     // and the scope pill names the instance beside the view.
     expect(screen.getByTestId("unread-badge")).toHaveTextContent("3");
     expect(screen.getByTestId("workspace-pill")).toHaveTextContent("THG PROD");
-    expect(screen.getByTestId("workspace-pill")).toHaveTextContent("Queue");
+    expect(screen.getByTestId("workspace-pill")).toHaveTextContent("Cases");
   });
 });
 
@@ -71,9 +71,9 @@ describe("FinderOverlay", () => {
     expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "oper" } });
     expect(screen.getByText("Operations")).toBeInTheDocument();
-    expect(screen.queryByText("Queue")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cases")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "" } });
-    fireEvent.click(screen.getByLabelText("Unpin Queue"));
+    fireEvent.click(screen.getByLabelText("Unpin Cases"));
     expect(onTogglePin).toHaveBeenCalledWith("/tickets");
   });
 

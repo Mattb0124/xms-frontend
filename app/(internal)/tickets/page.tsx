@@ -103,12 +103,12 @@ const CARD_ICON_BUTTON =
   "border-xms-line bg-xms-card text-xms-label hover:text-xms-ink hover:border-xms-line-strong flex h-[34px] w-[38px] shrink-0 items-center justify-center rounded-[6px] border";
 
 /**
- * The Queue (User Experience 3.2, Wireframes v3 section 8): a system view
+ * The Cases list (User Experience 3.2, Wireframes v3 section 8): a system view
  * switcher, removable chips, the Count card with the dense table, the
  * stats strip, a selection bar, rows per page and cursor paging. The URL
  * is the state, so a pasted link reproduces the list.
  */
-function QueueScreen() {
+function CasesScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
@@ -154,10 +154,10 @@ function QueueScreen() {
   );
   const { data: accounts } = useListGrantedAccountsQuery();
   // The assignment groups the group chip names (TM-08); `/v1/groups` stands
-  // on tickets:view, the Queue's own gate.
+  // on tickets:view, the Cases list's own gate.
   const { data: groups } = useListDirectoryGroupsQuery();
   // The server's saved views beside the system ones (Ticket Management
-  // technical 2.5). `/v1/views` stands on tickets:view, the Queue's own gate,
+  // technical 2.5). `/v1/views` stands on tickets:view, the Cases list's own gate,
   // so the only reason it is unavailable is an API that does not serve it
   // yet, and the per-browser star stays the fallback for exactly that.
   const { views: savedViews, available: savedAvailable } = useSavedViews();
@@ -453,7 +453,7 @@ function QueueScreen() {
         <Skeleton lines={8} />
       ) : (
         <DenseTable<TicketView>
-          title="Queue"
+          title="Cases"
           titleHidden
           columns={columns}
           rows={rows}
@@ -600,11 +600,11 @@ function QueueScreen() {
   );
 }
 
-export default function QueuePage() {
+export default function CasesPage() {
   return (
     <AdminGate permission="tickets:view">
       <Suspense fallback={<Skeleton lines={8} />}>
-        <QueueScreen />
+        <CasesScreen />
       </Suspense>
     </AdminGate>
   );

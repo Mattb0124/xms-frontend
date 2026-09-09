@@ -36,10 +36,10 @@ describe("the waiting map", () => {
  * renamed or removed in `lib/routes.ts` fails this test.
  */
 const CASES: { key: string; href: string | null; screen: string | null }[] = [
-  { key: "tickets_assigned", href: "/tickets?view=mine", screen: "queue" },
+  { key: "tickets_assigned", href: "/tickets?view=mine", screen: "cases" },
   // The flagged tickets themselves, which the Queue's own chip grammar reads
   // back as a chip (lib/tickets/queue-views).
-  { key: "scope_approvals", href: "/tickets?out_of_scope=flagged", screen: "queue" },
+  { key: "scope_approvals", href: "/tickets?out_of_scope=flagged", screen: "cases" },
   { key: "articles_in_review", href: "/knowledge?status=in_review", screen: "knowledge" },
   // The account the newest waiting run belongs to: a key alone cannot say this.
   { key: "report_reviews", href: `/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`, screen: "admin.account" },

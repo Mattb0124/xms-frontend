@@ -78,7 +78,7 @@ export function Shell({ children }: { children: ReactNode }) {
   );
   const counts = useMemo(
     () => ({
-      queue: queueStats?.stats.open,
+      cases: queueStats?.stats.open,
       dispatch: queueStats?.stats.unassigned,
       quarantine: quarantine?.length,
     }),
@@ -90,7 +90,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const [historyRaw, setHistory] = usePersistedList(HISTORY_KEY, 30);
 
   const currentHref = typeof window === "undefined" ? pathname : `${pathname}${window.location.search}`;
-  const workspaceLabel = current ? current.label : "XMS";
+  // The pill names the workspace, not just the screen: on the Cases list it
+  // reads "Cases View: Workspace" as the design states it.
+  const workspaceLabel = current ? (current.screen === "cases" ? "Cases View: Workspace" : current.label) : "XMS";
 
   // History: one entry per visited screen, newest first (Wireframes v2 section 2).
   useEffect(() => {

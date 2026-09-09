@@ -149,7 +149,9 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
       {/* Horizontal overflow scrolls inside the card, never the page
           (hand-off section 5). */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[13px]">
+        {/* The card names itself even where the header draws a search in
+            place of the title, so the table is still findable by name. */}
+        <table aria-label={props.title} className="w-full border-collapse text-[13px]">
           {/* Without a header row the widths have nowhere else to live. */}
           {props.headless ? (
             <colgroup>

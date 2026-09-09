@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ICON, BellIcon, ChevronDownIcon, SearchIcon, SparkleIcon, StarIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
-export type FinderKind = "all" | "favourites" | "history";
+export type FinderKind = "all" | "favourites" | "history" | "workspaces";
 
 export interface FinderBarProps {
   activeFinder: FinderKind | null;
@@ -30,6 +30,7 @@ const FINDERS: Array<{ kind: FinderKind; label: string }> = [
   { kind: "all", label: "All" },
   { kind: "favourites", label: "Favourites" },
   { kind: "history", label: "History" },
+  { kind: "workspaces", label: "Workspaces" },
 ];
 
 /**
