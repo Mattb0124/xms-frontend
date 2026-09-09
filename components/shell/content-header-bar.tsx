@@ -9,7 +9,11 @@ import { cn } from "@/lib/utils";
 
 const HeaderSlotContext = createContext<HTMLElement | null>(null);
 const HeaderActionContext = createContext<HTMLElement | null>(null);
-const HeaderSearchContext = createContext<HTMLElement | null>(null);
+interface HeaderSearchApi {
+  slot: HTMLElement | null;
+  setFilled: (filled: boolean) => void;
+}
+const HeaderSearchContext = createContext<HeaderSearchApi>({ slot: null, setFilled: () => {} });
 
 interface HeaderPanelApi {
   slot: HTMLElement | null;
@@ -58,6 +62,9 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
   const [filterSlot, setFilterSlot] = useState<HTMLElement | null>(null);
   const [actionSlot, setActionSlot] = useState<HTMLElement | null>(null);
   const [searchSlot, setSearchSlot] = useState<HTMLElement | null>(null);
+  // Whether a screen has portalled a search into the slot this render.
+  const [searchFilled, setSearchFilled] = useState(false);
+  const searchApi = useMemo(() => ({ slot: searchSlot, setFilled: setSearchFilled }), [searchSlot]);
   const [panelSlot, setPanelSlot] = useState<HTMLElement | null>(null);
   // The funnel is only offered on a screen that has registered a builder, and
   // it carries the number of conditions standing behind it.
@@ -84,7 +91,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
   return (
     <HeaderSlotContext.Provider value={filterSlot}>
       <HeaderActionContext.Provider value={actionSlot}>
-        <HeaderSearchContext.Provider value={searchSlot}>
+        <HeaderSearchContext.Provider value={searchApi}>
           <HeaderPanelContext.Provider value={panelApi}>
             <div
               className="xms-layer-strip bg-xms-bar border-xms-bar-line flex shrink-0 items-center gap-[10px] border-b px-4"
@@ -136,11 +143,14 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                 <GearIcon size={ICON.bar} />
               </button>
               {/* The render's local search sits between the gear and the primary
-                action. A screen that has one portals it here; the placeholder
-                keeps the width reserved so the blue action never moves. */}
+                action. A screen that has one portals it here. The slot used to
+                hold its 186px whether or not a screen filled it, so on every
+                screen without a search the gear stood marooned that far from
+                the action beside it. It takes width only when it carries
+                something. */}
               <div
                 ref={setSearchSlot}
-                className="flex w-[186px] shrink-0 items-center"
+                className={cn("flex shrink-0 items-center", searchFilled && "w-[186px]")}
                 data-testid="header-search-slot"
               />
               <div ref={setActionSlot} className="flex shrink-0 items-center gap-2" data-testid="header-action-slot" />
@@ -197,7 +207,11 @@ export function HeaderAction({ children }: { children: ReactNode }) {
 
 /** The screen's own search field, in the header bar beside the gear. */
 export function HeaderSearch({ children }: { children: ReactNode }) {
-  const slot = useContext(HeaderSearchContext);
+  const { slot, setFilled } = useContext(HeaderSearchContext);
+  useEffect(() => {
+    setFilled(true);
+    return () => setFilled(false);
+  }, [setFilled]);
   return slot ? createPortal(children, slot) : null;
 }
 
