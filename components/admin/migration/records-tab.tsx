@@ -27,7 +27,7 @@ const COLUMNS: DenseColumn<MigrationRecord>[] = [
     render: (row) =>
       row.target_id ? (
         <Link
-          href={`/tickets/${row.target_id}`}
+          href={`/cases/${row.target_id}`}
           className="text-xms-accent"
           data-target={row.target_id}
           onClick={(event) => event.stopPropagation()}
@@ -101,7 +101,7 @@ export function RecordDrawer({
             <dt className="text-xms-label text-[12px]">Target</dt>
             <dd className="xms-mono text-xms-ink">
               {data.target_id ? (
-                <Link href={`/tickets/${data.target_id}`} className="text-xms-accent">
+                <Link href={`/cases/${data.target_id}`} className="text-xms-accent">
                   {data.target_table ?? "ticket"} {data.target_id.slice(0, 8)}
                 </Link>
               ) : (

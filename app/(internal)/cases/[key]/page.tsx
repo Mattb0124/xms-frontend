@@ -69,10 +69,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   if (isLoading) return <Skeleton lines={10} />;
   if (isError || !ticket) {
     return (
-      <EmptyBanner
-        title={`${ticketKey} is not on your accounts`}
-        action={{ label: "Back to Cases", href: "/tickets" }}
-      />
+      <EmptyBanner title={`${ticketKey} is not on your accounts`} action={{ label: "Back to Cases", href: "/cases" }} />
     );
   }
   const readOnly = TERMINAL.has(ticket.state);
@@ -155,7 +152,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
       {more ? (
         <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-[13px]" role="menu">
           <Link
-            href="/tickets"
+            href="/cases"
             role="menuitem"
             className="hover:bg-xms-row-hover text-xms-body rounded-[4px] px-3 py-2 hover:no-underline"
           >

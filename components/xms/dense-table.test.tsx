@@ -60,7 +60,7 @@ describe("DenseTable", () => {
     // number off the sidebar, not off three places at once.
     expect(screen.queryByText("42")).not.toBeInTheDocument();
     const link = screen.getByRole("link", { name: "CS0001204" });
-    expect(link).toHaveAttribute("href", "/tickets/CS0001204");
+    expect(link).toHaveAttribute("href", "/cases/CS0001204");
     expect(link).toHaveClass("xms-link");
     expect(screen.getByText("2h 00m")).toHaveAttribute("data-tone", "ok");
     expect(screen.getByText("-22h 00m")).toHaveAttribute("data-tone", "breach");

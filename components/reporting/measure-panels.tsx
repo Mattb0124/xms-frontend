@@ -18,7 +18,7 @@ import type { Measures, Notable } from "@/redux/reportingApi";
 export const SLA_TARGET_PERCENT = 90;
 
 export interface QueueLinks {
-  /** Base Queue URL for the scope, e.g. `/tickets` or `/tickets?account_id=x`. */
+  /** Base Queue URL for the scope, e.g. `/cases` or `/cases?account_id=x`. */
   base: string;
 }
 

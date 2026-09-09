@@ -152,7 +152,7 @@ const CONTRACT_SURFACES: { file: string; permission?: string; mountedIn?: string
   { file: "components/admin/finance/finance-tab.tsx", permission: "contracts:view" },
   { file: "components/tickets/properties-panel.tsx", permission: "contracts:view" },
   { file: "components/tickets/time-tab.tsx", permission: "contracts:view" },
-  { file: "app/(internal)/tickets/new/page.tsx", permission: "contracts:view" },
+  { file: "app/(internal)/cases/new/page.tsx", permission: "contracts:view" },
 ];
 
 /**
@@ -326,8 +326,8 @@ const SAVED_VIEW_READS = [
 ];
 
 const SAVED_VIEW_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
-  { file: "components/tickets/saved-views.tsx", mountedIn: "app/(internal)/tickets/page.tsx" },
-  { file: "app/(internal)/tickets/page.tsx", permission: "tickets:view" },
+  { file: "components/tickets/saved-views.tsx", mountedIn: "app/(internal)/cases/page.tsx" },
+  { file: "app/(internal)/cases/page.tsx", permission: "tickets:view" },
 ];
 
 describe("saved views are read and written behind tickets:view", () => {
@@ -619,10 +619,10 @@ const GROUP_READS = [
 
 const GROUP_SURFACES: { file: string; permission?: string; mountedIn?: string }[] = [
   { file: "components/admin/config/routing-rules.tsx", permission: "tickets:view" },
-  { file: "components/tickets/ticket-groups.tsx", mountedIn: "app/(internal)/tickets/groups/page.tsx" },
-  { file: "app/(internal)/tickets/groups/page.tsx", permission: "tickets:view" },
-  { file: "components/tickets/change-calendar.tsx", mountedIn: "app/(internal)/tickets/change-calendar/page.tsx" },
-  { file: "app/(internal)/tickets/change-calendar/page.tsx", permission: "tickets:view" },
+  { file: "components/tickets/ticket-groups.tsx", mountedIn: "app/(internal)/cases/groups/page.tsx" },
+  { file: "app/(internal)/cases/groups/page.tsx", permission: "tickets:view" },
+  { file: "components/tickets/change-calendar.tsx", mountedIn: "app/(internal)/cases/change-calendar/page.tsx" },
+  { file: "app/(internal)/cases/change-calendar/page.tsx", permission: "tickets:view" },
 ];
 
 describe("the routing defaults and the group catalog are read behind tickets:view", () => {
@@ -643,8 +643,8 @@ describe("the routing defaults and the group catalog are read behind tickets:vie
     // The two pages are listed as the gates their bodies are mounted behind
     // and call no hook of their own, which is exactly the shape the first
     // rule of this file asks for.
-    expect(callers).not.toContain("app/(internal)/tickets/groups/page.tsx");
-    expect(callers).not.toContain("app/(internal)/tickets/change-calendar/page.tsx");
+    expect(callers).not.toContain("app/(internal)/cases/groups/page.tsx");
+    expect(callers).not.toContain("app/(internal)/cases/change-calendar/page.tsx");
   });
 
   it("gates each surface on tickets:view, by its own guard or by the screen that mounts it", () => {

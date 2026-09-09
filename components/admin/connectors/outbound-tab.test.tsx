@@ -48,7 +48,7 @@ describe("OutboundTab", () => {
     await screen.findByText("Ticket updated");
     expect(screen.getByText("Work note")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "CS0000042" })).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: "CS0000042" })[0]).toHaveAttribute("href", "/tickets/CS0000042");
+    expect(screen.getAllByRole("link", { name: "CS0000042" })[0]).toHaveAttribute("href", "/cases/CS0000042");
     // The status words also name the filter's options, so the pills are read
     // by the signal tone they carry.
     const pill = (label: string) => screen.getAllByText(label).find((element) => element.hasAttribute("data-state"));

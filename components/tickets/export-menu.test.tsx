@@ -4,7 +4,7 @@ import { ExportMenu } from "@/components/tickets/export-menu";
 import { DownloadError } from "@/lib/exports/download";
 import { renderDesk } from "@/test-kit/desk";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases" }));
 
 const downloadFile = vi.fn();
 vi.mock("@/lib/exports/download", async (importOriginal) => {

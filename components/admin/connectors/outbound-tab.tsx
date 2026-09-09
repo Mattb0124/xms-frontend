@@ -128,7 +128,7 @@ export function OutboundTab({ instanceId }: { instanceId: string }) {
       sortValue: (row) => row.ticket_key ?? row.ticket_id,
       render: (row) =>
         row.ticket_key ? (
-          <Link href={`/tickets/${row.ticket_key}`} className="text-xms-accent" data-ticket={row.ticket_key}>
+          <Link href={`/cases/${row.ticket_key}`} className="text-xms-accent" data-ticket={row.ticket_key}>
             {row.ticket_key}
           </Link>
         ) : (

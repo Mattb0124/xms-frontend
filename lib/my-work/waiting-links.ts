@@ -38,7 +38,7 @@ export const WAITING_TARGETS: Record<string, WaitingTarget> = {
   // The Queue's system view for the signed-in person (lib/tickets/queue-views).
   tickets_assigned: { screen: "cases", search: "?view=mine" },
   // The list route filters on the out-of-scope flag now, and the API writes
-  // `/tickets?out_of_scope=flagged` on this row, which `serverHref` accepts
+  // `/cases?out_of_scope=flagged` on this row, which `serverHref` accepts
   // as the Queue with a chip on it. The same search is the fallback, so an
   // older API that sends only `/queue` still lands on the flagged ones.
   scope_approvals: { screen: "cases", search: "?out_of_scope=flagged" },

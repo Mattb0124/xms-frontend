@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 describe("the header bar buttons", () => {
   it("gives the primary action a white label on the accent ground, at rest and on hover", () => {
     render(
-      <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center")}>
+      <Link href="/cases/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center")}>
         + New ticket
       </Link>,
     );

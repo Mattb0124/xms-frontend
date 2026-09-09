@@ -438,7 +438,7 @@ function CasesScreen() {
             <option value="watch">Watch</option>
           </select>
           {me.hasPermission("tickets:create") ? (
-            <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
+            <Link href="/cases/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
               <PlusIcon size={ICON.action} />
               New
             </Link>
@@ -516,7 +516,7 @@ function CasesScreen() {
           selectable
           selected={selected}
           onSelectionChange={setSelected}
-          onRowClick={(row) => router.push(`/tickets/${row.key}`)}
+          onRowClick={(row) => router.push(`/cases/${row.key}`)}
           search={
             <form
               className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"

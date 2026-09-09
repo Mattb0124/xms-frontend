@@ -141,7 +141,7 @@ export function Shell({ children }: { children: ReactNode }) {
         setFinder("all");
       }
       if (event.key === "c" && !event.ctrlKey && !event.metaKey && me.hasPermission("tickets:create")) {
-        router.push("/tickets/new");
+        router.push("/cases/new");
       }
     },
     [me, router],

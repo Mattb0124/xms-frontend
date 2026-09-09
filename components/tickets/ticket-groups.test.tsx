@@ -7,7 +7,7 @@ import { json, renderDesk, renderDeskInShell, stubFetch } from "@/test-kit/desk"
 // The toolbar band the screen portals its dimensions into pushes on the
 // screen switcher, so the router has to exist.
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/tickets/groups",
+  usePathname: () => "/cases/groups",
   useRouter: () => ({ push: vi.fn() }),
 }));
 

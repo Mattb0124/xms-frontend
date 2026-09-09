@@ -4,7 +4,7 @@ import { assigneeLabel, AssigneePicker, rosterHint } from "@/components/tickets/
 import { aPerson } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS0001204" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases/CS0001204" }));
 
 const USERS = [
   { id: "u-ana", email: "ana.silva@example.com", first_name: "Ana", last_name: "Silva" },

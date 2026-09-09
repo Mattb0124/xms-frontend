@@ -4,7 +4,7 @@ import { ScopeCard } from "@/components/tickets/scope-card";
 import { anApprovedScope, aFlaggedScope, aScope, aTicketView, APPROVER_ID, FLAGGER_ID } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases/CS1000199" }));
 
 const FLAG = "POST /v1/tickets/CS1000199/scope";
 const DECISION = "POST /v1/tickets/CS1000199/scope/decision";

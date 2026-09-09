@@ -137,7 +137,7 @@ function NewTicketForm() {
       } else {
         push({ title: `${ticket.key} created`, tone: "success" });
       }
-      router.push(`/tickets/${ticket.key}`);
+      router.push(`/cases/${ticket.key}`);
     } catch (caught) {
       const parsed = apiError(caught);
       const data = (caught as { data?: { choices?: { id: string; key: string; name: string }[] } })?.data;
@@ -171,7 +171,7 @@ function NewTicketForm() {
           they stand in the toolbar right, which is where Quarantine's own
           title row went in pass three. */}
       <HeaderAction>
-        <Link href="/tickets" className={`${SECONDARY_BUTTON} inline-flex items-center`}>
+        <Link href="/cases" className={`${SECONDARY_BUTTON} inline-flex items-center`}>
           Cancel
         </Link>
         <button type="submit" form="new-ticket" disabled={!canSubmit} className={PRIMARY_BUTTON}>

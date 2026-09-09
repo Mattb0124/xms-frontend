@@ -112,7 +112,7 @@ function WindowCard({ window, accountName }: { window: ChangeCalendarWindow; acc
 }
 
 /**
- * The change calendar (`/tickets/change-calendar`, TM-18; functional 5.13):
+ * The change calendar (`/cases/change-calendar`, TM-18; functional 5.13):
  * the change windows over a month with their freezes and the changes planned
  * inside them, the next window to open, and whether the desk is inside one
  * right now. Every judgement is the server's; the browser draws it.
@@ -188,7 +188,7 @@ export function ChangeCalendarScreen() {
         ) : windows.length === 0 ? (
           <p className="text-xms-label p-4 text-[13px]">
             No change window falls in this month.{" "}
-            <Link href="/tickets/groups" className="xms-link">
+            <Link href="/cases/groups" className="xms-link">
               The groups catalog
             </Link>{" "}
             is where one is created.

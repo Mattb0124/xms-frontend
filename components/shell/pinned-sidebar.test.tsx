@@ -36,7 +36,7 @@ describe("PinnedSidebar", () => {
         permissions={permissions}
         extraPins={new Set(["/admin"])}
         counts={{ cases: 42 }}
-        currentPath="/tickets"
+        currentPath="/cases"
       />,
     );
     expect(screen.getByRole("link", { name: /Admin/ })).toHaveAttribute("href", "/admin");
@@ -51,7 +51,7 @@ describe("PinnedSidebar", () => {
   });
 
   it("never shows a pin the user is not permitted to see", () => {
-    render(<PinnedSidebar {...base} permissions={new Set()} extraPins={new Set(["/admin", "/tickets/dispatch"])} />);
+    render(<PinnedSidebar {...base} permissions={new Set()} extraPins={new Set(["/admin", "/cases/dispatch"])} />);
     expect(screen.queryByText("Admin")).not.toBeInTheDocument();
     expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
   });

@@ -238,7 +238,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
           <PropertiesRail article={article} canEdit={canEdit} onCommit={commit} />
           {article.source_ticket_id ? (
             <RailCard caption="Origin">
-              <TextLink href={`/tickets/${article.source_ticket_id}`}>Source ticket</TextLink>
+              <TextLink href={`/cases/${article.source_ticket_id}`}>Source ticket</TextLink>
             </RailCard>
           ) : null}
         </div>

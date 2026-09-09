@@ -22,7 +22,7 @@ export interface KeyLinkProps {
  * rather than a key (a person, an account name, a role), use `TextLink`.
  */
 export function KeyLink({ ticketKey, href, className }: KeyLinkProps) {
-  const target = href ?? `/tickets/${ticketKey}`;
+  const target = href ?? `/cases/${ticketKey}`;
   return (
     <Link href={target} className={cn("xms-link xms-key", className)} data-key={ticketKey}>
       {ticketKey}

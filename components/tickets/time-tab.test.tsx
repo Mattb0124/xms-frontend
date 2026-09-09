@@ -7,7 +7,7 @@ import type { LogTimeBody } from "@/redux/timeApi";
 import { anAfterHoursEntry, anEntry, aRatedEntry } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS0001001" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases/CS0001001" }));
 
 const catalogs = toDeskCatalogs({
   resolution_codes: [],

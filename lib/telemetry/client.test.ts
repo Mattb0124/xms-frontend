@@ -64,7 +64,7 @@ function harness(overrides: Partial<TelemetrySendResult> = {}) {
 describe("TelemetryClient", () => {
   it("batches up to maxBatch and flushes when the batch is full", async () => {
     const { client, sent } = harness();
-    client.track("screen.view", { path_template: "/tickets" }, "queue");
+    client.track("screen.view", { path_template: "/cases" }, "queue");
     client.track("action.completed", { action: "ticket.create" }, "queue");
     expect(sent).toHaveLength(0);
     client.track("search.run", { scope: "global", result_count: 3 });
@@ -76,7 +76,7 @@ describe("TelemetryClient", () => {
       occurred_at: "2026-09-07T10:00:00.000Z",
       entity_kind: "screen",
       entity_id: "queue",
-      attrs: { path_template: "/tickets" },
+      attrs: { path_template: "/cases" },
     });
   });
 

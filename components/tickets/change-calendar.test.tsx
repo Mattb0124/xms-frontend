@@ -7,7 +7,7 @@ import { json, renderDesk, renderDeskInShell, stubFetch } from "@/test-kit/desk"
 // The toolbar band the screen portals its dimensions into pushes on the
 // screen switcher, so the router has to exist.
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/tickets/change-calendar",
+  usePathname: () => "/cases/change-calendar",
   useRouter: () => ({ push: vi.fn() }),
 }));
 
@@ -126,7 +126,7 @@ describe("ChangeCalendarScreen", () => {
     await screen.findByText(/No change window falls in this month/);
     await screen.findByText("Outside every window");
     expect(container.querySelector("[data-next-window]")?.textContent).toContain("No window opens later this month");
-    expect(screen.getByText("The groups catalog")).toHaveAttribute("href", "/tickets/groups");
+    expect(screen.getByText("The groups catalog")).toHaveAttribute("href", "/cases/groups");
   });
 
   it("moves the month and sends the new range", async () => {

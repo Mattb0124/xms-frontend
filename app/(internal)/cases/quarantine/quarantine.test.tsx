@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { QuarantineDecisionPanel, decisionCopy, reasonCopy } from "@/app/(internal)/tickets/quarantine/page";
+import { QuarantineDecisionPanel, decisionCopy, reasonCopy } from "@/app/(internal)/cases/quarantine/page";
 import type { QuarantineItem } from "@/redux/emailApi";
 
 const item: QuarantineItem = {

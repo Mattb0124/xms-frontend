@@ -39,7 +39,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
   const accounts = useListGrantedAccountsQuery();
   const account = accounts.data?.find((row) => row.id === accountId);
   const { data, isLoading, isError, refetch } = useAccountDashboardQuery({ id: accountId, days, asClient });
-  const queueBase = `/tickets?account_id=${encodeURIComponent(accountId)}`;
+  const queueBase = `/cases?account_id=${encodeURIComponent(accountId)}`;
 
   return (
     <div className="flex flex-col gap-4" data-testid="account-dashboard" data-as-client={asClient ? "true" : "false"}>

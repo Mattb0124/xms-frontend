@@ -69,7 +69,7 @@ describe("safeHref", () => {
 
   it("names an external href", () => {
     expect(isExternalHref("https://x.test")).toBe(true);
-    expect(isExternalHref("/tickets")).toBe(false);
+    expect(isExternalHref("/cases")).toBe(false);
   });
 });
 

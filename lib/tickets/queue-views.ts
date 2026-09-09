@@ -218,7 +218,7 @@ export function chipsFromSearch(search: URLSearchParams): {
     for (const value of MULTI_CHIP_KEYS.includes(key) ? parts : parts.slice(0, 1)) {
       // The out-of-scope vocabulary is closed on the server, so a value from
       // outside it is dropped here rather than sent for a 400: the API's own
-      // waiting-rail link (`/tickets?out_of_scope=flagged`) reads back as a
+      // waiting-rail link (`/cases?out_of_scope=flagged`) reads back as a
       // chip, and a hand-typed address cannot break the list.
       if (key === "out_of_scope" && !(OUT_OF_SCOPE as readonly string[]).includes(value)) continue;
       // The group queue is a flag, so only the flag turns it on.

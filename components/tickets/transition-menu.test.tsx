@@ -4,7 +4,7 @@ import { TransitionMenu } from "@/components/tickets/transition-menu";
 import { ACCOUNT_ID, aTicketView } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases/CS1000199" }));
 
 const TRANSITION = "POST /v1/tickets/CS1000199/transitions";
 

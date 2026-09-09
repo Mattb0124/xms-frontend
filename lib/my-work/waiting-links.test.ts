@@ -36,10 +36,10 @@ describe("the waiting map", () => {
  * renamed or removed in `lib/routes.ts` fails this test.
  */
 const CASES: { key: string; href: string | null; screen: string | null }[] = [
-  { key: "tickets_assigned", href: "/tickets?view=mine", screen: "cases" },
+  { key: "tickets_assigned", href: "/cases?view=mine", screen: "cases" },
   // The flagged tickets themselves, which the Queue's own chip grammar reads
   // back as a chip (lib/tickets/queue-views).
-  { key: "scope_approvals", href: "/tickets?out_of_scope=flagged", screen: "cases" },
+  { key: "scope_approvals", href: "/cases?out_of_scope=flagged", screen: "cases" },
   { key: "articles_in_review", href: "/knowledge?status=in_review", screen: "knowledge" },
   // The account the newest waiting run belongs to: a key alone cannot say this.
   { key: "report_reviews", href: `/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`, screen: "admin.account" },
@@ -67,8 +67,8 @@ describe.each(CASES)("waitingHref for $key", ({ key, href, screen }) => {
  * survive: the key's own target answers instead.
  */
 const LEGACY: { key: string; href: string | null }[] = [
-  { key: "tickets_assigned", href: "/tickets?view=mine" },
-  { key: "scope_approvals", href: "/tickets?out_of_scope=flagged" },
+  { key: "tickets_assigned", href: "/cases?view=mine" },
+  { key: "scope_approvals", href: "/cases?out_of_scope=flagged" },
   { key: "report_reviews", href: "/reports" },
   { key: "pending_time", href: "/time" },
   { key: "unread_notifications", href: null },
@@ -96,7 +96,7 @@ describe("an older API's link that this desk does serve", () => {
 
 describe("serverHref", () => {
   it("takes a same-site address the registry knows and the viewer may open", () => {
-    expect(serverHref("/tickets?view=mine", ALL_SCREENS)).toBe("/tickets?view=mine");
+    expect(serverHref("/cases?view=mine", ALL_SCREENS)).toBe("/cases?view=mine");
     expect(serverHref(`/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`, ALL_SCREENS)).toBe(
       `/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`,
     );
@@ -115,7 +115,7 @@ describe("serverHref", () => {
   it("refuses a screen this viewer may not open", () => {
     const consultant = visibleScreens(["tickets:view", "time:log"]);
     expect(serverHref(`/admin/accounts/${WAITING_ACCOUNT_ID}?tab=reports`, consultant)).toBeNull();
-    expect(serverHref("/tickets?view=mine", consultant)).toBe("/tickets?view=mine");
+    expect(serverHref("/cases?view=mine", consultant)).toBe("/cases?view=mine");
   });
 });
 
@@ -142,17 +142,17 @@ describe("waitingHref", () => {
     expect(waitingHref(itemFor(rail, "csat_low_scores"), consultant)).toBe(
       `/accounts/${WAITING_ACCOUNT_ID}?tab=satisfaction`,
     );
-    expect(waitingHref(aWaitingItem(), consultant)).toBe("/tickets?view=mine");
+    expect(waitingHref(aWaitingItem(), consultant)).toBe("/cases?view=mine");
   });
 
   it("keeps the key's own address when the API sends no link at all", () => {
-    expect(waitingHref(aWaitingItem({ link: undefined }), ALL_SCREENS)).toBe("/tickets?view=mine");
+    expect(waitingHref(aWaitingItem({ link: undefined }), ALL_SCREENS)).toBe("/cases?view=mine");
     // The bell-menu row has no screen either way.
     expect(waitingHref(aWaitingItem({ key: "unread_notifications", link: undefined }), ALL_SCREENS)).toBeNull();
   });
 
   it("reads the whole registry when no permitted set is given", () => {
-    expect(waitingHref(aWaitingItem())).toBe("/tickets?view=mine");
+    expect(waitingHref(aWaitingItem())).toBe("/cases?view=mine");
   });
 });
 

@@ -4,7 +4,7 @@ import { SolutionsRail } from "@/components/tickets/solutions-rail";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/tickets/CS0001001",
+  usePathname: () => "/cases/CS0001001",
   useRouter: () => ({ push: vi.fn() }),
 }));
 

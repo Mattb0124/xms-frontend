@@ -50,12 +50,12 @@ describe("WaitingRail", () => {
     await screen.findByTestId("waiting-rail");
 
     const assigned = screen.getByRole("link", { name: /Tickets assigned to me/ });
-    expect(assigned).toHaveAttribute("href", "/tickets?view=mine");
+    expect(assigned).toHaveAttribute("href", "/cases?view=mine");
     expect(assigned).toHaveTextContent("4");
     // The Queue filters on the flag now, so the row opens the tickets it counted.
     expect(screen.getByRole("link", { name: /Out-of-scope flags to approve/ })).toHaveAttribute(
       "href",
-      "/tickets?out_of_scope=flagged",
+      "/cases?out_of_scope=flagged",
     );
     // The API named an account's Report packs tab, which needs admin:accounts;
     // this viewer does not hold it, so the row falls back to the key's screen.
@@ -89,7 +89,7 @@ describe("WaitingRail", () => {
     expect(screen.queryByRole("link", { name: /Days this week with unlogged time/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Report packs to review/ })).not.toBeInTheDocument();
     expect(screen.getByText("Days this week with unlogged time")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Tickets assigned to me/ })).toHaveAttribute("href", "/tickets?view=mine");
+    expect(screen.getByRole("link", { name: /Tickets assigned to me/ })).toHaveAttribute("href", "/cases?view=mine");
   });
 
   it("renders an unknown key whose link is not an address in this application as plain text", async () => {

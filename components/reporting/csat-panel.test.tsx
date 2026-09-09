@@ -46,7 +46,7 @@ describe("AccountCsatView", () => {
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(2);
     expect(within(rows[0]).getByText("5 of 5")).toHaveAttribute("data-state", "complete");
-    expect(within(rows[0]).getByRole("link", { name: "CS0001001" })).toHaveAttribute("href", "/tickets/CS0001001");
+    expect(within(rows[0]).getByRole("link", { name: "CS0001001" })).toHaveAttribute("href", "/cases/CS0001001");
     expect(rows[0]).toHaveTextContent("No comment");
     expect(rows[0]).toHaveTextContent("Pat Client (pat@client.test)");
     expect(rows[0]).toHaveTextContent("2026-09-06");

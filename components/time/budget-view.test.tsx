@@ -173,7 +173,7 @@ describe("AccountBudgetView", () => {
     expect(document.querySelector('[data-entry="be-3"] [data-amount]')).toHaveTextContent("unrated");
     expect(within(document.querySelector('[data-entry="be-1"]') as HTMLElement).getByText("CS1000001")).toHaveAttribute(
       "href",
-      "/tickets/CS1000001",
+      "/cases/CS1000001",
     );
     expect(
       within(document.querySelector('[data-entry="be-2"]') as HTMLElement).getByText("Internal"),

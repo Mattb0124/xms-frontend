@@ -38,7 +38,7 @@ export function CommandPalette({ screens, actions = [], onClose }: CommandPalett
             id: "jump",
             label: `Open ${term.toUpperCase()}`,
             hint: "Ticket",
-            run: () => router.push(`/tickets/${term.toUpperCase()}`),
+            run: () => router.push(`/cases/${term.toUpperCase()}`),
           },
         ]
       : [];

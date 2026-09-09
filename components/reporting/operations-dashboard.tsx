@@ -108,7 +108,7 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
           <p className="xms-ai text-xms-body px-5 py-[18px] text-[15px] leading-[1.6]" data-testid="synthesis">
             {synthesisLine(data.measures, data.per_account.length)}
           </p>
-          <TileStrip measures={data.measures} links={{ base: "/tickets" }} />
+          <TileStrip measures={data.measures} links={{ base: "/cases" }} />
           <div className="grid gap-[14px] lg:grid-cols-2">
             <SlaPanel measures={data.measures} />
             <OutcomesPanel measures={data.measures} />
@@ -117,14 +117,14 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
               title="Open by priority"
               note="click to filter the queue"
               values={data.measures.open_by_priority}
-              linkBase="/tickets"
+              linkBase="/cases"
               param="priority"
             />
             <BreakdownPanel
               title="Open by type"
               note="click to filter the queue"
               values={data.measures.open_by_type}
-              linkBase="/tickets"
+              linkBase="/cases"
               param="type"
               labelOf={ticketTypeLabel}
             />

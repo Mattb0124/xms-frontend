@@ -26,8 +26,8 @@ describe("OperationsDashboard", () => {
 
     const tiles = screen.getByTestId("tile-strip");
     expect(tiles.querySelectorAll("a")).toHaveLength(6);
-    expect(screen.getByRole("link", { name: /Breached/ })).toHaveAttribute("href", "/tickets?view=breached");
-    expect(screen.getByRole("link", { name: /Unassigned/ })).toHaveAttribute("href", "/tickets?view=unassigned");
+    expect(screen.getByRole("link", { name: /Breached/ })).toHaveAttribute("href", "/cases?view=breached");
+    expect(screen.getByRole("link", { name: /Unassigned/ })).toHaveAttribute("href", "/cases?view=unassigned");
     // Every tile number is ink (render 10). The tile carried a tone, so a
     // Breached count of zero was drawn in the "good" green, which is a signal
     // where there is none.

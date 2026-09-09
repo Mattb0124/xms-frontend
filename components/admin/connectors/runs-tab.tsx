@@ -31,7 +31,7 @@ export const RUN_COLUMNS: DenseColumn<SyncRun>[] = [
     sortValue: (row) => row.ticket_id ?? "",
     render: (row) =>
       row.ticket_id ? (
-        <Link href={`/tickets/${row.ticket_id}`} className="text-xms-accent" data-ticket={row.ticket_id}>
+        <Link href={`/cases/${row.ticket_id}`} className="text-xms-accent" data-ticket={row.ticket_id}>
           {row.ticket_id.slice(0, 8)}
         </Link>
       ) : (

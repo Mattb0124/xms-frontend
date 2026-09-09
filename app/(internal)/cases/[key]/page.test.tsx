@@ -1,12 +1,12 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import TicketPage from "@/app/(internal)/tickets/[key]/page";
+import TicketPage from "@/app/(internal)/cases/[key]/page";
 import { ACCOUNT_ID, aContract, aTicketView } from "@/test-kit/tickets";
 import { json, renderDesk, stubFetch, type RecordedCall } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ key: "CS1000199" }),
-  usePathname: () => "/tickets/CS1000199",
+  usePathname: () => "/cases/CS1000199",
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 

@@ -69,7 +69,7 @@ describe("RecordsTab", () => {
     renderDesk(<RecordsTab batchId={BATCH_ID} />);
     expect(await screen.findByRole("link", { name: "33333333" })).toHaveAttribute(
       "href",
-      "/tickets/33333333-3333-4333-8333-333333333333",
+      "/cases/33333333-3333-4333-8333-333333333333",
     );
   });
 });

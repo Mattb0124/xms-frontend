@@ -42,7 +42,7 @@ describe("AccountDashboard", () => {
     await waitFor(() => expect(screen.getByTestId("notable-list")).toBeInTheDocument());
     expect(screen.getByTestId("synthesis")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("comp-time-total")).toHaveTextContent("3h"));
-    expect(screen.getByRole("link", { name: "Open the queue" })).toHaveAttribute("href", "/tickets?account_id=acct-1");
+    expect(screen.getByRole("link", { name: "Open the queue" })).toHaveAttribute("href", "/cases?account_id=acct-1");
     expect(screen.getByRole("link", { name: "Account record" })).toHaveAttribute("href", "/admin/accounts/acct-1");
     expect(screen.getByText("Ready for review")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open pack" })).toHaveAttribute("href", "/reports/packs/pack-1");

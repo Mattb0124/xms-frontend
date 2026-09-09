@@ -38,7 +38,7 @@ export const SCREENS: Screen[] = [
     purpose: "Your day: scorecards, needs attention, time today.",
   },
   {
-    path: "/tickets",
+    path: "/cases",
     screen: "cases",
     label: "Cases",
     section: "Cases",
@@ -55,7 +55,7 @@ export const SCREENS: Screen[] = [
     purpose: "One contact: how to reach them, the account they belong to, what they have raised.",
   },
   {
-    path: "/tickets/dispatch",
+    path: "/cases/dispatch",
     screen: "dispatch",
     label: "Dispatch",
     section: "Cases",
@@ -64,7 +64,7 @@ export const SCREENS: Screen[] = [
     purpose: "Unassigned tickets with group and assignee pickers.",
   },
   {
-    path: "/tickets/quarantine",
+    path: "/cases/quarantine",
     screen: "quarantine",
     label: "Quarantine",
     section: "Intake",
@@ -73,7 +73,7 @@ export const SCREENS: Screen[] = [
     purpose: "Unknown senders awaiting review.",
   },
   {
-    path: "/tickets/groups",
+    path: "/cases/groups",
     screen: "ticket_groups",
     label: "Groups",
     section: "Cases",
@@ -82,7 +82,7 @@ export const SCREENS: Screen[] = [
     purpose: "Projects and change windows, with the schedule each one carries.",
   },
   {
-    path: "/tickets/change-calendar",
+    path: "/cases/change-calendar",
     screen: "change_calendar",
     label: "Change calendar",
     section: "Cases",
@@ -90,7 +90,7 @@ export const SCREENS: Screen[] = [
     purpose: "Change windows and freezes over a month, and whether work may go out right now.",
   },
   {
-    path: "/tickets/new",
+    path: "/cases/new",
     screen: "ticket.new",
     label: "New ticket",
     section: "Cases",
@@ -98,7 +98,7 @@ export const SCREENS: Screen[] = [
     purpose: "Full-screen record form.",
   },
   {
-    path: "/tickets/[key]",
+    path: "/cases/[key]",
     screen: "ticket",
     label: "Ticket",
     section: "Cases",
@@ -527,7 +527,7 @@ function toPattern(path: string): RegExp {
   return new RegExp(`^${source}/?$`);
 }
 
-/** Finds the registry entry for a concrete pathname (`/tickets/CS0001204` matches `/tickets/[key]`). */
+/** Finds the registry entry for a concrete pathname (`/cases/CS0001204` matches `/cases/[key]`). */
 export function matchScreen(pathname: string): Screen | undefined {
   const all = [...SCREENS, ...PORTAL_SCREENS];
   const exact = all.find((screen) => screen.path === pathname);

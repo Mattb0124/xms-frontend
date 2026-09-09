@@ -5,7 +5,7 @@ import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 import { aSavedView, SAVED_VIEW_ID, VIEW_ACCOUNT_ID, VIEW_OWNER_ID } from "@/test-kit/views";
 import type { GrantedAccount } from "@/redux/ticketsApi";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases" }));
 
 const me = (userId = VIEW_OWNER_ID) => ({
   principal: { kind: "internal", userId, accountIds: [VIEW_ACCOUNT_ID], permissions: ["tickets:view"] },

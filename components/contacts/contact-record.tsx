@@ -68,7 +68,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
       <EmptyBanner
         title="That contact is not here"
         detail="It may belong to an account you do not hold, or it may have been removed."
-        action={{ label: "Back to Cases", href: "/tickets" }}
+        action={{ label: "Back to Cases", href: "/cases" }}
       />
     );
 
@@ -147,7 +147,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
             )}
             {cases?.items?.length ? (
               <p className="mt-3 text-[13px]">
-                <Link href={`/tickets?q=${encodeURIComponent(contact.email)}`} className="xms-link">
+                <Link href={`/cases?q=${encodeURIComponent(contact.email)}`} className="xms-link">
                   Every case from this contact
                 </Link>
               </p>

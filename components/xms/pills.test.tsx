@@ -62,7 +62,7 @@ describe("KeyLink", () => {
   it("links to the ticket route wearing both the link face and the key face", () => {
     render(<KeyLink ticketKey="CS0001204" />);
     const link = screen.getByRole("link", { name: "CS0001204" });
-    expect(link).toHaveAttribute("href", "/tickets/CS0001204");
+    expect(link).toHaveAttribute("href", "/cases/CS0001204");
     // A case number is a link, so it keeps the underline and hover of
     // .xms-link; .xms-key adds the tabular figures and the weight a key needs.
     // Both, not one or the other: the link face alone sets the family through

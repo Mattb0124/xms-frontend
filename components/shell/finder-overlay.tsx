@@ -190,7 +190,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                 <li key={view.key} className="xms-overlay-row is-listed">
                   <InboxIcon size={ICON.field} className="shrink-0" />
                   <Link
-                    href={`/tickets?view=${view.key}`}
+                    href={`/cases?view=${view.key}`}
                     onClick={props.onClose}
                     className="min-w-0 flex-1 truncate text-white hover:no-underline"
                   >

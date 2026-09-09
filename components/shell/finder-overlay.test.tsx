@@ -5,7 +5,7 @@ import { PORTAL_SCREENS, SCREENS, isDynamicPath, navigableHref } from "@/lib/rou
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => "/tickets",
+  usePathname: () => "/cases",
 }));
 
 // The three finders crashed every screen because the overlay built an href from
@@ -31,9 +31,9 @@ function renderAll() {
 
 describe("navigableHref", () => {
   it("gives a concrete screen its own path", () => {
-    expect(
-      navigableHref({ path: "/tickets", screen: "queue", label: "Queue", section: "Cases", permission: null }),
-    ).toBe("/tickets");
+    expect(navigableHref({ path: "/cases", screen: "queue", label: "Queue", section: "Cases", permission: null })).toBe(
+      "/cases",
+    );
   });
 
   it("sends a record screen to its list parent when the viewer may see it", () => {
@@ -93,7 +93,7 @@ describe("FinderOverlay, the All finder", () => {
   it("links a record screen to its list parent", () => {
     renderAll();
     expect(screen.getByText("Account dashboard").closest("a")).toHaveAttribute("href", "/accounts");
-    expect(screen.getByText("Ticket").closest("a")).toHaveAttribute("href", "/tickets");
+    expect(screen.getByText("Ticket").closest("a")).toHaveAttribute("href", "/cases");
   });
 });
 
@@ -106,14 +106,14 @@ describe("FinderOverlay, the stored finders", () => {
         pinned={new Set()}
         onTogglePin={() => {}}
         favourites={[
-          { path: "/tickets?view=my-group", label: "My group", type: "view" },
+          { path: "/cases?view=my-group", label: "My group", type: "view" },
           { path: "/accounts/[id]", label: "Broken", type: "view" },
         ]}
         history={[]}
         onClose={() => {}}
       />,
     );
-    expect(screen.getByRole("link", { name: "My group" })).toHaveAttribute("href", "/tickets?view=my-group");
+    expect(screen.getByRole("link", { name: "My group" })).toHaveAttribute("href", "/cases?view=my-group");
     expect(screen.queryByText("Broken")).not.toBeInTheDocument();
   });
 
@@ -126,13 +126,13 @@ describe("FinderOverlay, the stored finders", () => {
         onTogglePin={() => {}}
         favourites={[]}
         history={[
-          { path: "/tickets/CS1000203", label: "CS1000203", at: new Date().toISOString() },
+          { path: "/cases/CS1000203", label: "CS1000203", at: new Date().toISOString() },
           { path: "/roster/[id]", label: "Broken", at: new Date().toISOString() },
         ]}
         onClose={() => {}}
       />,
     );
-    expect(screen.getByRole("link", { name: "CS1000203" })).toHaveAttribute("href", "/tickets/CS1000203");
+    expect(screen.getByRole("link", { name: "CS1000203" })).toHaveAttribute("href", "/cases/CS1000203");
     expect(screen.queryByText("Broken")).not.toBeInTheDocument();
   });
 });

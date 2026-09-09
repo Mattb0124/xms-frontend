@@ -56,8 +56,8 @@ describe("TabBar", () => {
 
 describe("ScoreTile and MeterBar", () => {
   it("links a mono number in ink, with the sub-line under it and no signal colour", () => {
-    render(<ScoreTile label="Breached" value={3} detail="CS0001203" href="/tickets?view=breached" />);
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/tickets?view=breached");
+    render(<ScoreTile label="Breached" value={3} detail="CS0001203" href="/cases?view=breached" />);
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/cases?view=breached");
     // Both renders draw every scorecard number in ink. The tile carried a
     // tone, so a Breached count of zero was drawn in the "good" green and an
     // At risk count of zero in amber: a signal where there was none.

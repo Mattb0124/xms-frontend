@@ -78,9 +78,9 @@ describe("route registry", () => {
   });
 
   it("matches concrete paths, including dynamic segments", () => {
-    expect(matchScreen("/tickets")?.screen).toBe("cases");
-    expect(matchScreen("/tickets/CS0001204")?.screen).toBe("ticket");
-    expect(matchScreen("/tickets/dispatch")?.screen).toBe("dispatch");
+    expect(matchScreen("/cases")?.screen).toBe("cases");
+    expect(matchScreen("/cases/CS0001204")?.screen).toBe("ticket");
+    expect(matchScreen("/cases/dispatch")?.screen).toBe("dispatch");
     expect(matchScreen("/nowhere")).toBeUndefined();
   });
 });

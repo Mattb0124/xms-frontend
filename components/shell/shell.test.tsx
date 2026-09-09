@@ -10,7 +10,7 @@ import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
-  usePathname: () => "/tickets",
+  usePathname: () => "/cases",
   // The shell reads ?axel=1, which is how the ticket record's Ask Axel opens
   // the panel (render 15).
   useSearchParams: () => new URLSearchParams(),
@@ -56,7 +56,7 @@ describe("FinderOverlay", () => {
       <FinderOverlay
         kind="all"
         screens={visibleScreens(new Set(["tickets:view", "admin:accounts", "reports:view-portfolio"]))}
-        pinned={new Set(["/tickets"])}
+        pinned={new Set(["/cases"])}
         onTogglePin={onTogglePin}
         favourites={[]}
         history={[]}
@@ -73,7 +73,7 @@ describe("FinderOverlay", () => {
     expect(screen.queryByText("Cases")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "" } });
     fireEvent.click(screen.getByLabelText("Unpin Cases"));
-    expect(onTogglePin).toHaveBeenCalledWith("/tickets");
+    expect(onTogglePin).toHaveBeenCalledWith("/cases");
   });
 
   it("lists history with relative times", () => {
@@ -84,11 +84,11 @@ describe("FinderOverlay", () => {
         pinned={new Set()}
         onTogglePin={() => {}}
         favourites={[]}
-        history={[{ path: "/tickets/CS0001204", label: "Ticket", at: new Date(Date.now() - 5 * 60_000).toISOString() }]}
+        history={[{ path: "/cases/CS0001204", label: "Ticket", at: new Date(Date.now() - 5 * 60_000).toISOString() }]}
         onClose={() => {}}
       />,
     );
-    expect(screen.getByRole("link", { name: "Ticket" })).toHaveAttribute("href", "/tickets/CS0001204");
+    expect(screen.getByRole("link", { name: "Ticket" })).toHaveAttribute("href", "/cases/CS0001204");
     expect(screen.getByText("5m ago")).toBeInTheDocument();
   });
 });
@@ -110,7 +110,7 @@ describe("CommandPalette", () => {
     expect(onClose).toHaveBeenCalled();
     fireEvent.change(input, { target: { value: "cs0001204" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(push).toHaveBeenCalledWith("/tickets/CS0001204");
+    expect(push).toHaveBeenCalledWith("/cases/CS0001204");
   });
 });
 

@@ -6,7 +6,7 @@ import { ACCOUNT_ID, CONTRACT_ID, aContract, aTicketView } from "@/test-kit/tick
 import { aPosition } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/tickets/CS1000199" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/cases/CS1000199" }));
 
 const ACCOUNTS = [{ id: ACCOUNT_ID, key: "AUS", name: "Austral Mining Corporation" }];
 

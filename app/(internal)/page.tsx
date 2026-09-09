@@ -89,7 +89,7 @@ export default function MyWorkPage() {
             label="Show"
             value="mine"
             display={`mine (${mine.length})`}
-            onChange={(value) => router.push(`/tickets?view=${value}`)}
+            onChange={(value) => router.push(`/cases?view=${value}`)}
           >
             <option value="mine">Show: mine</option>
             <option value="unassigned">Show: unassigned</option>
@@ -99,7 +99,7 @@ export default function MyWorkPage() {
             label="Account"
             value=""
             options={(accounts ?? []).map((account) => ({ value: account.id, label: account.name }))}
-            onChange={(value) => router.push(value ? `/tickets?view=mine&account_id=${value}` : "/tickets?view=mine")}
+            onChange={(value) => router.push(value ? `/cases?view=mine&account_id=${value}` : "/cases?view=mine")}
           />
         </div>
       </HeaderFilters>
@@ -107,13 +107,13 @@ export default function MyWorkPage() {
         <HeaderSearchField
           value=""
           onChange={() => undefined}
-          onSubmit={() => router.push("/tickets")}
+          onSubmit={() => router.push("/cases")}
           label="Search my work"
         />
       </HeaderSearch>
       <HeaderAction>
         {me.hasPermission("tickets:create") ? (
-          <Link href="/tickets/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
+          <Link href="/cases/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
             <PlusIcon size={ICON.action} />
             New
           </Link>
@@ -159,7 +159,7 @@ export default function MyWorkPage() {
             // Worst first: P1 above P4, since a person reads this list from the
             // top and stops when the day runs out.
             defaultSort={{ key: "priority", direction: "asc" }}
-            onRowClick={(row) => router.push(`/tickets/${row.key}`)}
+            onRowClick={(row) => router.push(`/cases/${row.key}`)}
             emptyState="Nothing needs a nudge right now."
           />
           <div className="flex flex-col gap-[14px]">

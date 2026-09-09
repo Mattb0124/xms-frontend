@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageLabel } from "@/app/(internal)/tickets/dispatch/page";
+import { ageLabel } from "@/app/(internal)/cases/dispatch/page";
 
 const NOW = new Date("2026-09-08T12:00:00Z");
 
