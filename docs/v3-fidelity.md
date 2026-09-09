@@ -922,3 +922,122 @@ drawn on narrow ones.
 Seed: the Skills matrix and Demand carry the seed's own thin data (one skill
 set across seven people, two demand lines), so both screens are correct and
 short rather than incomplete.
+
+## 12. The ticket record, measured against the prototype's own markup
+
+Pass three measured this screen against the render PNGs. This pass measures it
+against `xms-work/proto-v3/template.pretty.html`, which is the prototype's
+rendered HTML with its literal inline styles, so every value below is the
+prototype's own rather than a reading off pixels.
+
+Screenshots are in `xms-work/shots-v3-pass4/after/`, one per tab, whole screen
+at 1500 by 1020: `02-ticket.png` (and `02-ticket-alt.png` on a ticket with an
+assignee), `03-activity.png`, `04-time.png`, `05-resolution.png`,
+`06-links.png`, `07-sync.png`.
+
+### 12a. What changed, item by item
+
+| #   | What               | Prototype                                                                                                                                                             | Built before                                                                          |
+| --- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 1   | Columns            | `flex; gap:16px`, rails `width:262px;flex:none`, work area `flex:1;min-width:0`                                                                                       | grid `320px 1fr 300px`                                                                |
+| 1   | Vertical rhythm    | title row `margin:0 0 14px`, pill row `0 0 16px`, rail `gap:14px`                                                                                                     | one 20px gap between everything                                                       |
+| 2   | Properties card    | `padding:16px`, eyebrow inside at `margin-bottom:14px`, no rule under it                                                                                              | flush card, full-width rule under the caption                                         |
+| 2   | Properties row     | `padding:9px 0`, a rule under every row, the label 4px above the value                                                                                                | `padding:10px 16px`, a 3px gap, the last row unruled                                  |
+| 2   | Property label     | `400 12px/1.3` in `--xms-muted`                                                                                                                                       | 12px in the darker `--xms-label`                                                      |
+| 3   | Property rows      | 14: Account, Requester, Type, Category, Configuration item, Impact / urgency, Priority, Contract, Group, Assignee, Source, Out of scope, External reference, Watchers | 13: no Configuration item, Group and Assignee last, plus Created, Resolved and Closed |
+| 4   | Group and Assignee | text at rest, the control on click (hand-off section 6)                                                                                                               | a bordered select and a combobox standing open                                        |
+| 5   | Title              | `400 14px/1.4`, `max-width:520px`, ellipsis                                                                                                                           | 15px at 500, no cap                                                                   |
+| 5   | State pill         | `600 13px/1`, `9px 14px`, an 8px gap, a 15px chevron in `--xms-label`                                                                                                 | a 32px box, 14px sides, a 13px chevron at .7 opacity                                  |
+| 5   | Priority pill      | `500 13px/1` mono, `9px 14px`, an `--xms-line-strong` edge                                                                                                            | a 32px box on the priority trio                                                       |
+| 5   | Clock chip         | `500 13px/1` mono, `#F1F3F6` on `#DDE2EA` in `#334155`, `9px 14px`, "Resolution 3h 12m left"                                                                          | a white chip reading "Response" and a bare `-49d 09h`                                 |
+| 5   | Ask Axel, more     | radius 5px, `11px 15px` and `11px 14px`, `#EFF1F4` on `#D8DDE5`                                                                                                       | radius 6px, 32px boxes, white on `--xms-line`                                         |
+| 6   | Composer           | a 5px card, header `12px 14px` on `--xms-quiet-bg`, mode chips `7px 13px` at 12px, the Axel controls `7px 11px` at radius 4                                           | a 6px card, an `8px 12px` header, 28px pills at 13px, radius 6                        |
+| 6   | Send               | `600 13px/1`, `10px 16px`, radius 4                                                                                                                                   | a 32px box at radius 6                                                                |
+| 6   | Thread row         | `flex;gap:13px;padding:16px 0` over a hairline; a 34px initials circle; the author `600 14px/1.3`; pills `4px 9px` at 11px; the body `14px/1.6`                       | a card per message, tinted for a work note                                            |
+| 6   | Thread header      | none at all                                                                                                                                                           | a "THREAD" eyebrow with the toggle beside it                                          |
+| 8   | Tab row            | `gap:2px;padding:0 10px`; a tab `15px 9px` at `14px/1`; 500 in `--xms-label` at rest, 600 in `#1D4ED8` selected                                                       | `gap:4px`; a 36px tab with 12px sides at 13px, ink when selected                      |
+| 8   | Work area body     | `padding:18px`                                                                                                                                                        | 16px                                                                                  |
+| 7   | Rail order         | Service levels, Contract, Similar solutions                                                                                                                           | Service levels, Scope, Attachments, Solutions, Contract, Requester, Watching          |
+| 9   | Rail card          | `padding:16px`, 13px between the caption and the first line                                                                                                           | 8px                                                                                   |
+| 9   | Similar solutions  | the note ground `#F4F6F8` on `#D8DDE5`, with a 15px book before the eyebrow                                                                                           | a white card named "Solutions"                                                        |
+| 9   | Contract headline  | `500 22px/1.2` mono with `400 14px/1` beside it, the meter 11px above and 8px below                                                                                   | the key and name on top, the numbers inside the meter's label                         |
+
+The tab row lands on every screen that uses it: the ticket record, the account
+record, the article record and six admin records.
+
+### 12b. The diff, and why the number does not move
+
+`pixelmatch` at threshold 0.2 with `includeAA`, cropped to the app frame the
+renders share (x 20, y 60, 1460 by 660).
+
+| Render        | Pass three | Before this pass | After |
+| ------------- | ---------- | ---------------- | ----- |
+| 02 Ticket     | 7.3%       | 7.3%             | 7.3%  |
+| 03 Activity   | 7.2%       | not taken        | 7.3%  |
+| 04 Time       | 6.1%       | not taken        | 6.5%  |
+| 05 Resolution | 6.3%       | not taken        | 6.5%  |
+| 06 Links      | 6.0%       | not taken        | 6.2%  |
+| 07 Sync       | 6.2%       | not taken        | 6.3%  |
+
+The number did not move, and on this seed it cannot: it counts differing
+pixels, and almost every differing pixel on this screen is a different word.
+`bands.local.mjs` runs the same comparison per column, which says where the
+residue is (render 02, after):
+
+| Band            | Differs          |
+| --------------- | ---------------- |
+| sidebar         | 4.7%             |
+| record bar      | 3.4%, was 3.6%   |
+| properties rail | 7.3%, was 7.6%   |
+| work area       | 7.0%, was 7.6%   |
+| right rail      | 12.2%, was 10.3% |
+
+Every one of those is data, and each can be named:
+
+- **The sidebar**, 4.7%: the render carries a Starred views section with three
+  saved views. This browser has no stars, so the section is absent. Nothing is
+  drawn differently.
+- **The record bar**, 3.4%: the render's ticket is CS0001204, "HFM
+  consolidation failing on EU entity after September close", In progress, P2,
+  with a resolution clock running. The seed's carries a different key, title,
+  state, priority and a breached response clock. The bands align to within 3px.
+- **The properties rail**, 7.3%: the render's Requester is "Helena Lindqvist"
+  on one line; the seed's is a name and an address that wrap to two, so every
+  row below it sits 18px lower, and every value differs.
+- **The work area**, 7.0%: the render draws an Axel summary block and four
+  thread messages. The Axel turn surface is held, so no summary is drawn, and
+  the seeded ticket has no messages.
+- **The right rail**, 12.2%: **no ticket in this seed carries a resolution due
+  date at all** (checked across all thirty). The render's Service levels card
+  is three lines and two meters, "Response · met 15:36", "Resolution · 3h 12m
+  of 24h left" and the pause caption; the built card is one line and one meter,
+  so it is about 50px shorter and every card under it sits higher than the
+  render's. This band got worse precisely because correcting the card order
+  moved Contract and Similar solutions up into the render's own Service levels
+  band.
+
+So the floor for this screen on this seed is not about 6%: it is about 7% for
+the conversation tab, and 6.2% to 6.5% for the five tabs that carry less
+furniture. Everything measurable independently of the data is in 12a and
+matches.
+
+### 12c. Still differs, and why each is data or a held feature, not layout
+
+- **No Axel summary block.** Render 02 draws one between the composer and the
+  thread. The Axel turn surface is held (section 8), so there is nothing to put
+  in it; drawing the frame around invented prose would be worse than not
+  drawing it.
+- **The composer carries an attach row** the prototype's does not. It is how a
+  file reaches a reply on this build, and it stands inside the composer where
+  the prototype leaves its body empty.
+- **"Show work notes" stays.** The prototype's thread is a fixture with no work
+  notes in it, so it needs no toggle; the built thread interleaves them and the
+  toggle decides whether it holds any. It is the only control in the thread.
+- **Watchers is not a property row.** The prototype's fourteenth row reads
+  "Watchers · 2 people"; nothing on `GET /v1/tickets/{key}` counts watchers.
+  Waits on the API.
+- **A seventh tab, Email.** Unchanged from section 10h.
+- **The property hairline** is `--xms-line-row` `#EEF1F6` where the prototype
+  draws `#F0F3FA`: two steps in one channel, which pixelmatch at threshold 0.2
+  does not register. A third near-identical hairline token was not worth
+  adding.
