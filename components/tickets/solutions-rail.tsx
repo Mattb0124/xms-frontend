@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { ICON, BookIcon } from "@/components/xms/icons";
 import { KeyLink } from "@/components/xms/key-link";
 import { RailCard } from "@/components/xms/rail-card";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -67,7 +68,12 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
 
   return (
     <RailCard
-      caption="Solutions"
+      // The prototype's own card: "Similar solutions" on the note ground with
+      // a 15px book before the eyebrow, which is the one rail card it does not
+      // stand on white.
+      caption="Similar solutions"
+      tone="note"
+      glyph={<BookIcon size={ICON.action} className="text-xms-label shrink-0" />}
       action={
         !readOnly && canAuthor ? (
           <button

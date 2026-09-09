@@ -12,11 +12,19 @@ describe("contract card", () => {
     expect(hoursText(2400)).toBe("40h");
   });
 
-  it("renders consumed against available with the remaining and projected hours", () => {
-    render(<ContractCardView position={aPosition({ status: "watch" })} />);
-    expect(screen.getByText("10h of 40h this period")).toBeInTheDocument();
+  /*
+   * The prototype leads this card with the burn as one large mono number and
+   * "of 100 h" small beside it (`proto-v3/template.pretty.html`), then the
+   * meter, then one caption line. The numbers used to be the meter's own
+   * label and the card's headline was the contract's key.
+   */
+  it("leads with the burn as one number, over the meter and one caption", () => {
+    const { container } = render(<ContractCardView position={aPosition({ status: "watch" })} />);
+    const burn = container.querySelector("[data-burn]")!;
+    expect(burn).toHaveTextContent("10 of 40 h");
+    expect(burn).toHaveClass("text-[22px]");
     expect(screen.getByText("Watch")).toHaveAttribute("data-tone", "warn");
-    expect(screen.getByText("30h")).toBeInTheDocument();
+    expect(container).toHaveTextContent("30h remaining, projected");
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
   });
 });

@@ -206,10 +206,14 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             pausedReason={ticket.state_label}
             metAt={{ response: ticket.first_response_at, resolution: ticket.resolved_at }}
           />
+          {/* The prototype's rail is Service levels, Contract, Similar
+              solutions, in that order. Scope, Attachments, Requester and
+              Watching are this build's own and follow them, so nothing the
+              render draws is pushed below something it does not. */}
+          <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
+          <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <ScopeCard ticket={ticket} />
           <AttachmentsCard ticketKey={ticket.key} readOnly={readOnly} />
-          <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
-          <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <RequesterCard ticket={ticket} />
           <WatchCard ticketKey={ticket.key} watching={ticket.watching ?? true} />
         </div>
