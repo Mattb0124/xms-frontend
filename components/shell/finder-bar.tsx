@@ -117,7 +117,7 @@ export function FinderBar(props: FinderBarProps) {
         <button
           type="button"
           onClick={props.onSearchFocus}
-          className="bg-xms-navy-overlay border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border px-3 text-left"
+          className="border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border bg-[color:var(--xms-navy-sunken)] px-3 text-left"
         >
           <SearchIcon size={ICON.action} className="shrink-0 text-white/55" />
           <span className="flex-1 truncate text-[13px] text-white/60">Search</span>

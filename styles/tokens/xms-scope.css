@@ -26,6 +26,9 @@
   --xms-navy: #10193a;
   --xms-navy-overlay: #1a2450;
   --xms-navy-line: #232f60;
+  /* The search field sits deeper than the scope pill beside it: two controls
+   * on one bar read as one surface when they share a fill. */
+  --xms-navy-sunken: #0b1231;
   /* The finder overlay (renders 12 to 14): a translucent blue panel hanging
    * from the navy bar over a dimmed workspace. Every value is the
    * prototype's own. */
