@@ -456,12 +456,19 @@
   }
 }
 
-/* Control geometry inside the scope (wins over utilities on purpose) */
-.xms-scope button,
+/* Control geometry inside the scope (wins over utilities on purpose).
+ *
+ * A tab is not a control with a box: its selected mark is a straight rule on
+ * the row edge, so the radius here curved both ends of it upward. Anything
+ * that draws its own edge instead of a box opts out with rounded-none. */
+.xms-scope button:not([role="tab"]):not(.xms-square),
 .xms-scope select,
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 .xms-scope textarea {
   border-radius: var(--xms-radius-control);
+}
+.xms-scope button[role="tab"] {
+  border-radius: 0;
 }
 .xms-scope ::placeholder {
   color: var(--xms-placeholder);
@@ -484,4 +491,10 @@
 }
 .xms-scope :focus:not(:focus-visible) {
   outline: none;
+}
+/* A composer fills its card edge to edge, so an outline drawn outside it
+ * lands on the card border and reads as a second box. The same 2px mark is
+ * drawn inside the field instead. */
+.xms-scope textarea:focus-visible {
+  outline-offset: -2px;
 }
