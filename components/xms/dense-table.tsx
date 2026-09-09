@@ -279,7 +279,10 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       key={column.key}
                       className={cn(
                         // 13px vertical, 14px horizontal (hand-off section 4).
-                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] py-[13px] align-top",
+                        // A row is as tall as the sentence in it, and every
+                        // other cell sits in the middle of that height rather
+                        // than hanging from the top of it.
+                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] py-[13px] align-middle",
                         column.wrap ? undefined : "whitespace-nowrap",
                         column.mono && "xms-mono",
                         column.align === "right" && "text-right",
