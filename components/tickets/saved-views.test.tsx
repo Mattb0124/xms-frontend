@@ -12,8 +12,15 @@ const me = (userId = VIEW_OWNER_ID) => ({
 });
 
 const accounts: GrantedAccount[] = [
-  { id: VIEW_ACCOUNT_ID, key: "BRK", name: "Brookfield", status: "active" },
-  { id: "22222222-2222-4222-8222-222222222222", key: "NWH", name: "Northwind Health", status: "active" },
+  { id: VIEW_ACCOUNT_ID, key: "BRK", name: "Brookfield", status: "active", owner_id: null, owner_name: "Erin Walsh" },
+  {
+    id: "22222222-2222-4222-8222-222222222222",
+    key: "NWH",
+    name: "Northwind Health",
+    status: "active",
+    owner_id: null,
+    owner_name: null,
+  },
 ];
 
 const bar = (overrides: Partial<Parameters<typeof SavedViewsBar>[0]> = {}) => (

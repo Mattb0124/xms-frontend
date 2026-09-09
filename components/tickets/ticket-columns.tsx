@@ -2,7 +2,7 @@
 
 import { shortName } from "@/components/xms/actor-chip";
 import type { DenseColumn } from "@/components/xms/dense-table";
-import { KeyLink } from "@/components/xms/key-link";
+import { KeyLink, TextLink } from "@/components/xms/key-link";
 import { PriorityPill } from "@/components/xms/priority-pill";
 import { SlaValue } from "@/components/xms/sla-value";
 import { StatePill } from "@/components/xms/state-pill";
@@ -111,6 +111,38 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       render: (row) => <span className="text-xms-body">{accounts.get(row.account_id)?.name ?? "Account"}</span>,
     },
     {
+      // The person who raised it. There is no contact record of its own yet,
+      // so the name opens the account's own contacts, which is where a
+      // requester is administered.
+      key: "contact",
+      title: "Contact",
+      width: "150px",
+      sortValue: (row) => row.requester?.display_name ?? "",
+      render: (row) =>
+        row.requester ? (
+          <TextLink href={`/accounts/${row.account_id}?tab=contacts`}>{row.requester.display_name}</TextLink>
+        ) : (
+          <span className="text-xms-muted">No contact</span>
+        ),
+    },
+    {
+      // The account's CSM, from the account picker rather than a lookup per
+      // row: one call already names every account this reader may see.
+      key: "csm",
+      title: "CSM",
+      width: "140px",
+      sortValue: (row) => accounts.get(row.account_id)?.owner_name ?? "",
+      render: (row) => {
+        const account = accounts.get(row.account_id);
+        if (!account?.owner_name) return <span className="text-xms-muted">Unassigned</span>;
+        return account.owner_id ? (
+          <TextLink href={`/roster/${account.owner_id}`}>{account.owner_name}</TextLink>
+        ) : (
+          <span className="text-xms-body">{account.owner_name}</span>
+        );
+      },
+    },
+    {
       key: "type",
       title: "Type",
       width: "112px",
@@ -143,13 +175,18 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
     },
     {
       key: "assignee",
-      title: "Assignee",
+      title: "Assigned to",
       width: "140px",
       sortValue: (row) => row.assignee_name ?? "",
-      // "M. Brown", no avatar circle: the render carries the name alone.
+      // "M. Brown", no avatar circle: the render carries the name alone. The
+      // name opens the person, like every other person named in a row.
       render: (row) =>
         row.assignee_name ? (
-          <span className="text-xms-ink">{shortName(row.assignee_name)}</span>
+          row.assignee_id ? (
+            <TextLink href={`/roster/${row.assignee_id}`}>{shortName(row.assignee_name)}</TextLink>
+          ) : (
+            <span className="text-xms-ink">{shortName(row.assignee_name)}</span>
+          )
         ) : (
           <span className="text-xms-muted">Unassigned</span>
         ),
@@ -187,11 +224,13 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
  * only pill on the row is the state.
  */
 export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView>[] {
-  const wanted = new Set(["key", "short_description", "account", "priority", "state", "sla"]);
+  const wanted = new Set(["key", "short_description", "account", "contact", "csm", "priority", "state", "sla"]);
   const widths: Record<string, string | undefined> = {
     key: "82px",
     short_description: undefined,
     account: "128px",
+    contact: "140px",
+    csm: "132px",
     priority: "126px",
     state: "132px",
     sla: "92px",

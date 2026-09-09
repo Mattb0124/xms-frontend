@@ -41,11 +41,13 @@ describe("the Queue columns", () => {
       "Key",
       "Short description",
       "Account",
+      "Contact",
+      "CSM",
       "Type",
       "Priority",
       "State",
       "Opened",
-      "Assignee",
+      "Assigned to",
       "SLA",
       "Updated",
     ]);
@@ -55,6 +57,8 @@ describe("the Queue columns", () => {
     expect(ticketColumns({ accounts, hideAccount: true }).map((column) => column.key)).toEqual([
       "key",
       "short_description",
+      "contact",
+      "csm",
       "type",
       "priority",
       "state",

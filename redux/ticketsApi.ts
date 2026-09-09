@@ -237,6 +237,9 @@ export interface GrantedAccount {
   key: string;
   name: string;
   status: string;
+  /** The account's CSM: who owns the relationship, and the person to open. */
+  owner_id: string | null;
+  owner_name: string | null;
 }
 
 export interface DirectoryGroup {
