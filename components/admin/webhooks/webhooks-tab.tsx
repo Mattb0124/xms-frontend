@@ -222,7 +222,6 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
 
       <DenseTable<WebhookSubscription>
         title="Webhook endpoints"
-        subtitle="where this account's events are sent, and whether XMS is still sending to them"
         columns={columns}
         rows={rows ?? []}
         rowKey={(row) => row.id}
@@ -334,7 +333,6 @@ function Deliveries({ accountId, subscriptionId }: { accountId: string; subscrip
   return (
     <DenseTable<WebhookDelivery>
       title="Deliveries"
-      subtitle="every attempt against this endpoint, with what came back"
       columns={[
         { key: "event", title: "Event", render: (row) => row.event_type },
         {

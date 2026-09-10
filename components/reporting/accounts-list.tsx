@@ -159,7 +159,6 @@ export function AccountsList() {
       </HeaderFilters>
       <DenseTable<AccountListRow>
         title="Accounts"
-        subtitle="the accounts granted to you, and how each one is standing"
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}

@@ -152,7 +152,6 @@ export function AccountHealthTab({ id }: { id: string }) {
 
       <DenseTable<HealthFactor>
         title="What the score stands on"
-        subtitle="every factor with its weight, its own reading out of a hundred and the counts behind it"
         columns={COLUMNS}
         rows={data.factors}
         rowKey={(row) => row.key}

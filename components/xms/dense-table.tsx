@@ -52,8 +52,6 @@ export interface DenseTableProps<Row> {
    * search field and the two icon controls and nothing else.
    */
   titleHidden?: boolean;
-  /** The line beside the title, in sentence case: "mine first, then group unassigned". */
-  subtitle?: string;
   /**
    * Draw no column header row. Render 08's Needs attention list is a card of
    * rows, not a table: five fixed cells and no header over them, because five

@@ -188,7 +188,6 @@ function AdminAccountsPageBody() {
         ) : null}
         <DenseTable
           title="Accounts"
-          subtitle="every client account, its isolation tier and where it is in its life"
           columns={arrangement.columns}
           display={arrangement.display}
           rows={rows}

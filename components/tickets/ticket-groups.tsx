@@ -507,7 +507,6 @@ export function TicketGroupsCatalog() {
           // header lost in pass two. It is named for what it holds, with the
           // sentence that explains the screen beside it.
           title="Groups"
-          subtitle="projects and change windows across the accounts granted to you"
           columns={columns}
           rows={rows}
           rowKey={(row) => row.id}

@@ -229,7 +229,6 @@ function UsersList() {
         ) : null}
         <DenseTable
           title="Users"
-          subtitle="internal people, portal contacts and machine identities"
           columns={arrangement.columns}
           display={arrangement.display}
           rows={rows}

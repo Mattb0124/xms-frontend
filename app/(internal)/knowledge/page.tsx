@@ -143,7 +143,6 @@ function KnowledgeList() {
         <>
           <DenseTable<Article>
             title="Solutions"
-            subtitle="the published knowledge base and everything still on its way there"
             columns={arrangement.columns}
             display={arrangement.display}
             rows={rows}
