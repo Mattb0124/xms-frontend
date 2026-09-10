@@ -484,9 +484,11 @@ function CasesScreen() {
           title="Cases"
           titleHidden
           bleed
-          // The bands run to both edges of the work area, so the list pulls
-          // itself back out of the page's own 20px gutter.
-          className="-mx-5"
+          // The bands run to every edge of the work area, so the list pulls
+          // itself back out of the page's own gutter: 20px at the sides and
+          // the 40px under it, which a list filling the height does not want
+          // sitting empty below its footer.
+          className="-mx-5 -mb-10"
           columns={arrangement.columns}
           display={arrangement.display}
           rows={rows}
