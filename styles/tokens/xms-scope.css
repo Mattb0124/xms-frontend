@@ -659,9 +659,9 @@
 /* Clicked into, anything enabled goes white and stays white. The fill says
  * "a value lives here"; once you are in the control, the ground gets out of
  * the way of what you are typing or choosing. */
-.xms-scope select:enabled:focus,
-.xms-scope input:enabled:focus,
-.xms-scope textarea:enabled:focus,
+.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):enabled:focus,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):enabled:focus,
+.xms-scope textarea:not(.bg-transparent):enabled:focus,
 .xms-scope .xms-field:focus-within {
   background: var(--xms-card);
 }
