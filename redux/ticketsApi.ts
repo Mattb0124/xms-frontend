@@ -558,17 +558,32 @@ export interface PatchContractBody {
 export interface TicketParticipant {
   id: string;
   ticket_id: string;
-  user_id: string;
+  /** Absent on a group invitation nobody has accepted yet (TM-22). */
+  user_id: string | null;
   display_name: string;
-  role: "collaborator" | "reviewer" | "observer";
-  /** `invited` and `declined` belong to the invitation flow, which is TM-22. */
-  status: "invited" | "active" | "declined" | "left";
+  group_id: string | null;
+  group_name: string;
+  role: ParticipantRole;
+  /**
+   * The three ways an invitation can end are three different facts: the
+   * invitee said no, the inviter took the ask back, or somebody who was
+   * doing the work stepped off it.
+   */
+  status: "invited" | "active" | "declined" | "withdrawn" | "left";
   invited_by: string | null;
   invited_by_name: string;
+  responded_at: string | null;
+  responded_by: string | null;
+  responded_by_name: string;
+  decline_reason: string | null;
   joined_at: string | null;
   left_at: string | null;
   created_at: string;
+  /** The server's answer to "is this invitation mine to answer?". */
+  can_answer: boolean;
 }
+
+export type ParticipantRole = "collaborator" | "reviewer" | "observer";
 
 export interface TicketParticipants {
   items: TicketParticipant[];
@@ -595,6 +610,25 @@ export const ticketsApi = xmsApi.injectEndpoints({
     ticketParticipants: build.query<TicketParticipants, string>({
       query: (key) => `/v1/tickets/${key}/participants`,
       providesTags: (_r, _e, key) => [{ type: "Ticket", id: `${key}:participants` }],
+    }),
+    /** Asking somebody on without handing the ticket over (TM-22). */
+    inviteParticipant: build.mutation<
+      TicketParticipant,
+      { key: string; body: { user_id?: string; display_name?: string; group_id?: string; role: ParticipantRole } }
+    >({
+      query: ({ key, body }) => ({ url: `/v1/tickets/${key}/participants/invitations`, method: "POST", body }),
+      invalidatesTags: (_r, _e, { key }) => [ticketTag(`${key}:participants`), ticketTag(`${key}:timeline`)],
+    }),
+    answerInvitation: build.mutation<
+      TicketParticipant,
+      { key: string; id: string; answer: "accept" | "decline"; reason?: string }
+    >({
+      query: ({ key, id, answer, reason }) => ({
+        url: `/v1/tickets/${key}/participants/${id}/${answer}`,
+        method: "POST",
+        body: answer === "decline" ? { reason } : {},
+      }),
+      invalidatesTags: (_r, _e, { key }) => [ticketTag(`${key}:participants`), ticketTag(`${key}:timeline`)],
     }),
     addParticipant: build.mutation<
       TicketParticipant,
@@ -901,6 +935,8 @@ export const {
   useScopeRecordQuery,
   useTicketParticipantsQuery,
   useAddParticipantMutation,
+  useInviteParticipantMutation,
+  useAnswerInvitationMutation,
   useRemoveParticipantMutation,
   useListTicketsQuery,
   useLazyListTicketsQuery,
