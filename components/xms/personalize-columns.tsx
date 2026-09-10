@@ -21,7 +21,7 @@ export interface PersonalizeColumnsProps {
 }
 
 const LIST_BOX =
-  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[260px] w-full rounded-[4px] border p-0 text-[13px] outline-none";
+  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[260px] w-full overflow-y-auto rounded-[4px] border py-[3px] text-[13px] outline-none";
 
 const MOVE_BUTTON =
   "xms-field border-xms-control-line text-xms-ink hover:text-xms-accent flex h-[30px] w-[30px] items-center justify-center rounded-[4px] border disabled:opacity-40";
@@ -216,23 +216,85 @@ function ListBox({
   onPick: (keys: string[]) => void;
   onCommit: () => void;
 }) {
+  const [active, setActive] = useState(0);
+
+  const toggle = (key: string, event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }, index: number) => {
+    setActive(index);
+    if (event.shiftKey && picked.length > 0) {
+      // A range from the last thing picked to this one, which is what a
+      // reader moving eight columns at once expects to be able to do.
+      const anchor = rows.findIndex((row) => row.key === picked[picked.length - 1]);
+      const [from, to] = anchor < index ? [anchor, index] : [index, anchor];
+      onPick(rows.slice(from, to + 1).map((row) => row.key));
+      return;
+    }
+    if (event.metaKey || event.ctrlKey) {
+      onPick(picked.includes(key) ? picked.filter((entry) => entry !== key) : [...picked, key]);
+      return;
+    }
+    onPick([key]);
+  };
+
   return (
-    <label className="flex min-w-0 flex-1 flex-col gap-[6px]">
+    <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
       <span className="text-xms-label text-[12px] leading-[1.3]">{label}</span>
-      <select
-        multiple
+      {/* A real listbox rather than a native multi-select.
+       *
+       * The platform paints a select's own options, so they came out in its
+       * text colour however the element was styled: the list read grey
+       * against the ink of every label beside it. These are our elements, so
+       * the ink is ours, and so are the row height, the selected wash and
+       * the hover.
+       *
+       * The keyboard is the listbox pattern: arrows move, space toggles,
+       * Enter moves the picked columns across. Shift picks a range and the
+       * platform modifier adds one at a time, which is what the native
+       * control gave and a reader will still reach for. */}
+      <ul
+        role="listbox"
+        aria-multiselectable="true"
         aria-label={label}
-        value={picked}
-        onChange={(event) => onPick(Array.from(event.target.selectedOptions, (option) => option.value))}
-        onDoubleClick={onCommit}
+        tabIndex={0}
         className={LIST_BOX}
+        onKeyDown={(event) => {
+          if (rows.length === 0) return;
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            setActive((at) => Math.max(0, Math.min(rows.length - 1, at + (event.key === "ArrowDown" ? 1 : -1))));
+            return;
+          }
+          if (event.key === " ") {
+            event.preventDefault();
+            const key = rows[active]?.key;
+            if (key) onPick(picked.includes(key) ? picked.filter((entry) => entry !== key) : [...picked, key]);
+            return;
+          }
+          if (event.key === "Enter") {
+            event.preventDefault();
+            onCommit();
+          }
+        }}
       >
-        {rows.map((row) => (
-          <option key={row.key} value={row.key} className="px-[10px] py-[3px]">
-            {row.title}
-          </option>
-        ))}
-      </select>
-    </label>
+        {rows.map((row, index) => {
+          const chosen = picked.includes(row.key);
+          return (
+            <li
+              key={row.key}
+              role="option"
+              aria-selected={chosen}
+              onClick={(event) => toggle(row.key, event, index)}
+              onDoubleClick={onCommit}
+              className={cn(
+                "cursor-pointer px-[10px] py-[3px] text-[13px] leading-[1.5]",
+                chosen ? "bg-xms-tint text-xms-accent font-medium" : "text-xms-ink hover:bg-xms-control-hover",
+                index === active && !chosen && "bg-xms-row-hover",
+              )}
+            >
+              {row.title}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

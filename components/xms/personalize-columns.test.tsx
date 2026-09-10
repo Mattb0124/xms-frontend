@@ -30,19 +30,26 @@ function open(overrides: Partial<Parameters<typeof PersonalizeColumns>[0]> = {})
 }
 
 function pick(listName: string, ...titles: string[]) {
-  const list = screen.getByLabelText(listName) as HTMLSelectElement;
-  for (const option of Array.from(list.options)) option.selected = titles.includes(option.text);
-  fireEvent.change(list);
+  const list = screen.getByRole("listbox", { name: listName });
+  titles.forEach((title, index) => {
+    // The first click picks; the rest add, the way the platform modifier does.
+    fireEvent.click(within(list).getByText(title), index === 0 ? {} : { ctrlKey: true });
+  });
   return list;
+}
+
+/** The titles a list is showing, in order. */
+function titlesOf(listName: string): string[] {
+  return within(screen.getByRole("listbox", { name: listName }))
+    .getAllByRole("option")
+    .map((row) => row.textContent ?? "");
 }
 
 describe("PersonalizeColumns", () => {
   it("offers what the list does not draw on the left and what it draws on the right", () => {
     open();
-    const available = screen.getByLabelText("Available") as HTMLSelectElement;
-    const selected = screen.getByLabelText("Selected") as HTMLSelectElement;
-    expect(Array.from(available.options).map((o) => o.text)).toEqual(["SLA"]);
-    expect(Array.from(selected.options).map((o) => o.text)).toEqual(["Number", "State", "Priority"]);
+    expect(titlesOf("Available")).toEqual(["SLA"]);
+    expect(titlesOf("Selected")).toEqual(["Number", "State", "Priority"]);
   });
 
   it("brings a column across and saves it at the end of the order", () => {

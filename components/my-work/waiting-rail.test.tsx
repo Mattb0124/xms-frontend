@@ -43,7 +43,7 @@ describe("WaitingRail", () => {
 
   it("links each row to an address this application serves and this viewer may open", async () => {
     stubFetch({
-      "GET /v1/admin/me": me(["tickets:view", "time:log", "reports:view-portfolio"]),
+      "GET /v1/admin/me": me(["tickets:view", "time:log", "reports:manage"]),
       [ROUTE]: () => json(aWaiting()),
     });
     renderDesk(<WaitingRail />);
@@ -58,7 +58,8 @@ describe("WaitingRail", () => {
       "/cases?out_of_scope=flagged",
     );
     // The API named an account's Report packs tab, which needs admin:accounts;
-    // this viewer does not hold it, so the row falls back to the key's screen.
+    // this viewer does not hold it, so the row falls back to the key's screen,
+    // which it may open because it holds reports:manage.
     expect(screen.getByRole("link", { name: /Report packs to review/ })).toHaveAttribute("href", "/reports");
     // The account whose Satisfaction tab carries the scores is tickets:view,
     // which this viewer does hold, so the server's own address is followed.

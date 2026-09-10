@@ -434,6 +434,16 @@ export const timeApi = xmsApi.injectEndpoints({
         "Budget",
       ],
     }),
+    /**
+     * Team time: every entry in the window by anyone sharing an assignment
+     * group with the reader. The group comes from the roster on the server,
+     * not from the request, so "across your group" is a fact about the
+     * reader rather than a filter they set.
+     */
+    teamTime: build.query<(TimeEntry & { person_role?: string | null })[], { from: string; to: string }>({
+      query: ({ from, to }) => ({ url: "/v1/time/team", params: { from, to } }),
+      providesTags: [timeTag("team")],
+    }),
     myTime: build.query<TimeEntry[], { from: string; to: string }>({
       query: ({ from, to }) => ({ url: "/v1/time/mine", params: { from, to } }),
       providesTags: [timeTag("mine")],
@@ -546,6 +556,7 @@ export function billingExportTags(accountId: string, periodId: string) {
 export const {
   useTicketTimeQuery,
   useLogTicketTimeMutation,
+  useTeamTimeQuery,
   useMyTimeQuery,
   useMyWeekQuery,
   useMyUnloggedQuery,
