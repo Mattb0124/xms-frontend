@@ -11,9 +11,12 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useMe } from "@/redux/me";
 import { useOperationsDashboardQuery, type AccountStrip } from "@/redux/reportingApi";
 import { useListGrantedAccountsQuery, type GrantedAccount } from "@/redux/ticketsApi";
+import { SignalPill } from "@/components/xms/signal-pill";
+import { HEALTH_LABEL, HEALTH_TONE } from "@/lib/health/bands";
 
 interface AccountListRow extends GrantedAccount {
   measures?: AccountStrip["measures"];
+  health?: AccountStrip["health"];
 }
 
 /** The statuses an account can be in, in the order it moves through them. */
@@ -56,8 +59,12 @@ export function AccountsList() {
   const [query, setQuery] = useState("");
 
   const rows = useMemo<AccountListRow[]>(() => {
-    const strip = new Map((operations.data?.per_account ?? []).map((row) => [row.account_id, row.measures]));
-    const all = (accounts.data ?? []).map((account) => ({ ...account, measures: strip.get(account.id) }));
+    const strip = new Map((operations.data?.per_account ?? []).map((row) => [row.account_id, row]));
+    const all = (accounts.data ?? []).map((account) => ({
+      ...account,
+      measures: strip.get(account.id)?.measures,
+      health: strip.get(account.id)?.health,
+    }));
     return filterAccounts(all, status, query);
   }, [accounts.data, operations.data, status, query]);
 
@@ -100,6 +107,26 @@ export function AccountsList() {
               className={row.measures.breached_now > 0 ? "text-[color:var(--state-overdue-text)] font-semibold" : ""}
             >
               {row.measures.breached_now}
+            </span>
+          ) : (
+            ""
+          ),
+      },
+      {
+        // The score, sorted on so a portfolio opens worst first when a reader
+        // asks it to. An account the window cannot judge sorts last rather
+        // than reading as a zero.
+        key: "health",
+        title: "Health",
+        width: "176px",
+        sortValue: (row) => row.health?.score ?? null,
+        render: (row) =>
+          row.health ? (
+            <span className="flex items-center gap-[8px]">
+              <SignalPill tone={HEALTH_TONE[row.health.band]} label={HEALTH_LABEL[row.health.band]} />
+              {row.health.score === null ? null : (
+                <span className="xms-mono text-xms-ink text-[13px] tabular-nums">{row.health.score}</span>
+              )}
             </span>
           ) : (
             ""

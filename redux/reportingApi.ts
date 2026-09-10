@@ -47,6 +47,41 @@ export interface Period {
   end: string;
 }
 
+/**
+ * The account health score (DR-09). One composed number with the reasons
+ * behind it: every factor names its weight, its own reading out of a
+ * hundred, and the points it puts into the total after the unmeasurable
+ * factors have been left out.
+ *
+ * The score is never stored. The server recomputes it on every read, so a
+ * screen showing it is showing the account as it stands rather than as it
+ * stood when something last wrote a row.
+ */
+export type HealthBand = "green" | "amber" | "red" | "unrated";
+
+export interface HealthFactor {
+  key: string;
+  label: string;
+  weight: number;
+  /** 0 to 100, or null where the window holds nothing to judge. */
+  score: number | null;
+  contribution: number;
+  detail: Record<string, number | boolean | null>;
+}
+
+export interface HealthScore {
+  score: number | null;
+  band: HealthBand;
+  /** How much of the hundred points of signal the score actually stands on. */
+  measured_weight: number;
+  factors: HealthFactor[];
+}
+
+export interface AccountHealth extends HealthScore {
+  account_id: string;
+  window: { start: string; end: string; days: number };
+}
+
 export interface AccountStrip {
   account_id: string;
   key: string;
@@ -55,6 +90,8 @@ export interface AccountStrip {
     Measures,
     "open_tickets" | "breached_now" | "at_risk_now" | "unassigned_now" | "volume_created" | "volume_resolved"
   >;
+  /** The composed score, so a portfolio can be scanned without a read per row. */
+  health?: HealthScore;
 }
 
 export interface OperationsDashboard {
@@ -765,6 +802,15 @@ export const reportingApi = xmsApi.injectEndpoints({
       }),
       providesTags: (_result, _error, { id }) => [{ type: "Dashboards", id: `account:${id}` }],
     }),
+    /**
+     * One account's health with its reasons. The window is the server's
+     * ninety days unless a caller narrows it; nothing is cached beyond the
+     * usual tag, because the score moves whenever a ticket does.
+     */
+    accountHealth: build.query<AccountHealth, { id: string; days?: number }>({
+      query: ({ id, days }) => ({ url: `/v1/accounts/${id}/health`, params: days ? { days } : undefined }),
+      providesTags: (_result, _error, { id }) => [{ type: "Account", id }],
+    }),
     securityDashboard: build.query<SecurityDashboard, { days: number }>({
       query: ({ days }) => ({ url: "/v1/dashboards/security", params: { days } }),
       providesTags: [{ type: "Dashboards", id: "security" }],
@@ -946,4 +992,5 @@ export const {
   useRegenerateReportRunMutation,
   useApproveReportRunMutation,
   useCancelReportRunMutation,
+  useAccountHealthQuery,
 } = reportingApi;

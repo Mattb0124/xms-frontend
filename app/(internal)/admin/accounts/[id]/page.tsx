@@ -14,6 +14,7 @@ import { AccountContractsTab } from "@/components/admin/contracts/account-contra
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
+import { AccountHealthTab } from "@/components/admin/health/health-tab";
 import { ReportSchedulesTab } from "@/components/admin/reports/report-schedules-tab";
 import { AccountBudgetView } from "@/components/time/budget-view";
 import {
@@ -69,6 +70,7 @@ const TABS: { key: string; label: string; permission?: string }[] = [
   { key: "contracts", label: "Contracts", permission: "contracts:view" },
   { key: "budget", label: "Budget", permission: "contracts:view" },
   { key: "billing", label: "Billing", permission: "contracts:view" },
+  { key: "health", label: "Health" },
   { key: "reports", label: "Report packs" },
   { key: "finance", label: "Finance" },
   { key: "intake", label: "Intake" },
@@ -341,6 +343,7 @@ function AccountRecordScreen() {
       {active === "contracts" ? <AccountContractsTab accountId={id} /> : null}
       {active === "budget" ? <AccountBudgetView accountId={id} /> : null}
       {active === "billing" ? <BillingPeriodsTab accountId={id} /> : null}
+      {active === "health" ? <AccountHealthTab id={id} /> : null}
       {active === "reports" ? <ReportSchedulesTab accountId={id} /> : null}
       {active === "finance" ? <AccountFinanceTab accountId={id} /> : null}
       {active === "intake" ? <IntakeTab accountId={id} /> : null}
