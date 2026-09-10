@@ -88,6 +88,26 @@ export function AccountsList() {
     return [
       ...base,
       {
+        // The score, sorted on so a portfolio opens worst first when a reader
+        // asks it to. An account the window cannot judge sorts last rather
+        // than reading as a zero.
+        key: "health",
+        title: "Health",
+        width: "176px",
+        sortValue: (row) => row.health?.score ?? null,
+        render: (row) =>
+          row.health ? (
+            <span className="flex items-center gap-[8px]">
+              <SignalPill tone={HEALTH_TONE[row.health.band]} label={HEALTH_LABEL[row.health.band]} />
+              {row.health.score === null ? null : (
+                <span className="xms-mono text-xms-ink text-[13px] tabular-nums">{row.health.score}</span>
+              )}
+            </span>
+          ) : (
+            ""
+          ),
+      },
+      {
         key: "open",
         title: "Open",
         align: "right",
@@ -107,26 +127,6 @@ export function AccountsList() {
               className={row.measures.breached_now > 0 ? "text-[color:var(--state-overdue-text)] font-semibold" : ""}
             >
               {row.measures.breached_now}
-            </span>
-          ) : (
-            ""
-          ),
-      },
-      {
-        // The score, sorted on so a portfolio opens worst first when a reader
-        // asks it to. An account the window cannot judge sorts last rather
-        // than reading as a zero.
-        key: "health",
-        title: "Health",
-        width: "176px",
-        sortValue: (row) => row.health?.score ?? null,
-        render: (row) =>
-          row.health ? (
-            <span className="flex items-center gap-[8px]">
-              <SignalPill tone={HEALTH_TONE[row.health.band]} label={HEALTH_LABEL[row.health.band]} />
-              {row.health.score === null ? null : (
-                <span className="xms-mono text-xms-ink text-[13px] tabular-nums">{row.health.score}</span>
-              )}
             </span>
           ) : (
             ""

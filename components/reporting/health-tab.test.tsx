@@ -1,6 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { AccountHealthTab, whyLine } from "@/components/admin/health/health-tab";
+import { AccountHealthTab, whyLine } from "@/components/reporting/health-tab";
 import { renderDesk, stubFetch, json } from "@/test-kit/desk";
 import type { HealthFactor } from "@/redux/reportingApi";
 

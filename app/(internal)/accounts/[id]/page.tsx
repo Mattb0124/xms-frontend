@@ -7,6 +7,7 @@ import { AdminGate } from "@/components/admin/primitives";
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { AccountDashboard } from "@/components/reporting/account-dashboard";
 import { AccountCsatView } from "@/components/reporting/csat-panel";
+import { AccountHealthTab } from "@/components/reporting/health-tab";
 import { AccountBudgetView } from "@/components/time/budget-view";
 import { Skeleton } from "@/components/xms/skeleton";
 import { TabBar } from "@/components/xms/tab-bar";
@@ -16,6 +17,7 @@ import { useMe } from "@/redux/me";
 const TABS: { key: string; label: string; permission?: string }[] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "budget", label: "Budget", permission: "contracts:view" },
+  { key: "health", label: "Health" },
   { key: "satisfaction", label: "Satisfaction" },
 ];
 
@@ -49,6 +51,7 @@ function AccountScreen({ accountId }: { accountId: string }) {
       <TabBar tabs={tabs} active={active} onChange={setTab} className="mb-4" />
       {active === "dashboard" ? <AccountDashboard accountId={accountId} /> : null}
       {active === "budget" ? <AccountBudgetView accountId={accountId} /> : null}
+      {active === "health" ? <AccountHealthTab id={accountId} /> : null}
       {active === "satisfaction" ? <AccountCsatView accountId={accountId} /> : null}
     </>
   );

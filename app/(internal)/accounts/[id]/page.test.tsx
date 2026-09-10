@@ -29,13 +29,13 @@ describe("initialAccountTab", () => {
 
   it("keeps the Budget tab out of reach without contracts:view", () => {
     const withoutContracts = accountTabs(new Set(["tickets:view"]));
-    expect(withoutContracts.map((tab) => tab.key)).toEqual(["dashboard", "satisfaction"]);
+    expect(withoutContracts.map((tab) => tab.key)).toEqual(["dashboard", "health", "satisfaction"]);
     expect(initialAccountTab(new URLSearchParams("tab=budget"), withoutContracts)).toBe("dashboard");
 
     const withContracts = accountTabs(new Set(["tickets:view", "contracts:view"]));
-    expect(withContracts.map((tab) => tab.key)).toEqual(["dashboard", "budget", "satisfaction"]);
+    expect(withContracts.map((tab) => tab.key)).toEqual(["dashboard", "budget", "health", "satisfaction"]);
     expect(initialAccountTab(new URLSearchParams("tab=budget"), withContracts)).toBe("budget");
-    expect(accountTabs(undefined).map((tab) => tab.key)).toEqual(["dashboard", "satisfaction"]);
+    expect(accountTabs(undefined).map((tab) => tab.key)).toEqual(["dashboard", "health", "satisfaction"]);
   });
 });
 
