@@ -66,7 +66,7 @@
   /* A control the pointer is over. A fill, not a change of edge: a border
    * that changes colour on hover makes a control look like it has become
    * active when it has only been pointed at. */
-  --xms-control-hover: #e7edf8;
+  --xms-control-hover: #d3dcec;
   /* The recess. A field is a well you put something into, so it carries a
    * faint inner shadow at its top edge, the way the reference draws its
    * selects and text boxes. A button is a surface you press and stays flat. */
@@ -224,7 +224,7 @@
   --xms-line-head: #2f4160;
   --xms-line-row: #1c2740;
   --xms-control-line: #2f4160;
-  --xms-control-hover: #1e2c46;
+  --xms-control-hover: #24344f;
   /* On a dark ground the recess is a light top edge rather than a shadow,
    * because a darker shadow on a dark field is invisible. */
   --xms-field-inset: inset 0 1px 0 rgb(255 255 255 / 0.07);
@@ -636,10 +636,16 @@
  * Hover is the fill alone. The resting and active inks stay as they are: ink
  * on an ink edge until the control carries a value, blue on a blue edge once
  * it does. */
+.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent),
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent),
+.xms-scope textarea:not(.bg-transparent),
 .xms-scope .xms-field {
   box-shadow: var(--xms-field-inset);
   background: var(--xms-field-bg);
 }
+.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):hover,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):hover,
+.xms-scope textarea:not(.bg-transparent):hover,
 .xms-scope .xms-field:hover,
 .xms-scope .xms-field:focus-within {
   background: var(--xms-control-hover);
