@@ -390,3 +390,13 @@ export function SwitchIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** A preview: read one row without leaving the list. */
+export function EyeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </Icon>
+  );
+}

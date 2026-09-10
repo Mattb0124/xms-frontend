@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { SortCaret } from "@/components/xms/icons";
+import { EyeIcon, ICON } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type SortDirection = "asc" | "desc";
@@ -62,6 +63,11 @@ export interface DenseTableProps<Row> {
   selected?: ReadonlySet<string>;
   onSelectionChange?: (selected: Set<string>) => void;
   onRowClick?: (row: Row) => void;
+  /**
+   * Opens one row beside the list rather than navigating to it. Where a
+   * screen gives one, every row carries a preview mark on hover.
+   */
+  onRowPreview?: (row: Row) => void;
   /** In-card search slot, rendered in the header after the title. */
   search?: ReactNode;
   /** The icon controls to the right of the search field (filter, columns). */
@@ -94,7 +100,7 @@ function compare(a: string | number | null | undefined, b: string | number | nul
  * section 3.1 and v3 section 8.4). The server is the author of every value.
  */
 export function DenseTable<Row>(props: DenseTableProps<Row>) {
-  const { columns, rows, rowKey, selectable, onRowClick } = props;
+  const { columns, rows, rowKey, selectable, onRowClick, onRowPreview } = props;
   const drawn = useMemo(() => columns.filter((column) => !column.hidden), [columns]);
   const [localSort, setLocalSort] = useState<SortState | undefined>(props.defaultSort);
   const sort = props.sort ?? localSort;
@@ -259,18 +265,27 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                   className={cn(
                     // One hairline and a hover fill separate two rows, and
                     // nothing else does (hand-off rule 1).
-                    "border-xms-line-row hover:bg-xms-row-hover border-b",
+                    "group/row border-xms-line-row hover:bg-xms-row-hover border-b",
                     isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent-hover)]",
                     onRowClick && "cursor-pointer",
                   )}
                 >
                   {selectable ? (
-                    <td className="px-5 py-[13px]" onClick={(event) => event.stopPropagation()}>
+                    <td className="px-5 py-[13px] align-middle" onClick={(event) => event.stopPropagation()}>
+                      {/* The box stands where the pointer is, or where a row is
+                          already ticked. It keeps its space either way, so a
+                          row does not shift as the pointer crosses it, and it
+                          stays reachable by keyboard because only its opacity
+                          changes. */}
                       <input
                         type="checkbox"
                         aria-label={`Select ${key}`}
                         checked={isSelected}
                         onChange={() => toggleOne(key)}
+                        className={cn(
+                          "transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100",
+                          isSelected ? "opacity-100" : "opacity-0",
+                        )}
                       />
                     </td>
                   ) : null}
@@ -291,6 +306,21 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       {column.render ? column.render(row) : String(column.sortValue?.(row) ?? "")}
                     </td>
                   ))}
+                  {onRowPreview ? (
+                    <td className="w-[44px] px-3 py-[13px] align-middle" onClick={(event) => event.stopPropagation()}>
+                      {/* Opens the record beside the list rather than leaving
+                          it, so a reader can read one row and stay where they
+                          were. Drawn on hover, like the box. */}
+                      <button
+                        type="button"
+                        aria-label={`Preview ${key}`}
+                        onClick={() => onRowPreview(row)}
+                        className="text-xms-icon hover:text-xms-accent rounded-none opacity-0 transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100"
+                      >
+                        <EyeIcon size={ICON.row} />
+                      </button>
+                    </td>
+                  ) : null}
                 </tr>
               );
             })}

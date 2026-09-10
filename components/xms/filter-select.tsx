@@ -49,6 +49,7 @@ export function StripSelect({
   /** The `<option>` and `<optgroup>` elements of the real menu. */
   children: ReactNode;
 }) {
+  const active = Boolean(primary) || value !== "";
   return (
     <span
       data-testid={label ? `filter-${label.toLowerCase()}` : undefined}
@@ -56,17 +57,27 @@ export function StripSelect({
       className={cn(
         "bg-xms-card relative inline-flex shrink-0 items-center gap-[7px] rounded-[var(--xms-radius-control)] border pr-[9px] pl-[11px] text-[13px] whitespace-nowrap",
         size === "lg" ? "h-[var(--xms-control-h-lg)]" : "h-[var(--xms-header-pill-h)]",
-        primary ? "border-xms-accent" : "border-xms-control-line hover:border-xms-accent-border",
+        // One ink per control: the quiet one is ink on an ink edge, the
+        // active one is blue on a blue edge, the label and the chevron with
+        // it. It read as a grey label over an ink value on a grey edge, which
+        // is three inks saying one thing.
+        active ? "border-xms-accent" : "border-xms-ink hover:border-xms-accent",
         className,
       )}
     >
-      <span className={cn("pointer-events-none flex min-w-0 items-center gap-1", primary && "font-medium")}>
-        {label ? <span className="text-xms-label">{label}:</span> : null}
-        <span className={cn("truncate", primary ? "text-xms-accent" : "text-xms-ink")}>{display}</span>
+      <span
+        className={cn(
+          "pointer-events-none flex min-w-0 items-center gap-1",
+          primary && "font-medium",
+          active ? "text-xms-accent" : "text-xms-ink",
+        )}
+      >
+        {label ? <span>{label}:</span> : null}
+        <span className="truncate">{display}</span>
       </span>
       <ChevronDownIcon
         size={ICON.glyph}
-        className={cn("pointer-events-none shrink-0", primary ? "text-xms-accent" : "text-xms-label")}
+        className={cn("pointer-events-none shrink-0", active ? "text-xms-accent" : "text-xms-ink")}
       />
       <select
         aria-label={ariaLabel ?? label ?? display}

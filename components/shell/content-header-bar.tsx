@@ -232,7 +232,12 @@ export function HeaderSearchField({
 }) {
   return (
     <form
-      className="border-xms-control-line bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-[var(--xms-radius-control)] border px-[11px]"
+      className={cn(
+        "bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-[var(--xms-radius-control)] border px-[11px]",
+        // A search reads in one ink too: ink until it carries a term, blue
+        // once it does, since a term is a filter like any other.
+        value ? "border-xms-accent text-xms-accent" : "border-xms-ink text-xms-ink",
+      )}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit?.();

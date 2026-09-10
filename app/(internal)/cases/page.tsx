@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
+import { CasePreview } from "@/components/cases/case-preview";
 import {
   HeaderAction,
   HeaderFilterPanel,
@@ -119,6 +120,9 @@ function CasesScreen() {
   const view = viewByKey(parsed.view);
   const [cursor, setCursor] = useState<string | undefined>();
   const [previous, setPrevious] = useState<string[]>([]);
+  // One case read beside the list, so a reader keeps their place, their
+  // filters and their scroll while they look at it.
+  const [preview, setPreview] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState(parsed.q);
   // The v3 render (01) ends the table at Assignee. SLA and Updated stay one
@@ -519,6 +523,7 @@ function CasesScreen() {
           selected={selected}
           onSelectionChange={setSelected}
           onRowClick={(row) => router.push(`/cases/${row.key}`)}
+          onRowPreview={(row) => setPreview(row.key)}
           search={
             <form
               className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
@@ -675,6 +680,7 @@ function CasesScreen() {
           }
         />
       )}
+      {preview ? <CasePreview ticketKey={preview} onClose={() => setPreview(null)} /> : null}
     </div>
   );
 }
