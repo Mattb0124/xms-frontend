@@ -636,34 +636,52 @@
  * Hover is the fill alone. The resting and active inks stay as they are: ink
  * on an ink edge until the control carries a value, blue on a blue edge once
  * it does. */
+/* A field you can type in is white, and the fill means you cannot.
+ *
+ * The grey was on every field at rest and read as "disabled": a reader
+ * looking at a form could not tell the boxes they could use from the ones
+ * they could not. So the fill now says exactly that. An enabled field is
+ * white, because the words being typed into it want the quietest ground
+ * there is; a disabled or read-only one wears the grey, and now that is the
+ * only thing the grey means.
+ *
+ * The recess stays on both. It is what makes a field read as a well rather
+ * than as a bordered rectangle, and that is true whether or not you may
+ * write in it. */
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent),
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent),
 .xms-scope textarea:not(.bg-transparent),
 .xms-scope .xms-field {
   box-shadow: var(--xms-field-inset);
-  background-color: var(--xms-field-bg);
+  background-color: var(--xms-card);
 }
-.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):hover,
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):hover,
-.xms-scope textarea:not(.bg-transparent):hover,
+
+/* A pointer resting on a field it could use. Only on one it could use:
+ * hovering something inert should say nothing. */
+.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):enabled:hover,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):enabled:hover,
+.xms-scope textarea:not(.bg-transparent):enabled:hover,
 .xms-scope .xms-field:hover {
   background-color: var(--xms-control-hover);
 }
 
-/* A search is white wherever it stands. A reader is reading their own words
- * back off it, and text on the quietest ground there is reads best. */
-.xms-scope .xms-field-typed {
-  background-color: var(--xms-card);
-}
-
-/* Clicked into, anything enabled goes white and stays white. The fill says
- * "a value lives here"; once you are in the control, the ground gets out of
- * the way of what you are typing or choosing. */
+/* Clicked into, it goes back to white and stays there: the hover wash is for
+ * a pointer passing over, not for the control being used. */
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):enabled:focus,
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):enabled:focus,
 .xms-scope textarea:not(.bg-transparent):enabled:focus,
 .xms-scope .xms-field:focus-within {
   background-color: var(--xms-card);
+}
+
+/* And the grey, on the fields that earn it. */
+.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):disabled,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):disabled,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent)[readonly],
+.xms-scope textarea:not(.bg-transparent):disabled,
+.xms-scope textarea:not(.bg-transparent)[readonly],
+.xms-scope .xms-field[aria-disabled="true"] {
+  background-color: var(--xms-field-bg);
 }
 
 /* A single-choice dropdown draws its own chevron, so the platform never
