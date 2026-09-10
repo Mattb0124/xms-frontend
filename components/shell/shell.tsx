@@ -188,7 +188,14 @@ export function Shell({ children }: { children: ReactNode }) {
         ) : null}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
-            {/* The work area, and the reason the canvas is grey: the vendored
+            {/* The bottom gutter is a margin on the last child rather than
+                padding on the scroller. A flex container's bottom padding is
+                left out of its scroll range, so the last 40px of the gutter
+                could not be reached and a screen taller than the window had a
+                sliver of real content below the fold. A flex item's margin is
+                part of the overflow, so it can.
+
+                The work area, and the reason the canvas is grey: the vendored
                 token file paints the body white, and every screen was drawn on
                 white with white cards on it, so nothing had an edge.
 
@@ -199,7 +206,9 @@ export function Shell({ children }: { children: ReactNode }) {
                 Reading width is capped on the control (see `INPUT`), never on
                 the page. `components/xms/surfaces.test.tsx` fails if a page
                 shell brings one back. */}
-            <main className="bg-xms-bg flex flex-1 flex-col overflow-auto px-5 pt-[18px] pb-10">{children}</main>
+            <main className="bg-xms-bg flex flex-1 flex-col overflow-auto px-5 pt-[18px] [&>*:last-child]:mb-10">
+              {children}
+            </main>
           </ContentHeaderBar>
         </div>
         {/* The panel pushes the content, it does not overlay it (Wireframes v2
