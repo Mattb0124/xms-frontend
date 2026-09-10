@@ -14,7 +14,7 @@ export function aWaitingItem(overrides: Partial<WaitingItem> = {}): WaitingItem 
     key: "tickets_assigned",
     label: "Tickets assigned to me",
     count: 4,
-    link: "/tickets?view=mine",
+    link: "/cases?view=mine",
     ...overrides,
   };
 }
@@ -32,7 +32,7 @@ export function aWaiting(overrides: Partial<WaitingOnMe> = {}): WaitingOnMe {
         // The list route filters on the flag now, so the API links the
         // tickets it counted rather than the whole queue (backend
         // src/modules/me/waiting.module.ts).
-        link: "/tickets?out_of_scope=flagged",
+        link: "/cases?out_of_scope=flagged",
       }),
       aWaitingItem({
         key: "articles_in_review",

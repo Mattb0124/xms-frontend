@@ -22,7 +22,7 @@ test.describe("tickets golden path", () => {
   });
 
   test("create a ticket, reply, add a work note, move to In progress", async ({ page }) => {
-    await page.goto("/tickets/new");
+    await page.goto("/cases/new");
     await page.getByLabel("Account *").selectOption({ index: 1 });
     await page.getByLabel("Impact").selectOption("high");
     await page.getByLabel("Urgency").selectOption("high");
@@ -46,7 +46,7 @@ test.describe("tickets golden path", () => {
     await page.getByRole("menuitem", { name: /In progress/ }).click();
     await expect(page.getByRole("button", { name: /State In progress, change/ })).toBeVisible();
 
-    await page.goto("/tickets?view=mine");
+    await page.goto("/cases?view=mine");
     await expect(page.getByRole("region", { name: "Count" }).or(page.getByLabel("Count"))).toBeVisible();
   });
 });

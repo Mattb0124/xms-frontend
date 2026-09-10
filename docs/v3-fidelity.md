@@ -173,7 +173,7 @@ The reference:
 ![The reviewer's reference](./images/filter-builder-reference.png)
 
 The built screen, funnel open with two conditions set
-(`/tickets?c=[["short_description","contains","report"],["priority","eq","p1"]]`):
+(`/cases?c=[["short_description","contains","report"],["priority","eq","p1"]]`):
 
 ![The filter builder as built](./images/filter-builder-built.png)
 
