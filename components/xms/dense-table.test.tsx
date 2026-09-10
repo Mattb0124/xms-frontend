@@ -253,3 +253,66 @@ describe("DenseTable display switches", () => {
     expect(container.querySelector("table")).toHaveAttribute("data-plain", "true");
   });
 });
+
+describe("the preview mark", () => {
+  function drawn() {
+    return render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        onRowPreview={() => {}}
+      />,
+    );
+  }
+
+  it("stands beside the box at the head of the row, not at the far end of it", () => {
+    const { container } = drawn();
+    const cells = Array.from(container.querySelectorAll('[data-row-key="CS0001204"] td'));
+    expect(cells[0].querySelector('input[type="checkbox"]')).not.toBeNull();
+    expect(cells[1].querySelector('button[aria-label="Preview CS0001204"]')).not.toBeNull();
+  });
+
+  it("keeps the header aligned over it", () => {
+    const { container } = drawn();
+    const headers = Array.from(container.querySelectorAll("thead th"));
+    expect(headers).toHaveLength(COLUMNS.length + 2);
+    expect(headers[1]).toHaveAttribute("aria-label", "Preview");
+  });
+
+  it("opens the row it stands on without opening the row's own record", () => {
+    const onRowClick = vi.fn();
+    const onRowPreview = vi.fn();
+    render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        onRowClick={onRowClick}
+        onRowPreview={onRowPreview}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Preview CS0001204"));
+    expect(onRowPreview).toHaveBeenCalledTimes(1);
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it("spans the empty state across the marks as well as the columns", () => {
+    const { container } = render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={[]}
+        rowKey={(r: { key: string }) => r.key}
+        selectable
+        onRowPreview={() => {}}
+        emptyState="Nothing here"
+      />,
+    );
+    expect(container.querySelector("tbody td")).toHaveAttribute("colspan", String(COLUMNS.length + 2));
+  });
+});

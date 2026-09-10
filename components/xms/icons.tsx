@@ -391,6 +391,17 @@ export function SwitchIcon(props: IconProps) {
   );
 }
 
+/** A preview: read one row without leaving the list, ServiceNow's circled i. */
+export function InfoIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5.5" />
+      <path d="M12 7.75v.5" />
+    </Icon>
+  );
+}
+
 /** A preview: read one row without leaving the list. */
 export function EyeIcon(props: IconProps) {
   return (

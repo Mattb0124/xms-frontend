@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { SortCaret } from "@/components/xms/icons";
-import { EyeIcon, ICON } from "@/components/xms/icons";
+import { ICON, InfoIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type SortDirection = "asc" | "desc";
@@ -203,6 +203,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
           {props.headless ? (
             <colgroup>
               {selectable ? <col style={{ width: "44px" }} /> : null}
+              {onRowPreview ? <col style={{ width: "36px" }} /> : null}
               {drawn.map((column) => (
                 <col key={column.key} style={{ width: column.width }} />
               ))}
@@ -215,6 +216,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                   <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />
                 </th>
               ) : null}
+              {onRowPreview ? <th className="w-[36px] pr-2 pl-0" aria-label="Preview" /> : null}
               {drawn.map((column) => {
                 const active = sort?.key === column.key;
                 return (
@@ -317,6 +319,25 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       />
                     </td>
                   ) : null}
+                  {onRowPreview ? (
+                    <td
+                      className={cn("w-[36px] pr-2 pl-0 align-middle", cellY)}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {/* Opens the record beside the list rather than leaving
+                          it, so a reader can read one row and stay where they
+                          were. Drawn on hover, like the box it stands next
+                          to. */}
+                      <button
+                        type="button"
+                        aria-label={`Preview ${key}`}
+                        onClick={() => onRowPreview(row)}
+                        className="text-xms-icon hover:text-xms-accent rounded-none opacity-0 transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100"
+                      >
+                        <InfoIcon size={ICON.row} />
+                      </button>
+                    </td>
+                  ) : null}
                   {drawn.map((column) => (
                     <td
                       key={column.key}
@@ -335,30 +356,15 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       {column.render ? column.render(row) : String(column.sortValue?.(row) ?? "")}
                     </td>
                   ))}
-                  {onRowPreview ? (
-                    <td
-                      className={cn("w-[44px] px-3 align-middle", cellY)}
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {/* Opens the record beside the list rather than leaving
-                          it, so a reader can read one row and stay where they
-                          were. Drawn on hover, like the box. */}
-                      <button
-                        type="button"
-                        aria-label={`Preview ${key}`}
-                        onClick={() => onRowPreview(row)}
-                        className="text-xms-icon hover:text-xms-accent rounded-none opacity-0 transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100"
-                      >
-                        <EyeIcon size={ICON.row} />
-                      </button>
-                    </td>
-                  ) : null}
                 </tr>
               );
             })}
             {ordered.length === 0 && !props.loading ? (
               <tr>
-                <td colSpan={drawn.length + (selectable ? 1 : 0)} className="text-xms-label px-4 py-8 text-center">
+                <td
+                  colSpan={drawn.length + (selectable ? 1 : 0) + (onRowPreview ? 1 : 0)}
+                  className="text-xms-label px-4 py-8 text-center"
+                >
                   {props.emptyState ?? "Nothing here"}
                 </td>
               </tr>
