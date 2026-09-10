@@ -529,7 +529,7 @@ function CasesScreen() {
           onRowPreview={(row, anchor) => setPreview({ key: row.key, anchor })}
           search={
             <form
-              className="xms-field border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+              className="xms-field xms-field-typed border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
               onSubmit={(event) => {
                 event.preventDefault();
                 navigate({ q: query.trim() });

@@ -646,9 +646,44 @@
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):hover,
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):hover,
 .xms-scope textarea:not(.bg-transparent):hover,
-.xms-scope .xms-field:hover,
-.xms-scope .xms-field:focus-within {
+.xms-scope .xms-field:hover {
   background: var(--xms-control-hover);
+}
+
+/* A search is white wherever it stands. A reader is reading their own words
+ * back off it, and text on the quietest ground there is reads best. */
+.xms-scope .xms-field-typed {
+  background: var(--xms-card);
+}
+
+/* Clicked into, anything enabled goes white and stays white. The fill says
+ * "a value lives here"; once you are in the control, the ground gets out of
+ * the way of what you are typing or choosing. */
+.xms-scope select:enabled:focus,
+.xms-scope input:enabled:focus,
+.xms-scope textarea:enabled:focus,
+.xms-scope .xms-field:focus-within {
+  background: var(--xms-card);
+}
+
+/* Where a wrapper draws the box, the focus mark belongs on the wrapper. The
+ * search fields are a form around a borderless input, so the outline was
+ * landing on the input and reading as a second box inside the first. */
+.xms-scope .xms-field-typed:focus-within {
+  outline: 2px solid var(--xms-accent);
+  outline-offset: 0;
+}
+.xms-scope .xms-field-typed :focus-visible {
+  outline: none;
+}
+
+/* The platform draws a native menu from the control's own colours, so every
+ * option inherited the filled ground and read as a block of one colour. The
+ * menu is a surface of its own: white ground, ink text. */
+.xms-scope select option,
+.xms-scope select optgroup {
+  background: var(--xms-card);
+  color: var(--xms-ink);
 }
 /* A control that carries a value already reads blue, so its fill is the
  * blue wash rather than the grey one, hover included. */

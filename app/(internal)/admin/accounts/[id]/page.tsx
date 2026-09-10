@@ -7,6 +7,7 @@ import { BillingPeriodsTab } from "@/components/admin/billing/billing-periods-ta
 import { AccountCalendarsTab } from "@/components/admin/calendars/account-calendars-tab";
 import { AccountConfigTab } from "@/components/admin/config/account-config-tab";
 import { AccountConnectorsTab } from "@/components/admin/connectors/account-connectors-tab";
+import { AccountWebhooksTab } from "@/components/admin/webhooks/webhooks-tab";
 import { AccountContactsTab } from "@/components/admin/contacts-tab";
 import { ConfigurationItemsTab } from "@/components/admin/configuration-items-tab";
 import { AccountFinanceTab } from "@/components/admin/finance/finance-tab";
@@ -73,6 +74,7 @@ const TABS: { key: string; label: string; permission?: string }[] = [
   { key: "finance", label: "Finance" },
   { key: "intake", label: "Intake" },
   { key: "connectors", label: "Connectors" },
+  { key: "webhooks", label: "Webhooks", permission: "webhooks:manage" },
   { key: "configuration", label: "Configuration" },
 ];
 
@@ -345,6 +347,7 @@ function AccountRecordScreen() {
       {active === "finance" ? <AccountFinanceTab accountId={id} /> : null}
       {active === "intake" ? <IntakeTab accountId={id} /> : null}
       {active === "connectors" ? <AccountConnectorsTab accountId={id} /> : null}
+      {active === "webhooks" ? <AccountWebhooksTab accountId={id} /> : null}
       {active === "configuration" ? <AccountConfigTab accountId={id} /> : null}
     </>
   );
