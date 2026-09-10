@@ -182,7 +182,6 @@ export function Shell({ children }: { children: ReactNode }) {
               .filter((f) => f.type === "Saved view")
               .map((f) => ({ path: f.path, label: f.label }))}
             currentPath={pathname}
-            onBrowseAll={() => setFinder("all")}
             onEditPins={() => setFinder("all")}
           />
         ) : null}

@@ -1,14 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FinderOverlay } from "@/components/shell/finder-overlay";
-import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
+import { PinnedSidebar, sidebarTree, sidebarItems } from "@/components/shell/pinned-sidebar";
 import { visibleScreens } from "@/lib/routes";
 
 const base = {
   extraPins: new Set<string>(),
   starredViews: [],
   currentPath: "/",
-  onBrowseAll: () => {},
   onEditPins: () => {},
 };
 
@@ -17,7 +16,6 @@ describe("PinnedSidebar", () => {
     const { container } = render(<PinnedSidebar {...base} permissions={undefined} />);
     expect(container.querySelector("[data-skeleton]")).toBeInTheDocument();
     expect(screen.queryAllByRole("link")).toHaveLength(0);
-    expect(screen.getByRole("button", { name: /Browse all screens/ })).toBeDisabled();
   });
 
   it("shows only the unrestricted pins to a user with no permissions", () => {
@@ -43,11 +41,6 @@ describe("PinnedSidebar", () => {
     const queue = screen.getByRole("link", { name: /Cases/ });
     expect(queue).toHaveAttribute("aria-current", "page");
     expect(queue).toHaveTextContent("42");
-    // v3 render 01: the footer is a label with the tree count right-aligned
-    // beside it, not a label with the count spliced into the sentence.
-    const browse = screen.getByRole("button", { name: /Browse all screens/ });
-    expect(browse).toBeEnabled();
-    expect(browse).toHaveTextContent("15");
   });
 
   it("never shows a pin the user is not permitted to see", () => {
@@ -74,8 +67,6 @@ describe("PinnedSidebar", () => {
     ]);
     const screens = visibleScreens(permissions);
     const { unmount } = render(<PinnedSidebar {...base} permissions={permissions} />);
-    const footer = screen.getByRole("button", { name: /Browse all screens/ });
-    expect(footer).toHaveTextContent(String(screens.length));
     // Six rows, one of them Solutions rather than Operations, which needs a
     // permission this reader does not hold.
     expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
@@ -123,17 +114,56 @@ describe("the sidebar column", () => {
     expect(aside.className).toContain("max-md:top-[var(--xms-finder-bar-h)]");
   });
 
-  it("keeps Browse all screens outside the scrolling region, so it is always in reach", () => {
+  it("scrolls the pinned rows rather than growing past the bottom of the window", () => {
     render(<PinnedSidebar {...base} permissions={new Set(["tickets:view"])} />);
     const aside = screen.getByTestId("pinned-sidebar");
     const scroller = aside.querySelector(".overflow-y-auto");
     expect(scroller).not.toBeNull();
-    expect(scroller!.contains(screen.getByText(/Browse all screens/))).toBe(false);
     expect(scroller!.contains(screen.getByRole("navigation", { name: "Pinned screens" }))).toBe(true);
   });
 
   it("floats over the content below the md breakpoint rather than taking a column", () => {
     render(<PinnedSidebar {...base} permissions={new Set(["tickets:view"])} />);
     expect(screen.getByTestId("pinned-sidebar").className).toContain("max-md:fixed");
+  });
+});
+
+describe("sidebarTree", () => {
+  it("groups screens under the section the registry puts them in, in registry order", () => {
+    const groups = sidebarTree([
+      { path: "/", screen: "my_work", label: "My work", section: "Home" } as never,
+      { path: "/cases", screen: "queue", label: "Cases", section: "Cases" } as never,
+      { path: "/cases/dispatch", screen: "dispatch", label: "Dispatch", section: "Cases" } as never,
+      { path: "/time", screen: "my_time", label: "My timesheet", section: "Time" } as never,
+    ]);
+    expect(groups.map((group) => group.section)).toEqual(["Home", "Cases", "Time"]);
+    expect(groups[1].screens.map((screen) => screen.label)).toEqual(["Cases", "Dispatch"]);
+  });
+
+  it("leaves out a section the reader has pinned nothing from", () => {
+    const groups = sidebarTree([{ path: "/cases", screen: "queue", label: "Cases", section: "Cases" } as never]);
+    expect(groups.map((group) => group.section)).toEqual(["Cases"]);
+  });
+
+  it("has nothing to group before the permissions arrive", () => {
+    expect(sidebarTree([])).toEqual([]);
+  });
+});
+
+describe("the sidebar tree", () => {
+  it("draws a parent per section, and shuts one when it is pressed", () => {
+    render(<PinnedSidebar {...base} permissions={new Set(["tickets:view", "time:log"])} />);
+    const cases = screen.getByRole("button", { name: "Cases" });
+    expect(cases).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("link", { name: /Cases/ })).toBeInTheDocument();
+
+    fireEvent.click(cases);
+    expect(cases).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: /Dispatch/ })).toBeNull();
+  });
+
+  it("no longer offers Browse all screens", () => {
+    render(<PinnedSidebar {...base} permissions={new Set(["tickets:view"])} />);
+    expect(screen.queryByText(/Browse all screens/)).toBeNull();
   });
 });
