@@ -18,7 +18,7 @@ import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { ICON, ChevronDownIcon, PlusIcon, SearchIcon, SwitchIcon, TagIcon } from "@/components/xms/icons";
 import { BulkAction, SelectionBar } from "@/components/xms/selection-bar";
 import { Skeleton } from "@/components/xms/skeleton";
-import { RowsPerPage, type RowsPerPageOption } from "@/components/xms/table-footer";
+import { TablePager } from "@/components/xms/table-pager";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { describeCondition, parseConditions, serializeConditions, type Condition } from "@/lib/conditions";
@@ -594,39 +594,28 @@ function CasesScreen() {
             />
           }
           footer={
-            <div className="border-xms-line flex items-center gap-4 border-t px-4 py-2">
-              <span className="xms-mono text-xms-label text-[12px]">
-                {rows.length} on page {previous.length + 1}
-              </span>
-              <div className="ml-auto flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={previous.length === 0}
-                  onClick={() => {
-                    const stack = [...previous];
-                    const last = stack.pop();
-                    setPrevious(stack);
-                    setCursor(last === "" ? undefined : last);
-                  }}
-                  className="border-xms-line text-xms-body h-[28px] rounded-[4px] border px-2 text-[12px] disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  disabled={!data?.next_cursor}
-                  onClick={() => {
-                    if (!data?.next_cursor) return;
-                    setPrevious([...previous, cursor ?? ""]);
-                    setCursor(data.next_cursor);
-                  }}
-                  className="border-xms-line text-xms-body h-[28px] rounded-[4px] border px-2 text-[12px] disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-              <RowsPerPage value={parsed.limit} onChange={(size: RowsPerPageOption) => navigate({ limit: size })} />
-            </div>
+            <TablePager
+              page={previous.length + 1}
+              pageSize={parsed.limit}
+              rows={rows.length}
+              hasPrevious={previous.length > 0}
+              hasNext={Boolean(data?.next_cursor)}
+              onFirst={() => {
+                setPrevious([]);
+                setCursor(undefined);
+              }}
+              onPrevious={() => {
+                const stack = [...previous];
+                const last = stack.pop();
+                setPrevious(stack);
+                setCursor(last === "" ? undefined : last);
+              }}
+              onNext={() => {
+                if (!data?.next_cursor) return;
+                setPrevious([...previous, cursor ?? ""]);
+                setCursor(data.next_cursor);
+              }}
+            />
           }
         />
       )}

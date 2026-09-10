@@ -1,3 +1,4 @@
+import { TablePager } from "@/components/xms/table-pager";
 import { cn } from "@/lib/utils";
 
 export const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
@@ -37,30 +38,31 @@ export interface TableFooterProps {
   className?: string;
 }
 
-/** "Showing 1 to 10 of 42", the pager and Rows per page (Wireframes section 8.4). */
+/**
+ * The pager, with Rows per page beside it (Wireframes section 8.4). The
+ * count is the server's, so this one can jump to a page and to the end.
+ */
 export function TableFooter({ page, pageSize, total, onPageChange, onPageSizeChange, className }: TableFooterProps) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  const first = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const last = Math.min(total, page * pageSize);
-  const pagerButton =
-    "border-xms-line text-xms-body h-[28px] rounded-[4px] border px-2 text-[12px] disabled:opacity-40";
+  const rows = Math.max(0, Math.min(total, page * pageSize) - (page - 1) * pageSize);
   return (
-    <div className={cn("border-xms-line flex items-center gap-4 border-t px-4 py-2", className)}>
-      <span className="xms-mono text-xms-label text-[12px]">
-        Showing {first} to {last} of {total}
-      </span>
-      <div className="ml-auto flex items-center gap-1">
-        <button type="button" onClick={() => onPageChange(page - 1)} disabled={page <= 1} className={pagerButton}>
-          Previous
-        </button>
-        <span className="xms-mono text-xms-label px-2 text-[12px]">
-          {page} / {pages}
-        </span>
-        <button type="button" onClick={() => onPageChange(page + 1)} disabled={page >= pages} className={pagerButton}>
-          Next
-        </button>
+    <div className={cn("relative", className)}>
+      <TablePager
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        rows={rows}
+        onPage={(wanted) => onPageChange(wanted)}
+        onFirst={() => onPageChange(1)}
+        onPrevious={() => onPageChange(page - 1)}
+        onNext={() => onPageChange(page + 1)}
+        onLast={() => onPageChange(pages)}
+        hasPrevious={page > 1}
+        hasNext={page < pages}
+      />
+      <div className="absolute inset-y-0 right-4 flex items-center">
+        <RowsPerPage value={pageSize} onChange={onPageSizeChange} />
       </div>
-      <RowsPerPage value={pageSize} onChange={onPageSizeChange} />
     </div>
   );
 }

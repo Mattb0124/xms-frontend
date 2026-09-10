@@ -190,6 +190,41 @@ export function ChevronDownIcon(props: IconProps) {
   );
 }
 
+/** A pager's step back and forward, and its jump to either end. */
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m15 5-7 7 7 7" />
+    </Icon>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m9 5 7 7-7 7" />
+    </Icon>
+  );
+}
+
+export function ChevronFirstIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m17 5-7 7 7 7" />
+      <path d="m10 5-7 7 7 7" />
+    </Icon>
+  );
+}
+
+export function ChevronLastIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m7 5 7 7-7 7" />
+      <path d="m14 5 7 7-7 7" />
+    </Icon>
+  );
+}
+
 export function MenuIcon(props: IconProps) {
   return (
     <Icon {...props}>
