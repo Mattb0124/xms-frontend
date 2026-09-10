@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { SECONDARY_BUTTON, formatDate } from "@/components/admin/primitives";
+import { formatDate } from "@/components/admin/primitives";
 import { CloseIcon, ICON } from "@/components/xms/icons";
 import { PriorityPill } from "@/components/xms/priority-pill";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -83,7 +83,11 @@ export function CasePreview({
     >
       <header className="border-xms-line flex items-center gap-3 border-b px-4 py-[10px]">
         <h2 className="text-xms-ink text-[15px] leading-[1.3] font-semibold">Case</h2>
-        <Link href={`/cases/${ticketKey}`} className={`${SECONDARY_BUTTON} ml-auto inline-flex items-center`}>
+        {/* The one action on the card, so it reads in the action colour. */}
+        <Link
+          href={`/cases/${ticketKey}`}
+          className="border-xms-accent text-xms-accent hover:bg-xms-control-hover ml-auto inline-flex h-[32px] items-center rounded-[4px] border px-3 text-[13px] font-medium hover:no-underline"
+        >
           Open record
         </Link>
         <button
