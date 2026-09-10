@@ -95,6 +95,7 @@ export const xmsApi = createApi({
     "Attachments",
     "ListPreferences",
     "Webhooks",
+    "Profitability",
     "Email",
     "Quarantine",
     "Aliases",

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AdminGate, RecordBar, SwitchRow } from "@/components/admin/primitives";
 import { CalendarTab } from "@/components/roster/calendar-tab";
 import { CertificationsTab } from "@/components/roster/certifications-tab";
+import { CostRatesTab } from "@/components/roster/cost-rates-tab";
 import { DetailsTab } from "@/components/roster/details-tab";
 import { PtoTab } from "@/components/roster/pto-tab";
 import { SkillsTab } from "@/components/roster/skills-tab";
@@ -30,6 +31,7 @@ function PersonRecordPageBody() {
   const me = useMe();
   const canAdmin = me.hasPermission("admin:users");
   const canManage = me.hasPermission("capacity:manage");
+  const canSeeCost = me.hasPermission("finance:view-margin");
   const { data, isLoading, isError, refetch } = useGetPersonQuery(id);
   const groups = useListGroupsQuery(undefined, { skip: !canAdmin });
   const [patch, { isLoading: patching }] = usePatchPersonMutation();
@@ -43,8 +45,9 @@ function PersonRecordPageBody() {
       { key: "pto", label: "PTO" },
       { key: "skills", label: "Skills", count: data?.skills.length },
       { key: "certifications", label: "Certifications", count: data?.certifications.length },
+      ...(canSeeCost ? [{ key: "cost", label: "Cost" }] : []),
     ],
-    [data],
+    [data, canSeeCost],
   );
 
   return (
@@ -96,6 +99,7 @@ function PersonRecordPageBody() {
           ) : null}
           {tab === "pto" ? <PtoTab personId={id} userId={data.user_id} canManage={canManage} /> : null}
           {tab === "skills" ? <SkillsTab personId={id} skills={data.skills} canEdit={canManage} /> : null}
+          {tab === "cost" ? <CostRatesTab personId={id} /> : null}
           {tab === "certifications" ? (
             <CertificationsTab personId={id} certifications={data.certifications} canEdit={canManage} />
           ) : null}

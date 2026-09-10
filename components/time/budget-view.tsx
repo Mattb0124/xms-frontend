@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { BudgetEntriesList } from "@/components/time/budget-entries";
 import { EmptyBanner } from "@/components/xms/empty-banner";
+import { AccountMarginPanel } from "@/components/time/margin-panel";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill, type SignalTone } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -263,6 +264,9 @@ export function AccountBudgetView({ accountId }: { accountId: string }) {
           {data.contracts.map((card) => (
             <ContractBudgetCard key={card.contract.id} accountId={accountId} card={card} catalogs={catalogs} />
           ))}
+          {/* What the position above is worth after what it cost. Drawn only
+              for a reader who holds finance:view-margin. */}
+          <AccountMarginPanel accountId={accountId} />
         </>
       ) : null}
     </div>
