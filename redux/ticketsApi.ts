@@ -547,6 +547,35 @@ export interface PatchContractBody {
   technology_codes?: string[];
 }
 
+/**
+ * Somebody who had a part in a ticket without being assigned it (TM-21): the
+ * person who was asked a question, the one who reviewed the change, the one
+ * watching because it touches their account.
+ *
+ * The assignee is never in this list. The ticket owns who it is assigned to,
+ * and a second place to say so is a second place for it to be wrong.
+ */
+export interface TicketParticipant {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  display_name: string;
+  role: "collaborator" | "reviewer" | "observer";
+  /** `invited` and `declined` belong to the invitation flow, which is TM-22. */
+  status: "invited" | "active" | "declined" | "left";
+  invited_by: string | null;
+  invited_by_name: string;
+  joined_at: string | null;
+  left_at: string | null;
+  created_at: string;
+}
+
+export interface TicketParticipants {
+  items: TicketParticipant[];
+  /** Distinct people, so somebody who left and came back counts once. */
+  contributors: number;
+}
+
 function ticketTag(key: string) {
   return { type: "Ticket" as const, id: key };
 }
@@ -561,6 +590,22 @@ export const ticketsApi = xmsApi.injectEndpoints({
     scopeRecord: build.query<ScopeDecision[], string>({
       query: (key) => `/v1/tickets/${key}/scope/record`,
       providesTags: (_r, _e, key) => [{ type: "Ticket", id: key }],
+    }),
+    /** Who had a part in this ticket besides the assignee (TM-21). */
+    ticketParticipants: build.query<TicketParticipants, string>({
+      query: (key) => `/v1/tickets/${key}/participants`,
+      providesTags: (_r, _e, key) => [{ type: "Ticket", id: `${key}:participants` }],
+    }),
+    addParticipant: build.mutation<
+      TicketParticipant,
+      { key: string; body: { user_id: string; display_name?: string; role: TicketParticipant["role"] } }
+    >({
+      query: ({ key, body }) => ({ url: `/v1/tickets/${key}/participants`, method: "POST", body }),
+      invalidatesTags: (_r, _e, { key }) => [ticketTag(`${key}:participants`), ticketTag(`${key}:timeline`)],
+    }),
+    removeParticipant: build.mutation<TicketParticipant, { key: string; id: string }>({
+      query: ({ key, id }) => ({ url: `/v1/tickets/${key}/participants/${id}`, method: "DELETE" }),
+      invalidatesTags: (_r, _e, { key }) => [ticketTag(`${key}:participants`), ticketTag(`${key}:timeline`)],
     }),
     listTickets: build.query<TicketList, TicketListParams>({
       query: (params) => ({ url: "/v1/tickets", params: paramsToQuery(params) }),
@@ -854,6 +899,9 @@ export const ticketsApi = xmsApi.injectEndpoints({
 
 export const {
   useScopeRecordQuery,
+  useTicketParticipantsQuery,
+  useAddParticipantMutation,
+  useRemoveParticipantMutation,
   useListTicketsQuery,
   useLazyListTicketsQuery,
   useGetTicketQuery,
