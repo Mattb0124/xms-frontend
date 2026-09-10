@@ -32,9 +32,11 @@ import {
   type NarrativeDraft,
   type ReviewSection,
 } from "@/lib/reporting/review";
+import { DELIVERY_LINK_NOTE } from "@/lib/reporting/links";
 import { requestedByLabel } from "@/lib/reporting/schedules";
 import { EXTERNAL_REL, safeHref } from "@/lib/safe-url";
 import { useTrack } from "@/lib/telemetry/provider";
+import { useMe } from "@/redux/me";
 import { cn } from "@/lib/utils";
 import {
   useApproveReportRunMutation,
@@ -81,6 +83,11 @@ export function ReportRunReview({ runId }: { runId: string }) {
   const [reason, setReason] = useState("");
   const [cancelOpen, setCancelOpen] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const me = useMe();
+  // A reviewer is a second pair of eyes: the API refuses the requester's own
+  // approval, so the screen stops offering it rather than letting somebody
+  // press a button that cannot work.
+  const ownRun = Boolean(me.principal && run && me.principal.userId === run.requested_by);
 
   if (isLoading && !run) return <Skeleton lines={10} />;
   if (isError || !run) {
@@ -207,11 +214,15 @@ export function ReportRunReview({ runId }: { runId: string }) {
           onReason={setReason}
           onApprove={(via) => void onApprove(via)}
           onCancel={() => void onCancel()}
+          ownRun={ownRun}
         />
       ) : (
         <Panel title="Decision" caption="Already taken" subtitle="This run is no longer waiting on a reviewer.">
           {run.delivery ? (
-            <DeliveryList delivery={run.delivery} />
+            <>
+              <DeliveryList delivery={run.delivery} />
+              <p className="text-xms-label mt-2 text-[12px]">{DELIVERY_LINK_NOTE}</p>
+            </>
           ) : (
             <p className="text-xms-label text-[13px]">Nothing was delivered.</p>
           )}
@@ -251,7 +262,7 @@ function RenditionLinks({ files }: { files: ReviewRun["files"] }) {
   const pptx = safeHref(files.pptx);
   if (!pdf && !pptx) return null;
   return (
-    <div className="ml-auto flex items-center gap-2">
+    <div className="ml-auto flex items-center gap-2" title={DELIVERY_LINK_NOTE}>
       {pdf ? (
         <a href={pdf} target="_blank" rel={EXTERNAL_REL} className={`${SECONDARY_BUTTON} inline-flex items-center`}>
           Open PDF
@@ -286,6 +297,7 @@ function Decisions({
   onReason,
   onApprove,
   onCancel,
+  ownRun,
 }: {
   hasEdit: boolean;
   approving: boolean;
@@ -298,15 +310,19 @@ function Decisions({
   onReason: (value: string) => void;
   onApprove: (via: "with_edits" | "as_written") => void;
   onCancel: () => void;
+  /** The reviewer asked for this run, so somebody else has to approve it. */
+  ownRun: boolean;
 }) {
   return (
     <Panel
       title="Decision"
       caption="Approve or cancel"
       subtitle={
-        hasEdit
-          ? "Both buttons send the narrative in the panel above, which a reviewer has rewritten; the API rebuilds the two files first if the edit was never regenerated. Cancel sends nothing."
-          : "Nobody has rewritten the narrative, so there is nothing to send but the pack as it was rendered. Cancel sends nothing."
+        ownRun
+          ? "You asked for this run, so a second pair of eyes has to approve it. You may still cancel it."
+          : hasEdit
+            ? "Both buttons send the narrative in the panel above, which a reviewer has rewritten; the API rebuilds the two files first if the edit was never regenerated. Cancel sends nothing."
+            : "Nobody has rewritten the narrative, so there is nothing to send but the pack as it was rendered. Cancel sends nothing."
       }
     >
       <div className="flex flex-col gap-3">
@@ -315,8 +331,14 @@ function Decisions({
             type="button"
             className={PRIMARY_BUTTON}
             onClick={() => onApprove("with_edits")}
-            disabled={!hasEdit || approving || cancelling}
-            title={hasEdit ? undefined : "Nothing has been rewritten yet, so there are no edits to send."}
+            disabled={ownRun || !hasEdit || approving || cancelling}
+            title={
+              ownRun
+                ? "You asked for this run, so somebody else has to approve it."
+                : hasEdit
+                  ? undefined
+                  : "Nothing has been rewritten yet, so there are no edits to send."
+            }
           >
             {approving ? "Sending" : "Approve and send"}
           </button>
@@ -324,7 +346,8 @@ function Decisions({
             type="button"
             className={hasEdit ? SECONDARY_BUTTON : PRIMARY_BUTTON}
             onClick={() => onApprove("as_written")}
-            disabled={approving || cancelling}
+            disabled={ownRun || approving || cancelling}
+            title={ownRun ? "You asked for this run, so somebody else has to approve it." : undefined}
           >
             Send without changes
           </button>

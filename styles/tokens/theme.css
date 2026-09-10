@@ -29,6 +29,7 @@
   --color-xms-chip: var(--xms-chip);
   --color-xms-control-line: var(--xms-control-line);
   --color-xms-control-hover: var(--xms-control-hover);
+  --color-xms-field-bg: var(--xms-field-bg);
   --color-xms-quiet-line: var(--xms-quiet-line);
   --color-xms-line-head: var(--xms-line-head);
   --color-xms-line-row: var(--xms-line-row);

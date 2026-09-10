@@ -70,7 +70,10 @@
   /* The recess. A field is a well you put something into, so it carries a
    * faint inner shadow at its top edge, the way the reference draws its
    * selects and text boxes. A button is a surface you press and stays flat. */
-  --xms-field-inset: inset 0 1px 2px rgb(15 23 42 / 0.08);
+  --xms-field-inset: inset 0 1px 3px rgb(15 23 42 / 0.16);
+  /* A field sits a shade below the card it stands on. White on white with a
+   * shadow too faint to see is a rectangle, not a well. */
+  --xms-field-bg: #f4f7fc;
   /* The quietest drawn line: the dashed Add filter edge and the idle sort
    * glyph on a column header. */
   --xms-quiet-line: #b4bdcc;
@@ -224,7 +227,8 @@
   --xms-control-hover: #1e2c46;
   /* On a dark ground the recess is a light top edge rather than a shadow,
    * because a darker shadow on a dark field is invisible. */
-  --xms-field-inset: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --xms-field-inset: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --xms-field-bg: #0f1928;
   --xms-quiet-line: #3a4d70;
   --xms-nav-wash: #16233f;
   --xms-note-bg: #172033;
@@ -634,6 +638,7 @@
  * it does. */
 .xms-scope .xms-field {
   box-shadow: var(--xms-field-inset);
+  background: var(--xms-field-bg);
 }
 .xms-scope .xms-field:hover,
 .xms-scope .xms-field:focus-within {

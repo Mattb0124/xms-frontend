@@ -22,7 +22,7 @@ export function FilterChip({ label, value, onRemove, className }: FilterChipProp
         type="button"
         aria-label={`Remove ${label} filter`}
         onClick={onRemove}
-        className="text-xms-muted hover:text-xms-ink hover:bg-xms-tint ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-[var(--xms-radius-control)] text-[14px] leading-none"
+        className="text-xms-muted hover:text-xms-ink hover:bg-xms-control-hover ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-[var(--xms-radius-control)] text-[14px] leading-none"
       >
         ×
       </button>

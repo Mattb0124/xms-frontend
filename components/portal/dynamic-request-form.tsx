@@ -9,7 +9,9 @@ import {
   PortalNotice,
 } from "@/components/portal/primitives";
 import {
+  ANSWERS_TOO_LARGE,
   answersBody,
+  answersTooLarge,
   describeSubmissionError,
   LEVELS,
   levelLabel,
@@ -189,6 +191,7 @@ export function DynamicRequestForm({
   error?: SubmissionError;
 }) {
   const [answers, setAnswers] = useState<FormAnswers>({});
+  const [tooLarge, setTooLarge] = useState(false);
   const [missing, setMissing] = useState<string[]>([]);
   const fields = visibleFields(view.definition, answers);
   const serverProblems = error ? problemsByField(error) : {};
@@ -207,14 +210,20 @@ export function DynamicRequestForm({
         const blank = missingRequired(view.definition, answers);
         setMissing(blank);
         if (blank.length > 0) return;
-        onSubmit({
-          type: view.ticket_type as PortalTicketType,
-          answers: answersBody(view.definition, answers),
-        });
+        const body = answersBody(view.definition, answers);
+        // Refused here in the API's own ceiling, so a long answer is caught
+        // beside the form rather than lost to a refusal after sending.
+        if (answersTooLarge(body)) {
+          setTooLarge(true);
+          return;
+        }
+        setTooLarge(false);
+        onSubmit({ type: view.ticket_type as PortalTicketType, answers: body });
       }}
     >
       {view.description ? <p className="text-xms-label text-[13px]">{view.description}</p> : null}
       {wholeForm ? <PortalNotice tone="error">{wholeForm}</PortalNotice> : null}
+      {tooLarge ? <PortalNotice tone="error">{ANSWERS_TOO_LARGE}</PortalNotice> : null}
 
       {fields.map((field) => {
         const id = fieldId(field);

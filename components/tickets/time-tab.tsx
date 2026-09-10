@@ -169,7 +169,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
                 "border-xms-line h-[28px] rounded-[999px] border px-2 text-[12px]",
                 draft.minutes === String(minutes)
                   ? "bg-xms-accent border-xms-accent text-white"
-                  : "text-xms-body hover:bg-xms-tint",
+                  : "text-xms-body hover:bg-xms-control-hover",
               )}
             >
               {formatMinutes(minutes)}

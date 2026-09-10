@@ -3,6 +3,11 @@ import { API_BASE_URL } from "@/redux/api";
 import type { Attachment, AttachmentVisibility, PresignResponse } from "@/redux/attachmentsApi";
 
 /**
+ * The presigned upload link lives three minutes (the API's
+ * `UPLOAD_LINK_SECONDS`). Nothing here counts it down: the store refuses an
+ * expired signature with a bare 403 and the reader is told to choose the
+ * file again.
+ *
  * The upload flow (Security section 6): presign with the API (allowlist and
  * account size cap enforced there), send the bytes to the minted URL (PUT
  * raw body for the local store, POST form for S3), confirm so the scan
@@ -47,6 +52,10 @@ export function describeRefusal(refusal: UploadRefusal): string {
     case "upload_missing":
     case "size_mismatch":
       return "The upload did not complete. Try again.";
+    // The link is minted for three minutes. A large file on a slow line can
+    // outlive it, and choosing the file again mints a fresh one.
+    case "upload_expired":
+      return "The upload link had expired before the file finished. Choose the file again.";
     case "network":
       return "The file could not be uploaded.";
     default:
@@ -110,7 +119,12 @@ export async function uploadAttachment(
   } catch {
     throw new UploadRefusal("network");
   }
-  if (!sent.ok) throw new UploadRefusal("upload_failed", { status: sent.status });
+  if (!sent.ok) {
+    // The store refuses an expired signature with a 403 and no typed body,
+    // so the status is the only signal there is.
+    if (sent.status === 403) throw new UploadRefusal("upload_expired", { status: sent.status });
+    throw new UploadRefusal("upload_failed", { status: sent.status });
+  }
   report("uploading", 100);
 
   report("scanning", 100);

@@ -1,5 +1,6 @@
 "use client";
 
+import { DELIVERY_LINK_NOTE } from "@/lib/reporting/links";
 import { useState } from "react";
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { formatPeriod } from "@/components/reporting/format";
@@ -59,7 +60,13 @@ function PackDownload({ url }: { url: string | null | undefined }) {
   const href = safeHref(url);
   if (href === null) return null;
   return (
-    <a href={href} target="_blank" rel={EXTERNAL_REL} className={`${PRIMARY_BUTTON} inline-flex items-center`}>
+    <a
+      href={href}
+      target="_blank"
+      rel={EXTERNAL_REL}
+      title={DELIVERY_LINK_NOTE}
+      className={`${PRIMARY_BUTTON} inline-flex items-center`}
+    >
       Download PPTX
     </a>
   );

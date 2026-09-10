@@ -156,7 +156,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
                 type="button"
                 role="menuitem"
                 onClick={() => choose(target)}
-                className="hover:bg-xms-tint flex w-full items-center gap-2 px-3 py-1.5 text-left"
+                className="hover:bg-xms-control-hover flex w-full items-center gap-2 px-3 py-1.5 text-left"
               >
                 <StatePill state={target.to} label={target.label} />
                 {target.requires.length > 0 ? (

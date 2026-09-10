@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export const PORTAL_PRIMARY =
   "bg-xms-accent hover:bg-xms-accent-hover inline-flex h-[40px] items-center justify-center rounded-[6px] px-4 text-[14px] font-medium text-white outline-none disabled:opacity-50";
 export const PORTAL_SECONDARY =
-  "border-xms-line text-xms-body hover:bg-xms-tint inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none disabled:opacity-50";
+  "border-xms-line text-xms-body hover:bg-xms-control-hover inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none disabled:opacity-50";
 export const PORTAL_DANGER =
   "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] inline-flex h-[40px] items-center justify-center rounded-[6px] border px-4 text-[14px] outline-none disabled:opacity-50";
 export const PORTAL_INPUT =

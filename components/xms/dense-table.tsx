@@ -77,9 +77,11 @@ export interface DenseTableProps<Row> {
   onRowClick?: (row: Row) => void;
   /**
    * Opens one row beside the list rather than navigating to it. Where a
-   * screen gives one, every row carries a preview mark on hover.
+   * screen gives one, every row carries a preview mark on hover. The mark's
+   * own rectangle comes with it, so the card can open against the mark
+   * rather than in the middle of the screen.
    */
-  onRowPreview?: (row: Row) => void;
+  onRowPreview?: (row: Row, anchor: { top: number; left: number; bottom: number }) => void;
   /** In-card search slot, rendered in the header after the title. */
   search?: ReactNode;
   /** The icon controls to the right of the search field (filter, columns). */
@@ -331,7 +333,10 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                       <button
                         type="button"
                         aria-label={`Preview ${key}`}
-                        onClick={() => onRowPreview(row)}
+                        onClick={(event) => {
+                          const box = event.currentTarget.getBoundingClientRect();
+                          onRowPreview(row, { top: box.top, left: box.left, bottom: box.bottom });
+                        }}
                         className="text-xms-icon hover:text-xms-accent rounded-none opacity-0 transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100"
                       >
                         <InfoIcon size={ICON.row} />

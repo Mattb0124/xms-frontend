@@ -18,6 +18,7 @@ import {
   toFreezeWindows,
   toInstant,
   toLocalInput,
+  scheduleMoved,
   validateTicketGroup,
   type FreezeDraft,
   type TicketGroupDraft,
@@ -63,6 +64,7 @@ function emptyDraft(accountId: string): TicketGroupDraft {
     startsAt: "",
     endsAt: "",
     freezes: [],
+    changeWindowReason: "",
   };
 }
 
@@ -77,6 +79,7 @@ function toDraft(group: TicketGroup): TicketGroupDraft {
     startsAt: toLocalInput(group.starts_at),
     endsAt: toLocalInput(group.ends_at),
     freezes: toFreezeDrafts(group.freeze_windows),
+    changeWindowReason: "",
   };
 }
 
@@ -154,6 +157,7 @@ function GroupForm({
   pending,
   onSubmit,
   onCancel,
+  editingRow,
 }: {
   draft: TicketGroupDraft;
   setDraft: (draft: TicketGroupDraft) => void;
@@ -163,7 +167,17 @@ function GroupForm({
   pending: boolean;
   onSubmit: () => void;
   onCancel: () => void;
+  /** The row being edited, so a moved schedule can be told from a rename. */
+  editingRow?: TicketGroup;
 }) {
+  const scheduleChanged =
+    Boolean(editingRow) &&
+    draft.kind === "change_window" &&
+    scheduleMoved(editingRow!, {
+      startsAt: toInstant(draft.startsAt),
+      endsAt: toInstant(draft.endsAt),
+      freezes: toFreezeWindows(draft.freezes),
+    });
   return (
     <form
       aria-label={editing ? "Edit group" : "New group"}
@@ -258,6 +272,22 @@ function GroupForm({
         </p>
       </div>
       <FreezeRows freezes={draft.freezes} onChange={(freezes) => setDraft({ ...draft, freezes })} />
+      {scheduleChanged ? (
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Why the schedule moved</span>
+          <input
+            aria-label="Why the schedule moved"
+            value={draft.changeWindowReason}
+            onChange={(event) => setDraft({ ...draft, changeWindowReason: event.target.value })}
+            placeholder="Recorded on the audit trail beside the change"
+            maxLength={1000}
+            className={INPUT}
+          />
+          <span className="text-xms-label">
+            Moving a change window moves what the deploy gate allows, so the reason is kept with the change.
+          </span>
+        </label>
+      ) : null}
       <label className="flex flex-col gap-1">
         <span className="text-xms-label">Description</span>
         <input
@@ -329,11 +359,15 @@ export function TicketGroupsCatalog() {
 
   const submit = async () => {
     if (!draft) return;
-    const found = validateTicketGroup(draft);
+    const found = validateTicketGroup(draft, editing ?? undefined);
     setProblems(found);
     if (found.length > 0) return;
     try {
       if (editing) {
+        const startsAt = toInstant(draft.startsAt);
+        const endsAt = toInstant(draft.endsAt);
+        const freezes = toFreezeWindows(draft.freezes);
+        const moved = scheduleMoved(editing, { startsAt, endsAt, freezes });
         await patch({
           id: editing.id,
           body: {
@@ -341,9 +375,16 @@ export function TicketGroupsCatalog() {
             name: draft.name.trim(),
             description: draft.description.trim(),
             status: draft.status,
-            starts_at: toInstant(draft.startsAt),
-            ends_at: toInstant(draft.endsAt),
-            freeze_windows: toFreezeWindows(draft.freezes),
+            // Sent only where they moved, so a rename does not read as a
+            // schedule change and ask for a reason that has nothing to say.
+            ...(moved
+              ? {
+                  starts_at: startsAt,
+                  ends_at: endsAt,
+                  freeze_windows: freezes,
+                  ...(draft.kind === "change_window" ? { change_window_reason: draft.changeWindowReason.trim() } : {}),
+                }
+              : {}),
           },
         }).unwrap();
         push({ title: `${draft.name.trim()} saved`, tone: "success" });
@@ -446,6 +487,7 @@ export function TicketGroupsCatalog() {
             setDraft={setDraft}
             accounts={accounts ?? []}
             editing={editing !== null}
+            editingRow={editing ?? undefined}
             problems={problems}
             pending={creating.isLoading || patching.isLoading}
             onSubmit={() => void submit()}

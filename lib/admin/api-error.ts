@@ -8,6 +8,10 @@ export interface ApiError {
   details?: string[];
   permission?: string;
   requestId?: string;
+  /** `range_too_wide` names the widest span the route will read. */
+  maxDays?: number;
+  /** `form_data_too_large` and its kin name the ceiling in bytes. */
+  maxBytes?: number;
 }
 
 export function apiError(error: unknown): ApiError {
@@ -22,6 +26,14 @@ export function apiError(error: unknown): ApiError {
         details: Array.isArray(body.details) ? body.details.map(String) : undefined,
         permission: typeof body.permission === "string" ? body.permission : undefined,
         requestId: typeof body.requestId === "string" ? body.requestId : undefined,
+        maxDays:
+          typeof (body as { max_days?: unknown }).max_days === "number"
+            ? (body as { max_days: number }).max_days
+            : undefined,
+        maxBytes:
+          typeof (body as { max_bytes?: unknown }).max_bytes === "number"
+            ? (body as { max_bytes: number }).max_bytes
+            : undefined,
       };
     }
     return { status, code: status === "FETCH_ERROR" ? "network" : "error" };
@@ -46,6 +58,20 @@ export function describeError(error: ApiError): string {
       return "That status change is not allowed from the current status.";
     case "conflict":
       return "That value is already in use.";
+    case "reason_required":
+      return "This change is recorded, so it needs a reason.";
+    case "range_too_wide":
+      return error.maxDays
+        ? `That is a wider span than this reads: ${error.maxDays} days at a time.`
+        : "That is a wider span than this reads.";
+    case "invalid_range":
+      return "The end of that range is not after its start.";
+    case "form_data_too_large":
+      return error.maxBytes
+        ? `There is more here than the form holds (${Math.round(error.maxBytes / 1024)} kB). Shorten the longest answers.`
+        : "There is more here than the form holds. Shorten the longest answers.";
+    case "upload_expired":
+      return "The upload link had expired. Choose the file again.";
     case "network":
       return "The API could not be reached.";
     default:

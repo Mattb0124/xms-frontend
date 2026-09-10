@@ -87,6 +87,13 @@ export interface TicketGroupDraft {
   startsAt: string;
   endsAt: string;
   freezes: FreezeDraft[];
+  /**
+   * Why a change window's schedule moved. The API records it on the audit
+   * row and refuses a schedule change on a change window without it, because
+   * the same principal who can widen a window is the one the deploy gate
+   * would otherwise have refused.
+   */
+  changeWindowReason: string;
 }
 
 export const GROUP_NAME_REQUIRED = "A group needs a name.";
@@ -96,13 +103,58 @@ export const CHANGE_WINDOW_ENDS_REQUIRED = "A change window needs a start and an
 export const ENDS_AFTER_STARTS = "The end has to be after the start.";
 export const FREEZE_ENDS_REQUIRED = "Every freeze needs a start and an end.";
 export const FREEZE_ENDS_AFTER_STARTS = "A freeze has to end after it starts.";
+export const CHANGE_WINDOW_REASON_REQUIRED = "Moving a change window is recorded, so it needs a reason.";
+
+/**
+ * Has the schedule moved? The API treats any of `starts_at`, `ends_at` or
+ * `freeze_windows` arriving on a change window as a schedule change, and
+ * asks for the override permission and a reason. Comparing against the row
+ * being edited keeps a rename from reading as one.
+ */
+export function scheduleMoved(
+  before: { starts_at: string | null; ends_at: string | null; freeze_windows?: FreezeWindow[] | null },
+  after: { startsAt: string | null; endsAt: string | null; freezes: FreezeWindow[] },
+): boolean {
+  if (!sameInstant(before.starts_at, after.startsAt)) return true;
+  if (!sameInstant(before.ends_at, after.endsAt)) return true;
+  return !sameFreezes(before.freeze_windows ?? [], after.freezes);
+}
+
+/**
+ * Two moments, compared as moments.
+ *
+ * The form holds a local datetime and sends an instant, so the same moment
+ * makes a round trip through the browser's zone and comes back spelled
+ * differently ("...T18:00:00Z" against "...T18:00:00.000Z"). Comparing the
+ * strings made every save of a change window read as a schedule change, and
+ * asked for a reason to move a schedule that had not moved.
+ */
+function sameInstant(left: string | null | undefined, right: string | null | undefined): boolean {
+  if (!left && !right) return true;
+  if (!left || !right) return false;
+  return Date.parse(left) === Date.parse(right);
+}
+
+/** The same freezes, in the same order, each span compared as moments. */
+function sameFreezes(before: readonly FreezeWindow[], after: readonly FreezeWindow[]): boolean {
+  if (before.length !== after.length) return false;
+  return before.every(
+    (freeze, index) =>
+      sameInstant(freeze.starts_at, after[index].starts_at) &&
+      sameInstant(freeze.ends_at, after[index].ends_at) &&
+      (freeze.reason ?? "") === (after[index].reason ?? ""),
+  );
+}
 
 /**
  * Refused here in the API's own limits before it is asked: 160 characters,
  * one account, and a change window with both ends in the right order, which
  * the API answers as `invalid_schedule`.
  */
-export function validateTicketGroup(draft: TicketGroupDraft): string[] {
+export function validateTicketGroup(
+  draft: TicketGroupDraft,
+  editing?: { starts_at: string | null; ends_at: string | null; freeze_windows?: FreezeWindow[] | null },
+): string[] {
   const problems: string[] = [];
   if (draft.name.trim() === "") problems.push(GROUP_NAME_REQUIRED);
   if (draft.name.trim().length > 160) problems.push(GROUP_NAME_TOO_LONG);
@@ -122,6 +174,19 @@ export function validateTicketGroup(draft: TicketGroupDraft): string[] {
     )
   )
     problems.push(FREEZE_ENDS_AFTER_STARTS);
+  // Asked for here rather than waiting for the API's own refusal, so the
+  // reader is told before the save rather than after it.
+  if (
+    editing &&
+    draft.kind === "change_window" &&
+    draft.changeWindowReason.trim() === "" &&
+    scheduleMoved(editing, {
+      startsAt: toInstant(draft.startsAt),
+      endsAt: toInstant(draft.endsAt),
+      freezes: toFreezeWindows(draft.freezes),
+    })
+  )
+    problems.push(CHANGE_WINDOW_REASON_REQUIRED);
   return problems;
 }
 

@@ -327,12 +327,16 @@ export const UNRENDERED_EDIT_NOTE =
 export interface ReviewError extends ApiError {
   /** `not_under_review` carries the status the run actually has. */
   status_now?: string;
+  /** `requester_cannot_approve` names who asked for the run. */
+  requested_by?: string;
 }
 
 export function reviewError(error: unknown): ReviewError {
   const parsed = apiError(error) as ReviewError;
   const data = (error as { data?: Record<string, unknown> })?.data;
   if (data && typeof data === "object" && typeof data.status === "string") parsed.status_now = data.status;
+  if (data && typeof data === "object" && typeof data.requested_by === "string")
+    parsed.requested_by = data.requested_by;
   return parsed;
 }
 
@@ -360,6 +364,10 @@ export function describeReviewError(error: ReviewError): string {
       return "This run stored no pack, so there is nothing to send. Run the schedule again.";
     case "validation_failed":
       return error.details?.join("; ") ?? CANCEL_REASON_MESSAGE;
+    // A reviewer is a second pair of eyes, so the person who asked for the
+    // run is not the person who may approve it.
+    case "requester_cannot_approve":
+      return "You asked for this run, so somebody else has to approve it. Cancel it instead, or ask another reviewer.";
     case "not_found":
       return "This run no longer exists, or the account is not granted to you.";
     default:

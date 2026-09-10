@@ -19,6 +19,8 @@ import {
   toLocalInput,
   toRoutingRuleInputs,
   validateRoutingRules,
+  CHANGE_WINDOW_REASON_REQUIRED,
+  scheduleMoved,
   validateTicketGroup,
   type RoutingRuleDraft,
   type TicketGroupDraft,
@@ -37,6 +39,7 @@ function aGroupDraft(overrides: Partial<TicketGroupDraft> = {}): TicketGroupDraf
     startsAt: "2026-10-03T18:00",
     endsAt: "2026-10-04T02:00",
     freezes: [],
+    changeWindowReason: "",
     ...overrides,
   };
 }
@@ -154,5 +157,70 @@ describe("the routing defaults", () => {
     expect(validateRoutingRules([aRuleDraft({ groupId: "" })])).toEqual([RULE_GROUP_REQUIRED]);
     expect(validateRoutingRules([aRuleDraft(), aRuleDraft({ category: "" })])).toEqual([RULE_DUPLICATE]);
     expect(validateRoutingRules([aRuleDraft(), aRuleDraft({ ticketType: "change" })])).toEqual([]);
+  });
+});
+
+describe("scheduleMoved", () => {
+  const before = { starts_at: "2026-10-01T18:00:00Z", ends_at: "2026-10-02T02:00:00Z", freeze_windows: [] };
+
+  it("is false where only the name changed, so a rename is not a schedule change", () => {
+    expect(scheduleMoved(before, { startsAt: before.starts_at, endsAt: before.ends_at, freezes: [] })).toBe(false);
+  });
+
+  it("is true where an end moved", () => {
+    expect(scheduleMoved(before, { startsAt: before.starts_at, endsAt: "2026-10-02T06:00:00Z", freezes: [] })).toBe(
+      true,
+    );
+  });
+
+  it("is true where a freeze was added or removed", () => {
+    const freeze = { starts_at: "2026-10-01T20:00:00Z", ends_at: "2026-10-01T21:00:00Z", reason: "close" };
+    expect(scheduleMoved(before, { startsAt: before.starts_at, endsAt: before.ends_at, freezes: [freeze] })).toBe(true);
+    expect(
+      scheduleMoved(
+        { ...before, freeze_windows: [freeze] },
+        {
+          startsAt: before.starts_at,
+          endsAt: before.ends_at,
+          freezes: [],
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it("treats a missing freeze list as an empty one", () => {
+    expect(scheduleMoved({ starts_at: null, ends_at: null }, { startsAt: null, endsAt: null, freezes: [] })).toBe(
+      false,
+    );
+  });
+});
+
+describe("the reason a change window moved", () => {
+  const editing = { starts_at: "2026-10-01T18:00:00Z", ends_at: "2026-10-02T02:00:00Z", freeze_windows: [] };
+
+  it("is asked for once the schedule has moved", () => {
+    const draft = aGroupDraft({ kind: "change_window", startsAt: "2026-10-01T18:00", endsAt: "2026-10-02T06:00" });
+    expect(validateTicketGroup(draft, editing)).toContain(CHANGE_WINDOW_REASON_REQUIRED);
+    expect(validateTicketGroup({ ...draft, changeWindowReason: "Client moved the cutover" }, editing)).toEqual([]);
+  });
+
+  it("is not asked for on a rename, because the schedule did not move", () => {
+    const draft = aGroupDraft({
+      kind: "change_window",
+      name: "October cutover, renamed",
+      startsAt: toLocalInput(editing.starts_at),
+      endsAt: toLocalInput(editing.ends_at),
+    });
+    expect(validateTicketGroup(draft, editing)).toEqual([]);
+  });
+
+  it("is not asked for on a project, which has no deploy gate behind it", () => {
+    const draft = aGroupDraft({ kind: "project", startsAt: "2026-10-01T18:00", endsAt: "2026-12-02T06:00" });
+    expect(validateTicketGroup(draft, editing)).not.toContain(CHANGE_WINDOW_REASON_REQUIRED);
+  });
+
+  it("is not asked for on a new group, which has nothing to have moved from", () => {
+    const draft = aGroupDraft({ kind: "change_window", startsAt: "2026-10-01T18:00", endsAt: "2026-10-02T06:00" });
+    expect(validateTicketGroup(draft)).toEqual([]);
   });
 });

@@ -161,7 +161,7 @@ export function AssigneePicker({
               setQuery("");
               setWanted(true);
             }}
-            className="border-xms-line text-xms-body hover:bg-xms-tint h-[34px] shrink-0 rounded-[4px] border px-2 text-[12px]"
+            className="border-xms-line text-xms-body hover:bg-xms-control-hover h-[34px] shrink-0 rounded-[4px] border px-2 text-[12px]"
           >
             Assign to me
           </button>
@@ -184,7 +184,7 @@ export function AssigneePicker({
                 setQuery("");
                 setOpen(false);
               }}
-              className="text-xms-muted hover:bg-xms-tint w-full px-3 py-1.5 text-left"
+              className="text-xms-muted hover:bg-xms-control-hover w-full px-3 py-1.5 text-left"
             >
               Unassigned
             </button>
@@ -206,7 +206,7 @@ export function AssigneePicker({
                     setQuery("");
                     setOpen(false);
                   }}
-                  className="hover:bg-xms-tint flex w-full items-center gap-2 px-3 py-1.5 text-left"
+                  className="hover:bg-xms-control-hover flex w-full items-center gap-2 px-3 py-1.5 text-left"
                 >
                   <span className="text-xms-ink">{fullName(user)}</span>
                   {warning ? (

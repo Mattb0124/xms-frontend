@@ -69,7 +69,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
             <button
               type="button"
               onClick={() => onChange({ id: hit.id, key: hit.display_key, title: hit.title })}
-              className="hover:bg-xms-tint flex w-full items-center gap-2 px-2 py-1.5 text-left"
+              className="hover:bg-xms-control-hover flex w-full items-center gap-2 px-2 py-1.5 text-left"
             >
               <KeyText ticketKey={hit.display_key} />
               <span className="text-xms-ink truncate">{hit.title}</span>

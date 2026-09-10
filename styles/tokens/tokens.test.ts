@@ -163,7 +163,7 @@ describe("the display key face", () => {
 
 describe("the field treatment", () => {
   it("draws a field recessed and fills it on hover, in both grounds", () => {
-    expect(scope).toMatch(/--xms-field-inset: inset 0 1px 2px/);
+    expect(scope).toMatch(/--xms-field-inset: inset 0 1px 3px/);
     expect(scope).toMatch(/--xms-control-hover: #e7edf8/);
     // The dark ground reverses it: a light top edge, since a shadow on a
     // dark field is invisible.

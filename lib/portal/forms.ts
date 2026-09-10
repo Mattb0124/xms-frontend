@@ -198,6 +198,20 @@ function isBlank(answer: FormAnswer): boolean {
  * condition hid is left out entirely rather than sent as an empty answer,
  * because the server refuses an answer for a field it did not ask for.
  */
+/**
+ * The ceiling the API puts on the answers object, in bytes. Every open
+ * `jsonb` field on the platform carries the same one, and the route answers
+ * `form_data_too_large` past it.
+ */
+export const MAX_ANSWERS_BYTES = 64 * 1024;
+
+export const ANSWERS_TOO_LARGE = "There is more here than the form holds. Shorten the longest answers.";
+
+/** Is this more than the route will take? Measured as the bytes actually sent. */
+export function answersTooLarge(body: Record<string, unknown>): boolean {
+  return new TextEncoder().encode(JSON.stringify(body)).length > MAX_ANSWERS_BYTES;
+}
+
 export function answersBody(definition: FormDefinition, answers: FormAnswers): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   for (const field of visibleFields(definition, answers)) {

@@ -32,7 +32,7 @@ function KindRow({
         onClick={onSelect}
         data-kind={entry.key}
         className={cn(
-          "hover:bg-xms-tint flex w-full items-center gap-3 rounded-[4px] px-3 py-2 text-left text-[13px]",
+          "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-[4px] px-3 py-2 text-left text-[13px]",
           selected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
         )}
       >

@@ -122,9 +122,23 @@ describe("TicketGroupsCatalog", () => {
 
     fireEvent.click(form.getAllByText("Remove freeze")[1]);
     fireEvent.click(form.getAllByText("Remove freeze")[0]);
+
+    // Dropping a freeze moves the schedule, and the API records a schedule
+    // change on a change window with the reason for it, so the field appears
+    // and the save waits for it.
+    fireEvent.click(form.getByText("Save group"));
+    await screen.findByText("Moving a change window is recorded, so it needs a reason.");
+    expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(false);
+
+    fireEvent.change(form.getByLabelText("Why the schedule moved"), {
+      target: { value: "Close moved, the freeze no longer applies" },
+    });
     fireEvent.click(form.getByText("Save group"));
     await waitFor(() => expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(true));
-    expect(calls.find((call) => call.key.startsWith("PATCH "))?.body).toMatchObject({ freeze_windows: [] });
+    expect(calls.find((call) => call.key.startsWith("PATCH "))?.body).toMatchObject({
+      freeze_windows: [],
+      change_window_reason: "Close moved, the freeze no longer applies",
+    });
   });
 
   it("words the API's own refusal of a schedule", async () => {
@@ -141,6 +155,8 @@ describe("TicketGroupsCatalog", () => {
     // The kind and the account cannot move on an existing record.
     expect(form.getByLabelText("Kind")).toBeDisabled();
     expect(form.getByLabelText("Account")).toBeDisabled();
+    // Nothing about the schedule has been touched, so no reason is asked for.
+    expect(form.queryByLabelText("Why the schedule moved")).toBeNull();
     fireEvent.click(form.getByText("Save group"));
     await screen.findByText(/ends_at must be after starts_at/);
   });

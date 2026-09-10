@@ -42,7 +42,7 @@ export interface ContentHeaderBarProps {
 }
 
 const ICON_BUTTON =
-  "text-xms-icon hover:text-xms-accent hover:bg-xms-card flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]";
+  "text-xms-icon hover:text-xms-accent hover:bg-xms-control-hover flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]";
 
 /**
  * The height of every control standing in the toolbar band, from render 01:
@@ -125,7 +125,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                     aria-label="Filters"
                     aria-expanded={panelOpen}
                     onClick={() => setPanelOpen((open) => !open)}
-                    className={cn(ICON_BUTTON, "relative", panelOpen && "bg-xms-card text-xms-accent")}
+                    className={cn(ICON_BUTTON, "relative", panelOpen && "bg-xms-control-hover text-xms-accent")}
                   >
                     <FunnelIcon size={ICON.bar} />
                     {panel.count > 0 ? (
