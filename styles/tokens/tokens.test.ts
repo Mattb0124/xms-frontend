@@ -172,8 +172,8 @@ describe("the field treatment", () => {
   });
 
   it("makes hover a fill and never a change of edge", () => {
-    expect(scope).toMatch(/\.xms-field:hover[\s\S]{0,140}background: var\(--xms-control-hover\)/);
+    expect(scope).toMatch(/\.xms-field:hover[\s\S]{0,140}background-color: var\(--xms-control-hover\)/);
     // A control that already reads blue fills with the blue wash instead.
-    expect(scope).toMatch(/\.xms-field\[data-active="true"\][\s\S]{0,140}background: var\(--xms-tint\)/);
+    expect(scope).toMatch(/\.xms-field\[data-active="true"\][\s\S]{0,140}background-color: var\(--xms-tint\)/);
   });
 });

@@ -641,19 +641,19 @@
 .xms-scope textarea:not(.bg-transparent),
 .xms-scope .xms-field {
   box-shadow: var(--xms-field-inset);
-  background: var(--xms-field-bg);
+  background-color: var(--xms-field-bg);
 }
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):hover,
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):hover,
 .xms-scope textarea:not(.bg-transparent):hover,
 .xms-scope .xms-field:hover {
-  background: var(--xms-control-hover);
+  background-color: var(--xms-control-hover);
 }
 
 /* A search is white wherever it stands. A reader is reading their own words
  * back off it, and text on the quietest ground there is reads best. */
 .xms-scope .xms-field-typed {
-  background: var(--xms-card);
+  background-color: var(--xms-card);
 }
 
 /* Clicked into, anything enabled goes white and stays white. The fill says
@@ -663,7 +663,22 @@
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):enabled:focus,
 .xms-scope textarea:not(.bg-transparent):enabled:focus,
 .xms-scope .xms-field:focus-within {
-  background: var(--xms-card);
+  background-color: var(--xms-card);
+}
+
+/* A single-choice dropdown draws its own chevron, so the platform never
+ * paints the control itself. A multi-select list and the transparent
+ * overlay selects keep their native drawing: neither shows a face. */
+.xms-scope select:not([class*="opacity-0"]):not([multiple]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1623' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 14px 14px;
+  padding-right: 28px;
+}
+.xms-scope select:not([class*="opacity-0"]):not([multiple]):disabled {
+  opacity: 0.6;
 }
 
 /* Where a wrapper draws the box, the focus mark belongs on the wrapper. The
@@ -682,14 +697,14 @@
  * menu is a surface of its own: white ground, ink text. */
 .xms-scope select option,
 .xms-scope select optgroup {
-  background: var(--xms-card);
+  background-color: var(--xms-card);
   color: var(--xms-ink);
 }
 /* A control that carries a value already reads blue, so its fill is the
  * blue wash rather than the grey one, hover included. */
 .xms-scope .xms-field[data-active="true"],
 .xms-scope .xms-field[data-active="true"]:hover {
-  background: var(--xms-tint);
+  background-color: var(--xms-tint);
 }
 .xms-scope .xms-field:disabled,
 .xms-scope .xms-field[aria-disabled="true"] {
