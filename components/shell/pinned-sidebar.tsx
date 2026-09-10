@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDownIcon, ICON, PencilIcon, StarIcon, screenIcon } from "@/components/xms/icons";
+import { ChevronDownIcon, ICON, StarIcon, screenIcon } from "@/components/xms/icons";
 import { Skeleton } from "@/components/xms/skeleton";
 import { pinnedScreens, visibleScreens, type Screen, isDynamicPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,6 @@ export interface PinnedSidebarProps {
   counts?: Record<string, number | undefined>;
   starredViews: StarredView[];
   currentPath: string;
-  onEditPins: () => void;
 }
 
 export function sidebarItems(permissions: ReadonlySet<string> | undefined, extraPins: ReadonlySet<string>): Screen[] {
@@ -87,19 +86,8 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
       aria-label="Pinned"
       data-testid="pinned-sidebar"
     >
-      <div className="flex items-center gap-[7px] px-[14px] pt-3 pb-2">
-        <span className="xms-caption flex-1">Pinned</span>
-        <button
-          type="button"
-          aria-label="Edit pins"
-          onClick={props.onEditPins}
-          className="text-xms-placeholder hover:text-xms-ink"
-        >
-          <PencilIcon size={ICON.control} />
-        </button>
-      </div>
-      {/* The only scrolling region, so the footer below is always in reach. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      {/* The whole column scrolls: there is no header above it any more. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
         {!props.permissions ? (
           <div className="px-4">
             <Skeleton lines={5} />
@@ -123,13 +111,15 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
                         return next;
                       })
                     }
-                    className="text-xms-label hover:text-xms-ink flex items-center gap-[6px] px-[14px] pt-[10px] pb-[4px] text-left"
+                    className="text-xms-ink hover:bg-xms-row-hover flex items-center gap-[6px] px-[14px] pt-[10px] pb-[4px] text-left"
                   >
                     <ChevronDownIcon
                       size={ICON.glyph}
                       className={cn("shrink-0 transition-transform", open ? undefined : "-rotate-90")}
                     />
-                    <span className="xms-caption flex-1">{group.section}</span>
+                    <span className="flex-1 text-[12px] font-semibold tracking-[0.04em] uppercase">
+                      {group.section}
+                    </span>
                   </button>
                   {open
                     ? group.screens.map((screen) => {
@@ -163,7 +153,9 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
         )}
         {props.permissions && props.starredViews.length > 0 ? (
           <>
-            <p className="xms-caption px-[14px] pt-[18px] pb-2">Starred views</p>
+            <p className="text-xms-ink px-[14px] pt-[18px] pb-2 text-[12px] font-semibold tracking-[0.04em] uppercase">
+              Starred views
+            </p>
             <nav aria-label="Starred views" className="flex flex-col">
               {props.starredViews.map((view) => (
                 <Link key={view.path} href={view.path} className="xms-nav-row text-[13px] hover:no-underline">

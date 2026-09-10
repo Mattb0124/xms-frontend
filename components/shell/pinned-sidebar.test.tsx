@@ -8,7 +8,6 @@ const base = {
   extraPins: new Set<string>(),
   starredViews: [],
   currentPath: "/",
-  onEditPins: () => {},
 };
 
 describe("PinnedSidebar", () => {

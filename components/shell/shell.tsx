@@ -182,7 +182,6 @@ export function Shell({ children }: { children: ReactNode }) {
               .filter((f) => f.type === "Saved view")
               .map((f) => ({ path: f.path, label: f.label }))}
             currentPath={pathname}
-            onEditPins={() => setFinder("all")}
           />
         ) : null}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
