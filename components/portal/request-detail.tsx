@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatMoment } from "@/lib/format/date";
 import {
   ClientStatusPill,
   PORTAL_DANGER,
@@ -23,6 +24,7 @@ import {
   usePortalTransitionMutation,
   usePortalTransitionsQuery,
   type PortalTransition,
+  usePortalScopeRecordQuery,
 } from "@/redux/portalApi";
 
 /**
@@ -43,6 +45,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
   const trackSolved = useTrack("portal.solved_it");
   const [confirming, setConfirming] = useState<PortalTransition | null>(null);
   const uploads = usePortalUploads(requestKey);
+  const scope = usePortalScopeRecordQuery(requestKey);
 
   if (ticket.isLoading) return <Skeleton lines={6} className="max-w-xl" />;
   if (ticket.isError || !ticket.data) {
@@ -110,6 +113,29 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
       {record.description ? (
         <PortalCard title="Details">
           <p className="text-xms-body text-[14px] whitespace-pre-wrap">{record.description}</p>
+        </PortalCard>
+      ) : null}
+
+      {/* What was decided about this request's scope (TM-11). The server
+          answers with the decided rows only, so nothing here is an argument
+          still in progress, and none of it can be edited afterwards. */}
+      {scope.data && scope.data.length > 0 ? (
+        <PortalCard title="Scope decisions">
+          <ol className="flex flex-col gap-3">
+            {scope.data.map((row) => (
+              <li key={row.id} className="flex flex-col gap-1">
+                <p className="text-xms-ink text-[14px]">
+                  {row.event === "approved" ? "Approved as extra work" : "Declined as outside the contract"}
+                  {row.allowance_minutes > 0
+                    ? `, with ${Math.round((row.allowance_minutes / 60) * 10) / 10} h added to your period`
+                    : ""}
+                </p>
+                {row.reason ? <p className="text-xms-body text-[14px]">Raised because: {row.reason}</p> : null}
+                {row.note ? <p className="text-xms-body text-[14px]">{row.note}</p> : null}
+                <p className="text-xms-label text-[12px]">{formatMoment(row.at)}</p>
+              </li>
+            ))}
+          </ol>
         </PortalCard>
       ) : null}
 

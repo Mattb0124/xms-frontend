@@ -9,6 +9,16 @@ import { xmsApi } from "@/redux/api";
 export type PortalTicketType = "incident" | "service_request";
 export type PortalLevel = "high" | "medium" | "low";
 
+/** A decision the client is shown; append-only on the server. */
+export interface PortalScopeDecision {
+  id: string;
+  event: "approved" | "declined";
+  reason: string;
+  note: string | null;
+  allowance_minutes: number;
+  at: string;
+}
+
 export interface PortalTicket {
   id: string;
   key: string;
@@ -222,6 +232,15 @@ export const portalApi = xmsApi.injectEndpoints({
         ...(result?.items.map((item) => ({ type: "PortalTicket" as const, id: item.key })) ?? []),
       ],
     }),
+    /**
+     * What was decided about this request's scope (TM-11), and nothing that
+     * was not: the API answers with the decided rows only, so a client never
+     * sees an argument still in progress.
+     */
+    portalScopeRecord: build.query<PortalScopeDecision[], string>({
+      query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}/scope`,
+      providesTags: (_r, _e, key) => [{ type: "PortalTicket", id: key }],
+    }),
     portalTicket: build.query<PortalTicket, string>({
       query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}`,
       providesTags: (_result, _error, key) => [{ type: "PortalTicket", id: key }],
@@ -312,6 +331,7 @@ export const portalApi = xmsApi.injectEndpoints({
 });
 
 export const {
+  usePortalScopeRecordQuery,
   usePortalMeQuery,
   usePortalTicketsQuery,
   usePortalTicketQuery,

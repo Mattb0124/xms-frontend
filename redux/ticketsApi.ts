@@ -31,6 +31,21 @@ export interface TicketResolution {
  * (TM-11). Absent detail reads as null, never undefined, so the record can
  * say "not decided yet" rather than say nothing at all.
  */
+/** One thing that happened to a scope flag; written once, never changed. */
+export interface ScopeDecision {
+  id: string;
+  ticket_id: string;
+  event: "flagged" | "withdrawn" | "approved" | "declined";
+  reason: string;
+  note: string | null;
+  allowance_minutes: number;
+  actor_id: string;
+  actor_name: string;
+  /** A flag is internal; a decision is what the client is shown. */
+  client_visible: boolean;
+  at: string;
+}
+
 export interface TicketScope {
   out_of_scope: string;
   reason: string | null;
@@ -538,6 +553,15 @@ function ticketTag(key: string) {
 
 export const ticketsApi = xmsApi.injectEndpoints({
   endpoints: (build) => ({
+    /**
+     * The append-only record behind a scope flag (TM-11): who raised it, who
+     * decided it, and when. The ticket carries where the flag stands now;
+     * this is how it got there, and nothing in it can be edited.
+     */
+    scopeRecord: build.query<ScopeDecision[], string>({
+      query: (key) => `/v1/tickets/${key}/scope/record`,
+      providesTags: (_r, _e, key) => [{ type: "Ticket", id: key }],
+    }),
     listTickets: build.query<TicketList, TicketListParams>({
       query: (params) => ({ url: "/v1/tickets", params: paramsToQuery(params) }),
       providesTags: (result) => ["Tickets", ...(result?.items ?? []).map((ticket) => ticketTag(ticket.key))],
@@ -829,6 +853,7 @@ export const ticketsApi = xmsApi.injectEndpoints({
 });
 
 export const {
+  useScopeRecordQuery,
   useListTicketsQuery,
   useLazyListTicketsQuery,
   useGetTicketQuery,

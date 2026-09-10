@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ScopeRecord } from "@/components/tickets/scope-record";
 import { DANGER_BUTTON, formatDate, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { RailCard } from "@/components/xms/rail-card";
 import { SignalPill } from "@/components/xms/signal-pill";
@@ -155,6 +156,9 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
     <RailCard caption="Scope">
       <div className="flex flex-col gap-3" data-testid="ticket-scope">
         <ScopeState scope={scope} />
+        {/* Where the flag stands is above; how it got there is below, and
+            nothing in it can be edited (TM-11). */}
+        <ScopeRecord ticketKey={ticket.key} />
 
         {canWork && !flagged ? (
           <div className="flex flex-col gap-2">
