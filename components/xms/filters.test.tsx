@@ -127,24 +127,40 @@ describe("SelectionBar", () => {
 });
 
 describe("TableFooter", () => {
-  it("shows the range, pages and changes size", () => {
+  it("says what is on the page and what it is out of, and steps", () => {
     const onPage = vi.fn();
     const onSize = vi.fn();
     render(<TableFooter page={2} pageSize={10} total={42} onPageChange={onPage} onPageSizeChange={onSize} />);
-    expect(screen.getByText("Showing 11 to 20 of 42")).toBeInTheDocument();
-    expect(screen.getByText("2 / 5")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Next"));
+    expect(screen.getByText("11 to 20 of 42")).toBeInTheDocument();
+    expect(screen.getByLabelText("Page")).toHaveValue("2");
+    fireEvent.click(screen.getByLabelText("Next page"));
     expect(onPage).toHaveBeenCalledWith(3);
     fireEvent.change(screen.getByLabelText("Rows per page"), { target: { value: "50" } });
     expect(onSize).toHaveBeenCalledWith(50);
   });
 
-  it("disables Previous on the first page", () => {
+  it("jumps to a page typed into the box, and refuses one that is not there", () => {
+    const onPage = vi.fn();
+    render(<TableFooter page={1} pageSize={10} total={42} onPageChange={onPage} onPageSizeChange={() => {}} />);
+    const box = screen.getByLabelText("Page");
+    fireEvent.change(box, { target: { value: "4" } });
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(onPage).toHaveBeenCalledWith(4);
+    // Five pages of ten in forty-two, so there is no ninth.
+    fireEvent.change(box, { target: { value: "9" } });
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(onPage).toHaveBeenCalledTimes(1);
+    expect(box).toHaveValue("1");
+  });
+
+  it("cannot step back from the first page, nor forward from an empty one", () => {
     render(<RowsPerPage value={10} onChange={() => {}} />);
     expect(screen.getByLabelText("Rows per page")).toHaveValue("10");
     render(<TableFooter page={1} pageSize={25} total={0} onPageChange={() => {}} onPageSizeChange={() => {}} />);
-    expect(screen.getByText("Previous")).toBeDisabled();
-    expect(screen.getByText("Showing 0 to 0 of 0")).toBeInTheDocument();
+    expect(screen.getByLabelText("Previous page")).toBeDisabled();
+    expect(screen.getByLabelText("First page")).toBeDisabled();
+    expect(screen.getByLabelText("Next page")).toBeDisabled();
+    expect(screen.getByText("0 to 0 of 0")).toBeInTheDocument();
   });
 });
 

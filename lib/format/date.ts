@@ -13,7 +13,7 @@
  *   starts on a day, not at a moment, and printing "12:00:00 AM" against it
  *   would be inventing precision the record does not have.
  * - It is written in the reader's own zone, because a timestamp a person is
- *   asked to recognise ("did I reply before five?") is only useful in the
+ *   asked to recognize ("did I reply before five?") is only useful in the
  *   zone they were standing in. The zone is a parameter so tests can pin one.
  *
  * Nothing here is for computing with. An ISO day is still the right thing to
