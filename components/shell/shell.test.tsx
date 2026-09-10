@@ -167,3 +167,44 @@ describe("the / shortcut", () => {
     expect(screen.queryByLabelText("Filter screens")).toBeNull();
   });
 });
+
+describe("what scrolls", () => {
+  /**
+   * The navy bar and the grey strip stay put by standing outside the thing
+   * that scrolls, not by being stuck to it. That only works while every
+   * column between the shell and the work area can shrink: one `min-h-0`
+   * missing anywhere on the chain and the document grows instead, taking
+   * both headers with it and leaving the table's sticky header nothing to
+   * stick to.
+   */
+  it("makes the work area the scroller, with the headers outside it", async () => {
+    stubFetch({
+      "GET /v1/admin/me": () =>
+        json({ principal: { kind: "internal", userId: "u1", accountIds: [], permissions: [] } }),
+      "GET /v1/me/waiting": () => json({ items: [], as_of: "2026-09-09T00:00:00Z" }),
+      "GET /v1/notifications/unread-count": () => json({ count: 0 }),
+      "GET /v1/tickets/stats": () => json({}),
+    });
+    const { container } = renderDesk(
+      <Shell>
+        <p>Work</p>
+      </Shell>,
+    );
+    await screen.findByTestId("finder-bar");
+
+    const main = container.querySelector("main");
+    expect(main).not.toBeNull();
+    expect(main!.className).toContain("overflow-auto");
+
+    // The navy bar and the grey strip are siblings above it, never inside it.
+    const bar = screen.getByTestId("finder-bar");
+    const strip = screen.getByTestId("content-header-bar");
+    expect(main!.contains(bar)).toBe(false);
+    expect(main!.contains(strip)).toBe(false);
+
+    // Every column from the shell root down to the work area can shrink.
+    for (let node = main!.parentElement; node && node !== container; node = node.parentElement) {
+      expect(node.className).toContain("min-h-0");
+    }
+  });
+});

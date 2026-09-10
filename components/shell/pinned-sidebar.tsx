@@ -48,18 +48,16 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
   const items = sidebarItems(props.permissions, props.extraPins);
   const total = props.permissions ? visibleScreens(props.permissions).length : 0;
   return (
-    // A sticky full-height column with its own scroll. It used to grow with its
-    // content, so on a long list "Browse all screens" was pushed below the fold
-    // and could not be reached (frontend review finding 7). Below the md
-    // breakpoint it floats over the content instead of taking 238px out of a
-    // 390px viewport (finding 8).
+    // A full-height column with its own scroll. It used to grow with its
+    // content, so on a long list "Browse all screens" was pushed below the
+    // fold and could not be reached (frontend review finding 7), and it used
+    // to be stuck to a scrolling page; the shell is the viewport now, so it
+    // is simply as tall as the column it stands in. Below the md breakpoint
+    // it floats over the content instead of taking 238px out of a 390px
+    // viewport (finding 8).
     <aside
-      className="xms-layer-sidebar bg-xms-card border-xms-line sticky flex shrink-0 flex-col border-r max-md:fixed max-md:bottom-0 max-md:left-0 max-md:z-30 max-md:shadow-2xl"
-      style={{
-        width: "var(--xms-sidebar-w)",
-        top: "var(--xms-finder-bar-h)",
-        height: "calc(100vh - var(--xms-finder-bar-h))",
-      }}
+      className="xms-layer-sidebar bg-xms-card border-xms-line flex h-full min-h-0 shrink-0 flex-col border-r max-md:fixed max-md:top-[var(--xms-finder-bar-h)] max-md:bottom-0 max-md:left-0 max-md:z-30 max-md:h-auto max-md:shadow-2xl"
+      style={{ width: "var(--xms-sidebar-w)" }}
       aria-label="Pinned"
       data-testid="pinned-sidebar"
     >

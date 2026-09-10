@@ -152,7 +152,7 @@ export function Shell({ children }: { children: ReactNode }) {
   }, [onKey]);
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <FinderBar
         activeFinder={finder}
         onFinder={(kind) => setFinder((open) => (open === kind ? null : kind))}
@@ -172,7 +172,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <NotificationsMenu onClose={() => setNotifications(false)} />
         </div>
       ) : null}
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         {sidebarOpen ? (
           <PinnedSidebar
             permissions={me.permissions}
@@ -186,7 +186,7 @@ export function Shell({ children }: { children: ReactNode }) {
             onEditPins={() => setFinder("all")}
           />
         ) : null}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
             {/* The work area, and the reason the canvas is grey: the vendored
                 token file paints the body white, and every screen was drawn on

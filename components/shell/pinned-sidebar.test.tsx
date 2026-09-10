@@ -109,12 +109,18 @@ describe("PinnedSidebar", () => {
  * not be reached (frontend review finding 7).
  */
 describe("the sidebar column", () => {
-  it("is a sticky full-height column bounded by the viewport", () => {
+  it("is a full-height column of the shell rather than stuck to a moving page", () => {
     render(<PinnedSidebar {...base} permissions={new Set(["tickets:view"])} />);
     const aside = screen.getByTestId("pinned-sidebar");
-    expect(aside.className).toContain("sticky");
-    expect(aside.style.top).toBe("var(--xms-finder-bar-h)");
-    expect(aside.style.height).toBe("calc(100vh - var(--xms-finder-bar-h))");
+    // The shell is the viewport and the work area is what scrolls, so the
+    // sidebar is simply as tall as the column it stands in. Sticking it to
+    // the page was the workaround for a scrolling document.
+    expect(aside.className).toContain("h-full");
+    expect(aside.className).not.toContain("sticky");
+    // Below the breakpoint it floats over the content and still has to clear
+    // the navy bar.
+    expect(aside.className).toContain("max-md:fixed");
+    expect(aside.className).toContain("max-md:top-[var(--xms-finder-bar-h)]");
   });
 
   it("keeps Browse all screens outside the scrolling region, so it is always in reach", () => {
