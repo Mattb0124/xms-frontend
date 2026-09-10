@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { formatMoment } from "@/lib/format/date";
 import {
   CANCEL_REASON_MESSAGE,
   deadlineLine,
@@ -45,11 +46,11 @@ describe("the review vocabulary", () => {
   });
 
   it("says when the decision is due, and that a passed deadline sent nothing", () => {
-    expect(reviewMoment("2026-09-08T06:00:00Z")).toBe("2026-09-08 06:00");
+    expect(reviewMoment("2026-09-08T06:00:00Z")).toBe(formatMoment("2026-09-08T06:00:00Z"));
     expect(reviewMoment(null)).toBeNull();
-    expect(deadlineLine(aReviewRun())).toBe("Approve or cancel it before 2026-09-08 06:00.");
+    expect(deadlineLine(aReviewRun())).toBe(`Approve or cancel it before ${formatMoment("2026-09-08T06:00:00Z")}.`);
     expect(deadlineLine(aReviewRun({ status: "awaiting_review" }))).toBe(
-      "The grace period passed at 2026-09-08 06:00 and nothing was sent. It is still yours to approve or cancel.",
+      `The grace period passed at ${formatMoment("2026-09-08T06:00:00Z")} and nothing was sent. It is still yours to approve or cancel.`,
     );
     expect(deadlineLine(aReviewRun({ review_due_at: null }))).toBe("No deadline was set on this run.");
     // A decided run has no deadline left to state.

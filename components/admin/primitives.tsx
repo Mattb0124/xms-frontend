@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyText } from "@/components/xms/key-link";
+import { formatMoment } from "@/lib/format/date";
 import { useState, type ReactNode } from "react";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -191,11 +192,14 @@ export function InlineError({ message }: { message: string | null }) {
   );
 }
 
+/**
+ * A moment, in the one format the product writes (`lib/format/date`). Kept
+ * here as well because half the admin screens already import it from the
+ * primitives, and moving every call site would have been a bigger change
+ * than the format itself.
+ */
 export function formatDate(value: string | null | undefined): string {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toISOString().slice(0, 16).replace("T", " ");
+  return formatMoment(value);
 }
 
 export function fullName(user: { first_name: string; last_name: string; email: string }): string {

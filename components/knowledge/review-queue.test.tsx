@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { formatDay } from "@/lib/format/date";
 import { describe, expect, it, vi } from "vitest";
 import { KnowledgeReviewQueue } from "@/components/knowledge/review-queue";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -57,7 +58,7 @@ describe("KnowledgeReviewQueue", () => {
 
     const table = within(await screen.findByRole("table", { name: "Review queue" }));
     expect(table.getByText("Reset the consolidation cache")).toBeInTheDocument();
-    expect(table.getByText("2026-09-05")).toBeInTheDocument();
+    expect(table.getByText(formatDay("2026-09-05T09:00:00Z"))).toBeInTheDocument();
     const asked = calls.find((call) => call.key.includes("/v1/articles"));
     expect(asked?.search).toContain("status=in_review");
   });

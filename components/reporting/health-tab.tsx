@@ -1,6 +1,7 @@
 "use client";
 
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { formatDay } from "@/lib/format/date";
 import { MeterBar } from "@/components/xms/meter-bar";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
@@ -137,7 +138,7 @@ export function AccountHealthTab({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <Panel
         title="Health"
-        subtitle={`Composed on read over the ${data.window.days} days to ${data.window.end.slice(0, 10)}.`}
+        subtitle={`Composed on read over the ${data.window.days} days to ${formatDay(data.window.end)}.`}
       >
         <div className="flex flex-wrap items-baseline gap-x-[14px] gap-y-2">
           <span className="xms-mono text-xms-ink text-[34px] leading-none font-semibold tabular-nums">

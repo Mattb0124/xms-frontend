@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { formatMoment } from "@/lib/format/date";
 import { DropZone, ScanAcknowledgement, UploadList, useUploads } from "@/components/tickets/attachments";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
@@ -143,9 +144,7 @@ export function Composer({
 }
 
 export function formatStamp(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return `${date.toISOString().slice(0, 10)} ${date.toISOString().slice(11, 16)}`;
+  return formatMoment(iso);
 }
 
 /** The two letters the prototype's 34px avatar carries. */

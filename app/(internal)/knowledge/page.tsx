@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatDay } from "@/lib/format/date";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
@@ -59,7 +60,7 @@ const COLUMNS: DenseColumn<Article>[] = [
     title: "Updated",
     mono: true,
     sortValue: (row) => row.updated_at,
-    render: (row) => row.updated_at.slice(0, 10),
+    render: (row) => formatDay(row.updated_at),
   },
 ];
 

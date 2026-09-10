@@ -1,4 +1,5 @@
 import { screen, within } from "@testing-library/react";
+import { formatDay } from "@/lib/format/date";
 import { describe, expect, it, vi } from "vitest";
 import { packTypeLabel, periodLabel, ReportPacksList } from "@/components/reporting/report-packs-list";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -43,7 +44,7 @@ describe("packTypeLabel", () => {
 
 describe("periodLabel", () => {
   it("reads as a span rather than two dates side by side", () => {
-    expect(periodLabel("2026-09-01", "2026-09-07")).toBe("2026-09-01 to 2026-09-07");
+    expect(periodLabel("2026-09-01", "2026-09-07")).toBe(`${formatDay("2026-09-01")} to ${formatDay("2026-09-07")}`);
   });
 });
 
@@ -70,7 +71,7 @@ describe("ReportPacksList", () => {
     const table = within(await screen.findByRole("table", { name: "Report packs" }));
     expect(table.getByText("WSR")).toBeInTheDocument();
     expect(table.getByText("Brookfield")).toBeInTheDocument();
-    expect(table.getByText("2026-09-01 to 2026-09-07")).toBeInTheDocument();
+    expect(table.getByText(`${formatDay("2026-09-01")} to ${formatDay("2026-09-07")}`)).toBeInTheDocument();
     // One of the two was skipped, so one was reached.
     expect(table.getByText("1 of 2")).toBeInTheDocument();
   });

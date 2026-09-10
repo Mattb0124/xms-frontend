@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { formatMoment } from "@/lib/format/date";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReportSchedulesTab } from "@/components/admin/reports/report-schedules-tab";
 import { reviewRequiredNote, WEEKLY_RUN_DAY_MESSAGE } from "@/lib/reporting/schedules";
@@ -236,7 +237,9 @@ describe("ReportSchedulesTab", () => {
 
     await screen.findByText("Report pack held for review");
     const result = screen.getByTestId("run-now-result");
-    expect(within(result).getByText("Approve or cancel it before 2026-09-08 06:00.")).toBeTruthy();
+    expect(
+      within(result).getByText(`Approve or cancel it before ${formatMoment("2026-09-08T06:00:00Z")}.`),
+    ).toBeTruthy();
     expect(within(result).getByRole("link", { name: "Review it" })).toHaveAttribute(
       "href",
       `/reports/runs/${REVIEW_RUN_ID}`,

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatMoment } from "@/lib/format/date";
 import { useState } from "react";
 import {
   FieldRow,
@@ -487,9 +488,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                   <td className={CELL}>
                     <span className="flex flex-col">
                       <span>{requestedByLabel(run.requested_by)}</span>
-                      <span className="xms-mono text-xms-label text-[11px]">
-                        {run.created_at.slice(0, 16).replace("T", " ")}
-                      </span>
+                      <span className="xms-mono text-xms-label text-[11px]">{formatMoment(run.created_at)}</span>
                     </span>
                   </td>
                   <td className={CELL}>

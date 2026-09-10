@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { formatDay } from "@/lib/format/date";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccountCsatView } from "@/components/reporting/csat-panel";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -49,7 +50,7 @@ describe("AccountCsatView", () => {
     expect(within(rows[0]).getByRole("link", { name: "CS0001001" })).toHaveAttribute("href", "/cases/CS0001001");
     expect(rows[0]).toHaveTextContent("No comment");
     expect(rows[0]).toHaveTextContent("Pat Client (pat@client.test)");
-    expect(rows[0]).toHaveTextContent("2026-09-06");
+    expect(rows[0]).toHaveTextContent(formatDay("2026-09-06T09:00:00Z"));
     expect(within(rows[1]).getByText("2 of 5")).toHaveAttribute("data-state", "overdue");
     expect(rows[1]).toHaveTextContent("Took too long to hear back");
     expect(rows[1]).toHaveTextContent("Anonymous");

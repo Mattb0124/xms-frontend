@@ -1,6 +1,7 @@
 "use client";
 
 import { PRIMARY_BUTTON } from "@/components/admin/primitives";
+import { formatMoment } from "@/lib/format/date";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { StatePill } from "@/components/xms/state-pill";
@@ -100,9 +101,7 @@ export function ReportsCard({ accountId }: { accountId: string }) {
                 <td className="px-4 py-2">
                   <RunStatusPill status={run.status} />
                 </td>
-                <td className="xms-mono text-xms-label px-4 py-2 text-[12px]">
-                  {run.created_at.slice(0, 16).replace("T", " ")}
-                </td>
+                <td className="xms-mono text-xms-label px-4 py-2 text-[12px]">{formatMoment(run.created_at)}</td>
                 <td className="px-4 py-2 text-right">
                   {run.pack_id_resolved ? (
                     <a href={`/reports/packs/${run.pack_id_resolved}`} className="xms-link">

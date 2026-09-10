@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { formatMoment } from "@/lib/format/date";
 import {
   formatDuration,
   formatHHMM,
@@ -80,7 +81,7 @@ describe("calendar hours grammar", () => {
   it("formats an instant in a named zone and survives an unknown zone", () => {
     expect(formatInZone("2026-09-14T11:00:00.000Z", "Europe/London")).toBe("Mon, 14 Sept 2026, 12:00");
     expect(formatInZone("2026-09-14T11:00:00.000Z", "Australia/Sydney")).toBe("Mon, 14 Sept 2026, 21:00");
-    expect(formatInZone("2026-09-14T11:00:00.000Z", "Mars/Olympus")).toBe("2026-09-14 11:00");
+    expect(formatInZone("2026-09-14T11:00:00.000Z", "Mars/Olympus")).toBe(formatMoment("2026-09-14T11:00:00.000Z"));
     expect(formatInZone("nonsense", "UTC")).toBe("nonsense");
   });
 });

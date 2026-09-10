@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { formatMoment } from "@/lib/format/date";
 import { describe, expect, it } from "vitest";
 import { BatchList } from "@/components/admin/migration/batch-list";
 import { BatchProperties, CountsStrip, LogTab, RunProgress } from "@/components/admin/migration/batch-summary";
@@ -79,7 +80,7 @@ describe("BatchList", () => {
       "data-count-tone",
       "overdue",
     );
-    expect(screen.getByText("2026-09-07 10:05")).toBeInTheDocument();
+    expect(screen.getByText(formatMoment("2026-09-07T10:05:00Z"))).toBeInTheDocument();
   });
 
   it("shows the spec's empty state", () => {

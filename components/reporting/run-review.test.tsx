@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { formatMoment } from "@/lib/format/date";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReportRunReview } from "@/components/reporting/run-review";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -48,7 +49,7 @@ describe("ReportRunReview", () => {
     expect(screen.getByText("2026-08-31 to 2026-09-06")).toBeTruthy();
     // The status pill and the review pill both say where the run stands.
     expect(screen.getAllByText("Ready for review").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("Approve or cancel it before 2026-09-08 06:00.")).toBeTruthy();
+    expect(screen.getByText(`Approve or cancel it before ${formatMoment("2026-09-08T06:00:00Z")}.`)).toBeTruthy();
 
     // Both renditions are opened through the presigned links the API minted,
     // with no opener and no referrer.

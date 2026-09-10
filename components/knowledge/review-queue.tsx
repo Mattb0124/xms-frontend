@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { formatDay } from "@/lib/format/date";
 import { useMemo } from "react";
 import { ConfirmButton } from "@/components/admin/primitives";
 import { ArticleStatusPill, GlobalChip } from "@/components/knowledge/primitives";
@@ -90,7 +91,7 @@ export function KnowledgeReviewQueue() {
         width: "130px",
         mono: true,
         sortValue: (row) => row.updated_at,
-        render: (row) => row.updated_at.slice(0, 10),
+        render: (row) => formatDay(row.updated_at),
       },
       {
         key: "decide",

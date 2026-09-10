@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatDay } from "@/lib/format/date";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -77,7 +78,7 @@ export function TeamTime() {
         width: "120px",
         mono: true,
         sortValue: (row) => row.performed_on,
-        render: (row) => row.performed_on,
+        render: (row) => formatDay(row.performed_on),
       },
       {
         key: "against",

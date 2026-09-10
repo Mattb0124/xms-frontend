@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDay } from "@/lib/format/date";
 import { ConfirmButton, INPUT, PRIMARY_BUTTON, formatDate } from "@/components/admin/primitives";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
@@ -69,7 +70,7 @@ export function CostRatesTab({ personId }: { personId: string }) {
       width: "130px",
       mono: true,
       sortValue: (row) => row.effective_from,
-      render: (row) => row.effective_from,
+      render: (row) => formatDay(row.effective_from),
     },
     {
       key: "rate",

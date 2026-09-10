@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatDay } from "@/lib/format/date";
 import { useMemo, useState } from "react";
 import { IntegrityPanel } from "@/components/admin/integrity-panel";
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
@@ -79,7 +80,7 @@ export function pausedDetail(row: PausedIntegration): string {
 
 /** The oldest failure and, for a connector queue, the instance it belongs to. */
 export function deadLetterDetail(row: OpenDeadLetter): string {
-  const oldest = `oldest ${row.oldest.slice(0, 10)}`;
+  const oldest = `oldest ${formatDay(row.oldest)}`;
   return row.instance_name ? `${row.instance_name}, ${oldest}` : oldest;
 }
 

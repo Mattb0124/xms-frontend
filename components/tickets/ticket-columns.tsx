@@ -1,6 +1,7 @@
 "use client";
 
 import { shortName } from "@/components/xms/actor-chip";
+import { formatDay, formatTime } from "@/lib/format/date";
 import type { DenseColumn } from "@/components/xms/dense-table";
 import { ICON } from "@/components/xms/icons";
 import { KeyLink, TextLink } from "@/components/xms/key-link";
@@ -10,31 +11,30 @@ import { StatePill } from "@/components/xms/state-pill";
 import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
 import type { GrantedAccount, TicketView } from "@/redux/ticketsApi";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
 /**
- * "3 Sep" for the Opened column, with the year appended once the ticket was
- * opened in another one, so a list that spans a year boundary still reads.
- * Built from the parts rather than through `toLocaleDateString` so the column
- * is the same on every machine and the tests can assert it.
+ * The day of the Opened column, in the one format the product writes.
+ *
+ * It used to read "3 Sep", with the year appended only when the ticket was
+ * opened in a different one. That was tidier in a narrow column and it was a
+ * second way of spelling a date, so it has gone: every date in XMS is
+ * `09/09/2026` now, whichever screen it is on.
  */
-export function openedDate(iso: string, now: Date = new Date()): string {
-  const at = new Date(iso);
-  if (Number.isNaN(at.getTime())) return "";
-  const stem = `${at.getDate()} ${MONTHS[at.getMonth()]}`;
-  return at.getFullYear() === now.getFullYear() ? stem : `${stem} ${String(at.getFullYear()).slice(2)}`;
+export function openedDate(iso: string): string {
+  return formatDay(iso);
 }
 
 /** "3m ago", "2h ago", "4d ago" for the Updated column. */
 
-/** The two lines a stamp is drawn on: the day above, the clock beneath. */
-export function stampLines(iso: string, now: Date = new Date()): { day: string; time: string } {
+/**
+ * The two lines a stamp is drawn on: the day above, the clock beneath.
+ *
+ * Both halves are the house format, so the stamp reads as the same date the
+ * rest of the product writes; the break is only where the column is narrow.
+ */
+export function stampLines(iso: string): { day: string; time: string } {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return { day: "", time: "" };
-  return {
-    day: openedDate(iso, now),
-    time: `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`,
-  };
+  return { day: formatDay(iso), time: formatTime(iso) };
 }
 
 /** How a case arrived, in a word, with the mark that says it without reading. */
@@ -61,7 +61,7 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
-  return new Date(iso).toISOString().slice(0, 10);
+  return formatDay(iso);
 }
 
 /**

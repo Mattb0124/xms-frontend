@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { formatDay } from "@/lib/format/date";
 import { useMemo, useState } from "react";
 import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
@@ -36,7 +37,7 @@ export function packTypeLabel(type: string): string {
 
 /** "1 to 7 September 2026" from the two dates the run carries. */
 export function periodLabel(start: string, end: string): string {
-  return `${start} to ${end}`;
+  return `${formatDay(start)} to ${formatDay(end)}`;
 }
 
 /**

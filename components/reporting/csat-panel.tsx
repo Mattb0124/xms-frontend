@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatDay } from "@/lib/format/date";
 import { useState } from "react";
 import { INPUT } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
@@ -258,9 +259,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
                     )}
                   </td>
                   <td className={CELL}>{respondentLabel(response)}</td>
-                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>
-                    {response.created_at.slice(0, 10)}
-                  </td>
+                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>{formatDay(response.created_at)}</td>
                 </tr>
               ))}
               {data.responses.length === 0 ? (

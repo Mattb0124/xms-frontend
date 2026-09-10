@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { formatMoment } from "@/lib/format/date";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { modeNotice, SyncCard, SyncCardView } from "@/components/tickets/sync-card";
 import { aLink, aRun, aSyncCardOutbound } from "@/test-kit/connectors";
@@ -56,7 +57,7 @@ describe("SyncCardView", () => {
     expect(screen.getByText("Linked")).toHaveAttribute("data-state", "complete");
     expect(screen.getByText("Brookfield CSM, ingest only, healthy")).toBeInTheDocument();
     expect(screen.getByText("Updates are not sent to ServiceNow.")).toBeInTheDocument();
-    expect(screen.getByText(/last in 2026-09-07 09:12/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`last in ${formatMoment("2026-09-07T09:12:00Z")}`))).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "Recent runs" }).children).toHaveLength(2);
     expect(screen.getByText("Skipped (mode)")).toHaveAttribute("data-state", "ready");
   });
@@ -101,7 +102,7 @@ describe("SyncCardView", () => {
         runs={[]}
       />,
     );
-    expect(screen.getByText(/last pushed 2026-09-07 09:40/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`last pushed ${formatMoment("2026-09-07T09:40:00Z")}`))).toBeInTheDocument();
     expect(screen.getByText("2 changes waiting to send, 1 failed")).toBeInTheDocument();
     expect(screen.getByText(/HTTP 401 from the instance/)).toHaveAttribute("data-outbound-error");
   });

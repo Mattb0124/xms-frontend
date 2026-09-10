@@ -1,4 +1,5 @@
 import type { CalendarHours } from "@/redux/calendarsApi";
+import { formatMoment } from "@/lib/format/date";
 
 /**
  * The week grid's grammar (Accounts & Administration functional 5.7): per
@@ -137,7 +138,7 @@ export function formatInZone(iso: string, timeZone: string): string {
       hour12: false,
     }).format(date);
   } catch {
-    return date.toISOString().slice(0, 16).replace("T", " ");
+    return formatMoment(date.toISOString());
   }
 }
 

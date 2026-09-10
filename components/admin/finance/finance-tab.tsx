@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatMoment } from "@/lib/format/date";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
@@ -338,9 +339,7 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
                       <span className="text-xms-ink font-medium">
                         {names[delivery.billing_period_id] ?? delivery.billing_period_id.slice(0, 8)}
                       </span>
-                      <span className="xms-mono text-xms-label text-[11px]">
-                        {delivery.created_at.slice(0, 16).replace("T", " ")}
-                      </span>
+                      <span className="xms-mono text-xms-label text-[11px]">{formatMoment(delivery.created_at)}</span>
                     </span>
                   </td>
                   <td className={CELL}>

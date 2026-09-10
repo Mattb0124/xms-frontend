@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { formatDay } from "@/lib/format/date";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SecurityDashboard } from "@/components/admin/security-dashboard";
 import { ContentHeaderBar } from "@/components/shell/content-header-bar";
@@ -55,9 +56,13 @@ describe("SecurityDashboard", () => {
     // The instance and the oldest failure are named beside the count, so a
     // queue of four is neither anonymous nor read as four failures today.
     expect(
-      within(panel("Open dead letters")).getByText("Brookfield ServiceNow, oldest 2026-09-01"),
+      within(panel("Open dead letters")).getByText(
+        `Brookfield ServiceNow, oldest ${formatDay("2026-09-01T04:00:00Z")}`,
+      ),
     ).toBeInTheDocument();
-    expect(within(panel("Open dead letters")).getByText("oldest 2026-09-03")).toBeInTheDocument();
+    expect(
+      within(panel("Open dead letters")).getByText(`oldest ${formatDay("2026-09-03T06:00:00Z")}`),
+    ).toBeInTheDocument();
   });
 
   it("opens the record behind each row, by kind and by id", async () => {

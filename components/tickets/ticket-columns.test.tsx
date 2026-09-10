@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { formatDay } from "@/lib/format/date";
 import { describe, expect, it } from "vitest";
 import { QUEUE_DEFAULT_SORT, attentionColumns, openedDate, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
@@ -129,14 +130,20 @@ describe("the Queue columns", () => {
         rowKey={(row) => row.key}
       />,
     );
-    expect(screen.getByText("25 Aug")).toBeInTheDocument();
+    expect(screen.getByText(formatDay("2026-08-25T09:00:00Z"))).toBeInTheDocument();
   });
 
-  it("names the year on a ticket opened in another one", () => {
-    const now = new Date("2026-09-08T00:00:00Z");
-    expect(openedDate("2026-08-25T09:00:00Z", now)).toBe("25 Aug");
-    expect(openedDate("2025-12-31T09:00:00Z", now)).toBe("31 Dec 25");
-    expect(openedDate("not a date", now)).toBe("");
+  it("writes the day in the one format the product uses", () => {
+    // It used to read "25 Aug", with the year only on a ticket from another
+    // one. That was a second way of spelling a date, so it has gone.
+    const august = openedDate("2026-08-25T09:00:00Z");
+    expect(august).toHaveLength(10);
+    expect(august.startsWith("08/")).toBe(true);
+    expect(august.endsWith("/2026")).toBe(true);
+    // A day from another year is written the same way, year and all.
+    expect(openedDate("2025-12-31T09:00:00Z").endsWith("/2025")).toBe(true);
+    // What cannot be read comes back as it went in.
+    expect(openedDate("not a date")).toBe("not a date");
   });
 
   // The reviewer took the colour off these two, on every list and not only on

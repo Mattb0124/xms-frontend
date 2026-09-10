@@ -1,4 +1,5 @@
 import type { SignalTone } from "@/components/xms/signal-pill";
+import { formatMoment } from "@/lib/format/date";
 import { apiError, describeError, type ApiError } from "@/lib/admin/api-error";
 import type {
   HeldPack,
@@ -74,7 +75,7 @@ export function reviewPill(status: string): ReviewPill | null {
 /** "2026-09-08 06:00" from the ISO instant the API sends. */
 export function reviewMoment(at: string | null | undefined): string | null {
   if (!at) return null;
-  return at.slice(0, 16).replace("T", " ");
+  return formatMoment(at);
 }
 
 /**
