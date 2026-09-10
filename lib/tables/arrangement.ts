@@ -8,7 +8,7 @@ import type { DenseColumn } from "@/components/xms/dense-table";
  * called, how they sort and how wide they are. The arrangement says only
  * which of them this reader wants and in what order. That split is what
  * makes the store safe to keep: a column that leaves the product simply
- * stops being recognised, and a reader who had chosen it loses one cell
+ * stops being recognized, and a reader who had chosen it loses one cell
  * rather than their whole list.
  */
 
@@ -20,15 +20,15 @@ export interface DisplayOptions {
   compact: boolean;
   /** Mark the row last opened, so a reader returning to the list finds it. */
   activeRow: boolean;
-  /** Let the clock and priority cells carry their colour. */
-  colouring: boolean;
+  /** Let the clock and priority cells carry their color. */
+  coloring: boolean;
 }
 
 export const DISPLAY_DEFAULTS: DisplayOptions = {
   wrap: false,
   compact: false,
   activeRow: true,
-  colouring: true,
+  coloring: true,
 };
 
 /** One row of the Available and Selected lists: a column key and its name. */

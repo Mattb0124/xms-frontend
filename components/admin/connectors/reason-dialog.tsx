@@ -37,7 +37,7 @@ export function ReasonDialog({
   const trimmed = reason.trim();
   const valid = required ? trimmed.length >= 3 : true;
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-xms-navy-overlay p-4">
+    <div className="bg-xms-navy-overlay/55 fixed inset-0 z-40 flex items-center justify-center p-4">
       <form
         role="dialog"
         aria-label={title}

@@ -40,7 +40,7 @@ export interface TableDisplay {
   wrap: boolean;
   compact: boolean;
   activeRow: boolean;
-  colouring: boolean;
+  coloring: boolean;
 }
 
 export interface DenseTableProps<Row> {
@@ -196,7 +196,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
             place of the title, so the table is still findable by name. */}
         <table
           aria-label={props.title}
-          data-plain={display && !display.colouring ? "true" : undefined}
+          data-plain={display && !display.coloring ? "true" : undefined}
           className="xms-sticky-head w-full border-collapse text-[13px]"
         >
           {/* Without a header row the widths have nowhere else to live. */}

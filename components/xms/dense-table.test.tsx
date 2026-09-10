@@ -180,7 +180,7 @@ describe("DenseTable", () => {
 });
 
 describe("DenseTable display switches", () => {
-  const DISPLAY = { wrap: false, compact: false, activeRow: true, colouring: true };
+  const DISPLAY = { wrap: false, compact: false, activeRow: true, coloring: true };
 
   function draw(display: typeof DISPLAY) {
     return render(
@@ -237,7 +237,7 @@ describe("DenseTable display switches", () => {
     expect(container.querySelector('[data-row-key="CS0001204"]')).not.toHaveClass("bg-xms-row-hover");
   });
 
-  it("asks the table for plain cells only where colouring is off", () => {
+  it("asks the table for plain cells only where coloring is off", () => {
     const { container, rerender } = draw(DISPLAY);
     expect(container.querySelector("table")).not.toHaveAttribute("data-plain");
     rerender(
@@ -246,7 +246,7 @@ describe("DenseTable display switches", () => {
         columns={COLUMNS}
         rows={ROWS}
         rowKey={(r) => r.key}
-        display={{ ...DISPLAY, colouring: false }}
+        display={{ ...DISPLAY, coloring: false }}
         selectable
       />,
     );

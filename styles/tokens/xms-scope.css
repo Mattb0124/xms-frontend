@@ -532,9 +532,9 @@
   .xms-priority-mark[data-priority="p1"] .xms-priority-dot { background: var(--xms-state-overdue-fg, #dc2626); }
   .xms-priority-mark[data-priority="p2"] .xms-priority-dot { background: var(--xms-label); }
 
-  /* A reader who turns cell colouring off gets a list that reads as text:
+  /* A reader who turns cell coloring off gets a list that reads as text:
    * the state glyph, the priority dot and the clock drop to ink, and the
-   * only colour left on the row is a link. The marks keep their shape, so
+   * only color left on the row is a link. The marks keep their shape, so
    * nothing moves. */
   .xms-scope table[data-plain] .xms-state-mark,
   .xms-scope table[data-plain] .xms-state-mark[data-state] {

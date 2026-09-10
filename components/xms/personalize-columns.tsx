@@ -30,7 +30,7 @@ const SWITCHES: { key: keyof DisplayOptions; label: string }[] = [
   { key: "wrap", label: "Wrap column text" },
   { key: "compact", label: "Compact rows" },
   { key: "activeRow", label: "Active row highlighting" },
-  { key: "colouring", label: "Modern cell colouring" },
+  { key: "coloring", label: "Modern cell coloring" },
 ];
 
 /**
@@ -87,7 +87,7 @@ export function PersonalizeColumns({
   const isDefault = chosen.length === defaults.length && chosen.every((key, index) => key === defaults[index]);
 
   return (
-    <div className="bg-xms-navy-overlay fixed inset-0 z-40 flex items-center justify-center p-4">
+    <div className="bg-xms-navy-overlay/55 fixed inset-0 z-40 flex items-center justify-center p-4">
       <div
         role="dialog"
         aria-modal="true"
