@@ -237,7 +237,10 @@ export const SCREENS: Screen[] = [
     screen: "report_packs",
     label: "Report packs",
     section: "Reports",
-    permission: "reports:view-portfolio",
+    // The list reads /v1/reporting/runs, which the API answers to
+    // reports:manage; the registry said view-portfolio, which would have
+    // offered the screen to a reader the API then refused.
+    permission: "reports:manage",
     purpose: "WSR and QBR runs.",
   },
   {

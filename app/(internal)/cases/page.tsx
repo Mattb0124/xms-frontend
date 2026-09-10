@@ -5,14 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { CasePreview, type PreviewAnchor } from "@/components/cases/case-preview";
-import {
-  HeaderAction,
-  HeaderFilterPanel,
-  HeaderFilters,
-  HeaderSearch,
-  HeaderSearchField,
-  useHeaderFilterPanel,
-} from "@/components/shell/content-header-bar";
+import { HeaderAction, HeaderFilterPanel, HeaderFilters } from "@/components/shell/content-header-bar";
 import { ExportMenu } from "@/components/tickets/export-menu";
 import { savedViewLabel, SavedViewsBar, useSavedViews } from "@/components/tickets/saved-views";
 import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
@@ -22,16 +15,7 @@ import { EmptyBanner } from "@/components/xms/empty-banner";
 import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
 import { ConditionBuilder } from "@/components/xms/condition-builder";
 import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
-import {
-  ICON,
-  ChevronDownIcon,
-  ColumnsIcon,
-  FunnelIcon,
-  PlusIcon,
-  SearchIcon,
-  SwitchIcon,
-  TagIcon,
-} from "@/components/xms/icons";
+import { ICON, ChevronDownIcon, PlusIcon, SearchIcon, SwitchIcon, TagIcon } from "@/components/xms/icons";
 import { BulkAction, SelectionBar } from "@/components/xms/selection-bar";
 import { Skeleton } from "@/components/xms/skeleton";
 import { RowsPerPage, type RowsPerPageOption } from "@/components/xms/table-footer";
@@ -101,9 +85,6 @@ function withoutChip(chips: Chip[], key: ChipKey): Chip[] {
   return chips.filter((chip) => chip.key !== key);
 }
 
-const CARD_ICON_BUTTON =
-  "border-xms-line bg-xms-card text-xms-label hover:text-xms-ink hover:border-xms-line-strong flex h-[34px] w-[38px] shrink-0 items-center justify-center rounded-[6px] border";
-
 /**
  * The Cases list (User Experience 3.2, Wireframes v3 section 8): a system view
  * switcher, removable chips, the Count card with the dense table, the
@@ -128,7 +109,6 @@ function CasesScreen() {
   const [query, setQuery] = useState(parsed.q);
   // The v3 render (01) ends the table at Assignee. SLA and Updated stay one
   // click away on the card header column control rather than being deleted.
-  const filterPanel = useHeaderFilterPanel();
 
   // The filter builder's conditions, carried in the URL as readable JSON and
   // sent to the list route as the base64url set it decodes, so a pasted link
@@ -413,16 +393,6 @@ function CasesScreen() {
           onChange={(next) => navigate({ conditions: next })}
         />
       </HeaderFilterPanel>
-      {/* The render's local search sits in the header bar beside the gear;
-          the in-card field searches the same term, so both write it. */}
-      <HeaderSearch>
-        <HeaderSearchField
-          value={query}
-          onChange={setQuery}
-          onSubmit={() => navigate({ q: query.trim() })}
-          label="Search the queue"
-        />
-      </HeaderSearch>
       <HeaderAction>
         {/* "Actions on selected rows", beside the primary button. It is drawn
             disabled with nothing ticked rather than appearing and vanishing,
@@ -547,33 +517,6 @@ function CasesScreen() {
                 <SearchIcon size={ICON.action} />
               </button>
             </form>
-          }
-          actions={
-            <>
-              {/* The card's own funnel and the strip's are the same control:
-                  both open the one builder, so the reader is never asked
-                  which filter they meant. */}
-              <button
-                type="button"
-                aria-label="Filter the list"
-                aria-pressed={filterPanel.open}
-                onClick={filterPanel.toggle}
-                className={cn(CARD_ICON_BUTTON, filterPanel.open && "border-xms-accent text-xms-accent")}
-              >
-                <FunnelIcon size={ICON.field} />
-              </button>
-              {/* The card's columns mark and the strip's gear open the one
-                  dialogue, the way the card's funnel and the strip's open the
-                  one builder. */}
-              <button
-                type="button"
-                aria-label="Personalize list columns"
-                onClick={arrangement.open}
-                className={CARD_ICON_BUTTON}
-              >
-                <ColumnsIcon size={ICON.field} />
-              </button>
-            </>
           }
           banner={
             // The bar's actions (section 8.4), each one call to
