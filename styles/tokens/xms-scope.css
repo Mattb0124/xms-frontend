@@ -8,11 +8,23 @@
  */
 
 .xms-scope {
-  /* Text, four levels and nothing else */
+  /* Text: one ink, and a placeholder.
+   *
+   * The scale used to grade down through body, label and muted (#3d4a5c,
+   * #5a6784, #7b8ca0). The product read as washed out, because the greys
+   * carried most of the copy: 622 uses of text-xms-label, 165 of
+   * text-xms-body and 112 of text-xms-muted against 360 of text-xms-ink.
+   * Matt asked for no grey text on 2026-09-10 (AIBL-313), so the three now
+   * alias the ink rather than being retired: 901 call sites keep working,
+   * and restoring the hierarchy is a matter of putting three values back.
+   *
+   * De-emphasis is now weight, size and placement, never colour. The
+   * placeholder stays distinct because a black placeholder reads as a value
+   * somebody typed. */
   --xms-ink: #0f1623;
-  --xms-body: #3d4a5c;
-  --xms-label: #5a6784;
-  --xms-muted: #7b8ca0;
+  --xms-body: var(--xms-ink);
+  --xms-label: var(--xms-ink);
+  --xms-muted: var(--xms-ink);
   --xms-placeholder: #9aa3b2;
 
   /* Actions and selection */
@@ -205,10 +217,13 @@
  * already navy in light mode, so it barely changes. */
 .dark .xms-scope,
 [data-theme="dark"] .xms-scope {
+  /* The same one-ink rule inverted. Aliasing rather than repeating the value
+   * means dark mode cannot drift from the light scope's decision, and it
+   * keeps dark text light rather than turning it black on a dark ground. */
   --xms-ink: #eaf0f8;
-  --xms-body: #d5dce8;
-  --xms-label: #a9b4c6;
-  --xms-muted: #8a97ad;
+  --xms-body: var(--xms-ink);
+  --xms-label: var(--xms-ink);
+  --xms-muted: var(--xms-ink);
   --xms-placeholder: #6f7c92;
   --xms-accent: #7ea0ff;
   --xms-accent-hover: #9ab5ff;
