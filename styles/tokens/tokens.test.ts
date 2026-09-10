@@ -198,3 +198,16 @@ describe("the field treatment", () => {
     expect(scope).toMatch(/\.xms-field\[data-active="true"\][\s\S]{0,140}background-color: var\(--xms-tint\)/);
   });
 });
+
+describe("text in a table", () => {
+  it("reads in ink unless it is a link, and leaves the signals their colour", () => {
+    const rule = scope.slice(scope.indexOf(".xms-scope table :is(th, td)"));
+    const block = rule.slice(0, rule.indexOf("}"));
+    expect(block).toContain("[data-tone]");
+    expect(block).toContain(".xms-state-mark");
+    expect(block).toContain(".xms-priority-mark");
+    expect(rule.slice(0, rule.indexOf("}") + 200)).toContain("var(--xms-ink)");
+    // A link in a cell stays the link colour.
+    expect(scope).toContain(".xms-scope table :is(th, td) :is(a, a *)");
+  });
+});

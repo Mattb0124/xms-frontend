@@ -731,6 +731,27 @@
   box-shadow: none;
 }
 
+/* In a table, text reads in ink unless it is a link.
+ *
+ * The greys were doing three jobs at once: a quiet label, a value nobody has
+ * filled in, and a value that is simply less important. Across a row of
+ * thirty that read as half the table being switched off. A cell is either a
+ * link, which is blue, or it is text, which is ink.
+ *
+ * The signals keep their colour, because they are the three questions a list
+ * is read for: the state glyph, the priority dot and the clock. They are
+ * exempt by name rather than by accident, and so is anything inside them. */
+.xms-scope table :is(th, td),
+.xms-scope table
+  :is(th, td)
+  :not(:is(a, [data-tone], .xms-state-mark, .xms-priority-mark, .aix-state-pill))
+  :not(:is(a, [data-tone], .xms-state-mark, .xms-priority-mark, .aix-state-pill) *) {
+  color: var(--xms-ink);
+}
+.xms-scope table :is(th, td) :is(a, a *) {
+  color: var(--xms-accent);
+}
+
 /* Control geometry inside the scope (wins over utilities on purpose).
  *
  * A tab is not a control with a box: its selected mark is a straight rule on
