@@ -93,6 +93,7 @@ export const xmsApi = createApi({
     "Budget",
     "RateCards",
     "Attachments",
+    "ListPreferences",
     "Email",
     "Quarantine",
     "Aliases",

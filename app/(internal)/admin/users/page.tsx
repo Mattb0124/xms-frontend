@@ -15,6 +15,7 @@ import {
 } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { useListArrangement } from "@/components/xms/use-list-arrangement";
 import { FilterSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
 import { KeyText, TextLink } from "@/components/xms/key-link";
@@ -185,6 +186,8 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
  */
 function UsersList() {
   const router = useRouter();
+  // The reader's own arrangement of this list, behind the strip's gear.
+  const arrangement = useListArrangement("users", COLUMNS);
   const [kind, setKind] = useState<UserKind | null>(null);
   const [inviting, setInviting] = useState(false);
   const { data, isLoading } = useListUsersQuery(kind ? { kind } : undefined);
@@ -227,13 +230,15 @@ function UsersList() {
         <DenseTable
           title="Users"
           subtitle="internal people, portal contacts and machine identities"
-          columns={COLUMNS}
+          columns={arrangement.columns}
+          display={arrangement.display}
           rows={rows}
           rowKey={(row) => row.id}
           loading={isLoading}
           onRowClick={(row) => router.push(`/admin/users/${row.id}`)}
           emptyState={isLoading ? "Loading" : "No users yet."}
         />
+        {arrangement.dialogue}
       </div>
     </>
   );

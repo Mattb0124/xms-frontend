@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { useListArrangement } from "@/components/xms/use-list-arrangement";
 import { formatPercent, levelLabel, roleLabel } from "@/lib/roster/vocab";
 import type { Person } from "@/redux/rosterApi";
 
@@ -103,16 +104,22 @@ export function PeopleList({ rows, groupNames, loading, search, emptyState }: Pe
         row.is_active ? <SignalPill tone="complete" label="Active" /> : <SignalPill tone="blocked" label="Inactive" />,
     },
   ];
+  // The reader's own arrangement of this list, behind the strip's gear.
+  const arrangement = useListArrangement("roster", columns);
   return (
-    <DenseTable
-      title="People"
-      subtitle="everyone on the roster, with the groups and skills each one carries"
-      columns={columns}
-      rows={rows}
-      rowKey={(row) => row.id}
-      loading={loading}
-      search={search}
-      emptyState={emptyState ?? "No one on the roster yet. Import from the directory to start."}
-    />
+    <>
+      <DenseTable
+        title="People"
+        subtitle="everyone on the roster, with the groups and skills each one carries"
+        columns={arrangement.columns}
+        display={arrangement.display}
+        rows={rows}
+        rowKey={(row) => row.id}
+        loading={loading}
+        search={search}
+        emptyState={emptyState ?? "No one on the roster yet. Import from the directory to start."}
+      />
+      {arrangement.dialogue}
+    </>
   );
 }

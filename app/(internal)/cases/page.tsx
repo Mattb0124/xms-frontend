@@ -17,6 +17,7 @@ import { ExportMenu } from "@/components/tickets/export-menu";
 import { savedViewLabel, SavedViewsBar, useSavedViews } from "@/components/tickets/saved-views";
 import { QUEUE_DEFAULT_SORT, ticketColumns } from "@/components/tickets/ticket-columns";
 import { DenseTable } from "@/components/xms/dense-table";
+import { useListArrangement } from "@/components/xms/use-list-arrangement";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
 import { ConditionBuilder } from "@/components/xms/condition-builder";
@@ -127,7 +128,6 @@ function CasesScreen() {
   const [query, setQuery] = useState(parsed.q);
   // The v3 render (01) ends the table at Assignee. SLA and Updated stay one
   // click away on the card header column control rather than being deleted.
-  const [clocks, setClocks] = useState(false);
   const filterPanel = useHeaderFilterPanel();
 
   // The filter builder's conditions, carried in the URL as readable JSON and
@@ -171,7 +171,9 @@ function CasesScreen() {
   const trackAssign = useTrack("dispatch.assign");
 
   const accountsById = useMemo(() => new Map((accounts ?? []).map((account) => [account.id, account])), [accounts]);
-  const columns = useMemo(() => ticketColumns({ accounts: accountsById, showClocks: clocks }), [accountsById, clocks]);
+  const authored = useMemo(() => ticketColumns({ accounts: accountsById }), [accountsById]);
+  // The reader's own arrangement of this list, and the gear that opens it.
+  const arrangement = useListArrangement("cases", authored);
   const rows = useMemo(() => data?.items ?? [], [data]);
 
   // A new URL (view, chips, search, page size) restarts paging and selection
@@ -515,7 +517,8 @@ function CasesScreen() {
           // The bands run to both edges of the work area, so the list pulls
           // itself back out of the page's own 20px gutter.
           className="-mx-5"
-          columns={columns}
+          columns={arrangement.columns}
+          display={arrangement.display}
           rows={rows}
           rowKey={(row) => row.key}
           defaultSort={QUEUE_DEFAULT_SORT}
@@ -559,12 +562,14 @@ function CasesScreen() {
               >
                 <FunnelIcon size={ICON.field} />
               </button>
+              {/* The card's columns mark and the strip's gear open the one
+                  dialogue, the way the card's funnel and the strip's open the
+                  one builder. */}
               <button
                 type="button"
-                aria-pressed={clocks}
-                aria-label={clocks ? "Hide the SLA and Updated columns" : "Show the SLA and Updated columns"}
-                onClick={() => setClocks((shown) => !shown)}
-                className={cn(CARD_ICON_BUTTON, clocks && "border-xms-accent text-xms-accent")}
+                aria-label="Personalize list columns"
+                onClick={arrangement.open}
+                className={CARD_ICON_BUTTON}
               >
                 <ColumnsIcon size={ICON.field} />
               </button>
@@ -681,6 +686,7 @@ function CasesScreen() {
         />
       )}
       {preview ? <CasePreview ticketKey={preview} onClose={() => setPreview(null)} /> : null}
+      {arrangement.dialogue}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { AdminGate, PRIMARY_BUTTON } from "@/components/admin/primitives";
 import { ArticleStatusPill, GlobalChip, KIND_LABEL } from "@/components/knowledge/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { useListArrangement } from "@/components/xms/use-list-arrangement";
 import { FilterSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon, SearchIcon } from "@/components/xms/icons";
 import { KeyLink } from "@/components/xms/key-link";
@@ -95,6 +96,8 @@ function KnowledgeList() {
   };
   const filtered = knowledgeFiltersApplied(filters);
 
+  // The reader's own arrangement of this list, behind the strip's gear.
+  const arrangement = useListArrangement("knowledge", COLUMNS);
   return (
     <div className="flex flex-col gap-4">
       {/* The three dimensions stand on the grey strip as drawn controls, as
@@ -137,42 +140,50 @@ function KnowledgeList() {
       {isLoading && !data ? (
         <Skeleton lines={8} />
       ) : (
-        <DenseTable<Article>
-          title="Solutions"
-          subtitle="the published knowledge base and everything still on its way there"
-          columns={COLUMNS}
-          rows={rows}
-          rowKey={(row) => row.display_key}
-          onRowClick={(row) => router.push(`/knowledge/${row.display_key}`)}
-          search={
-            // The Cases list's own card search, at the same 38px and 400px.
-            <form
-              className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
-              onSubmit={(event) => {
-                event.preventDefault();
-                navigate({ q: query.trim() });
-              }}
-            >
-              <input
-                type="search"
-                aria-label="Search articles by title, category or key"
-                placeholder="Search articles by title, category or key"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
-              />
-              <button type="submit" aria-label="Run the search" className="text-xms-muted hover:text-xms-ink shrink-0">
-                <SearchIcon size={ICON.action} />
-              </button>
-            </form>
-          }
-          // A line where the rows would be, not a card standing inside the card.
-          emptyState={
-            filtered
-              ? "No articles here. Set a dimension back to all to widen the list."
-              : "No articles yet. Resolving a ticket creates the first one."
-          }
-        />
+        <>
+          <DenseTable<Article>
+            title="Solutions"
+            subtitle="the published knowledge base and everything still on its way there"
+            columns={arrangement.columns}
+            display={arrangement.display}
+            rows={rows}
+            rowKey={(row) => row.display_key}
+            onRowClick={(row) => router.push(`/knowledge/${row.display_key}`)}
+            search={
+              // The Cases list's own card search, at the same 38px and 400px.
+              <form
+                className="border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  navigate({ q: query.trim() });
+                }}
+              >
+                <input
+                  type="search"
+                  aria-label="Search articles by title, category or key"
+                  placeholder="Search articles by title, category or key"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+                />
+                <button
+                  type="submit"
+                  aria-label="Run the search"
+                  className="text-xms-muted hover:text-xms-ink shrink-0"
+                >
+                  <SearchIcon size={ICON.action} />
+                </button>
+              </form>
+            }
+            // A line where the rows would be, not a card standing inside the card.
+            emptyState={
+              filtered
+                ? "No articles here. Set a dimension back to all to widen the list."
+                : "No articles yet. Resolving a ticket creates the first one."
+            }
+          />
+          {arrangement.dialogue}
+        </>
       )}
     </div>
   );

@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/primitives";
 import { HeaderAction, HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { useListArrangement } from "@/components/xms/use-list-arrangement";
 import { FilterSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
 import { KeyLink } from "@/components/xms/key-link";
@@ -144,6 +145,8 @@ function NewAccountForm({ onDone }: { onDone: (id: string) => void }) {
  */
 function AdminAccountsPageBody() {
   const router = useRouter();
+  // The reader's own arrangement of this list, behind the strip's gear.
+  const arrangement = useListArrangement("accounts", COLUMNS);
   const [status, setStatus] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const { data, isLoading } = useListAccountsQuery(status ? { status } : undefined);
@@ -186,13 +189,15 @@ function AdminAccountsPageBody() {
         <DenseTable
           title="Accounts"
           subtitle="every client account, its isolation tier and where it is in its life"
-          columns={COLUMNS}
+          columns={arrangement.columns}
+          display={arrangement.display}
           rows={rows}
           rowKey={(row) => row.id}
           loading={isLoading}
           onRowClick={(row) => router.push(`/admin/accounts/${row.id}`)}
           emptyState={isLoading ? "Loading" : "No accounts yet. Create the first one with New."}
         />
+        {arrangement.dialogue}
       </div>
     </>
   );

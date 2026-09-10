@@ -31,6 +31,18 @@ export interface DenseColumn<Row> {
   hidden?: boolean;
 }
 
+/**
+ * What the personalize dialogue's display switches ask of the table. The
+ * screen passes what the reader chose; the defaults are what a list looks
+ * like for anyone who has never opened the dialogue.
+ */
+export interface TableDisplay {
+  wrap: boolean;
+  compact: boolean;
+  activeRow: boolean;
+  colouring: boolean;
+}
+
 export interface DenseTableProps<Row> {
   title: string;
   /**
@@ -84,6 +96,8 @@ export interface DenseTableProps<Row> {
   emptyState?: ReactNode;
   loading?: boolean;
   className?: string;
+  /** The reader's display switches, from useListArrangement. */
+  display?: TableDisplay;
 }
 
 function compare(a: string | number | null | undefined, b: string | number | null | undefined): number {
@@ -101,6 +115,13 @@ function compare(a: string | number | null | undefined, b: string | number | nul
  */
 export function DenseTable<Row>(props: DenseTableProps<Row>) {
   const { columns, rows, rowKey, selectable, onRowClick, onRowPreview } = props;
+  const display = props.display;
+  // Tighter rows fit more of the list on a screen; the default is the height
+  // the renders draw.
+  const cellY = display?.compact ? "py-[7px]" : "py-[13px]";
+  // The row last opened keeps a quiet mark, so a reader coming back from a
+  // record finds their place. It is not a selection, so it carries no rail.
+  const [active, setActive] = useState<string | null>(null);
   const drawn = useMemo(() => columns.filter((column) => !column.hidden), [columns]);
   const [localSort, setLocalSort] = useState<SortState | undefined>(props.defaultSort);
   const sort = props.sort ?? localSort;
@@ -173,7 +194,11 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
       <div className="overflow-x-auto">
         {/* The card names itself even where the header draws a search in
             place of the title, so the table is still findable by name. */}
-        <table aria-label={props.title} className="xms-sticky-head w-full border-collapse text-[13px]">
+        <table
+          aria-label={props.title}
+          data-plain={display && !display.colouring ? "true" : undefined}
+          className="xms-sticky-head w-full border-collapse text-[13px]"
+        >
           {/* Without a header row the widths have nowhere else to live. */}
           {props.headless ? (
             <colgroup>
@@ -186,7 +211,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
           <thead className={cn("bg-xms-card sticky top-0 z-10", props.headless && "hidden")}>
             <tr className={cn(!props.headless && "border-xms-line-head border-b")}>
               {selectable ? (
-                <th className="w-11 px-5 py-[11px]">
+                <th className={cn("w-11 px-5", display?.compact ? "py-[7px]" : "py-[11px]")}>
                   <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />
                 </th>
               ) : null}
@@ -198,7 +223,8 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     style={{ width: column.width }}
                     aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : undefined}
                     className={cn(
-                      "text-xms-ink px-[14px] py-[11px] text-left text-[13px] font-semibold whitespace-nowrap",
+                      "text-xms-ink px-[14px] text-left text-[13px] font-semibold whitespace-nowrap",
+                      display?.compact ? "py-[7px]" : "py-[11px]",
                       column.align === "right" && "text-right",
                     )}
                   >
@@ -248,6 +274,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                           // person it is assigned to. Without this the row
                           // swallowed every one of them.
                           if ((event.target as HTMLElement).closest("a,button,input,select,textarea,label")) return;
+                          setActive(key);
                           onRowClick(row);
                         }
                       : undefined
@@ -267,11 +294,12 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     // nothing else does (hand-off rule 1).
                     "group/row border-xms-line-row hover:bg-xms-row-hover border-b",
                     isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent-hover)]",
+                    display?.activeRow !== false && active === key && !isSelected && "bg-xms-row-hover",
                     onRowClick && "cursor-pointer",
                   )}
                 >
                   {selectable ? (
-                    <td className="px-5 py-[13px] align-middle" onClick={(event) => event.stopPropagation()}>
+                    <td className={cn("px-5 align-middle", cellY)} onClick={(event) => event.stopPropagation()}>
                       {/* The box stands where the pointer is, or where a row is
                           already ticked. It keeps its space either way, so a
                           row does not shift as the pointer crosses it, and it
@@ -297,8 +325,9 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                         // A row is as tall as the sentence in it, and every
                         // other cell sits in the middle of that height rather
                         // than hanging from the top of it.
-                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] py-[13px] align-middle",
-                        column.wrap ? undefined : "whitespace-nowrap",
+                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] align-middle",
+                        cellY,
+                        column.wrap || display?.wrap ? undefined : "whitespace-nowrap",
                         column.mono && "xms-mono",
                         column.align === "right" && "text-right",
                       )}
@@ -307,7 +336,10 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     </td>
                   ))}
                   {onRowPreview ? (
-                    <td className="w-[44px] px-3 py-[13px] align-middle" onClick={(event) => event.stopPropagation()}>
+                    <td
+                      className={cn("w-[44px] px-3 align-middle", cellY)}
+                      onClick={(event) => event.stopPropagation()}
+                    >
                       {/* Opens the record beside the list rather than leaving
                           it, so a reader can read one row and stay where they
                           were. Drawn on hover, like the box. */}

@@ -164,7 +164,7 @@ describe("DenseTable", () => {
           {
             key: "contact",
             title: "Contact",
-            render: () => <a href="/contacts/abc">Sam Owner</a>,
+            render: () => <a href="https://example.test/contacts/abc">Sam Owner</a>,
           },
         ]}
         rows={[{ key: "CS0000001" }]}
@@ -176,5 +176,80 @@ describe("DenseTable", () => {
     expect(onRowClick).not.toHaveBeenCalled();
     fireEvent.click(screen.getByText("CS0000001"));
     expect(onRowClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("DenseTable display switches", () => {
+  const DISPLAY = { wrap: false, compact: false, activeRow: true, colouring: true };
+
+  function draw(display: typeof DISPLAY) {
+    return render(
+      <DenseTable title="Queue" columns={COLUMNS} rows={ROWS} rowKey={(r) => r.key} display={display} selectable />,
+    );
+  }
+
+  it("keeps cells on one line until the reader asks them to wrap", () => {
+    const { container, rerender } = draw(DISPLAY);
+    expect(container.querySelector("tbody td:nth-child(2)")).toHaveClass("whitespace-nowrap");
+    rerender(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={{ ...DISPLAY, wrap: true }}
+        selectable
+      />,
+    );
+    expect(container.querySelector("tbody td:nth-child(2)")).not.toHaveClass("whitespace-nowrap");
+  });
+
+  it("tightens every cell, header included, on compact rows", () => {
+    const { container } = draw({ ...DISPLAY, compact: true });
+    expect(container.querySelector("tbody td:nth-child(2)")).toHaveClass("py-[7px]");
+    expect(container.querySelector("thead th")).toHaveClass("py-[7px]");
+  });
+
+  it("marks the row last opened, and stops when the reader turns it off", () => {
+    const onRowClick = vi.fn();
+    const { container, rerender } = render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={DISPLAY}
+        onRowClick={onRowClick}
+      />,
+    );
+    fireEvent.click(screen.getByText("HFM consolidation fails"));
+    expect(container.querySelector('[data-row-key="CS0001204"]')).toHaveClass("bg-xms-row-hover");
+    rerender(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={{ ...DISPLAY, activeRow: false }}
+        onRowClick={onRowClick}
+      />,
+    );
+    expect(container.querySelector('[data-row-key="CS0001204"]')).not.toHaveClass("bg-xms-row-hover");
+  });
+
+  it("asks the table for plain cells only where colouring is off", () => {
+    const { container, rerender } = draw(DISPLAY);
+    expect(container.querySelector("table")).not.toHaveAttribute("data-plain");
+    rerender(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={{ ...DISPLAY, colouring: false }}
+        selectable
+      />,
+    );
+    expect(container.querySelector("table")).toHaveAttribute("data-plain", "true");
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ICON, ChevronDownIcon, FunnelIcon, GearIcon, MenuIcon, SearchIcon } from "@/components/xms/icons";
 import type { Screen } from "@/lib/routes";
@@ -25,6 +25,13 @@ interface HeaderPanelApi {
 }
 
 const HeaderPanelContext = createContext<HeaderPanelApi | null>(null);
+
+interface HeaderSettingsApi {
+  register: (open: () => void) => void;
+  unregister: () => void;
+}
+
+const HeaderSettingsContext = createContext<HeaderSettingsApi | null>(null);
 
 export interface ContentHeaderBarProps {
   current: Screen | undefined;
@@ -70,6 +77,10 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
   // it carries the number of conditions standing behind it.
   const [panel, setPanel] = useState<{ present: boolean; count: number }>({ present: false, count: 0 });
   const [panelOpen, setPanelOpen] = useState(false);
+  // What the gear opens on this screen. A screen with nothing behind it does
+  // not get the tool, for the same reason a screen without a builder does not
+  // get the funnel: a control that does nothing is worse than no control.
+  const [settings, setSettings] = useState<(() => void) | null>(null);
   const switchable = screens.filter((s) => !s.path.includes("["));
   // Both callbacks are stable, and the context value is memoised on what it
   // actually carries: a new identity on every render would re-run the
@@ -84,6 +95,12 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
     () => setPanel((current) => (current.present ? { present: false, count: 0 } : current)),
     [],
   );
+  const registerSettings = useCallback((open: () => void) => setSettings(() => open), []);
+  const unregisterSettings = useCallback(() => setSettings(null), []);
+  const settingsApi = useMemo<HeaderSettingsApi>(
+    () => ({ register: registerSettings, unregister: unregisterSettings }),
+    [registerSettings, unregisterSettings],
+  );
   const panelApi = useMemo<HeaderPanelApi>(
     () => ({ slot: panelSlot, open: panelOpen, setOpen: setPanelOpen, register, unregister }),
     [panelSlot, panelOpen, register, unregister],
@@ -92,80 +109,95 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
     <HeaderSlotContext.Provider value={filterSlot}>
       <HeaderActionContext.Provider value={actionSlot}>
         <HeaderSearchContext.Provider value={searchApi}>
-          <HeaderPanelContext.Provider value={panelApi}>
-            <div
-              className="xms-layer-strip bg-xms-bar border-xms-bar-line flex shrink-0 items-center gap-[10px] border-b px-4"
-              style={{ height: "var(--xms-header-bar-h)" }}
-              data-testid="content-header-bar"
-            >
-              <button type="button" aria-label="Toggle sidebar" onClick={onToggleSidebar} className={ICON_BUTTON}>
-                <MenuIcon size={ICON.bar} />
-              </button>
-              {panel.present ? (
-                <button
-                  type="button"
-                  aria-label="Filters"
-                  aria-expanded={panelOpen}
-                  onClick={() => setPanelOpen((open) => !open)}
-                  className={cn(ICON_BUTTON, "relative", panelOpen && "bg-xms-card text-xms-accent")}
-                >
-                  <FunnelIcon size={ICON.bar} />
-                  {panel.count > 0 ? (
-                    <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[9px] font-semibold text-white">
-                      {panel.count}
-                    </span>
-                  ) : null}
-                </button>
-              ) : null}
-              <span className="relative flex shrink-0 items-center gap-[6px] pr-1">
-                <span className="text-xms-ink text-[15px] font-semibold">{current?.label ?? "XMS"}</span>
-                <ChevronDownIcon size={ICON.control} className="text-xms-muted" />
-                <select
-                  aria-label="Screen switcher"
-                  value={current?.path ?? ""}
-                  onChange={(event) => router.push(event.target.value)}
-                  className="absolute inset-0 cursor-pointer opacity-0"
-                >
-                  {current && current.path.includes("[") ? <option value={current.path}>{current.label}</option> : null}
-                  {switchable.map((screen) => (
-                    <option key={screen.path} value={screen.path}>
-                      {screen.label}
-                    </option>
-                  ))}
-                </select>
-              </span>
+          <HeaderSettingsContext.Provider value={settingsApi}>
+            <HeaderPanelContext.Provider value={panelApi}>
               <div
-                ref={setFilterSlot}
-                className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto"
-                data-testid="header-filter-slot"
-              />
-              <button type="button" aria-label="Screen settings" onClick={onSettings} className={ICON_BUTTON}>
-                <GearIcon size={ICON.bar} />
-              </button>
-              {/* The render's local search sits between the gear and the primary
+                className="xms-layer-strip bg-xms-bar border-xms-bar-line flex shrink-0 items-center gap-[10px] border-b px-4"
+                style={{ height: "var(--xms-header-bar-h)" }}
+                data-testid="content-header-bar"
+              >
+                <button type="button" aria-label="Toggle sidebar" onClick={onToggleSidebar} className={ICON_BUTTON}>
+                  <MenuIcon size={ICON.bar} />
+                </button>
+                {panel.present ? (
+                  <button
+                    type="button"
+                    aria-label="Filters"
+                    aria-expanded={panelOpen}
+                    onClick={() => setPanelOpen((open) => !open)}
+                    className={cn(ICON_BUTTON, "relative", panelOpen && "bg-xms-card text-xms-accent")}
+                  >
+                    <FunnelIcon size={ICON.bar} />
+                    {panel.count > 0 ? (
+                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[9px] font-semibold text-white">
+                        {panel.count}
+                      </span>
+                    ) : null}
+                  </button>
+                ) : null}
+                <span className="relative flex shrink-0 items-center gap-[6px] pr-1">
+                  <span className="text-xms-ink text-[15px] font-semibold">{current?.label ?? "XMS"}</span>
+                  <ChevronDownIcon size={ICON.control} className="text-xms-muted" />
+                  <select
+                    aria-label="Screen switcher"
+                    value={current?.path ?? ""}
+                    onChange={(event) => router.push(event.target.value)}
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                  >
+                    {current && current.path.includes("[") ? (
+                      <option value={current.path}>{current.label}</option>
+                    ) : null}
+                    {switchable.map((screen) => (
+                      <option key={screen.path} value={screen.path}>
+                        {screen.label}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+                <div
+                  ref={setFilterSlot}
+                  className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto"
+                  data-testid="header-filter-slot"
+                />
+                {settings || onSettings ? (
+                  <button
+                    type="button"
+                    aria-label="Screen settings"
+                    onClick={settings ?? onSettings}
+                    className={ICON_BUTTON}
+                  >
+                    <GearIcon size={ICON.bar} />
+                  </button>
+                ) : null}
+                {/* The render's local search sits between the gear and the primary
                 action. A screen that has one portals it here. The slot used to
                 hold its 186px whether or not a screen filled it, so on every
                 screen without a search the gear stood marooned that far from
                 the action beside it. It takes width only when it carries
                 something. */}
-              <div
-                ref={setSearchSlot}
-                className={cn("flex shrink-0 items-center", searchFilled && "w-[186px]")}
-                data-testid="header-search-slot"
-              />
-              <div ref={setActionSlot} className="flex shrink-0 items-center gap-2" data-testid="header-action-slot" />
-            </div>
-            {/* The builder stands on the same grey as the strip, directly
+                <div
+                  ref={setSearchSlot}
+                  className={cn("flex shrink-0 items-center", searchFilled && "w-[186px]")}
+                  data-testid="header-search-slot"
+                />
+                <div
+                  ref={setActionSlot}
+                  className="flex shrink-0 items-center gap-2"
+                  data-testid="header-action-slot"
+                />
+              </div>
+              {/* The builder stands on the same grey as the strip, directly
                 under it, so the conditions read as part of where you are
                 rather than as part of the list. */}
-            <div
-              ref={setPanelSlot}
-              hidden={!panelOpen}
-              className="bg-xms-bar border-xms-bar-line shrink-0 border-b px-4 py-3"
-              data-testid="header-panel-slot"
-            />
-            {children}
-          </HeaderPanelContext.Provider>
+              <div
+                ref={setPanelSlot}
+                hidden={!panelOpen}
+                className="bg-xms-bar border-xms-bar-line shrink-0 border-b px-4 py-3"
+                data-testid="header-panel-slot"
+              />
+              {children}
+            </HeaderPanelContext.Provider>
+          </HeaderSettingsContext.Provider>
         </HeaderSearchContext.Provider>
       </HeaderActionContext.Provider>
     </HeaderSlotContext.Provider>
@@ -191,6 +223,27 @@ export function HeaderFilterPanel({ count, children }: { count: number; children
     return () => unregister?.();
   }, [register, unregister, count]);
   return panel?.slot && panel.open ? createPortal(children, panel.slot) : null;
+}
+
+/**
+ * Put something behind the strip's gear for as long as this screen is
+ * mounted. The handler is held in a ref so a screen may pass a fresh closure
+ * on every render without re-registering, which would loop.
+ */
+export function useHeaderSettings(open: () => void): void {
+  const settings = useContext(HeaderSettingsContext);
+  const held = useRef(open);
+  // Written after the render, never during it: the effect below registers
+  // once and calls whatever the latest render left here.
+  useEffect(() => {
+    held.current = open;
+  });
+  const register = settings?.register;
+  const unregister = settings?.unregister;
+  useEffect(() => {
+    register?.(() => held.current());
+    return () => unregister?.();
+  }, [register, unregister]);
 }
 
 /** Pages render their FilterBar inside this; it lands in the header bar's slot. */

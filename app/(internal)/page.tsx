@@ -10,6 +10,7 @@ import { attentionColumns } from "@/components/tickets/ticket-columns";
 import { TimeTodayCard } from "@/components/time/time-today-card";
 import { BriefLine } from "@/components/xms/brief-line";
 import { DenseTable } from "@/components/xms/dense-table";
+import { useListArrangement } from "@/components/xms/use-list-arrangement";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { ICON, PlusIcon } from "@/components/xms/icons";
@@ -48,6 +49,8 @@ export default function MyWorkPage() {
   const { data: accounts } = useListGrantedAccountsQuery(undefined, { skip: !ready });
   const accountsById = useMemo(() => new Map((accounts ?? []).map((account) => [account.id, account])), [accounts]);
   const attentionCols = useMemo(() => attentionColumns({ accounts: accountsById }), [accountsById]);
+  // The reader's own arrangement of this list, behind the strip's gear.
+  const arrangement = useListArrangement("my-work", attentionCols);
   const mine = useMemo(() => data?.items ?? [], [data]);
   const group = useMemo(() => groupWork?.items ?? [], [groupWork]);
   // The pressed scorecard, if any: the lens over the list rather than a place
@@ -153,7 +156,8 @@ export default function MyWorkPage() {
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
           <DenseTable<TicketView>
             title="Needs attention"
-            columns={attentionCols}
+            columns={arrangement.columns}
+            display={arrangement.display}
             rows={attention}
             rowKey={(row) => row.key}
             // Worst first: P1 above P4, since a person reads this list from the
@@ -162,6 +166,7 @@ export default function MyWorkPage() {
             onRowClick={(row) => router.push(`/cases/${row.key}`)}
             emptyState="Nothing needs a nudge right now."
           />
+          {arrangement.dialogue}
           <div className="flex flex-col gap-[14px]">
             <TimeTodayCard />
             <WaitingRail />

@@ -1,11 +1,12 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PeopleList } from "@/components/roster/people-list";
+import { renderDesk } from "@/test-kit/desk";
 import { aPerson, aPersonSkill, GROUP_ID } from "@/test-kit/roster";
 
 describe("PeopleList", () => {
   it("renders one row per person with role, FTE, zone, group chips, skill chips with the level and the active pill", () => {
-    render(
+    renderDesk(
       <PeopleList
         groupNames={{ [GROUP_ID]: "OneStream squad" }}
         rows={[
@@ -41,12 +42,12 @@ describe("PeopleList", () => {
   });
 
   it("falls back to a short id when the reader cannot resolve group names", () => {
-    render(<PeopleList rows={[aPerson()]} />);
+    renderDesk(<PeopleList rows={[aPerson()]} />);
     expect(within(screen.getByLabelText("Groups of Ana Silva")).getByText(GROUP_ID.slice(0, 8))).toBeInTheDocument();
   });
 
   it("shows the empty state", () => {
-    render(<PeopleList rows={[]} emptyState="No one matches." />);
+    renderDesk(<PeopleList rows={[]} emptyState="No one matches." />);
     expect(screen.getByText("No one matches.")).toBeInTheDocument();
   });
 });
