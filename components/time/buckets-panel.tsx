@@ -93,7 +93,7 @@ function BucketRow({
       <li className="border-xms-line border-b px-4 py-3 last:border-b-0">
         <form
           aria-label={`Edit ${bucket.label}`}
-          className="flex flex-wrap items-end gap-3 text-[12px]"
+          className="flex flex-wrap items-end gap-3 text-[14px]"
           onSubmit={(event) => {
             event.preventDefault();
             void save();
@@ -166,10 +166,10 @@ function BucketRow({
       className="border-xms-line flex flex-wrap items-center gap-3 border-b px-4 py-2 last:border-b-0"
       data-bucket={bucket.id}
     >
-      <span className="text-xms-ink text-[13px] font-medium">{bucket.label}</span>
-      <span className="xms-mono text-xms-label text-[12px]">{bucket.key}</span>
-      <span className="text-xms-body text-[12px]">{bucketCodeLabel(bucket.code ?? "custom")}</span>
-      <span className="text-xms-body text-[12px]" data-class>
+      <span className="text-xms-ink text-[14px] font-medium">{bucket.label}</span>
+      <span className="xms-mono text-xms-label text-[14px]">{bucket.key}</span>
+      <span className="text-xms-body text-[14px]">{bucketCodeLabel(bucket.code ?? "custom")}</span>
+      <span className="text-xms-body text-[14px]" data-class>
         {className}
         {consumes === undefined ? "" : consumes ? ", consumes the contract" : ", does not consume the contract"}
       </span>
@@ -181,7 +181,7 @@ function BucketRow({
         <button
           type="button"
           onClick={() => setDraft(toDraft(bucket))}
-          className="text-xms-accent ml-auto text-[12px] hover:underline"
+          className="text-xms-accent ml-auto text-[14px] hover:underline"
         >
           Edit
         </button>
@@ -205,7 +205,7 @@ function BucketsList({ accountId, canEdit }: { accountId: string; canEdit: boole
   if (isLoading && !data) return <Skeleton lines={3} />;
   const buckets = data ?? [];
   if (buckets.length === 0)
-    return <p className="text-xms-label px-4 py-3 text-[13px]">This account has no non-ticket buckets.</p>;
+    return <p className="text-xms-label px-4 py-3 text-[14px]">This account has no non-ticket buckets.</p>;
   return (
     <ul className="flex flex-col" aria-label="Buckets">
       {buckets.map((bucket) => (
@@ -234,7 +234,7 @@ export function BucketsPanel({ accountId }: { accountId: string }) {
       {canRead ? (
         <BucketsList accountId={accountId} canEdit={me.hasPermission("contracts:manage")} />
       ) : (
-        <p className="text-xms-label px-4 py-3 text-[13px]">
+        <p className="text-xms-label px-4 py-3 text-[14px]">
           Reading the buckets needs the time:log permission, which this account binding does not carry.
         </p>
       )}

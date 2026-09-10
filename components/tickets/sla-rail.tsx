@@ -26,7 +26,7 @@ function Meter({
   const pause = pauseCaption(clock, pausedReason);
   return (
     <div className="flex flex-col gap-1" data-clock={clock.kind}>
-      <span className="text-xms-body text-[13px] leading-[1.4]">{meterCaption(clock, fetchedAt, now, metAt)}</span>
+      <span className="text-xms-body text-[14px] leading-[1.4]">{meterCaption(clock, fetchedAt, now, metAt)}</span>
       <MeterBar
         percent={clock.met ? 100 : percent}
         met={clock.met}
@@ -35,7 +35,7 @@ function Meter({
         pauses={pauseShare > 0 ? [{ startPct: Math.max(0, percent - pauseShare), endPct: percent }] : []}
       />
       {pause ? (
-        <span className="text-xms-label text-[12px]" data-pause-caption>
+        <span className="text-xms-label text-[14px]" data-pause-caption>
           {pause}
         </span>
       ) : null}
@@ -96,12 +96,12 @@ export function RequesterCard({ ticket }: { ticket: TicketView }) {
       {ticket.requester ? (
         <div className="flex flex-col">
           <span className="text-xms-ink font-medium">{ticket.requester.display_name}</span>
-          <span className="xms-mono text-xms-label text-[12px]">{ticket.requester.email}</span>
+          <span className="xms-mono text-xms-label text-[14px]">{ticket.requester.email}</span>
         </div>
       ) : (
         <p className="text-xms-muted">No requester recorded.</p>
       )}
-      <p className="text-xms-label mt-2 text-[12px]">
+      <p className="text-xms-label mt-2 text-[14px]">
         Source {ticket.source}, created by {ticket.created_by_name || "unknown"}.
       </p>
     </RailCard>
@@ -137,7 +137,7 @@ export function WatchCard({ ticketKey, watching = true }: { ticketKey: string; w
         </button>
       }
     >
-      <p className="text-xms-label text-[12px]">
+      <p className="text-xms-label text-[14px]">
         {muted
           ? "You will not be notified about this ticket."
           : "You get replies, notes and state changes in your feed."}

@@ -37,7 +37,7 @@ export function decisionPermission(capability: AiCapability): string {
 }
 
 const REQUEST_BUTTON =
-  "border-xms-ai-border text-xms-body hover:bg-xms-card h-[28px] rounded-[4px] border px-3 text-[12px] font-medium disabled:opacity-50";
+  "border-xms-ai-border text-xms-body hover:bg-xms-card h-[28px] rounded-[4px] border px-3 text-[14px] font-medium disabled:opacity-50";
 
 export interface AxelSuggestStripProps {
   ticket: TicketView;
@@ -122,12 +122,12 @@ export function AxelSuggestStrip({ ticket, readOnly, onDraftAccepted }: AxelSugg
           </>
         ) : null}
         {withheld ? (
-          <span role="status" className="text-xms-label text-[12px]">
+          <span role="status" className="text-xms-label text-[14px]">
             {withheld}
           </span>
         ) : null}
         {effectiveOff && !withheld ? (
-          <span className="text-xms-label text-[12px]">{switchOffTooltip(offCause)}</span>
+          <span className="text-xms-label text-[14px]">{switchOffTooltip(offCause)}</span>
         ) : null}
       </div>
       {open.isLoading ? <Skeleton lines={2} /> : null}
@@ -149,7 +149,7 @@ export function AxelSuggestStrip({ ticket, readOnly, onDraftAccepted }: AxelSugg
         </div>
       ) : null}
       {!open.isLoading && cards.length === 0 && canRequest && !withheld ? (
-        <p className="text-xms-label text-[12px]">Nothing suggested yet. Ask for a summary or a draft reply.</p>
+        <p className="text-xms-label text-[14px]">Nothing suggested yet. Ask for a summary or a draft reply.</p>
       ) : null}
     </section>
   );

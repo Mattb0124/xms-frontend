@@ -33,7 +33,7 @@ export function BriefLine({ text, onDismiss, className }: BriefLineProps) {
           setHidden(true);
           onDismiss?.();
         }}
-        className="border-xms-note-line bg-xms-card text-xms-body hover:text-xms-ink shrink-0 rounded-[var(--xms-radius-control)] border px-[14px] py-[10px] text-[13px] font-medium"
+        className="border-xms-note-line bg-xms-card text-xms-body hover:text-xms-ink shrink-0 rounded-[var(--xms-radius-control)] border px-[14px] py-[10px] text-[14px] font-medium"
       >
         Dismiss
       </button>

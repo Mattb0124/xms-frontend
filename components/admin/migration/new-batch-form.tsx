@@ -177,7 +177,7 @@ export function NewBatchForm({ accounts, initial, onCreated, onCancel }: NewBatc
                 value={form.instance_id}
                 onChange={(event) => set("instance_id", event.target.value)}
               />
-              <span className="text-xms-label text-[12px]">
+              <span className="text-xms-label text-[14px]">
                 Listing the account&apos;s instances needs admin:connectors.
               </span>
             </div>
@@ -211,7 +211,7 @@ export function NewBatchForm({ accounts, initial, onCreated, onCancel }: NewBatc
           onChange={(next) => set("dry_run", next)}
         />
         <InlineError message={error ?? rangeProblem} />
-        <p className="text-xms-label text-[12px]">
+        <p className="text-xms-label text-[14px]">
           The batch is created as a draft. Run it from its record; a dry run is safe to repeat.
         </p>
         <div className="flex items-center gap-2">

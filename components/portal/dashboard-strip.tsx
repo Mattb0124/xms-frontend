@@ -68,7 +68,7 @@ export function DashboardStrip({ days = 30 }: { days?: number }) {
           <dl className="grid grid-cols-2 gap-4 md:grid-cols-3" data-testid="portal-dashboard">
             {tiles.map((tile) => (
               <div key={tile.label}>
-                <dt className="text-xms-label text-[13px]">{tile.label}</dt>
+                <dt className="text-xms-label text-[14px]">{tile.label}</dt>
                 <dd className="text-xms-ink text-[24px] font-semibold" aria-label={tile.label}>
                   {tile.value}
                 </dd>
@@ -76,7 +76,7 @@ export function DashboardStrip({ days = 30 }: { days?: number }) {
             ))}
           </dl>
           {open.data?.unavailable ? (
-            <p role="status" className="text-xms-label mt-3 text-[13px]">
+            <p role="status" className="text-xms-label mt-3 text-[14px]">
               {open.data.unavailable === 1
                 ? "1 more request could not be loaded and is not counted."
                 : `${open.data.unavailable} more requests could not be loaded and are not counted.`}

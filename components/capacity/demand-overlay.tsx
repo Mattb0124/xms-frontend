@@ -72,7 +72,7 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
       caption="Demand"
       subtitle="Weighted pipeline and committed project demand stacked on the allocated hours; the lighter shades are the demand."
     >
-      <div className="flex flex-col gap-3 text-[12px]" data-testid="demand-overlay">
+      <div className="flex flex-col gap-3 text-[14px]" data-testid="demand-overlay">
         {demand.by_subject.length === 0 && demand.total_minutes === 0 ? (
           <p className="text-xms-label">
             No demand entered for {label}.{" "}
@@ -146,7 +146,7 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
             </dl>
             <p
               className={cn(
-                "text-[12px]",
+                "text-[14px]",
                 demand.total_minutes > totals.remaining_minutes
                   ? "text-[color:var(--state-overdue-text)]"
                   : "text-xms-body",

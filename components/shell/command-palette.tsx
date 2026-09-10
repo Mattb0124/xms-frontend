@@ -79,7 +79,7 @@ export function CommandPalette({ screens, actions = [], onClose }: CommandPalett
                 onMouseEnter={() => setIndex(i)}
                 onClick={() => run(item)}
                 className={cn(
-                  "flex w-full items-center px-4 py-2 text-left text-[13px]",
+                  "flex w-full items-center px-4 py-2 text-left text-[14px]",
                   i === index ? "bg-xms-tint text-xms-ink" : "text-xms-body",
                 )}
               >
@@ -88,7 +88,7 @@ export function CommandPalette({ screens, actions = [], onClose }: CommandPalett
               </button>
             </li>
           ))}
-          {items.length === 0 ? <li className="text-xms-label px-4 py-3 text-[13px]">Nothing matches.</li> : null}
+          {items.length === 0 ? <li className="text-xms-label px-4 py-3 text-[14px]">Nothing matches.</li> : null}
         </ul>
       </div>
     </div>

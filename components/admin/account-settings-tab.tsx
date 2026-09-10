@@ -158,12 +158,12 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
           />
         </FieldRow>
         <div className="mt-3">
-          <p className="text-xms-label mb-1 text-[12px]">Inbound aliases</p>
+          <p className="text-xms-label mb-1 text-[14px]">Inbound aliases</p>
           <div className="flex flex-wrap items-center gap-2">
             {aliases.map((alias) => (
               <span
                 key={alias}
-                className="border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-[999px] border pr-1 pl-[10px] text-[12px]"
+                className="border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-[999px] border pr-1 pl-[10px] text-[14px]"
               >
                 <span className="xms-mono">{alias}</span>
                 <button
@@ -239,7 +239,7 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
         <button type="button" className={SECONDARY_BUTTON} disabled={!dirty || saving} onClick={() => setDraft(null)}>
           Discard
         </button>
-        <span className="xms-mono text-xms-label ml-auto text-[11px]">version {data.version}</span>
+        <span className="xms-mono text-xms-label ml-auto text-[14px]">version {data.version}</span>
       </div>
     </div>
   );

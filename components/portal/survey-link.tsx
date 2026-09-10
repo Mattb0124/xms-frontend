@@ -71,7 +71,7 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
   return (
     <Frame kind={surveyKind(survey)}>
       <PortalCard>
-        <p className="text-xms-label text-[13px]">{subject}</p>
+        <p className="text-xms-label text-[14px]">{subject}</p>
         {done ? (
           <p role="status" className="text-xms-ink text-[15px]">
             {quarterly
@@ -108,7 +108,7 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
         )}
         {error ? <PortalNotice tone="error">{error}</PortalNotice> : null}
       </PortalCard>
-      <p className="text-xms-label text-[13px]">
+      <p className="text-xms-label text-[14px]">
         {`This link is for you only and takes one answer.${isAnswerable(survey.status) && expiry ? ` ${expiry}.` : ""}`}
       </p>
     </Frame>

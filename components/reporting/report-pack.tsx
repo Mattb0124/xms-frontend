@@ -29,7 +29,7 @@ export function ReportPackView({ packId }: { packId: string }) {
     <div className="flex flex-col gap-4" data-testid="report-pack">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xms-ink text-[18px] font-semibold">Weekly status report</h1>
-        <span className="xms-mono text-xms-label text-[12px]">
+        <span className="xms-mono text-xms-label text-[14px]">
           {formatPeriod({ start: data.period_start, end: data.period_end })}
         </span>
         <div className="ml-auto flex items-center gap-2">

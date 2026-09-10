@@ -15,7 +15,7 @@ export default function TokensPage() {
   if (!IS_LOCAL_TARGET) {
     return (
       <Panel title="Token check" caption="Not available">
-        <p className="text-xms-body text-[13px]">
+        <p className="text-xms-body text-[14px]">
           The developer pages run only on the local deploy target. This build names{" "}
           <code className="xms-mono">{DEPLOY_TARGET}</code>.
         </p>
@@ -30,7 +30,7 @@ export default function TokensPage() {
           <p className="xms-caption">XMS · Internal</p>
           <h1 className="text-xms-ink mt-1 text-[22px] font-semibold">Token check</h1>
         </div>
-        <span className="xms-mono text-xms-muted text-xs">P1.1.3</span>
+        <span className="xms-mono text-xms-muted text-[14px]">P1.1.3</span>
       </header>
 
       <section className="xms-card p-4">
@@ -55,7 +55,7 @@ export default function TokensPage() {
             Closed
           </span>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-6 text-[13px]">
+        <div className="mt-4 flex flex-wrap items-center gap-6 text-[14px]">
           <span className="xms-type" data-type="incident">
             Incident
           </span>
@@ -81,7 +81,7 @@ export default function TokensPage() {
         </div>
       </section>
 
-      <section className="xms-ai p-4 text-[13px]">
+      <section className="xms-ai p-4 text-[14px]">
         <p className="xms-caption mb-1">Axel summary</p>
         AI-origin content renders on the violet family and nowhere else.
       </section>

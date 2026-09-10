@@ -15,7 +15,7 @@ export function MapVersions<E>({
   onSelect: (id: string) => void;
 }) {
   const ordered = [...rows].sort((a, b) => b.version - a.version);
-  if (ordered.length === 0) return <p className="text-xms-label text-[13px]">No versions yet. Create a draft.</p>;
+  if (ordered.length === 0) return <p className="text-xms-label text-[14px]">No versions yet. Create a draft.</p>;
   return (
     <ul className="divide-xms-line divide-y" aria-label="Versions">
       {ordered.map((row) => {
@@ -27,13 +27,13 @@ export function MapVersions<E>({
               aria-pressed={selected}
               onClick={() => onSelect(row.id)}
               className={cn(
-                "hover:bg-xms-row-hover flex w-full flex-wrap items-center gap-2 px-2 py-2 text-left text-[13px]",
+                "hover:bg-xms-row-hover flex w-full flex-wrap items-center gap-2 px-2 py-2 text-left text-[14px]",
                 selected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
               )}
             >
               <span className="xms-mono text-xms-ink font-medium">v{row.version}</span>
               <MapStatePill state={row.state} />
-              <span className="xms-mono text-xms-muted ml-auto text-[11px]">
+              <span className="xms-mono text-xms-muted ml-auto text-[14px]">
                 {row.activated_at
                   ? `active since ${formatDate(row.activated_at)}`
                   : `created ${formatDate(row.created_at)}`}
@@ -48,9 +48,9 @@ export function MapVersions<E>({
 
 /** The validation report as the administrator sees it: problems block activation, warnings do not. */
 export function ValidationReportView({ report }: { report: ValidationReport | null }) {
-  if (!report) return <p className="text-xms-label text-[12px]">Not validated yet.</p>;
+  if (!report) return <p className="text-xms-label text-[14px]">Not validated yet.</p>;
   return (
-    <div className="flex flex-col gap-2 text-[12px]" data-report-ok={report.ok ? "true" : "false"}>
+    <div className="flex flex-col gap-2 text-[14px]" data-report-ok={report.ok ? "true" : "false"}>
       <p
         className={cn(
           "font-medium",

@@ -72,11 +72,11 @@ export function FunnelPanel({ funnel }: { funnel: UsageFunnel }) {
                   />
                 </span>
                 {drop ? (
-                  <span className="text-xms-label text-[12px]" data-drop-off={step.drop_off}>
+                  <span className="text-xms-label text-[14px]" data-drop-off={step.drop_off}>
                     {drop}
                   </span>
                 ) : (
-                  <span className="text-xms-label text-[12px]">The start of the loop</span>
+                  <span className="text-xms-label text-[14px]">The start of the loop</span>
                 )}
               </li>
             );

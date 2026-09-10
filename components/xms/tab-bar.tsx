@@ -46,7 +46,7 @@ export function TabBar({ tabs, active, onChange, className }: TabBarProps) {
           >
             {tab.label}
             {typeof tab.count === "number" ? (
-              <span className="xms-mono text-xms-muted text-[11px]">{tab.count}</span>
+              <span className="xms-mono text-xms-muted text-[14px]">{tab.count}</span>
             ) : null}
           </button>
         );

@@ -28,7 +28,7 @@ export interface BreadcrumbTrailProps {
  */
 export function BreadcrumbTrail({ segments, onRemove, onSaveView, saved, className }: BreadcrumbTrailProps) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-2 text-[13px]", className)} data-testid="condition-trail">
+    <div className={cn("flex flex-wrap items-center gap-2 text-[14px]", className)} data-testid="condition-trail">
       <nav aria-label="Condition trail" className="flex flex-wrap items-center gap-[6px]">
         {segments.map((segment, index) => (
           <span key={segment.key} className="flex items-center gap-[6px]">

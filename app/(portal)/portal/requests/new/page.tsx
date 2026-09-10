@@ -108,7 +108,7 @@ export default function PortalNewRequestPage() {
             disabled={state.isLoading}
           />
           {files.length > 0 && uploads.items.length === 0 ? (
-            <p className="text-xms-label text-[13px]">Files are checked and added once the request is created.</p>
+            <p className="text-xms-label text-[14px]">Files are checked and added once the request is created.</p>
           ) : null}
         </div>
       </PortalCard>
@@ -147,7 +147,7 @@ function RequestTypeChoice({
           />
           <span>
             <span className="text-xms-ink block text-[14px] font-medium">{item.name}</span>
-            <span className="text-xms-label block text-[13px]">{item.description}</span>
+            <span className="text-xms-label block text-[14px]">{item.description}</span>
           </span>
         </label>
       ))}

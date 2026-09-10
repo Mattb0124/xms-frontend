@@ -35,7 +35,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
 
   if (value) {
     return (
-      <div className="flex items-center gap-2 text-[12px]" data-testid="picked-solution">
+      <div className="flex items-center gap-2 text-[14px]" data-testid="picked-solution">
         <KeyText ticketKey={value.key} />
         <span className="text-xms-ink truncate">{value.title}</span>
         <button
@@ -51,7 +51,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
   }
 
   return (
-    <div className="flex flex-col gap-1 text-[12px]">
+    <div className="flex flex-col gap-1 text-[14px]">
       <input
         aria-label="Search solutions"
         value={query}
@@ -73,7 +73,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
             >
               <KeyText ticketKey={hit.display_key} />
               <span className="text-xms-ink truncate">{hit.title}</span>
-              {hit.is_global ? <span className="text-xms-label ml-auto text-[11px]">Global</span> : null}
+              {hit.is_global ? <span className="text-xms-label ml-auto text-[14px]">Global</span> : null}
             </button>
           </li>
         ))}

@@ -37,7 +37,7 @@ export function PairsEditor({
   };
   return (
     <div className={cn("flex flex-col gap-1", className)} data-pairs={label}>
-      <table className="w-full text-[12px]" aria-label={label}>
+      <table className="w-full text-[14px]" aria-label={label}>
         <thead>
           <tr className="text-xms-label text-left">
             <th className="py-1 pr-2 font-medium">{leftLabel}</th>
@@ -101,7 +101,7 @@ export function PairsEditor({
         <div>
           <button
             type="button"
-            className={cn(SECONDARY_BUTTON, "h-[26px] text-[12px]")}
+            className={cn(SECONDARY_BUTTON, "h-[26px] text-[14px]")}
             onClick={() => onChange({ ...pairs, [rows.some(([k]) => k === "") ? `key${rows.length + 1}` : ""]: "" })}
           >
             Add row

@@ -62,14 +62,14 @@ export function SurveyQuestion({
                 )}
               >
                 <span className="xms-mono text-[18px] font-semibold">{value}</span>
-                <span className="text-[11px] leading-tight">{scoreLabel(value)}</span>
+                <span className="text-[14px] leading-tight">{scoreLabel(value)}</span>
               </button>
             ))}
           </div>
         </fieldset>
       ))}
       <div className="flex flex-col gap-1">
-        <label htmlFor={`${id}-comment`} className="text-xms-body text-[13px]">
+        <label htmlFor={`${id}-comment`} className="text-xms-body text-[14px]">
           Comment (optional)
         </label>
         <textarea

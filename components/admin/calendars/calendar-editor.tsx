@@ -253,7 +253,7 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
           {problems.length > 0 ? (
             <ul
               role="alert"
-              className="mt-3 list-disc pl-5 text-[12px] text-[color:var(--state-overdue-text)]"
+              className="mt-3 list-disc pl-5 text-[14px] text-[color:var(--state-overdue-text)]"
               data-testid="hour-problems"
             >
               {problems.map((problem) => (
@@ -288,7 +288,7 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
               }}
             />
           ) : null}
-          {retired ? <span className="text-xms-label text-[12px]">A retired calendar cannot be edited.</span> : null}
+          {retired ? <span className="text-xms-label text-[14px]">A retired calendar cannot be edited.</span> : null}
           <InlineError message={error} />
         </div>
       </div>
@@ -296,8 +296,8 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
         title="Holidays"
         caption={library ? `${library.country} ${library.name}` : "From the chosen library, read only"}
       >
-        {holidays.length === 0 ? <p className="text-xms-label text-[13px]">No holidays on this calendar.</p> : null}
-        <ul className="divide-xms-line max-h-[420px] divide-y overflow-auto text-[13px]" aria-label="Holiday dates">
+        {holidays.length === 0 ? <p className="text-xms-label text-[14px]">No holidays on this calendar.</p> : null}
+        <ul className="divide-xms-line max-h-[420px] divide-y overflow-auto text-[14px]" aria-label="Holiday dates">
           {holidays.map((holiday) => (
             <li key={holiday.date} className="flex items-center gap-3 py-1.5">
               <span className="xms-mono text-xms-accent">{holiday.date}</span>

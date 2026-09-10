@@ -86,7 +86,7 @@ export function CasePreview({
         {/* The one action on the card, so it reads in the action colour. */}
         <Link
           href={`/cases/${ticketKey}`}
-          className="border-xms-accent text-xms-accent hover:bg-xms-control-hover ml-auto inline-flex h-[32px] items-center rounded-[4px] border px-3 text-[13px] font-medium hover:no-underline"
+          className="border-xms-accent text-xms-accent hover:bg-xms-control-hover ml-auto inline-flex h-[32px] items-center rounded-[4px] border px-3 text-[14px] font-medium hover:no-underline"
         >
           Open record
         </Link>
@@ -176,9 +176,9 @@ function Field({
           : "grid grid-cols-[110px_minmax(0,1fr)] items-center gap-3"
       }
     >
-      <span className="text-xms-label text-right text-[12px] leading-[1.3]">{label}</span>
+      <span className="text-xms-label text-right text-[14px] leading-[1.3]">{label}</span>
       <span
-        className={`xms-field border-xms-line text-xms-ink flex min-h-[30px] items-center rounded-[4px] border px-[9px] py-[5px] text-[13px] ${
+        className={`xms-field border-xms-line text-xms-ink flex min-h-[30px] items-center rounded-[4px] border px-[9px] py-[5px] text-[14px] ${
           mono ? "xms-mono" : ""
         } ${wide ? "whitespace-pre-wrap" : "truncate"}`}
       >

@@ -42,7 +42,7 @@ export interface AxelSuggestionCardProps {
   className?: string;
 }
 
-const SMALL_BUTTON = "h-[28px] rounded-[4px] px-3 text-[12px] font-medium disabled:opacity-50";
+const SMALL_BUTTON = "h-[28px] rounded-[4px] px-3 text-[14px] font-medium disabled:opacity-50";
 const PRIMARY = `${SMALL_BUTTON} bg-xms-accent hover:bg-xms-accent-hover text-white`;
 const QUIET = `${SMALL_BUTTON} border-xms-ai-border text-xms-body border`;
 
@@ -69,7 +69,7 @@ function SuggestionBody({ suggestion }: { suggestion: SuggestionView }) {
             {type ? <span className="text-xms-body font-normal"> · {type}</span> : null}
           </p>
           {payload.ci_ids?.length ? (
-            <p className="xms-mono text-xms-label text-[11px]">CI {payload.ci_ids.join(", ")}</p>
+            <p className="xms-mono text-xms-label text-[14px]">CI {payload.ci_ids.join(", ")}</p>
           ) : null}
           {reasons.length ? (
             <ul className="text-xms-body flex flex-col gap-[2px]">
@@ -107,8 +107,8 @@ function SuggestionBody({ suggestion }: { suggestion: SuggestionView }) {
           <ul className="flex flex-col gap-1">
             {payload.candidates.map((candidate) => (
               <li key={candidate.ticket_id} className="flex flex-wrap items-baseline gap-2">
-                <span className="xms-mono text-xms-accent text-[12px]">{candidate.ticket_id}</span>
-                <span className="xms-mono text-xms-label text-[11px]">{formatConfidence(candidate.similarity)}</span>
+                <span className="xms-mono text-xms-accent text-[14px]">{candidate.ticket_id}</span>
+                <span className="xms-mono text-xms-label text-[14px]">{formatConfidence(candidate.similarity)}</span>
                 {candidate.ticket_id === payload.merge_into ? (
                   <span className="aix-state-pill" data-state="ready">
                     Merge target
@@ -140,7 +140,7 @@ function SuggestionBody({ suggestion }: { suggestion: SuggestionView }) {
             </div>
           ))}
           {sources ? (
-            <p className="xms-mono text-xms-label text-[11px]">
+            <p className="xms-mono text-xms-label text-[14px]">
               from {sources.comments} comments, {sources.work_notes} work notes, {sources.events} events
             </p>
           ) : null}
@@ -152,7 +152,7 @@ function SuggestionBody({ suggestion }: { suggestion: SuggestionView }) {
       return (
         <div className="flex flex-col gap-1">
           <p className="text-xms-ink whitespace-pre-wrap">{payload.text}</p>
-          <p className="xms-mono text-xms-label text-[11px]">
+          <p className="xms-mono text-xms-label text-[14px]">
             {payload.tone} tone
             {payload.citations?.length ? ` · cites ${payload.citations.length} article version(s)` : ""}
           </p>
@@ -179,7 +179,7 @@ function EditForm({
     case "classify":
       return (
         <div className="grid gap-2 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Category</span>
             <input
               aria-label="Category"
@@ -188,7 +188,7 @@ function EditForm({
               onChange={(event) => set("category", event.target.value)}
             />
           </label>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Type</span>
             <select
               aria-label="Type"
@@ -215,7 +215,7 @@ function EditForm({
       return (
         <div className="grid gap-2 sm:grid-cols-2">
           {(["impact", "urgency"] as const).map((field) => (
-            <label key={field} className="flex flex-col gap-1 text-[12px]">
+            <label key={field} className="flex flex-col gap-1 text-[14px]">
               <span className="text-xms-label">{field === "impact" ? "Impact" : "Urgency"}</span>
               <select
                 aria-label={field === "impact" ? "Impact" : "Urgency"}
@@ -236,7 +236,7 @@ function EditForm({
     case "duplicate": {
       const candidates = (draft.candidates as DuplicatePayload["candidates"]) ?? [];
       return (
-        <fieldset className="flex flex-col gap-1 text-[12px]">
+        <fieldset className="flex flex-col gap-1 text-[14px]">
           <legend className="text-xms-label mb-1">Merge into</legend>
           {candidates.map((candidate) => (
             <label key={candidate.ticket_id} className="flex items-center gap-2">
@@ -254,7 +254,7 @@ function EditForm({
     }
     case "draft_reply":
       return (
-        <label className="flex flex-col gap-1 text-[12px]">
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Reply text</span>
           <textarea
             aria-label="Reply text"
@@ -301,10 +301,10 @@ function FeedbackRow({ suggestionId }: { suggestionId: string }) {
   const [feedback, { isLoading, isSuccess }] = useFeedbackMutation();
   const [rated, setRated] = useState<number | null>(null);
   if (isSuccess || rated !== null) {
-    return <p className="text-xms-label text-[11px]">Thanks, rated {rated} of 5.</p>;
+    return <p className="text-xms-label text-[14px]">Thanks, rated {rated} of 5.</p>;
   }
   return (
-    <div className="flex items-center gap-1 text-[11px]" role="group" aria-label="Rate this suggestion">
+    <div className="flex items-center gap-1 text-[14px]" role="group" aria-label="Rate this suggestion">
       <span className="text-xms-label mr-1">Rate</span>
       {[1, 2, 3, 4, 5].map((rating) => (
         <button
@@ -404,7 +404,7 @@ export function AxelSuggestionCard({
 
   let footer: ReactNode = null;
   if (withheld) {
-    footer = <p className="text-xms-label text-[12px]">{withheldLine(current.withheld_reason)}</p>;
+    footer = <p className="text-xms-label text-[14px]">{withheldLine(current.withheld_reason)}</p>;
   } else if (settled) {
     footer = (
       <div className="flex flex-wrap items-center gap-3">
@@ -415,7 +415,7 @@ export function AxelSuggestionCard({
       </div>
     );
   } else if (!canDecide) {
-    footer = <p className="text-xms-label text-[12px]">You can view this suggestion but not decide it.</p>;
+    footer = <p className="text-xms-label text-[14px]">You can view this suggestion but not decide it.</p>;
   } else if (mode === "reject") {
     footer = (
       <div className="flex flex-wrap items-center gap-2">
@@ -484,21 +484,21 @@ export function AxelSuggestionCard({
 
   return (
     <article
-      className={cn("xms-ai flex flex-col gap-2 p-3 text-[13px]", className)}
+      className={cn("xms-ai flex flex-col gap-2 p-3 text-[14px]", className)}
       data-capability={suggestion.capability}
       data-suggestion={suggestion.id}
       aria-label={`${CAPABILITY_LABEL[suggestion.capability]} suggestion`}
     >
       <header className="flex flex-wrap items-center gap-2">
         <span className="xms-caption text-xms-ai-accent">{CAPABILITY_LABEL[suggestion.capability]}</span>
-        <span className="text-xms-label text-[11px]">Axel</span>
-        <span className="xms-mono text-xms-label ml-auto text-[11px]" title={`Prompt ${suggestion.prompt_version}`}>
+        <span className="text-xms-label text-[14px]">Axel</span>
+        <span className="xms-mono text-xms-label ml-auto text-[14px]" title={`Prompt ${suggestion.prompt_version}`}>
           {suggestion.agent_id}
           {typeof suggestion.confidence === "number" ? ` · ${formatConfidence(suggestion.confidence)}` : ""}
         </span>
       </header>
       {withheld ? null : <SuggestionBody suggestion={current} />}
-      {suggestion.explanation ? <p className="text-xms-body text-[12px]">{suggestion.explanation}</p> : null}
+      {suggestion.explanation ? <p className="text-xms-body text-[14px]">{suggestion.explanation}</p> : null}
       <InlineError message={error} />
       {footer}
     </article>

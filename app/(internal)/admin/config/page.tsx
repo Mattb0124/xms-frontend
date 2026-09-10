@@ -29,7 +29,7 @@ const TICKET_TYPES = [
 const LEVELS = ["high", "medium", "low"] as const;
 const PRIORITIES = ["p1", "p2", "p3", "p4"] as const;
 
-const TABLE = "w-full border-collapse text-[13px]";
+const TABLE = "w-full border-collapse text-[14px]";
 const TH = "text-xms-ink border-xms-line border-b px-3 py-2 text-left font-semibold";
 const TD = "text-xms-ink border-xms-line border-b px-3 py-2 align-top";
 
@@ -58,7 +58,7 @@ function StateMachineView({ body }: { body: MachineBody }) {
                   <StatePill state={state.key} label={state.label} />
                 </td>
                 <td className={TD}>{state.kind}</td>
-                <td className={`${TD} xms-mono text-[12px]`}>
+                <td className={`${TD} xms-mono text-[14px]`}>
                   {Object.entries(state.effects ?? {})
                     .filter(([, on]) => on)
                     .map(([name]) => name)
@@ -88,7 +88,7 @@ function StateMachineView({ body }: { body: MachineBody }) {
                   {transition.label ? <span className="text-xms-label ml-2 font-sans">{transition.label}</span> : null}
                   {transition.reopen ? <span className="text-xms-label ml-2 font-sans">reopen</span> : null}
                 </td>
-                <td className={`${TD} text-xms-label text-[12px]`}>{(transition.requires ?? []).join(", ")}</td>
+                <td className={`${TD} text-xms-label text-[14px]`}>{(transition.requires ?? []).join(", ")}</td>
                 <td className={TD}>{transition.portal ? "Yes" : ""}</td>
               </tr>
             ))}
@@ -210,7 +210,7 @@ function VersionsRail({ data }: { data: ConfigDescription }) {
               state={version.status === "active" ? "resolved" : version.status === "draft" ? "new" : "closed"}
               label={version.status}
             />
-            <span className="xms-mono text-xms-label ml-auto text-[11px]">{formatDate(version.activated_at)}</span>
+            <span className="xms-mono text-xms-label ml-auto text-[14px]">{formatDate(version.activated_at)}</span>
           </li>
         ))}
         {data.versions.length === 0 ? <li className="text-xms-label">No versions yet. Run the seed.</li> : null}

@@ -119,7 +119,7 @@ export function RequestForm({
             />
             <span>
               <span className="text-xms-ink block text-[14px] font-medium">{option.label}</span>
-              <span className="text-xms-label block text-[13px]">{option.hint}</span>
+              <span className="text-xms-label block text-[14px]">{option.hint}</span>
             </span>
           </label>
         ))}
@@ -141,7 +141,7 @@ export function RequestForm({
           maxLength={300}
           required
         />
-        <p id="short_description-hint" className="text-xms-label text-[12px]">
+        <p id="short_description-hint" className="text-xms-label text-[14px]">
           One line that says what is wrong or what you need.
         </p>
         <FieldError id="short_description-error" message={errors.short_description} />
@@ -160,7 +160,7 @@ export function RequestForm({
           aria-describedby={errors.description ? "description-error" : "description-hint"}
           className={PORTAL_TEXTAREA}
         />
-        <p id="description-hint" className="text-xms-label text-[12px]">
+        <p id="description-hint" className="text-xms-label text-[14px]">
           What you did, what you expected, what happened instead. Error text helps.
         </p>
         <FieldError id="description-error" message={errors.description} />
@@ -204,7 +204,7 @@ export function RequestForm({
         <button type="submit" className={PORTAL_PRIMARY} disabled={submitting}>
           {submitting ? "Sending..." : "Send request"}
         </button>
-        <p className="text-xms-label text-[13px]">You will get an email with the request key and every reply.</p>
+        <p className="text-xms-label text-[14px]">You will get an email with the request key and every reply.</p>
       </div>
     </form>
   );
@@ -244,7 +244,7 @@ function LevelSelect({
           </option>
         ))}
       </select>
-      <p id={`${id}-hint`} className="text-xms-label min-h-[16px] text-[12px]">
+      <p id={`${id}-hint`} className="text-xms-label min-h-[16px] text-[14px]">
         {hint ?? "Leave it if you are not sure; the team will set it."}
       </p>
     </div>

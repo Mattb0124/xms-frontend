@@ -53,7 +53,7 @@ export interface RecordFormProps {
 }
 
 const CONTROL =
-  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-[4px] border px-2 text-[14px] outline-none disabled:opacity-60";
 
 // Label 104px, value takes the rest and may shrink below its content, which is
 // what lets a long value wrap instead of being clipped (review finding 9).
@@ -70,7 +70,7 @@ const ROW = "grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-1";
 const STACK_ROW = "border-xms-line-row flex flex-col gap-[4px] border-b py-[9px]";
 
 /** The label above a stacked value: 12px on 1.3 in the muted grey. */
-const STACK_LABEL = "text-xms-muted text-[12px] leading-[1.3]";
+const STACK_LABEL = "text-xms-muted text-[14px] leading-[1.3]";
 
 /**
  * A properties row whose own control is not a `RecordField`: the group and
@@ -114,7 +114,7 @@ export function StackedReveal({
           onClick={() => setEditing(true)}
           aria-label={label}
           className={cn(
-            "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[13px] leading-[1.4] font-medium",
+            "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[14px] leading-[1.4] font-medium",
             value ? "text-xms-ink" : "text-xms-muted font-normal",
           )}
         >
@@ -190,9 +190,9 @@ function Field({
   // line under it.
   const hintNode = field.hint ? (
     field.inlineHint ? (
-      <span className="text-xms-label text-[13px]">{`· ${field.hint}`}</span>
+      <span className="text-xms-label text-[14px]">{`· ${field.hint}`}</span>
     ) : (
-      <span className="text-xms-label text-[12px]">{field.hint}</span>
+      <span className="text-xms-label text-[14px]">{field.hint}</span>
     )
   ) : null;
 
@@ -204,7 +204,7 @@ function Field({
           data-readonly-value
           title={text || undefined}
           className={cn(
-            "text-xms-ink text-[13px] break-words",
+            "text-xms-ink text-[14px] break-words",
             stacked && "leading-[1.4] font-medium",
             field.mono && "xms-mono",
             !text && "text-xms-muted font-normal",
@@ -232,7 +232,7 @@ function Field({
     }
     return (
       <div className={cn(ROW, "items-baseline")} data-field={field.key}>
-        <span className="text-xms-label text-[12px]">{field.label}</span>
+        <span className="text-xms-label text-[14px]">{field.label}</span>
         <span className="flex flex-col gap-[2px]">{value}</span>
       </div>
     );
@@ -302,7 +302,7 @@ function Field({
         onClick={() => setEditing(true)}
         aria-label={bare ? field.label : undefined}
         className={cn(
-          "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[13px] font-medium",
+          "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[14px] font-medium",
           text ? "text-xms-ink" : "text-xms-muted font-normal",
           field.mono && "xms-mono",
         )}
@@ -339,7 +339,7 @@ function Field({
   }
   return (
     <div className={cn(ROW, "items-center")} data-field={field.key}>
-      <label htmlFor={id} className="text-xms-label text-[12px]">
+      <label htmlFor={id} className="text-xms-label text-[14px]">
         {field.label}
       </label>
       <span className="flex min-w-0 flex-col gap-[2px]">
@@ -363,7 +363,7 @@ export function RecordForm({ fields, onCommit, onRollback, columns = 2, layout =
               <span className={STACK_LABEL}>{field.label}</span>
               <span className="flex flex-wrap items-baseline gap-[6px]">
                 <Field field={field} onCommit={onCommit} onRollback={onRollback} layout="stacked" bare />
-                <span className="text-xms-muted text-[13px]">{"·"}</span>
+                <span className="text-xms-muted text-[14px]">{"·"}</span>
                 <Field field={field.second} onCommit={onCommit} onRollback={onRollback} layout="stacked" bare />
               </span>
             </div>

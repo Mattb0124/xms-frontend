@@ -24,7 +24,7 @@ export interface FieldMapEditorProps {
   onChange: (entries: FieldMapEntry[]) => void;
 }
 
-const SMALL = cn(INPUT, "h-[28px] text-[12px]");
+const SMALL = cn(INPUT, "h-[28px] text-[14px]");
 
 /** Required XMS fields with no inbound entry, for the reminder above the table. */
 export function unmappedRequired(entries: FieldMapEntry[]): XmsField[] {
@@ -125,12 +125,12 @@ export function FieldMapEditor({ entries, dictionary, readOnly, onChange }: Fiel
   return (
     <div className="flex flex-col gap-3" data-editor="field-map">
       {missing.length > 0 ? (
-        <p className="text-[12px] text-[color:var(--state-needs-input-text)]" data-missing={missing.join(",")}>
+        <p className="text-[14px] text-[color:var(--state-needs-input-text)]" data-missing={missing.join(",")}>
           Required XMS fields without an inbound entry: {missing.join(", ")}.
         </p>
       ) : null}
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px]" aria-label="Field map entries">
+        <table className="w-full text-[14px]" aria-label="Field map entries">
           <thead>
             <tr className="border-xms-line text-xms-ink border-b text-left">
               <th className="px-2 py-2 font-semibold">ServiceNow field</th>

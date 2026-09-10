@@ -76,14 +76,14 @@ export function GrantsReconcile({
           onChange={(event) => setQuery(event.target.value)}
           className={`${INPUT} max-w-xs`}
         />
-        <span className="xms-mono text-xms-label ml-auto text-[12px]">{draft.size} selected</span>
+        <span className="xms-mono text-xms-label ml-auto text-[14px]">{draft.size} selected</span>
       </div>
       <ul className="border-xms-line max-h-[360px] divide-y overflow-auto rounded-[4px] border">
         {visible.map((option) => {
           const id = `reconcile-${option.id}`;
           return (
             <li key={option.id}>
-              <label htmlFor={id} className="hover:bg-xms-row-hover flex items-center gap-3 px-3 py-2 text-[13px]">
+              <label htmlFor={id} className="hover:bg-xms-row-hover flex items-center gap-3 px-3 py-2 text-[14px]">
                 <input
                   id={id}
                   type="checkbox"
@@ -92,13 +92,13 @@ export function GrantsReconcile({
                   onChange={() => toggle(option.id)}
                 />
                 <span className="text-xms-ink">{option.label}</span>
-                {option.detail ? <span className="text-xms-label ml-auto text-[12px]">{option.detail}</span> : null}
+                {option.detail ? <span className="text-xms-label ml-auto text-[14px]">{option.detail}</span> : null}
               </label>
             </li>
           );
         })}
         {visible.length === 0 ? (
-          <li className="text-xms-label px-3 py-4 text-center text-[13px]">{emptyLabel}</li>
+          <li className="text-xms-label px-3 py-4 text-center text-[14px]">{emptyLabel}</li>
         ) : null}
       </ul>
       <div className="flex gap-2">

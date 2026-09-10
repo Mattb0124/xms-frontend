@@ -37,7 +37,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
       <header className="border-xms-line flex h-[var(--xms-finder-bar-h)] shrink-0 items-center gap-[10px] border-b px-4">
         <SparkleIcon size={ICON.row} className="text-xms-label" />
         <span className="text-xms-ink text-[15px] leading-none font-semibold">Axel</span>
-        <span className="xms-mono text-xms-muted text-[12px] leading-none">{context}</span>
+        <span className="xms-mono text-xms-muted text-[14px] leading-none">{context}</span>
         <button
           type="button"
           aria-label="Close Axel"
@@ -68,7 +68,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
           placeholder="Ask about this ticket..."
           className="border-xms-line-strong bg-xms-card text-xms-ink placeholder:text-xms-muted h-16 w-full resize-none rounded-[var(--xms-radius-control)] border p-3 text-[14px] outline-none"
         />
-        <p className="text-xms-muted mt-[9px] text-[12px] leading-[1.5]">
+        <p className="text-xms-muted mt-[9px] text-[14px] leading-[1.5]">
           Nothing applies without a click. Every accept, edit and reject lands in Activity.
         </p>
       </div>

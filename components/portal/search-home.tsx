@@ -55,7 +55,7 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
           className={`${PORTAL_INPUT} h-[48px] text-[16px]`}
           autoComplete="off"
         />
-        <p className="text-xms-label text-[13px]">
+        <p className="text-xms-label text-[14px]">
           Published solutions come first; open a request when you still need help.
         </p>
       </section>
@@ -68,7 +68,7 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
                 {articles.data.map((article) => (
                   <li key={article.id} className="text-[14px]">
                     <span className="text-xms-ink font-medium">{article.title}</span>
-                    <p className="text-xms-label text-[13px]">{article.summary}</p>
+                    <p className="text-xms-label text-[14px]">{article.summary}</p>
                   </li>
                 ))}
               </ul>

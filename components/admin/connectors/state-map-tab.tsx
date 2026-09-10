@@ -84,7 +84,7 @@ export function StateMapTab({ instance }: { instance: ConnectorInstance }) {
         </Panel>
       ) : (
         <Panel title="State map" caption="Nothing mapped yet">
-          <p className="text-xms-label text-[13px]">Create a draft and map the states of each ticket type both ways.</p>
+          <p className="text-xms-label text-[14px]">Create a draft and map the states of each ticket type both ways.</p>
         </Panel>
       )}
     </div>

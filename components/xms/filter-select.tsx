@@ -55,7 +55,7 @@ export function StripSelect({
       data-testid={label ? `filter-${label.toLowerCase()}` : undefined}
       data-active={active ? "true" : undefined}
       className={cn(
-        "xms-field bg-xms-card relative inline-flex shrink-0 items-center gap-[7px] rounded-[var(--xms-radius-control)] border pr-[9px] pl-[11px] text-[13px] whitespace-nowrap",
+        "xms-field bg-xms-card relative inline-flex shrink-0 items-center gap-[7px] rounded-[var(--xms-radius-control)] border pr-[9px] pl-[11px] text-[14px] whitespace-nowrap",
         size === "lg" ? "h-[var(--xms-control-h-lg)]" : "h-[var(--xms-header-pill-h)]",
         // One ink per control: the quiet one is ink on an ink edge, the
         // active one is blue on a blue edge, the label and the chevron with

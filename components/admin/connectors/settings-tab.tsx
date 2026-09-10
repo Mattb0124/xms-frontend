@@ -181,7 +181,7 @@ export function SettingsForm({ instance, refetch }: { instance: ConnectorInstanc
           </select>
         </FieldRow>
         <fieldset className="border-xms-line flex flex-col gap-2 rounded-[4px] border p-3">
-          <legend className="text-xms-label px-1 text-[12px]">Automatic trip threshold</legend>
+          <legend className="text-xms-label px-1 text-[14px]">Automatic trip threshold</legend>
           <FieldRow label="Failure ratio (%)" htmlFor="cx-ratio">
             <input
               id="cx-ratio"
@@ -243,7 +243,7 @@ export function WatermarkPanel({ instance }: { instance: ConnectorInstance }) {
 
   return (
     <Panel title="Inbound watermark" caption="Rewind after a client outage; preview shows how many records come back">
-      <p className="xms-mono text-xms-ink mb-3 text-[13px]">Current: {formatDate(instance.inbound_watermark)}</p>
+      <p className="xms-mono text-xms-ink mb-3 text-[14px]">Current: {formatDate(instance.inbound_watermark)}</p>
       <form
         className="flex flex-col gap-3"
         aria-label="Rewind watermark"
@@ -283,7 +283,7 @@ export function WatermarkPanel({ instance }: { instance: ConnectorInstance }) {
           />
         </FieldRow>
         {previewed ? (
-          <p className="text-xms-body text-[13px]" data-preview={preview.records}>
+          <p className="text-xms-body text-[14px]" data-preview={preview.records}>
             <span className="xms-mono text-xms-ink">{preview.records}</span> records changed since{" "}
             <span className="xms-mono">{formatDate(preview.to)}</span> would be re-fetched.
           </p>

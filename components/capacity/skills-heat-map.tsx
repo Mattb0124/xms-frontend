@@ -22,7 +22,7 @@ export function heatMapRows(people: MatrixPerson[], role?: string): MatrixPerson
     .sort((a, b) => a.display_name.localeCompare(b.display_name));
 }
 
-const HEAD = "text-xms-ink px-2 py-2 text-[12px] font-semibold whitespace-nowrap";
+const HEAD = "text-xms-ink px-2 py-2 text-[14px] font-semibold whitespace-nowrap";
 
 /**
  * The people lens of the skills matrix (functional 5.8): people as rows,
@@ -56,7 +56,7 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
       subtitle={`${rows.length} ${rows.length === 1 ? "person" : "people"} against ${columns.length} skill${columns.length === 1 ? "" : "s"}, at levels 1 Aware to 4 Expert from the roster.`}
       flush
     >
-      <table className="w-full border-collapse text-[13px]" aria-label="Skills heat map">
+      <table className="w-full border-collapse text-[14px]" aria-label="Skills heat map">
         <thead className="bg-xms-card sticky top-0 z-10">
           <tr className="border-xms-line border-b">
             <th className={HEAD} rowSpan={2} scope="col">
@@ -102,7 +102,7 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
                   <Link href={`/roster/${person.id}`} className="text-xms-accent font-medium">
                     {person.display_name}
                   </Link>
-                  <span className="text-xms-label text-[11px]">{roleLabel(person.role)}</span>
+                  <span className="text-xms-label text-[14px]">{roleLabel(person.role)}</span>
                 </span>
               </td>
               {groups.map((group) =>
@@ -112,7 +112,7 @@ export function SkillsHeatMap({ matrix, role }: SkillsHeatMapProps) {
                     <td
                       key={skill.id}
                       className={cn(
-                        "xms-mono w-[56px] min-w-[56px] text-center align-middle text-[12px] font-semibold",
+                        "xms-mono w-[56px] min-w-[56px] text-center align-middle text-[14px] font-semibold",
                         index === 0 && "border-xms-line border-l",
                         levelCellClass(level),
                       )}

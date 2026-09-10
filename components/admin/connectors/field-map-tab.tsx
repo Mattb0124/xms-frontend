@@ -136,14 +136,14 @@ export function FieldMapTab({ instance }: { instance: ConnectorInstance }) {
           </Panel>
         ) : (
           <Panel title="Field map" caption="Nothing mapped yet">
-            <p className="text-xms-label text-[13px]">
+            <p className="text-xms-label text-[14px]">
               Create a draft, load samples, map the required fields, validate, activate.
             </p>
           </Panel>
         )}
         {sampleRows.length > 0 && externals.length > 0 ? (
           <Panel title="Samples" caption={`${sampleRows.length} recent records, mapped fields only`} flush>
-            <table className="w-full text-[12px]" aria-label="Samples">
+            <table className="w-full text-[14px]" aria-label="Samples">
               <thead>
                 <tr className="border-xms-line text-xms-ink border-b text-left">
                   {externals.map((field) => (

@@ -60,9 +60,9 @@ export function Toaster() {
           data-tone={toast.tone}
           className={cn("xms-card flex gap-3 border-l-4 p-3", TONE[toast.tone])}
         >
-          <div className="text-[13px]">
+          <div className="text-[14px]">
             <p className="text-xms-ink font-medium">{toast.title}</p>
-            {toast.detail ? <p className="text-xms-label text-[12px]">{toast.detail}</p> : null}
+            {toast.detail ? <p className="text-xms-label text-[14px]">{toast.detail}</p> : null}
           </div>
           <button
             type="button"

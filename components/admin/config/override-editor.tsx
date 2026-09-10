@@ -121,19 +121,19 @@ function BodyEditor({ accountId, kind, scope, view, refetch }: BodyEditorProps) 
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-[12px]">
+      <label className="flex flex-col gap-1 text-[14px]">
         <span className="text-xms-label">Body (JSON)</span>
         <textarea
           aria-label="Body"
           spellCheck={false}
-          className={cn(INPUT, "xms-mono h-[420px] py-2 text-[12px] leading-[1.5]")}
+          className={cn(INPUT, "xms-mono h-[420px] py-2 text-[14px] leading-[1.5]")}
           value={text}
           onChange={(event) => setText(event.target.value)}
         />
       </label>
       {!parsed.ok ? <InlineError message={parsed.problem} /> : null}
       {problems ? (
-        <div role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]" data-config-problems>
+        <div role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]" data-config-problems>
           <p>The server refused the body:</p>
           <ul className="list-disc pl-5">
             {problems.map((problem) => (
@@ -166,7 +166,7 @@ function BodyEditor({ accountId, kind, scope, view, refetch }: BodyEditorProps) 
           />
         ) : null}
       </div>
-      <p className="text-xms-label text-[12px]">
+      <p className="text-xms-label text-[14px]">
         {overridden
           ? "Saving activates a new override version and retires the current one. Removing the override makes the operator default apply again."
           : "Saving creates the first override version for this account; every other account keeps the default."}
@@ -179,14 +179,14 @@ function VersionHistory({ view }: { view: AccountConfigView }) {
   return (
     <Panel title="Versions" caption="Override history, newest first, and the operator default underneath">
       {view.overrides.length === 0 ? (
-        <p className="text-xms-label text-[13px]">No override yet. The operator default applies.</p>
+        <p className="text-xms-label text-[14px]">No override yet. The operator default applies.</p>
       ) : null}
       <ul className="flex flex-col gap-2" aria-label="Override versions">
         {view.overrides.map((row) => (
-          <li key={row.id} className="flex items-center gap-2 text-[13px]" data-override-version={row.version}>
+          <li key={row.id} className="flex items-center gap-2 text-[14px]" data-override-version={row.version}>
             <span className="xms-mono">override v{row.version}</span>
             <VersionStatusPill status={row.status} />
-            <span className="xms-mono text-xms-label ml-auto text-[11px]">
+            <span className="xms-mono text-xms-label ml-auto text-[14px]">
               {row.activated_by ? `${row.activated_by.slice(0, 8)} ` : ""}
               {formatDate(row.activated_at ?? row.created_at)}
             </span>
@@ -195,18 +195,18 @@ function VersionHistory({ view }: { view: AccountConfigView }) {
       </ul>
       <div className="border-xms-line mt-3 border-t pt-3">
         {view.default ? (
-          <div className="flex items-center gap-2 text-[13px]">
+          <div className="flex items-center gap-2 text-[14px]">
             <span className="xms-mono">default v{view.default.version}</span>
             <VersionStatusPill status={view.default.status} />
-            <span className="xms-mono text-xms-label ml-auto text-[11px]">{formatDate(view.default.activated_at)}</span>
+            <span className="xms-mono text-xms-label ml-auto text-[14px]">{formatDate(view.default.activated_at)}</span>
           </div>
         ) : (
-          <p className="text-xms-label text-[13px]">No operator default is active. Run the seed.</p>
+          <p className="text-xms-label text-[14px]">No operator default is active. Run the seed.</p>
         )}
         {view.effective?.source === "override" && view.default ? (
           <details className="mt-2">
-            <summary className="text-xms-accent cursor-pointer text-[12px]">Show the operator default body</summary>
-            <pre className="xms-mono text-xms-body bg-xms-tint mt-2 max-h-[320px] overflow-auto rounded-[4px] p-3 text-[11px] whitespace-pre-wrap">
+            <summary className="text-xms-accent cursor-pointer text-[14px]">Show the operator default body</summary>
+            <pre className="xms-mono text-xms-body bg-xms-tint mt-2 max-h-[320px] overflow-auto rounded-[4px] p-3 text-[14px] whitespace-pre-wrap">
               {formatBody(view.default.body)}
             </pre>
           </details>
@@ -240,11 +240,11 @@ export function OverrideEditor({ accountId, kind, scope, onScopeChange }: Overri
         actions={
           <>
             {entry?.scopes ? (
-              <label className="flex items-center gap-2 text-[12px]">
+              <label className="flex items-center gap-2 text-[14px]">
                 <span className="text-xms-label">Ticket type</span>
                 <select
                   aria-label="Scope"
-                  className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+                  className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
                   value={scope ?? entry.scopes[0].value}
                   onChange={(event) => onScopeChange?.(event.target.value)}
                 >
@@ -263,7 +263,7 @@ export function OverrideEditor({ accountId, kind, scope, onScopeChange }: Overri
         {isLoading ? <Skeleton lines={8} /> : null}
         {isError ? <InlineError message={describeConfigError(configError(error))} /> : null}
         {data && !data.effective ? (
-          <p role="status" className="text-xms-label mb-3 text-[13px]" data-nothing-active>
+          <p role="status" className="text-xms-label mb-3 text-[14px]" data-nothing-active>
             Nothing active for this kind. No operator default and no override resolve for this account; saving here
             creates the first override.
           </p>

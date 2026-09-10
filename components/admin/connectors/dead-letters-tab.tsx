@@ -17,9 +17,9 @@ import {
 
 function PayloadCell({ payload }: { payload: Record<string, unknown> }) {
   return (
-    <details className="text-[12px]">
+    <details className="text-[14px]">
       <summary className="text-xms-accent cursor-pointer">payload</summary>
-      <pre className="xms-mono text-xms-body mt-1 max-h-[200px] max-w-[480px] overflow-auto text-[11px] whitespace-pre-wrap">
+      <pre className="xms-mono text-xms-body mt-1 max-h-[200px] max-w-[480px] overflow-auto text-[14px] whitespace-pre-wrap">
         {JSON.stringify(payload, null, 2)}
       </pre>
     </details>
@@ -154,7 +154,7 @@ export function DeadLettersTab({ instanceId }: { instanceId: string }) {
         open={showResolved}
         onToggle={(event) => setShowResolved((event.target as HTMLDetailsElement).open)}
       >
-        <summary className="text-xms-ink cursor-pointer text-[13px] font-medium">Resolved dead letters</summary>
+        <summary className="text-xms-ink cursor-pointer text-[14px] font-medium">Resolved dead letters</summary>
         {showResolved ? (
           <div className="mt-3">
             <DenseTable

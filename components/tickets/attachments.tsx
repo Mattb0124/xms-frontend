@@ -31,13 +31,13 @@ export function ScanChip({ state, portal }: { state: ScanState | UploadStage; po
     return (
       <span
         data-scan={state}
-        className="inline-flex h-[20px] items-center rounded-[999px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 text-[11px] text-[color:var(--state-overdue-text)]"
+        className="inline-flex h-[20px] items-center rounded-[999px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 text-[14px] text-[color:var(--state-overdue-text)]"
       >
         {chip.label}
       </span>
     );
   }
-  return <StatePill state={chip.ramp} label={chip.label} className="text-[11px]" />;
+  return <StatePill state={chip.ramp} label={chip.label} className="text-[14px]" />;
 }
 
 export interface UploadItem {
@@ -133,7 +133,7 @@ export function DropZone({
         if (!disabled && event.dataTransfer.files.length > 0) onFiles(event.dataTransfer.files);
       }}
       className={cn(
-        "border-xms-line text-xms-label flex items-center gap-2 rounded-[6px] border border-dashed px-3 py-2 text-[12px]",
+        "border-xms-line text-xms-label flex items-center gap-2 rounded-[6px] border border-dashed px-3 py-2 text-[14px]",
         over && "border-xms-accent bg-xms-accent-tint",
         disabled && "opacity-50",
       )}
@@ -177,7 +177,7 @@ export function UploadList({
   return (
     <ul className="flex flex-col gap-1" aria-label="Uploads">
       {items.map((item) => (
-        <li key={item.id} data-stage={item.stage} className="flex flex-wrap items-center gap-2 text-[12px]">
+        <li key={item.id} data-stage={item.stage} className="flex flex-wrap items-center gap-2 text-[14px]">
           <span className="text-xms-ink truncate">{item.name}</span>
           <span className="xms-mono text-xms-label">{formatBytes(item.size)}</span>
           <ScanChip state={item.stage} portal={portal} />
@@ -212,7 +212,7 @@ export function UploadList({
 /** Scanning acknowledgement: the composer may send with a pending scan only when this is ticked. */
 export function ScanAcknowledgement({ checked, onChange }: { checked: boolean; onChange: (next: boolean) => void }) {
   return (
-    <label className="text-xms-label flex items-center gap-2 text-[12px]">
+    <label className="text-xms-label flex items-center gap-2 text-[14px]">
       <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />A file is still
       being scanned; send anyway and let the placeholder stand until the verdict.
     </label>
@@ -223,7 +223,7 @@ function VisibilityChip({ visibility }: { visibility: AttachmentVisibility }) {
   return (
     <span
       className={cn(
-        "rounded-[999px] px-2 py-[1px] text-[11px]",
+        "rounded-[999px] px-2 py-[1px] text-[14px]",
         visibility === "internal" ? "bg-xms-navy text-white" : "bg-xms-accent-tint text-xms-accent",
       )}
     >
@@ -247,13 +247,13 @@ export function AttachmentRow({
   const quarantined = attachment.scan_state === "quarantined";
   return (
     <li data-attachment={attachment.id} data-scan={attachment.scan_state} className="flex flex-col gap-1 py-2">
-      <div className="flex flex-wrap items-center gap-2 text-[12px]">
+      <div className="flex flex-wrap items-center gap-2 text-[14px]">
         <span className="text-xms-ink truncate font-medium">{attachment.file_name}</span>
         <span className="xms-mono text-xms-label">{formatBytes(Number(attachment.size_bytes))}</span>
         <ScanChip state={attachment.scan_state} portal={portal} />
         {!portal ? (
           <>
-            <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[11px]">
+            <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">
               {originLabel(attachment.origin)}
             </span>
             <VisibilityChip visibility={attachment.visibility} />
@@ -277,9 +277,9 @@ export function AttachmentRow({
           ) : null}
         </span>
       </div>
-      {quarantined ? <p className="text-xms-label text-[12px]">{QUARANTINE_PLACEHOLDER}</p> : null}
+      {quarantined ? <p className="text-xms-label text-[14px]">{QUARANTINE_PLACEHOLDER}</p> : null}
       {!portal ? (
-        <p className="text-xms-label text-[11px]">by {attachment.uploaded_by_name || attachment.uploaded_by}</p>
+        <p className="text-xms-label text-[14px]">by {attachment.uploaded_by_name || attachment.uploaded_by}</p>
       ) : null}
     </li>
   );

@@ -203,7 +203,7 @@ export function SavedViewsBar({
   // per-browser star the finder bar reads, and says so.
   if (!available)
     return (
-      <div className="flex flex-wrap items-center gap-2 text-[12px]" data-testid="saved-views">
+      <div className="flex flex-wrap items-center gap-2 text-[14px]" data-testid="saved-views">
         <button type="button" onClick={onToggleStar} aria-pressed={starred} className="xms-link">
           {starred ? "Starred" : "Star this list"}
         </button>
@@ -215,7 +215,7 @@ export function SavedViewsBar({
 
   return (
     <div className="flex flex-col gap-2" data-testid="saved-views">
-      <div className="flex flex-wrap items-center gap-3 text-[12px]">
+      <div className="flex flex-wrap items-center gap-3 text-[14px]">
         <button type="button" onClick={openForm} className="xms-link">
           Save as view
         </button>
@@ -233,7 +233,7 @@ export function SavedViewsBar({
                   aria-label="Sharing"
                   value={current.share}
                   onChange={(event) => void reshare(current, event.target.value as ShareMode)}
-                  className="border-xms-line bg-xms-card text-xms-ink h-[26px] rounded-[4px] border px-1 text-[12px]"
+                  className="border-xms-line bg-xms-card text-xms-ink h-[26px] rounded-[4px] border px-1 text-[14px]"
                 >
                   {SHARE_MODES.map((mode) => (
                     <option key={mode} value={mode}>
@@ -246,7 +246,7 @@ export function SavedViewsBar({
                     aria-label="Share with group"
                     value={current.share_ref}
                     allowNone={false}
-                    className="h-[26px] w-[180px] text-[12px]"
+                    className="h-[26px] w-[180px] text-[14px]"
                     onChange={(next) => {
                       if (next) void reshare(current, "group", next);
                     }}
@@ -257,7 +257,7 @@ export function SavedViewsBar({
                   confirmLabel="Confirm delete"
                   danger
                   onConfirm={() => destroy(current)}
-                  className="h-[26px] px-2 text-[12px]"
+                  className="h-[26px] px-2 text-[14px]"
                 />
               </>
             ) : (
@@ -275,7 +275,7 @@ export function SavedViewsBar({
             void rename(current, renaming);
           }}
         >
-          <label htmlFor="saved-view-rename" className="text-xms-label text-[12px]">
+          <label htmlFor="saved-view-rename" className="text-xms-label text-[14px]">
             New name
           </label>
           <input
@@ -303,7 +303,7 @@ export function SavedViewsBar({
           }}
         >
           <span className="flex flex-col gap-1">
-            <label htmlFor="saved-view-name" className="text-xms-label text-[12px]">
+            <label htmlFor="saved-view-name" className="text-xms-label text-[14px]">
               Name
             </label>
             <input
@@ -314,7 +314,7 @@ export function SavedViewsBar({
             />
           </span>
           <span className="flex flex-col gap-1">
-            <label htmlFor="saved-view-account" className="text-xms-label text-[12px]">
+            <label htmlFor="saved-view-account" className="text-xms-label text-[14px]">
               Account
             </label>
             <select
@@ -332,7 +332,7 @@ export function SavedViewsBar({
             </select>
           </span>
           <span className="flex flex-col gap-1">
-            <label htmlFor="saved-view-share" className="text-xms-label text-[12px]">
+            <label htmlFor="saved-view-share" className="text-xms-label text-[14px]">
               Shared with
             </label>
             <select
@@ -350,7 +350,7 @@ export function SavedViewsBar({
           </span>
           {share === "group" ? (
             <span className="flex flex-col gap-1">
-              <label htmlFor="saved-view-group" className="text-xms-label text-[12px]">
+              <label htmlFor="saved-view-group" className="text-xms-label text-[14px]">
                 Group
               </label>
               <GroupPicker
@@ -369,11 +369,11 @@ export function SavedViewsBar({
           <button type="button" onClick={() => setOpen(false)} className={SECONDARY_BUTTON}>
             Cancel
           </button>
-          <p className="text-xms-label basis-full text-[12px]">
+          <p className="text-xms-label basis-full text-[14px]">
             A view is filed under one account and carries the chips as they are now.
           </p>
           {problems.length > 0 ? (
-            <ul className="basis-full text-[12px] text-[color:var(--state-overdue-text)]">
+            <ul className="basis-full text-[14px] text-[color:var(--state-overdue-text)]">
               {problems.map((problem) => (
                 <li key={problem}>{problem}</li>
               ))}

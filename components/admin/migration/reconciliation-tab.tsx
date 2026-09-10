@@ -88,7 +88,7 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
           <span className="block max-w-[360px] truncate" title={row.explanation}>
             {row.explanation}
             {row.explained_by_name || row.explained_at ? (
-              <span className="text-xms-label ml-2 text-[11px]" data-explained-by>
+              <span className="text-xms-label ml-2 text-[14px]" data-explained-by>
                 {row.explained_by_name ?? "Unknown"} <span className="xms-mono">{formatDate(row.explained_at)}</span>
               </span>
             ) : null}
@@ -104,7 +104,7 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
         row.status === "delta_open" && !frozen ? (
           <button
             type="button"
-            className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[12px]")}
+            className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[14px]")}
             onClick={() => setExplaining(row)}
             data-explain={row.index}
           >
@@ -155,7 +155,7 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
         search={
           <div className="flex items-center gap-3">
             {report.batch_id && !current ? (
-              <Link href={`/admin/migration/${report.batch_id}`} className="text-xms-accent xms-mono text-[12px]">
+              <Link href={`/admin/migration/${report.batch_id}`} className="text-xms-accent xms-mono text-[14px]">
                 batch {report.batch_id.slice(0, 8)}
               </Link>
             ) : null}
@@ -172,8 +172,8 @@ function ReportPanel({ report, current }: { report: ReconciliationReport; curren
         }
         banner={
           <div className="border-xms-line flex flex-col gap-1 border-b px-4 py-2">
-            <p className="text-xms-label text-[12px]">{caption}</p>
-            {blocked && !frozen ? <p className="text-xms-label text-[12px]">{blocked}</p> : null}
+            <p className="text-xms-label text-[14px]">{caption}</p>
+            {blocked && !frozen ? <p className="text-xms-label text-[14px]">{blocked}</p> : null}
             <InlineError message={problem} />
           </div>
         }
@@ -213,12 +213,12 @@ export function ReconciliationTab({ accountId, batchId }: { accountId: string; b
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <label className="text-xms-label text-[12px]" htmlFor="report-scope">
+        <label className="text-xms-label text-[14px]" htmlFor="report-scope">
           Scope
         </label>
         <select
           id="report-scope"
-          className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+          className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
           value={scope}
           onChange={(event) => setScope(event.target.value)}
         >
@@ -232,7 +232,7 @@ export function ReconciliationTab({ accountId, batchId }: { accountId: string; b
       </div>
       {reports.isLoading ? <Skeleton lines={4} /> : null}
       {reports.data && ordered.length === 0 ? (
-        <p className="text-xms-label text-[13px]">No reconciliation report on this account yet. Run a batch.</p>
+        <p className="text-xms-label text-[14px]">No reconciliation report on this account yet. Run a batch.</p>
       ) : null}
       {ordered.map((report) => (
         <ReportPanel key={report.id} report={report} current={report.batch_id === batchId} />

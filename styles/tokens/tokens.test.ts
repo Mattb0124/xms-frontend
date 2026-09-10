@@ -92,10 +92,27 @@ describe("xms token contract", () => {
     expect(scope).not.toContain("--state-overdue-text");
   });
 
-  it("uses the wireframe values for the core identity", () => {
+  // The identity moved onto the ServiceNow Next Experience palette on
+  // 2026-09-10 (AIBL-316), a deliberate departure from the wireframe values
+  // that ADR-17 and ADR-18 make the UI source of truth. The navy finder bar is
+  // the one value that did not move, and it is still the only blue surface at
+  // the top of the app.
+  it("uses the ServiceNow palette for the core identity", () => {
     expect(scope).toContain("--xms-navy: #10193a");
-    expect(scope).toContain("--xms-accent: #2563eb");
-    expect(scope).toContain("--xms-bg: #f4f5f7");
+    expect(scope).toContain("--xms-accent: #006fba");
+    expect(scope).toContain("--xms-ink: #000e1d");
+    expect(scope).toContain("--xms-bg: #fafbfc");
+  });
+
+  // Nothing renders below the body size. Sub-14 sizes were swept out of the
+  // components and out of both token layers on 2026-09-10; the bottom of the
+  // scale collapses onto 14 rather than the names being removed.
+  it("holds the 14px floor across the scale and the scope", () => {
+    for (const step of ["--xms-text-xs", "--xms-text-sm", "--xms-text-md"]) {
+      expect(scope).toContain(`${step}: 14px`);
+    }
+    expect(scope).not.toMatch(/font(-size)?: *(?:[0-9]+ )?(9|10|11|12|13)px/);
+    expect(house).not.toMatch(/font(-size)?: *(?:[0-9]+ )?(9|10|11|12|13)px/);
   });
 
   // Tailwind v4 emits every utility inside the `utilities` cascade layer, and an

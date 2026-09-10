@@ -142,7 +142,7 @@ export function TeamTime() {
           title="Who logged what"
           subtitle={`${hours(all)} across ${totals.length} people, ${window.from} to ${window.to}.`}
         >
-          <ul className="flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+          <ul className="flex flex-wrap gap-x-6 gap-y-1 text-[14px]">
             {totals.map((row) => (
               <li key={row.name} className="text-xms-ink flex items-baseline gap-2">
                 <span>{row.name}</span>

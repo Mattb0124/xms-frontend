@@ -18,7 +18,7 @@ export interface PeopleListProps {
 }
 
 const CHIP =
-  "border-xms-line bg-xms-tint text-xms-body inline-flex h-[22px] items-center gap-1 rounded-[999px] border px-2 text-[11px] whitespace-nowrap";
+  "border-xms-line bg-xms-tint text-xms-body inline-flex h-[22px] items-center gap-1 rounded-[999px] border px-2 text-[14px] whitespace-nowrap";
 
 export function groupLabel(id: string, names?: Record<string, string>): string {
   return names?.[id] ?? id.slice(0, 8);
@@ -54,7 +54,7 @@ export function PeopleList({ rows, groupNames, loading, search, emptyState }: Pe
           <Link href={`/roster/${row.id}`} className="text-xms-accent font-medium" data-person={row.id}>
             {row.display_name}
           </Link>
-          <span className="xms-mono text-xms-label text-[11px]">{row.email}</span>
+          <span className="xms-mono text-xms-label text-[14px]">{row.email}</span>
         </span>
       ),
     },

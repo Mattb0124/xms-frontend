@@ -84,7 +84,7 @@ export function ExportMenu({
               type="button"
               role="menuitem"
               onClick={() => void run("xlsx")}
-              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-[13px]"
+              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-[14px]"
             >
               Excel (.xlsx)
             </button>
@@ -94,7 +94,7 @@ export function ExportMenu({
               type="button"
               role="menuitem"
               onClick={() => void run("csv")}
-              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-[13px]"
+              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-[14px]"
             >
               CSV
             </button>

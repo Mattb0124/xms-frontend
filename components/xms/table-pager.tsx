@@ -98,10 +98,10 @@ export function TablePager({
             commit();
           }
         }}
-        className="xms-field border-xms-control-line text-xms-ink h-[26px] w-[52px] rounded-[4px] border text-center text-[13px] tabular-nums outline-none"
+        className="xms-field border-xms-control-line text-xms-ink h-[26px] w-[52px] rounded-[4px] border text-center text-[14px] tabular-nums outline-none"
       />
 
-      <span className="text-xms-body px-1 text-[13px] tabular-nums">
+      <span className="text-xms-body px-1 text-[14px] tabular-nums">
         {first} to {last}
         {total === undefined ? "" : ` of ${total.toLocaleString("en-US")}`}
       </span>

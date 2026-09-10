@@ -81,9 +81,9 @@ export function ReportsCard({ accountId }: { accountId: string }) {
           <Skeleton lines={3} />
         </div>
       ) : runs.data && runs.data.length > 0 ? (
-        <table className="w-full border-collapse text-[13px]">
+        <table className="w-full border-collapse text-[14px]">
           <thead>
-            <tr className="border-xms-line text-xms-ink border-b text-left text-[12px] font-semibold">
+            <tr className="border-xms-line text-xms-ink border-b text-left text-[14px] font-semibold">
               <th className="px-4 py-2">Period</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Status</th>
@@ -101,7 +101,7 @@ export function ReportsCard({ accountId }: { accountId: string }) {
                 <td className="px-4 py-2">
                   <RunStatusPill status={run.status} />
                 </td>
-                <td className="xms-mono text-xms-label px-4 py-2 text-[12px]">{formatMoment(run.created_at)}</td>
+                <td className="xms-mono text-xms-label px-4 py-2 text-[14px]">{formatMoment(run.created_at)}</td>
                 <td className="px-4 py-2 text-right">
                   {run.pack_id_resolved ? (
                     <a href={`/reports/packs/${run.pack_id_resolved}`} className="xms-link">
@@ -116,7 +116,7 @@ export function ReportsCard({ accountId }: { accountId: string }) {
           </tbody>
         </table>
       ) : (
-        <p className="text-xms-label px-4 py-6 text-center text-[13px]">No report runs yet.</p>
+        <p className="text-xms-label px-4 py-6 text-center text-[14px]">No report runs yet.</p>
       )}
     </Panel>
   );

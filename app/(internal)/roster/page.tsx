@@ -133,7 +133,7 @@ function RosterScreen() {
                 placeholder="Name or email"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
               />
               <button type="submit" aria-label="Run the search" className="text-xms-muted hover:text-xms-ink shrink-0">
                 <SearchIcon size={ICON.action} />

@@ -50,9 +50,9 @@ export function Panel({ title, caption, note, subtitle, actions, children, flush
         <div className="min-w-0">
           {caption ? <p className="xms-caption">{caption}</p> : null}
           <h2 className="text-xms-ink text-[15px] leading-[1.3] font-semibold">{title}</h2>
-          {subtitle ? <p className="text-xms-label mt-[2px] text-[12px]">{subtitle}</p> : null}
+          {subtitle ? <p className="text-xms-label mt-[2px] text-[14px]">{subtitle}</p> : null}
         </div>
-        {note ? <span className="text-xms-muted shrink-0 text-[12px] leading-[1.3]">{note}</span> : null}
+        {note ? <span className="text-xms-muted shrink-0 text-[14px] leading-[1.3]">{note}</span> : null}
         {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}
       </header>
       <div className={cn(bare ? undefined : flush ? "overflow-x-auto" : "p-4")}>{children}</div>

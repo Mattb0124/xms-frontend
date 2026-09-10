@@ -28,15 +28,15 @@ export function EmptyBanner({ title, detail, action, className }: EmptyBannerPro
   return (
     <div role="status" className={cn("xms-card max-w-[620px] p-[28px]", className)}>
       <p className="text-xms-ink text-[15px] leading-[1.6] font-semibold">{title}</p>
-      {detail ? <p className="text-xms-muted mt-[10px] text-[13px] leading-[1.5]">{detail}</p> : null}
+      {detail ? <p className="text-xms-muted mt-[10px] text-[14px] leading-[1.5]">{detail}</p> : null}
       {action ? (
         <p className="mt-[14px]">
           {action.href ? (
-            <Link href={action.href} className="text-xms-accent text-[13px] font-medium">
+            <Link href={action.href} className="text-xms-accent text-[14px] font-medium">
               {action.label}
             </Link>
           ) : (
-            <button type="button" onClick={action.onClick} className="text-xms-accent text-[13px] font-medium">
+            <button type="button" onClick={action.onClick} className="text-xms-accent text-[14px] font-medium">
               {action.label}
             </button>
           )}

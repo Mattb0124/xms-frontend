@@ -21,7 +21,7 @@ export function RequestList({ items, emptyText }: { items: PortalTicket[]; empty
   return (
     <table className="w-full text-[14px]">
       <thead>
-        <tr className="text-xms-label border-xms-line border-b text-left text-[12px] uppercase tracking-wide">
+        <tr className="text-xms-label border-xms-line border-b text-left text-[14px] uppercase tracking-wide">
           <th scope="col" className="py-2 pr-3 font-medium">
             Request
           </th>
@@ -41,7 +41,7 @@ export function RequestList({ items, emptyText }: { items: PortalTicket[]; empty
           <tr key={item.id} className="border-xms-line hover:bg-xms-row-hover border-b last:border-b-0">
             <td className="py-3 pr-3">
               <Link href={`/portal/requests/${item.key}`} className="flex flex-col gap-0.5 rounded-[4px]">
-                <span className="xms-mono text-xms-label text-[12px]">{item.key}</span>
+                <span className="xms-mono text-xms-label text-[14px]">{item.key}</span>
                 <span className="text-xms-ink font-medium">{item.short_description}</span>
               </Link>
             </td>

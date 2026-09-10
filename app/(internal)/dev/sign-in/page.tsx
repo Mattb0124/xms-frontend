@@ -23,7 +23,7 @@ export default function DevSignInPage() {
   if (!AUTH_DEV_MODE) {
     return (
       <Panel title="Development sign-in" caption="Not available">
-        <p className="text-xms-body text-[13px]">
+        <p className="text-xms-body text-[14px]">
           {CLERK_ENABLED
             ? "Sign in through Clerk."
             : !IS_LOCAL_TARGET
@@ -45,7 +45,7 @@ export default function DevSignInPage() {
           router.push("/");
         }}
       >
-        <label htmlFor="dev-token" className="text-xms-label text-[12px]">
+        <label htmlFor="dev-token" className="text-xms-label text-[14px]">
           Bearer token from <code className="xms-mono">pnpm dev:token --email admin@example.test</code> run in the
           backend folder (after <code className="xms-mono">pnpm seed:dev</code>)
         </label>
@@ -54,13 +54,13 @@ export default function DevSignInPage() {
           value={token}
           onChange={(event) => setToken(event.target.value)}
           rows={5}
-          className="border-xms-line bg-xms-card text-xms-ink xms-mono rounded-[4px] border p-2 text-[12px]"
+          className="border-xms-line bg-xms-card text-xms-ink xms-mono rounded-[4px] border p-2 text-[14px]"
           placeholder="eyJhbGciOi..."
         />
         <div className="flex gap-2">
           <button
             type="submit"
-            className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[13px] font-medium text-white"
+            className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white"
           >
             Use token
           </button>
@@ -71,7 +71,7 @@ export default function DevSignInPage() {
               dispatch(xmsApi.util.resetApiState());
               setToken("");
             }}
-            className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[13px]"
+            className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
           >
             Clear
           </button>

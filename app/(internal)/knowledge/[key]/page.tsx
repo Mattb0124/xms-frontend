@@ -103,12 +103,12 @@ function PropertiesRail({
           push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" })
         }
       />
-      {article.source_ticket_id ? <p className="text-xms-label mt-3 text-[12px]">Created from a ticket.</p> : null}
+      {article.source_ticket_id ? <p className="text-xms-label mt-3 text-[14px]">Created from a ticket.</p> : null}
       {article.generalized_from_id ? (
-        <p className="text-xms-label mt-1 text-[12px]">Generalized from an account article.</p>
+        <p className="text-xms-label mt-1 text-[14px]">Generalized from an account article.</p>
       ) : null}
       {article.retired_reason ? (
-        <p className="text-xms-label mt-1 text-[12px]">Retired: {article.retired_reason}</p>
+        <p className="text-xms-label mt-1 text-[14px]">Retired: {article.retired_reason}</p>
       ) : null}
     </RailCard>
   );
@@ -158,7 +158,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
           <span className="flex items-center gap-2">
             <ArticleStatusPill status={article.status} />
             <GlobalChip isGlobal={article.is_global} />
-            <span className="text-xms-label text-[12px]">{KIND_LABEL[article.kind]}</span>
+            <span className="text-xms-label text-[14px]">{KIND_LABEL[article.kind]}</span>
           </span>
         }
         actions={<ArticleActions article={article} />}
@@ -183,7 +183,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
               <div className="flex flex-col gap-4">
                 {editingPublished && article.draft ? (
                   <div
-                    className="border-xms-line bg-xms-tint flex items-center gap-3 rounded-[6px] border px-3 py-2 text-[12px]"
+                    className="border-xms-line bg-xms-tint flex items-center gap-3 rounded-[6px] border px-3 py-2 text-[14px]"
                     data-testid="draft-banner"
                   >
                     <span className="text-xms-ink">
@@ -200,7 +200,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
                   </div>
                 ) : null}
                 {editingPublished && !article.draft ? (
-                  <p className="text-xms-label text-[12px]">
+                  <p className="text-xms-label text-[14px]">
                     Published v{article.published?.version_no}. Editing any section starts draft v
                     {article.versions.length + 1}.
                   </p>
@@ -210,20 +210,20 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
             ) : null}
             {tab === "visibility" ? <VisibilityTab article={article} /> : null}
             {tab === "history" ? (
-              <ul className="divide-xms-line divide-y text-[13px]" aria-label="Versions">
+              <ul className="divide-xms-line divide-y text-[14px]" aria-label="Versions">
                 {article.versions.map((version) => (
                   <li key={version.id} className="flex items-center gap-3 py-2">
                     <span className="xms-mono text-xms-ink w-[60px]">v{version.version_no}</span>
                     <span className="text-xms-body">
                       {version.published_at ? `Published ${formatDate(version.published_at)}` : "Draft"}
                     </span>
-                    <span className="text-xms-label ml-auto text-[12px]">{version.authored_name}</span>
+                    <span className="text-xms-label ml-auto text-[14px]">{version.authored_name}</span>
                   </li>
                 ))}
               </ul>
             ) : null}
             {tab === "feedback" ? (
-              <dl className="grid grid-cols-[160px_1fr] gap-y-2 text-[13px]" aria-label="Feedback counts">
+              <dl className="grid grid-cols-[160px_1fr] gap-y-2 text-[14px]" aria-label="Feedback counts">
                 {(["useful", "not_useful", "out_of_date", "solved_it"] as const).map((verdict) => (
                   <div key={verdict} className="contents">
                     <dt className="text-xms-label">{verdict.replace(/_/g, " ")}</dt>

@@ -43,9 +43,9 @@ export function ScopeRecord({ ticketKey }: { ticketKey: string }) {
       <ol className="flex flex-col gap-[6px]">
         {data.map((row) => (
           <li key={row.id} className="flex flex-col">
-            <span className="text-xms-ink text-[12px] leading-[1.35]">{scopeEventLine(row)}</span>
-            <span className="text-xms-label xms-mono text-[11px]">{formatMoment(row.at)}</span>
-            {row.note ? <span className="text-xms-body text-[12px] leading-[1.35]">{row.note}</span> : null}
+            <span className="text-xms-ink text-[14px] leading-[1.35]">{scopeEventLine(row)}</span>
+            <span className="text-xms-label xms-mono text-[14px]">{formatMoment(row.at)}</span>
+            {row.note ? <span className="text-xms-body text-[14px] leading-[1.35]">{row.note}</span> : null}
           </li>
         ))}
       </ol>

@@ -76,7 +76,7 @@ export function Composer({
           aria-selected={mode === "reply"}
           onClick={() => setMode("reply")}
           className={cn(
-            "rounded-[999px] px-[13px] py-[7px] text-[12px] leading-none",
+            "rounded-[999px] px-[13px] py-[7px] text-[14px] leading-none",
             mode === "reply"
               ? "bg-xms-accent font-semibold text-white"
               : "text-xms-body hover:bg-xms-row-hover font-medium",
@@ -90,7 +90,7 @@ export function Composer({
           aria-selected={note}
           onClick={() => setMode("note")}
           className={cn(
-            "rounded-[999px] px-[13px] py-[7px] text-[12px] leading-none",
+            "rounded-[999px] px-[13px] py-[7px] text-[14px] leading-none",
             note ? "bg-xms-navy font-semibold text-white" : "text-xms-body hover:bg-xms-row-hover font-medium",
           )}
         >
@@ -106,7 +106,7 @@ export function Composer({
             type="button"
             disabled
             title="There is no reply template catalog on the API yet."
-            className="border-xms-line-strong bg-xms-card text-xms-body rounded-[4px] border px-[11px] py-[7px] text-[12px] leading-none font-medium disabled:opacity-50"
+            className="border-xms-line-strong bg-xms-card text-xms-body rounded-[4px] border px-[11px] py-[7px] text-[14px] leading-none font-medium disabled:opacity-50"
           >
             Template
           </button>
@@ -119,20 +119,20 @@ export function Composer({
         disabled={readOnly || pending}
         placeholder={note ? "Internal note for the team" : "Reply to the requester"}
         onChange={(event) => setBody(event.target.value)}
-        className="text-xms-ink min-h-[76px] w-full resize-y bg-transparent px-[14px] py-[14px] text-[13px] outline-none"
+        className="text-xms-ink min-h-[76px] w-full resize-y bg-transparent px-[14px] py-[14px] text-[14px] outline-none"
       />
       {attachments ? (
         <div className="border-xms-line flex flex-col gap-2 border-t px-[14px] py-3">{attachments}</div>
       ) : null}
       <div className="border-xms-line flex items-center gap-[10px] border-t px-[14px] py-3">
-        <span className="text-xms-muted text-[12px] leading-none">
+        <span className="text-xms-muted text-[14px] leading-none">
           {blockedReason ?? (note ? "Visible to the team only" : recipientLine)}
         </span>
         <button
           type="submit"
           disabled={readOnly || pending || !body.trim() || Boolean(blockedReason)}
           className={cn(
-            "ml-auto rounded-[4px] px-4 py-[10px] text-[13px] leading-none font-semibold text-white disabled:opacity-50",
+            "ml-auto rounded-[4px] px-4 py-[10px] text-[14px] leading-none font-semibold text-white disabled:opacity-50",
             note ? "bg-xms-navy" : "bg-xms-accent hover:bg-xms-accent-hover",
           )}
         >
@@ -155,7 +155,7 @@ export function initialsOf(name: string): string {
   return letters.toUpperCase();
 }
 
-const THREAD_PILL = "rounded-[999px] px-[9px] py-[4px] text-[11px] leading-none font-medium whitespace-nowrap";
+const THREAD_PILL = "rounded-[999px] px-[9px] py-[4px] text-[14px] leading-none font-medium whitespace-nowrap";
 
 /**
  * One message in the thread, measured off the prototype's own markup: a 34px
@@ -174,7 +174,7 @@ export function MessageRow({ item, viaEmail }: { item: TimelineItem; viaEmail?: 
       <span
         aria-hidden
         className={cn(
-          "xms-mono h-[34px] w-[34px] flex-none rounded-[999px] text-center text-[11px] leading-[34px] font-semibold",
+          "xms-mono h-[34px] w-[34px] flex-none rounded-[999px] text-center text-[14px] leading-[34px] font-semibold",
           note ? "bg-xms-navy text-white" : "bg-xms-nav-wash text-xms-accent-hover",
         )}
       >
@@ -194,7 +194,7 @@ export function MessageRow({ item, viaEmail }: { item: TimelineItem; viaEmail?: 
               via email
             </span>
           ) : null}
-          <span className="text-xms-muted text-[12px] leading-none">{formatStamp(item.created_at)}</span>
+          <span className="text-xms-muted text-[14px] leading-none">{formatStamp(item.created_at)}</span>
         </header>
         <p className="text-xms-ink mt-[10px] text-[14px] leading-[1.6] whitespace-pre-wrap">{item.body}</p>
       </div>
@@ -285,7 +285,7 @@ export function ConversationTab({
           <MessageRow key={item.id} item={item} viaEmail={emailComments.has(item.id)} />
         ))}
       </div>
-      {data && messages.length === 0 ? <p className="text-xms-label text-[13px]">No messages yet.</p> : null}
+      {data && messages.length === 0 ? <p className="text-xms-label text-[14px]">No messages yet.</p> : null}
     </div>
   );
 }

@@ -30,9 +30,9 @@ export function RailCard({ caption, children, action, tone = "card", glyph, clas
       <header className="mb-[13px] flex items-center gap-2">
         {glyph}
         <p className={cn("xms-caption", note && "text-xms-body")}>{caption}</p>
-        {action ? <span className="ml-auto text-[12px]">{action}</span> : null}
+        {action ? <span className="ml-auto text-[14px]">{action}</span> : null}
       </header>
-      <div className="text-xms-body text-[13px]">{children}</div>
+      <div className="text-xms-body text-[14px]">{children}</div>
     </section>
   );
 }

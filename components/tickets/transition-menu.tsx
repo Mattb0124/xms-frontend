@@ -144,12 +144,12 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
           label={ticket.state_label}
           // The prototype's own state pill in the record bar: 600 13px on 1,
           // 9px by 14px, an 8px gap and a 15px chevron in the label grey.
-          className="gap-2 px-[14px] py-[9px] text-[13px] leading-none font-semibold"
+          className="gap-2 px-[14px] py-[9px] text-[14px] leading-none font-semibold"
           trailing={terminal ? undefined : <ChevronDownIcon size={ICON.action} className="text-xms-label" />}
         />
       </button>
       {open ? (
-        <ul role="menu" className="xms-card absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-[13px]">
+        <ul role="menu" className="xms-card absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-[14px]">
           {(data?.transitions ?? []).map((target) => (
             <li key={target.to} role="none">
               <button
@@ -160,7 +160,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
               >
                 <StatePill state={target.to} label={target.label} />
                 {target.requires.length > 0 ? (
-                  <span className="text-xms-label ml-auto text-[11px]">needs input</span>
+                  <span className="text-xms-label ml-auto text-[14px]">needs input</span>
                 ) : null}
               </button>
             </li>
@@ -183,7 +183,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
           }}
         >
           <p className="xms-caption">Pause the SLA clocks</p>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Reason</span>
             <select
               aria-label="Pause reason"
@@ -198,7 +198,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Note (optional)</span>
             <input
               aria-label="Pause note"
@@ -211,14 +211,14 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
             <button
               type="button"
               onClick={() => setSheet({ kind: "none" })}
-              className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[13px]"
+              className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="bg-xms-accent h-[32px] rounded-[4px] px-3 text-[13px] font-medium text-white disabled:opacity-50"
+              className="bg-xms-accent h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white disabled:opacity-50"
             >
               Move to {sheet.target.label}
             </button>
@@ -251,7 +251,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
         <div
           role="dialog"
           aria-label={`Confirm ${sheet.target.label}`}
-          className="xms-card absolute top-full left-0 z-20 mt-1 flex w-[340px] flex-col gap-3 p-4 text-[13px]"
+          className="xms-card absolute top-full left-0 z-20 mt-1 flex w-[340px] flex-col gap-3 p-4 text-[14px]"
         >
           <p className="text-xms-ink">
             {sheet.target.reopen
@@ -331,21 +331,21 @@ function ChangeWindowSheet({
       }}
     >
       <p className="xms-caption">{acknowledging ? "Acknowledge the warning" : "Override the change window"}</p>
-      <p className="text-xms-ink text-[13px]">{changeWindowTitle(refusal)}</p>
-      <p className="text-xms-body text-[12px]">{changeWindowDetail(refusal)}</p>
+      <p className="text-xms-ink text-[14px]">{changeWindowTitle(refusal)}</p>
+      <p className="text-xms-body text-[14px]">{changeWindowDetail(refusal)}</p>
       {refusal.starts_at && refusal.ends_at ? (
-        <p className="xms-mono text-xms-label text-[12px]" data-window-span>
+        <p className="xms-mono text-xms-label text-[14px]" data-window-span>
           {formatDate(refusal.starts_at)} to {formatDate(refusal.ends_at)}
           {refusal.at ? `, and it is now ${formatDate(refusal.at)}` : ""}
         </p>
       ) : null}
       {refusal.freeze ? (
-        <p className="xms-mono text-xms-label text-[12px]" data-freeze-span>
+        <p className="xms-mono text-xms-label text-[14px]" data-freeze-span>
           Freeze {formatDate(refusal.freeze.starts_at)} to {formatDate(refusal.freeze.ends_at)}
         </p>
       ) : null}
       {refusal.conflicts.length > 0 ? (
-        <ul className="text-xms-body text-[12px]" data-conflicts>
+        <ul className="text-xms-body text-[14px]" data-conflicts>
           {refusal.conflicts.map((conflict) => (
             <li key={conflict.key}>
               <span className="xms-mono">{conflict.key}</span>
@@ -354,7 +354,7 @@ function ChangeWindowSheet({
           ))}
         </ul>
       ) : null}
-      <label className="flex flex-col gap-1 text-[12px]">
+      <label className="flex flex-col gap-1 text-[14px]">
         <span className="text-xms-label">Reason</span>
         <input
           aria-label="Change window reason"
@@ -364,7 +364,7 @@ function ChangeWindowSheet({
         />
       </label>
       {problem ? (
-        <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+        <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
           {problem}
         </p>
       ) : null}
@@ -372,14 +372,14 @@ function ChangeWindowSheet({
         <button
           type="button"
           onClick={onCancel}
-          className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[13px]"
+          className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="bg-xms-accent h-[32px] rounded-[4px] px-3 text-[13px] font-medium text-white disabled:opacity-50"
+          className="bg-xms-accent h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white disabled:opacity-50"
         >
           {acknowledging ? "Acknowledge and move" : "Override and move"}
         </button>

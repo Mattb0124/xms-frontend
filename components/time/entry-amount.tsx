@@ -19,7 +19,7 @@ export function EntryAmount({
   if (entry.amount === null && entry.rate_snapshot === null) return null;
   return (
     <span
-      className={cn("xms-mono inline-flex flex-col items-end text-[11px] leading-tight", className)}
+      className={cn("xms-mono inline-flex flex-col items-end text-[14px] leading-tight", className)}
       data-amount={entry.amount ?? ""}
     >
       <span className="text-xms-ink">{formatMoney(entry.amount) ?? "n/a"}</span>

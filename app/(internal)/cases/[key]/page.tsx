@@ -110,7 +110,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             second coloured mark here competed with the state pill. */}
         <PriorityPill
           priority={ticket.priority}
-          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-[999px] border px-[14px] py-[9px] text-[13px] leading-none font-medium"
+          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-[999px] border px-[14px] py-[9px] text-[14px] leading-none font-medium"
         />
         {tight ? (
           // The chip the lists carry, in the record bar: the dot takes the
@@ -118,13 +118,13 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           // the value says what it is counting ("3h 12m left", render 02)
           // rather than standing as a bare number beside a blue dot that
           // never changed.
-          <span className="border-xms-neutral-line bg-xms-neutral-bg text-xms-neutral-ink xms-mono inline-flex items-center gap-2 rounded-[999px] border px-[14px] py-[9px] text-[13px] leading-none font-medium">
+          <span className="border-xms-neutral-line bg-xms-neutral-bg text-xms-neutral-ink xms-mono inline-flex items-center gap-2 rounded-[999px] border px-[14px] py-[9px] text-[14px] leading-none font-medium">
             <SlaValue
               snapshot={clockSnapshot(tight)}
               dot
               verbose
               kind={tight.kind === "response" ? "Response" : "Resolution"}
-              className="text-xms-neutral-ink text-[13px]"
+              className="text-xms-neutral-ink text-[14px]"
             />
           </span>
         ) : null}
@@ -151,7 +151,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         </span>
       </div>
       {more ? (
-        <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-[13px]" role="menu">
+        <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-[14px]" role="menu">
           <Link
             href="/cases"
             role="menuitem"
@@ -248,7 +248,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <details className="xms-card group p-0">
-            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[13px] font-medium">
+            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[14px] font-medium">
               <ChevronDownIcon
                 size={ICON.control}
                 className="text-xms-ink-faint transition-transform group-open:rotate-0 -rotate-90"

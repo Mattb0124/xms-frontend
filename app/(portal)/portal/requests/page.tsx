@@ -88,7 +88,7 @@ export default function PortalRequestsPage() {
 function UnavailableNote({ count }: { count: number }) {
   if (count < 1) return null;
   return (
-    <p role="status" className="text-xms-label mt-3 text-[13px]">
+    <p role="status" className="text-xms-label mt-3 text-[14px]">
       {count === 1
         ? "1 request could not be loaded and is not shown. Your support team can see it; ask them, or try again later."
         : `${count} requests could not be loaded and are not shown. Your support team can see them; ask them, or try again later.`}

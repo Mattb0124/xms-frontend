@@ -107,7 +107,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
       title: "Endpoint",
       sortValue: (row) => row.endpoint_url,
       wrap: true,
-      render: (row) => <span className="xms-mono text-xms-ink text-[12px]">{row.endpoint_url}</span>,
+      render: (row) => <span className="xms-mono text-xms-ink text-[14px]">{row.endpoint_url}</span>,
     },
     { key: "client", title: "Client", sortValue: (row) => row.client.name, render: (row) => row.client.name },
     {
@@ -115,7 +115,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
       title: "Listens for",
       wrap: true,
       render: (row) => (
-        <span className="text-xms-body text-[12px]">
+        <span className="text-xms-body text-[14px]">
           {row.event_types.length} {row.event_types.length === 1 ? "event" : "events"}: {row.event_types.join(", ")}
         </span>
       ),
@@ -128,7 +128,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
       render: (row) => (
         <span className="flex flex-col gap-1">
           <SignalPill tone={STATUS_TONE[row.status] ?? "ready"} label={row.status} />
-          {pausedLine(row) ? <span className="text-xms-label text-[12px]">{pausedLine(row)}</span> : null}
+          {pausedLine(row) ? <span className="text-xms-label text-[14px]">{pausedLine(row)}</span> : null}
         </span>
       ),
     },
@@ -210,8 +210,8 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
           title="The signing secret"
           subtitle="Copy it now. It is stored sealed and this is the only time it can be read."
         >
-          <p className="text-xms-label text-[12px]">{secret.endpoint}</p>
-          <p className="xms-field border-xms-line xms-mono text-xms-ink mt-2 rounded-[4px] border px-3 py-2 text-[13px] break-all">
+          <p className="text-xms-label text-[14px]">{secret.endpoint}</p>
+          <p className="xms-field border-xms-line xms-mono text-xms-ink mt-2 rounded-[4px] border px-3 py-2 text-[14px] break-all">
             {secret.value}
           </p>
           <button type="button" className={cn(SECONDARY_BUTTON, "mt-3")} onClick={() => setSecret(null)}>
@@ -269,7 +269,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
                 title: "Endpoint",
                 wrap: true,
                 render: (row: (typeof deadLetters)[number]) => (
-                  <span className="xms-mono text-[12px]">{row.endpoint_url}</span>
+                  <span className="xms-mono text-[14px]">{row.endpoint_url}</span>
                 ),
               },
               {
@@ -292,7 +292,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
                 title: "Last error",
                 wrap: true,
                 render: (row: (typeof deadLetters)[number]) => (
-                  <span className="text-xms-label text-[12px]">
+                  <span className="text-xms-label text-[14px]">
                     {row.response_status ? `HTTP ${row.response_status}. ` : ""}
                     {row.error ?? "No response."}
                   </span>
@@ -361,7 +361,7 @@ function Deliveries({ accountId, subscriptionId }: { accountId: string; subscrip
           key: "error",
           title: "Error",
           wrap: true,
-          render: (row) => <span className="text-xms-label text-[12px]">{row.error ?? ""}</span>,
+          render: (row) => <span className="text-xms-label text-[14px]">{row.error ?? ""}</span>,
         },
         { key: "at", title: "When", width: "140px", mono: true, render: (row) => formatDate(row.created_at) },
       ]}
@@ -409,7 +409,7 @@ function NewSubscription({
   return (
     <Panel title="Register an endpoint" subtitle="XMS will POST to it, signed with a secret shown once.">
       <form
-        className="flex flex-col gap-3 text-[12px]"
+        className="flex flex-col gap-3 text-[14px]"
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
@@ -453,7 +453,7 @@ function NewSubscription({
           </legend>
           <div className="flex flex-wrap gap-x-5 gap-y-[6px]">
             {eventTypes.map((type) => (
-              <label key={type} className="text-xms-ink flex items-center gap-2 text-[12px]">
+              <label key={type} className="text-xms-ink flex items-center gap-2 text-[14px]">
                 <input
                   type="checkbox"
                   checked={chosen.includes(type)}

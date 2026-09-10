@@ -52,7 +52,7 @@ const FINDING_LABEL: Record<string, string> = {
 /** The findings list from the identifier checklist: section, kind and the offending value. */
 export function FindingsSheet({ findings, onClose }: { findings: Finding[]; onClose: () => void }) {
   return (
-    <div role="dialog" aria-label="Generalization findings" className="xms-card flex flex-col gap-3 p-4 text-[13px]">
+    <div role="dialog" aria-label="Generalization findings" className="xms-card flex flex-col gap-3 p-4 text-[14px]">
       <p className="xms-caption">Generalization findings</p>
       <p className="text-xms-ink">
         Remove these identifiers from the sections named, then generalize again. The account-specific article stays as
@@ -183,7 +183,7 @@ export function ArticleActions({ article }: { article: ArticleView }) {
             ).then(() => setRetireOpen(false));
           }}
         >
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Reason</span>
             <input
               aria-label="Retire reason"
@@ -208,7 +208,7 @@ export function ArticleActions({ article }: { article: ArticleView }) {
         </form>
       ) : null}
       {error ? (
-        <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+        <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
           {error}
         </p>
       ) : null}

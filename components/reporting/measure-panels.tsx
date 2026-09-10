@@ -74,10 +74,10 @@ export function SlaPanel({ measures }: { measures: Partial<Measures> }) {
           .map((row) => (
             <div key={row.label} className="flex flex-col gap-1" data-testid={`sla-${row.label.toLowerCase()}`}>
               <div className="flex items-baseline justify-between">
-                <span className="text-xms-label text-[12px]">{row.label}</span>
-                <span className="xms-mono text-xms-ink text-[13px] font-semibold">
+                <span className="text-xms-label text-[14px]">{row.label}</span>
+                <span className="xms-mono text-xms-ink text-[14px] font-semibold">
                   {formatPercent(row.ratio)}
-                  <span className="text-xms-muted ml-2 text-[11px] font-normal">
+                  <span className="text-xms-muted ml-2 text-[14px] font-normal">
                     {row.ratio!.numerator} of {row.ratio!.denominator}
                   </span>
                 </span>
@@ -159,7 +159,7 @@ export function BacklogPanel({ measures }: { measures: Partial<Measures> }) {
                 style={{ height: `${Math.max(4, Math.round((count / max) * 126))}px` }}
                 data-testid={`backlog-${bucket.key}`}
               />
-              <span className="xms-mono text-xms-muted text-[11px] leading-none">{bucket.label}</span>
+              <span className="xms-mono text-xms-muted text-[14px] leading-none">{bucket.label}</span>
             </div>
           );
         })}
@@ -216,7 +216,7 @@ export function BreakdownPanel({
                   style={{ width: `${(count / max) * 100}%` }}
                 />
               </span>
-              <span className="xms-mono text-xms-body w-12 shrink-0 text-right text-[13px]">{count}</span>
+              <span className="xms-mono text-xms-body w-12 shrink-0 text-right text-[14px]">{count}</span>
             </li>
           );
         })}
@@ -234,14 +234,14 @@ export function NotablePanel({ notable }: { notable: Notable[] | undefined }) {
   return (
     <Panel title="Notable tickets" caption="P1, P2 and breaches" flush>
       {notable.length === 0 ? (
-        <p className="text-xms-label px-4 py-6 text-center text-[13px]">Nothing notable this period.</p>
+        <p className="text-xms-label px-4 py-6 text-center text-[14px]">Nothing notable this period.</p>
       ) : (
         <ul data-testid="notable-list">
           {notable.map((ticket) => (
             <li
               key={ticket.key}
               className={cn(
-                "border-xms-line flex items-center gap-3 border-b px-4 py-2 text-[13px] last:border-b-0",
+                "border-xms-line flex items-center gap-3 border-b px-4 py-2 text-[14px] last:border-b-0",
                 ticket.breached && "bg-[color:var(--state-overdue-bg)]",
               )}
               data-breached={ticket.breached ? "true" : undefined}
@@ -250,7 +250,7 @@ export function NotablePanel({ notable }: { notable: Notable[] | undefined }) {
               <span className="text-xms-ink flex-1 truncate">{ticket.title}</span>
               <PriorityPill priority={asPriority(ticket.priority)} />
               <StatePill state={ticket.state} />
-              <span className="xms-mono text-xms-label w-10 text-right text-[12px]">{ticket.age_days}d</span>
+              <span className="xms-mono text-xms-label w-10 text-right text-[14px]">{ticket.age_days}d</span>
             </li>
           ))}
         </ul>

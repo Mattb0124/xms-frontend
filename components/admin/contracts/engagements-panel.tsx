@@ -36,7 +36,7 @@ import {
   type EngagementStatus,
 } from "@/redux/ticketsApi";
 
-const SMALL = "h-[26px] px-2 text-[12px]";
+const SMALL = "h-[26px] px-2 text-[14px]";
 
 export function EngagementStatusPill({ status }: { status: EngagementStatus }) {
   const { label, tone } = ENGAGEMENT_STATUS[status];
@@ -149,7 +149,7 @@ export function EngagementForm({
             onChange={(event) => set({ noticePeriodDays: event.target.value })}
           />
         </FieldRow>
-        <p className="text-xms-label text-[12px]">
+        <p className="text-xms-label text-[14px]">
           The renewal alerts go out 90, 60 and 30 days ahead, and again at the notice-period boundary. Moving the
           renewal date clears the ledger, so the new date earns its own alerts.
         </p>
@@ -169,7 +169,7 @@ export function EngagementForm({
                 ))}
               </select>
             </FieldRow>
-            <p className="text-xms-label text-[12px]">
+            <p className="text-xms-label text-[14px]">
               Leave the status alone and a moved renewal date sets it; change it here and your choice stands.
             </p>
           </>
@@ -215,7 +215,7 @@ export function EngagementsPanel({ accountId }: { accountId: string }) {
   if (!canRead) {
     return (
       <Panel title="Engagements" caption="Needs the contracts:view permission">
-        <p className="text-xms-label text-[13px]">You can see this account but not its engagements.</p>
+        <p className="text-xms-label text-[14px]">You can see this account but not its engagements.</p>
       </Panel>
     );
   }
@@ -286,7 +286,7 @@ export function EngagementsPanel({ accountId }: { accountId: string }) {
       title: "Owner",
       sortValue: (row) => ownerLabel(row.owner_user_id, owners),
       render: (row) => (
-        <span className={cn(row.owner_user_id && !owners[row.owner_user_id] ? "xms-mono text-[12px]" : undefined)}>
+        <span className={cn(row.owner_user_id && !owners[row.owner_user_id] ? "xms-mono text-[14px]" : undefined)}>
           {ownerLabel(row.owner_user_id, owners)}
         </span>
       ),
@@ -305,9 +305,9 @@ export function EngagementsPanel({ accountId }: { accountId: string }) {
       render: (row) => {
         const deadline = noticeDeadline(row);
         return (
-          <span className="text-xms-body text-[12px]" data-notice={row.id}>
+          <span className="text-xms-body text-[14px]" data-notice={row.id}>
             {noticeLabel(row.notice_period_days)}
-            {deadline ? <span className="xms-mono text-xms-label ml-2 text-[11px]">decide by {deadline}</span> : null}
+            {deadline ? <span className="xms-mono text-xms-label ml-2 text-[14px]">decide by {deadline}</span> : null}
           </span>
         );
       },
@@ -323,7 +323,7 @@ export function EngagementsPanel({ accountId }: { accountId: string }) {
       title: "Alerts fired",
       sortValue: (row) => row.renewal_alerts_fired.length,
       render: (row) => (
-        <span className="text-xms-body text-[12px]" data-alerts={row.id}>
+        <span className="text-xms-body text-[14px]" data-alerts={row.id}>
           {alertsLabel(row.renewal_alerts_fired)}
         </span>
       ),

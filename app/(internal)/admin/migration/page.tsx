@@ -80,7 +80,7 @@ function MigrationScreen() {
           <ReconciliationTab accountId={filter.account_id} />
         ) : (
           <Panel title="Reconciliation" caption="One account at a time">
-            <p className="text-xms-label text-[13px]">
+            <p className="text-xms-label text-[14px]">
               Add an account filter to see its reconciliation reports, or open a batch and use its Reconciliation tab.
             </p>
           </Panel>

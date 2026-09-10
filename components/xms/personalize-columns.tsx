@@ -21,7 +21,7 @@ export interface PersonalizeColumnsProps {
 }
 
 const LIST_BOX =
-  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[260px] w-full overflow-y-auto rounded-[4px] border py-[3px] text-[13px] outline-none";
+  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[260px] w-full overflow-y-auto rounded-[4px] border py-[3px] text-[14px] outline-none";
 
 const MOVE_BUTTON =
   "xms-field border-xms-control-line text-xms-ink hover:text-xms-accent flex h-[30px] w-[30px] items-center justify-center rounded-[4px] border disabled:opacity-40";
@@ -171,7 +171,7 @@ export function PersonalizeColumns({
             the change is audited and the clock knows about it. */}
         <div className="border-xms-line grid grid-cols-2 gap-x-6 gap-y-[10px] border-t px-5 py-4">
           {SWITCHES.map((option) => (
-            <label key={option.key} className="text-xms-ink flex items-center gap-[10px] text-[13px]">
+            <label key={option.key} className="text-xms-ink flex items-center gap-[10px] text-[14px]">
               <input
                 type="checkbox"
                 checked={switches[option.key]}
@@ -237,7 +237,7 @@ function ListBox({
 
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
-      <span className="text-xms-label text-[12px] leading-[1.3]">{label}</span>
+      <span className="text-xms-label text-[14px] leading-[1.3]">{label}</span>
       {/* A real listbox rather than a native multi-select.
        *
        * The platform paints a select's own options, so they came out in its
@@ -285,7 +285,7 @@ function ListBox({
               onClick={(event) => toggle(row.key, event, index)}
               onDoubleClick={onCommit}
               className={cn(
-                "cursor-pointer px-[10px] py-[3px] text-[13px] leading-[1.5]",
+                "cursor-pointer px-[10px] py-[3px] text-[14px] leading-[1.5]",
                 chosen ? "bg-xms-tint text-xms-accent font-medium" : "text-xms-ink hover:bg-xms-control-hover",
                 index === active && !chosen && "bg-xms-row-hover",
               )}

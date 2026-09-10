@@ -38,7 +38,7 @@ function ConflictNote({ link, inline }: { link: TicketSyncLink; inline?: boolean
       className={
         inline
           ? "mt-2 text-[14px] leading-[1.6]"
-          : "rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[12px] text-[color:var(--state-needs-input-text)]"
+          : "rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[14px] text-[color:var(--state-needs-input-text)]"
       }
       data-conflict={fields.join(",")}
       data-conflict-direction={outbound ? "out" : "in"}
@@ -68,15 +68,15 @@ function OutboundState({ link }: { link: TicketSyncLink }) {
   if (!worthSaying) return null;
   return (
     <div className="flex flex-col gap-1" data-outbound-pending={outbound.pending}>
-      <p className="xms-mono text-xms-label text-[11px]">
+      <p className="xms-mono text-xms-label text-[14px]">
         last pushed {outbound.last_pushed_at ? formatDate(outbound.last_pushed_at) : "never"}
       </p>
-      <p className={outbound.pending > 0 ? "text-xms-body text-[12px]" : "text-xms-label text-[12px]"}>
+      <p className={outbound.pending > 0 ? "text-xms-body text-[14px]" : "text-xms-label text-[14px]"}>
         {pendingLabel(outbound.pending)}
         {outbound.failed > 0 ? `, ${outbound.failed} failed` : ""}
       </p>
       {outbound.last_error ? (
-        <p className="text-[12px] text-[color:var(--state-overdue-text)]" data-outbound-error>
+        <p className="text-[14px] text-[color:var(--state-overdue-text)]" data-outbound-error>
           Last send error: {outbound.last_error}
         </p>
       ) : null}
@@ -93,7 +93,7 @@ function ExternalRecordLink({ link }: { link: TicketSyncLink }) {
   const href = externalRecordUrl(link.base_url, link.table_name, link.external_sys_id);
   if (href === null) {
     return (
-      <span className="xms-mono text-xms-body text-[13px] font-medium" data-external={link.external_number}>
+      <span className="xms-mono text-xms-body text-[14px] font-medium" data-external={link.external_number}>
         {link.external_number}
       </span>
     );
@@ -121,7 +121,7 @@ function LinkFacts({ link }: { link: TicketSyncLink }) {
     `kill switch ${link.health === "tripped" ? "tripped" : "armed, not tripped"}`,
   ];
   return (
-    <div className="border-xms-line bg-xms-quiet-bg xms-mono text-xms-body rounded-[var(--xms-radius-card)] border p-4 text-[13px] leading-[1.9]">
+    <div className="border-xms-line bg-xms-quiet-bg xms-mono text-xms-body rounded-[var(--xms-radius-card)] border p-4 text-[14px] leading-[1.9]">
       <p>
         {"external record: "}
         <ExternalRecordLink link={link} />
@@ -171,7 +171,7 @@ export function SyncCardView({
             {runs.slice(0, 5).map((run) => (
               <li
                 key={run.id}
-                className="border-xms-line-row flex items-center gap-3 border-b py-[10px] text-[13px] last:border-b-0"
+                className="border-xms-line-row flex items-center gap-3 border-b py-[10px] text-[14px] last:border-b-0"
               >
                 <span className="xms-mono text-xms-muted">{formatDate(run.created_at)}</span>
                 <span className="text-xms-body flex-1">{run.direction}</span>
@@ -197,15 +197,15 @@ export function SyncCardView({
               <ExternalRecordLink link={link} />
               <LinkStatePill state={link.state} />
             </div>
-            <p className="text-xms-label text-[12px]">
+            <p className="text-xms-label text-[14px]">
               {link.instance_name}, {modeLabel(link.mode).toLowerCase()}, {link.health}
             </p>
-            <p className="xms-mono text-xms-label text-[11px]">
+            <p className="xms-mono text-xms-label text-[14px]">
               last in {link.last_inbound_at ? formatDate(link.last_inbound_at) : "never"}
               {link.last_outbound_at ? `, last out ${formatDate(link.last_outbound_at)}` : ""}
             </p>
             {notice ? (
-              <p className="text-xms-body text-[12px]" data-notice>
+              <p className="text-xms-body text-[14px]" data-notice>
                 {notice}
               </p>
             ) : null}
@@ -217,7 +217,7 @@ export function SyncCardView({
       {runs.length > 0 ? (
         <ul className="border-xms-line flex flex-col gap-1 border-t pt-2" aria-label="Recent runs">
           {runs.slice(0, 5).map((run) => (
-            <li key={run.id} className="flex items-center gap-2 text-[12px]">
+            <li key={run.id} className="flex items-center gap-2 text-[14px]">
               <span className="xms-mono text-xms-label">{formatDate(run.created_at)}</span>
               <span className="text-xms-body">{run.direction}</span>
               <OutcomePill outcome={run.outcome} />
@@ -235,7 +235,7 @@ export function SyncCard({ ticketId, flush }: { ticketId: string; flush?: boolea
   const { data } = useTicketSyncQuery(ticketId);
   if (!data || data.links.length === 0)
     return flush ? (
-      <p className="text-xms-label text-[13px]">This ticket is not linked to an external record.</p>
+      <p className="text-xms-label text-[14px]">This ticket is not linked to an external record.</p>
     ) : null;
   return <SyncCardView links={data.links} runs={data.runs} flush={flush} />;
 }

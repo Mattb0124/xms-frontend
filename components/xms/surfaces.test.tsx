@@ -376,7 +376,10 @@ describe("a link is drawn once", () => {
     const scope = readFileSync("styles/tokens/xms-scope.css", "utf8");
     expect(scope).toContain(".xms-link {");
     expect(scope).toContain("color: var(--xms-accent)");
-    expect(scope).toContain("font: 400 13px/1.3 var(--xms-font)");
+    // The face is stated through the scale rather than a literal since
+    // 2026-09-10: every size in the scope runs on a --xms-text-* step, and the
+    // bottom of that scale is pinned at the 14px floor by tokens.test.ts.
+    expect(scope).toContain("font: 400 var(--xms-text-sm)/1.3 var(--xms-font)");
     expect(scope).toContain("text-decoration-color: var(--xms-link-underline)");
   });
 

@@ -89,7 +89,7 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
           {data.linked.length > 0 ? (
             <ul className="flex flex-col gap-1" aria-label="Resolution records">
               {data.linked.map((row) => (
-                <li key={row.id} className="flex flex-col text-[12px]" data-outcome={row.outcome}>
+                <li key={row.id} className="flex flex-col text-[14px]" data-outcome={row.outcome}>
                   <span className="text-xms-label">{OUTCOME_LABEL[row.outcome]}</span>
                   <span className="flex items-center gap-2">
                     <KeyLink ticketKey={row.display_key} href={`/knowledge/${row.display_key}`} />
@@ -100,19 +100,19 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
             </ul>
           ) : null}
           <div>
-            <p className="text-xms-label mb-1 text-[11px] uppercase tracking-wide">Matching articles</p>
+            <p className="text-xms-label mb-1 text-[14px] uppercase tracking-wide">Matching articles</p>
             {data.articles.length === 0 ? (
-              <p className="text-xms-muted text-[12px]">
+              <p className="text-xms-muted text-[14px]">
                 No documented solution yet. Resolving this ticket will create the first one.
               </p>
             ) : (
               <ul className="flex flex-col gap-2" aria-label="Matching articles">
                 {data.articles.map((hit) => (
-                  <li key={hit.id} className="flex flex-col gap-1 text-[12px]">
+                  <li key={hit.id} className="flex flex-col gap-1 text-[14px]">
                     <span className="flex items-center gap-2">
                       <KeyLink ticketKey={hit.display_key} href={`/knowledge/${hit.display_key}`} />
                       <span className="text-xms-ink truncate">{hit.title}</span>
-                      {hit.is_global ? <span className="text-xms-label ml-auto text-[11px]">Global</span> : null}
+                      {hit.is_global ? <span className="text-xms-label ml-auto text-[14px]">Global</span> : null}
                     </span>
                     <span className="flex gap-2">
                       {!readOnly && canResolve ? (
@@ -121,14 +121,14 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
                           aria-label={`Use ${hit.display_key}`}
                           disabled={linking.isLoading}
                           onClick={() => void applySolution(hit.id)}
-                          className={`${PRIMARY_BUTTON} h-[26px] px-2 text-[12px]`}
+                          className={`${PRIMARY_BUTTON} h-[26px] px-2 text-[14px]`}
                         >
                           Use this
                         </button>
                       ) : null}
                       <Link
                         href={`/knowledge/${hit.display_key}`}
-                        className={`${SECONDARY_BUTTON} inline-flex h-[26px] items-center px-2 text-[12px]`}
+                        className={`${SECONDARY_BUTTON} inline-flex h-[26px] items-center px-2 text-[14px]`}
                       >
                         Open
                       </Link>
@@ -140,10 +140,10 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
           </div>
           {data.similar_tickets.length > 0 ? (
             <div>
-              <p className="text-xms-label mb-1 text-[11px] uppercase tracking-wide">Similar resolved tickets</p>
+              <p className="text-xms-label mb-1 text-[14px] uppercase tracking-wide">Similar resolved tickets</p>
               <ul className="flex flex-col gap-1" aria-label="Similar resolved tickets">
                 {data.similar_tickets.map((row) => (
-                  <li key={row.id} className="flex flex-col text-[12px]">
+                  <li key={row.id} className="flex flex-col text-[14px]">
                     <span className="flex items-center gap-2">
                       <KeyLink ticketKey={row.key} />
                       <span className="text-xms-ink truncate">{row.short_description}</span>
@@ -156,7 +156,7 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
                           <KeyLink
                             ticketKey={row.article_key}
                             href={`/knowledge/${row.article_key}`}
-                            className="text-[12px]"
+                            className="text-[14px]"
                           />
                         </>
                       ) : null}
@@ -167,7 +167,7 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
             </div>
           ) : null}
           {error ? (
-            <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+            <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
               {error}
             </p>
           ) : null}

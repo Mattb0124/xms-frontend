@@ -55,10 +55,10 @@ export function DispatchRow(props: DispatchRowProps) {
         <span className="text-xms-ink min-w-0 flex-1 truncate text-[14px] leading-[1.45]">
           {props.shortDescription}
         </span>
-        <span className="text-xms-body shrink-0 text-[13px]">{props.account.name}</span>
+        <span className="text-xms-body shrink-0 text-[14px]">{props.account.name}</span>
         {/* The age is what the row is triaged on, so it is the only figure on
             the line and it is mono. */}
-        <span className="xms-mono bg-xms-chip text-xms-body shrink-0 rounded-[999px] px-[11px] py-[6px] text-[12px] leading-none font-medium">
+        <span className="xms-mono bg-xms-chip text-xms-body shrink-0 rounded-[999px] px-[11px] py-[6px] text-[14px] leading-none font-medium">
           {props.age}
         </span>
       </div>
@@ -103,7 +103,7 @@ export function DispatchRow(props: DispatchRowProps) {
               if (match) setAssigneeId(match.id);
             }}
             data-suggestion
-            className="border-xms-note-line bg-xms-note-bg text-xms-body hover:bg-xms-control-hover-border rounded-[999px] border px-[13px] py-2 text-[12px] font-medium whitespace-nowrap"
+            className="border-xms-note-line bg-xms-note-bg text-xms-body hover:bg-xms-control-hover-border rounded-[999px] border px-[13px] py-2 text-[14px] font-medium whitespace-nowrap"
           >
             {`Axel suggests ${props.suggestion}`}
           </button>
@@ -117,14 +117,14 @@ export function DispatchRow(props: DispatchRowProps) {
         <button
           type="button"
           onClick={() => setAssigneeId(props.currentUserId)}
-          className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint rounded-[var(--xms-radius-control)] border px-[14px] py-[10px] text-[13px] font-medium whitespace-nowrap"
+          className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint rounded-[var(--xms-radius-control)] border px-[14px] py-[10px] text-[14px] font-medium whitespace-nowrap"
         >
           Assign to me
         </button>
         <button
           type="button"
           onClick={() => props.onConfirm({ groupId, assigneeId })}
-          className="bg-xms-accent hover:bg-xms-accent-hover rounded-[var(--xms-radius-control)] px-4 py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
+          className="bg-xms-accent hover:bg-xms-accent-hover rounded-[var(--xms-radius-control)] px-4 py-[10px] text-[14px] font-semibold whitespace-nowrap text-white"
         >
           Confirm
         </button>

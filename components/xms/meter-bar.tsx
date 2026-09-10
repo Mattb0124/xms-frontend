@@ -40,7 +40,7 @@ export function MeterBar({ percent, pauses = [], breached, met, paused, label, c
         : "var(--xms-accent)";
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      {label ? <span className="text-xms-label text-[12px]">{label}</span> : null}
+      {label ? <span className="text-xms-label text-[14px]">{label}</span> : null}
       <div
         role="progressbar"
         aria-valuenow={Math.round(fill)}

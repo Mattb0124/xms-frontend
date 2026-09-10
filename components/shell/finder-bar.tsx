@@ -92,11 +92,11 @@ export function FinderBar(props: FinderBarProps) {
               aria-label={`Scope: THG PROD, ${props.workspaceLabel}`}
               className="flex min-w-0 flex-1 items-center gap-[6px] text-left"
             >
-              <span className="text-[13px] font-semibold whitespace-nowrap text-white">THG PROD</span>
+              <span className="text-[14px] font-semibold whitespace-nowrap text-white">THG PROD</span>
               <span aria-hidden className="text-white/40">
                 ·
               </span>
-              <span className="truncate text-[13px] font-medium text-white/90">{props.workspaceLabel}</span>
+              <span className="truncate text-[14px] font-medium text-white/90">{props.workspaceLabel}</span>
               <ChevronDownIcon size={ICON.glyph} className="ml-auto shrink-0 text-white/55" />
             </button>
             <button
@@ -120,8 +120,8 @@ export function FinderBar(props: FinderBarProps) {
           className="border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border bg-[color:var(--xms-navy-sunken)] px-3 text-left"
         >
           <SearchIcon size={ICON.action} className="shrink-0 text-white/55" />
-          <span className="flex-1 truncate text-[13px] text-white/60">Search</span>
-          <kbd className="xms-mono rounded-[4px] border border-white/20 px-[5px] py-[1px] text-[11px] text-white/55">
+          <span className="flex-1 truncate text-[14px] text-white/60">Search</span>
+          <kbd className="xms-mono rounded-[4px] border border-white/20 px-[5px] py-[1px] text-[14px] text-white/55">
             /
           </kbd>
         </button>
@@ -138,7 +138,7 @@ export function FinderBar(props: FinderBarProps) {
           {props.unreadCount > 0 ? (
             <span
               data-testid="unread-badge"
-              className="bg-xms-sla-breach xms-mono absolute -top-[1px] -right-[1px] flex h-[16px] min-w-[16px] items-center justify-center rounded-[999px] px-[3px] text-[10px] leading-none font-semibold text-white"
+              className="bg-xms-sla-breach xms-mono absolute -top-[1px] -right-[1px] flex h-[16px] min-w-[16px] items-center justify-center rounded-[999px] px-[3px] text-[14px] leading-none font-semibold text-white"
             >
               {props.unreadCount > 99 ? "99+" : props.unreadCount}
             </span>
@@ -149,7 +149,7 @@ export function FinderBar(props: FinderBarProps) {
           type="button"
           aria-label="Account menu"
           onClick={props.onUser}
-          className="bg-xms-accent ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-[12px] font-semibold text-white"
+          className="bg-xms-accent ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-[14px] font-semibold text-white"
         >
           {props.userInitials}
         </button>

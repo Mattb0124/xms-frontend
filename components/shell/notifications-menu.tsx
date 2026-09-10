@@ -49,14 +49,14 @@ export function NotificationsMenu({ onClose }: NotificationsMenuProps) {
     <div
       role="dialog"
       aria-label="Notifications"
-      className="xms-card text-xms-ink absolute top-full right-4 z-30 mt-1 w-[360px] text-[13px]"
+      className="xms-card text-xms-ink absolute top-full right-4 z-30 mt-1 w-[360px] text-[14px]"
     >
       <header className="border-xms-line flex items-center gap-2 border-b px-3 py-2">
         <span className="font-semibold">Notifications</span>
         <button
           type="button"
           onClick={() => void markAll()}
-          className="text-xms-accent ml-auto text-[12px] hover:underline"
+          className="text-xms-accent ml-auto text-[14px] hover:underline"
         >
           Mark all read
         </button>
@@ -77,13 +77,13 @@ export function NotificationsMenu({ onClose }: NotificationsMenuProps) {
               <span className="flex items-center gap-2">
                 <span className={cn("truncate", !row.read_at && "font-medium")}>{row.title}</span>
                 {row.count > 1 ? (
-                  <span className="xms-mono bg-xms-accent-tint text-xms-accent rounded-[999px] px-1.5 text-[10px]">
+                  <span className="xms-mono bg-xms-accent-tint text-xms-accent rounded-[999px] px-1.5 text-[14px]">
                     ×{row.count}
                   </span>
                 ) : null}
-                <span className="xms-mono text-xms-label ml-auto text-[11px]">{relative(row.updated_at)}</span>
+                <span className="xms-mono text-xms-label ml-auto text-[14px]">{relative(row.updated_at)}</span>
               </span>
-              {row.body ? <span className="text-xms-label truncate text-[12px]">{row.body}</span> : null}
+              {row.body ? <span className="text-xms-label truncate text-[14px]">{row.body}</span> : null}
             </button>
           </li>
         ))}

@@ -37,21 +37,21 @@ export function CertificationsTab({ personId, certifications, canEdit, today }: 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
       <Panel title="Certifications" caption="Expiry within 90 days shows amber; past expiry shows red">
-        {certifications.length === 0 ? <p className="text-xms-label text-[13px]">No certifications recorded.</p> : null}
+        {certifications.length === 0 ? <p className="text-xms-label text-[14px]">No certifications recorded.</p> : null}
         <ul className="divide-xms-line divide-y" aria-label="Certifications">
           {certifications.map((certification) => (
             <li
               key={certification.id}
-              className="flex flex-wrap items-center gap-3 py-2 text-[13px]"
+              className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
               data-certification={certification.id}
             >
               <span className="flex min-w-[220px] flex-col">
                 <span className="text-xms-ink font-medium">{certification.name}</span>
                 {certification.issuer ? (
-                  <span className="text-xms-label text-[12px]">{certification.issuer}</span>
+                  <span className="text-xms-label text-[14px]">{certification.issuer}</span>
                 ) : null}
               </span>
-              <span className="xms-mono text-xms-label text-[12px]">
+              <span className="xms-mono text-xms-label text-[14px]">
                 obtained {certification.obtained_on}
                 {certification.expires_on ? `, expires ${certification.expires_on}` : ""}
               </span>

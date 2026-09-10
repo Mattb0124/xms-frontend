@@ -38,18 +38,18 @@ function RightNow({ accountId }: { accountId: string }) {
     <div className="flex flex-col gap-2" data-right-now={data.inside ? "inside" : data.frozen ? "frozen" : "outside"}>
       <div className="flex flex-wrap items-center gap-3">
         <SignalPill tone={tone} label={label} />
-        <span className="xms-mono text-xms-label text-[12px]">{formatDate(data.at)}</span>
+        <span className="xms-mono text-xms-label text-[14px]">{formatDate(data.at)}</span>
       </div>
       {data.windows.length === 0 ? (
-        <p className="text-xms-label text-[13px]">
+        <p className="text-xms-label text-[14px]">
           No window holds this instant, so the state that touches production cannot be entered without an override.
         </p>
       ) : (
-        <ul className="flex flex-col gap-1 text-[13px]">
+        <ul className="flex flex-col gap-1 text-[14px]">
           {data.windows.map((window) => (
             <li key={window.id} className="text-xms-body">
               <span className="text-xms-ink font-medium">{window.name}</span>{" "}
-              <span className="xms-mono text-xms-label text-[12px]">
+              <span className="xms-mono text-xms-label text-[14px]">
                 {formatDate(window.starts_at)} to {formatDate(window.ends_at)}
               </span>
               {window.freeze ? (
@@ -76,13 +76,13 @@ function WindowCard({ window, accountName }: { window: ChangeCalendarWindow; acc
           tone={window.status === "active" ? "ready" : "needs-input"}
           label={ticketGroupStatusLabel(window.status)}
         />
-        <span className="text-xms-label text-[12px]">{accountName}</span>
-        <span className="xms-mono text-xms-label ml-auto text-[12px]">
+        <span className="text-xms-label text-[14px]">{accountName}</span>
+        <span className="xms-mono text-xms-label ml-auto text-[14px]">
           {formatDate(window.starts_at)} to {formatDate(window.ends_at)}
         </span>
       </div>
       {window.freeze_windows.length > 0 ? (
-        <ul className="flex flex-col gap-1 text-[12px]" data-freezes>
+        <ul className="flex flex-col gap-1 text-[14px]" data-freezes>
           {window.freeze_windows.map((freeze) => (
             <li key={`${freeze.starts_at}-${freeze.ends_at}`} className="text-[color:var(--state-overdue-text)]">
               <span className="xms-mono">
@@ -93,20 +93,20 @@ function WindowCard({ window, accountName }: { window: ChangeCalendarWindow; acc
           ))}
         </ul>
       ) : (
-        <p className="text-xms-label text-[12px]">No freeze inside this window.</p>
+        <p className="text-xms-label text-[14px]">No freeze inside this window.</p>
       )}
       {window.tickets.length > 0 ? (
-        <ul className="flex flex-col gap-1 text-[13px]" data-tickets>
+        <ul className="flex flex-col gap-1 text-[14px]" data-tickets>
           {window.tickets.map((ticket) => (
             <li key={ticket.id} className="flex items-center gap-2">
               <KeyLink ticketKey={ticket.key} />
               <span className="text-xms-body truncate">{ticket.short_description}</span>
-              <span className="text-xms-label text-[12px]">{ticket.state.replace(/_/g, " ")}</span>
+              <span className="text-xms-label text-[14px]">{ticket.state.replace(/_/g, " ")}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-xms-label text-[12px]">Nothing is planned in this window yet.</p>
+        <p className="text-xms-label text-[14px]">Nothing is planned in this window yet.</p>
       )}
     </li>
   );
@@ -158,7 +158,7 @@ export function ChangeCalendarScreen() {
         {atAccount ? (
           <RightNow accountId={atAccount} />
         ) : (
-          <p className="text-xms-label text-[13px]">
+          <p className="text-xms-label text-[14px]">
             Choose an account to see whether it is inside a change window right now.
           </p>
         )}
@@ -170,11 +170,11 @@ export function ChangeCalendarScreen() {
         subtitle="Change windows overlapping this month, with their freezes and the changes planned inside them."
         flush
       >
-        <div className="border-xms-line border-b px-4 py-2 text-[13px]" data-next-window>
+        <div className="border-xms-line border-b px-4 py-2 text-[14px]" data-next-window>
           {next ? (
             <span className="text-xms-body">
               Next window: <span className="text-xms-ink font-medium">{next.name}</span>{" "}
-              <span className="xms-mono text-xms-label text-[12px]">{formatDate(next.starts_at)}</span>
+              <span className="xms-mono text-xms-label text-[14px]">{formatDate(next.starts_at)}</span>
               {daysUntil(next.starts_at, now) >= 0 ? (
                 <span className="text-xms-label">
                   , in {daysUntil(next.starts_at, now)} day{daysUntil(next.starts_at, now) === 1 ? "" : "s"}
@@ -190,7 +190,7 @@ export function ChangeCalendarScreen() {
             <Skeleton lines={5} />
           </div>
         ) : windows.length === 0 ? (
-          <p className="text-xms-label p-4 text-[13px]">
+          <p className="text-xms-label p-4 text-[14px]">
             No change window falls in this month.{" "}
             <Link href="/cases/groups" className="xms-link">
               The groups catalog

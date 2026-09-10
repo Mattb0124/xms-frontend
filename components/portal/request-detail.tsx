@@ -98,9 +98,9 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <p className="xms-mono text-xms-label text-[12px]">{record.key}</p>
+        <p className="xms-mono text-xms-label text-[14px]">{record.key}</p>
         <h1 className="text-xms-ink text-[22px] font-semibold">{record.short_description}</h1>
-        <div className="flex flex-wrap items-center gap-3 text-[13px]">
+        <div className="flex flex-wrap items-center gap-3 text-[14px]">
           <ClientStatusPill state={record.state} />
           <span className="text-xms-label">Priority {priorityLabel(record.priority)}</span>
           <span className="text-xms-label">
@@ -132,7 +132,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
                 </p>
                 {row.reason ? <p className="text-xms-body text-[14px]">Raised because: {row.reason}</p> : null}
                 {row.note ? <p className="text-xms-body text-[14px]">{row.note}</p> : null}
-                <p className="text-xms-label text-[12px]">{formatMoment(row.at)}</p>
+                <p className="text-xms-label text-[14px]">{formatMoment(row.at)}</p>
               </li>
             ))}
           </ol>

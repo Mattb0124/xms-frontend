@@ -63,7 +63,7 @@ function PersonRecordPageBody() {
             title={data.display_name}
             pill={
               <>
-                <span className="text-xms-label text-[13px]">{roleLabel(data.role)}</span>
+                <span className="text-xms-label text-[14px]">{roleLabel(data.role)}</span>
                 {data.is_active ? (
                   <SignalPill tone="complete" label="Active" />
                 ) : (

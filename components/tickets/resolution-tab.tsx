@@ -56,7 +56,7 @@ export function recordDisciplineItems(
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-[7px]">
-      <span className="text-xms-ink text-[13px] leading-[1.4] font-semibold">{label}</span>
+      <span className="text-xms-ink text-[14px] leading-[1.4] font-semibold">{label}</span>
       <span className="text-xms-body text-[14px] leading-[1.5] whitespace-pre-wrap">{children}</span>
     </div>
   );
@@ -114,7 +114,7 @@ export function ResolutionTab({ ticket, catalogs }: { ticket: TicketView; catalo
       {!resolved ? (
         <div className="xms-card p-4">
           <CloseDisciplineChecklist items={items} />
-          <p className="text-xms-label mt-2 text-[12px]">
+          <p className="text-xms-label mt-2 text-[14px]">
             The close discipline runs on the resolving move, from the state control above.
           </p>
         </div>
@@ -124,12 +124,12 @@ export function ResolutionTab({ ticket, catalogs }: { ticket: TicketView; catalo
           {linked.map((row) => (
             <li
               key={row.id}
-              className="border-xms-line-row flex items-center gap-3 border-b py-[13px] text-[13px] last:border-b-0"
+              className="border-xms-line-row flex items-center gap-3 border-b py-[13px] text-[14px] last:border-b-0"
             >
               <span className="text-xms-label w-[200px] shrink-0">{OUTCOME[row.outcome] ?? row.outcome}</span>
               <KeyLink ticketKey={row.display_key} href={`/knowledge/${row.display_key}`} />
               <span className="text-xms-ink min-w-0 flex-1 truncate">{row.title}</span>
-              <span className="xms-mono text-xms-muted shrink-0 text-[12px]">
+              <span className="xms-mono text-xms-muted shrink-0 text-[14px]">
                 {row.actor_name}, {formatDate(row.created_at)}
               </span>
             </li>

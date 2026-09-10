@@ -251,7 +251,7 @@ export function DetailsTab({ person, refetch, canEdit, groups }: DetailsTabProps
             <legend className="xms-caption px-1">Groups</legend>
             {groups && groups.length > 0 ? (
               groups.map((group) => (
-                <label key={group.id} className="flex items-center gap-2 py-1 text-[13px]">
+                <label key={group.id} className="flex items-center gap-2 py-1 text-[14px]">
                   <input
                     type="checkbox"
                     checked={draft.assignment_group_ids.includes(group.id)}
@@ -268,9 +268,9 @@ export function DetailsTab({ person, refetch, canEdit, groups }: DetailsTabProps
                 </label>
               ))
             ) : person.assignment_group_ids.length > 0 ? (
-              <p className="xms-mono text-xms-label text-[12px]">{person.assignment_group_ids.join(", ")}</p>
+              <p className="xms-mono text-xms-label text-[14px]">{person.assignment_group_ids.join(", ")}</p>
             ) : (
-              <p className="text-xms-label text-[12px]">No groups.</p>
+              <p className="text-xms-label text-[14px]">No groups.</p>
             )}
           </fieldset>
         </div>
@@ -289,7 +289,7 @@ export function DetailsTab({ person, refetch, canEdit, groups }: DetailsTabProps
             Discard
           </button>
           {dirty ? (
-            <span className="text-xms-label text-[12px]">
+            <span className="text-xms-label text-[14px]">
               {Object.keys(changes).length} field{Object.keys(changes).length === 1 ? "" : "s"} changed
             </span>
           ) : null}

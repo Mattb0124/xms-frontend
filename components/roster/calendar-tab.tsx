@@ -74,7 +74,7 @@ export function CalendarTab({ personId, calendar, canEdit, timeZone }: CalendarT
           <legend className="xms-caption px-1">Working days</legend>
           <div className="flex flex-wrap gap-3">
             {ISO_WEEKDAYS.map((day) => (
-              <label key={day.value} className="flex items-center gap-2 text-[13px]">
+              <label key={day.value} className="flex items-center gap-2 text-[14px]">
                 <input
                   type="checkbox"
                   value={day.value}
@@ -87,7 +87,7 @@ export function CalendarTab({ personId, calendar, canEdit, timeZone }: CalendarT
                   }
                 />
                 <span className="text-xms-ink">{day.short}</span>
-                <span className="xms-mono text-xms-muted text-[11px]">{day.value}</span>
+                <span className="xms-mono text-xms-muted text-[14px]">{day.value}</span>
               </label>
             ))}
           </div>
@@ -117,7 +117,7 @@ export function CalendarTab({ personId, calendar, canEdit, timeZone }: CalendarT
           />
         </FieldRow>
         <FieldRow label="Hours per day">
-          <span className="xms-mono text-xms-ink text-[13px]" data-testid="hours-per-day">
+          <span className="xms-mono text-xms-ink text-[14px]" data-testid="hours-per-day">
             {calendar ? formatHours(calendar.hours_per_day) : "not saved yet"}
           </span>
         </FieldRow>
@@ -129,7 +129,7 @@ export function CalendarTab({ personId, calendar, canEdit, timeZone }: CalendarT
             </button>
           </div>
         ) : (
-          <p className="text-xms-label text-[12px]">Needs capacity:manage to change.</p>
+          <p className="text-xms-label text-[14px]">Needs capacity:manage to change.</p>
         )}
       </form>
     </Panel>

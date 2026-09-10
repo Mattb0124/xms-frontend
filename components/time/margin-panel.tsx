@@ -149,7 +149,7 @@ export function AccountMarginPanel({ accountId }: { accountId: string }) {
         }
       >
         {isLoading && !data ? <Skeleton lines={3} /> : null}
-        {isError ? <p className="text-xms-body text-[13px]">The margin could not be read.</p> : null}
+        {isError ? <p className="text-xms-body text-[14px]">The margin could not be read.</p> : null}
         {data ? (
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline gap-x-[18px] gap-y-2">
@@ -162,15 +162,15 @@ export function AccountMarginPanel({ accountId }: { accountId: string }) {
               >
                 {money(data.total.margin, currency)}
               </span>
-              <span className="text-xms-body text-[13px]">
+              <span className="text-xms-body text-[14px]">
                 {money(data.total.revenue, currency)} billed against {money(data.total.cost, currency)} of cost over{" "}
                 {hours(data.total.minutes)}
                 {data.total.margin_percent === null ? "." : `, keeping ${data.total.margin_percent}%.`}
               </span>
             </div>
-            {caveat(data.total) ? <p className="text-xms-label text-[12px]">{caveat(data.total)}</p> : null}
+            {caveat(data.total) ? <p className="text-xms-label text-[14px]">{caveat(data.total)}</p> : null}
             {mixed ? (
-              <p className="text-xms-label text-[12px]">
+              <p className="text-xms-label text-[14px]">
                 More than one currency is in play here ({data.currencies.join(", ")}), so these figures do not add up.
               </p>
             ) : null}

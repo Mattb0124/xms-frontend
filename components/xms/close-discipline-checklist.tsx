@@ -20,11 +20,11 @@ export function CloseDisciplineChecklist({ items, className }: CloseDisciplineCh
       <p className="xms-caption">Close discipline</p>
       <ul className="flex flex-col gap-1">
         {items.map((item) => (
-          <li key={item.key} className="flex items-center gap-2 text-[13px]" data-done={item.done ? "true" : "false"}>
+          <li key={item.key} className="flex items-center gap-2 text-[14px]" data-done={item.done ? "true" : "false"}>
             <span
               aria-hidden
               className={cn(
-                "xms-mono flex h-4 w-4 items-center justify-center rounded-[999px] border text-[10px]",
+                "xms-mono flex h-4 w-4 items-center justify-center rounded-[999px] border text-[14px]",
                 item.done
                   ? "border-[color:var(--state-complete-border)] bg-[color:var(--state-complete-bg)] text-[color:var(--state-complete-text)]"
                   : "border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] text-[color:var(--state-overdue-text)]",
@@ -33,11 +33,11 @@ export function CloseDisciplineChecklist({ items, className }: CloseDisciplineCh
               {item.done ? "✓" : "!"}
             </span>
             <span className={item.done ? "text-xms-body" : "text-xms-ink font-medium"}>{item.label}</span>
-            {item.detail ? <span className="text-xms-label text-[12px]">{item.detail}</span> : null}
+            {item.detail ? <span className="text-xms-label text-[14px]">{item.detail}</span> : null}
           </li>
         ))}
       </ul>
-      <p className="text-xms-label text-[12px]">
+      <p className="text-xms-label text-[14px]">
         {missing === 0 ? "Ready to resolve." : `${missing} item${missing === 1 ? "" : "s"} missing before Resolved.`}
       </p>
     </div>

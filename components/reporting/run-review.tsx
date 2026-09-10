@@ -48,8 +48,8 @@ import {
   type ReviewRun,
 } from "@/redux/reportingApi";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[12px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
 
 /**
  * Review before send (Dashboards & Report Packs functional 5.8, DR-05): one
@@ -156,7 +156,7 @@ export function ReportRunReview({ runId }: { runId: string }) {
     <div className="flex flex-col gap-4" data-testid="run-review" data-status={run.status}>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xms-ink text-[18px] font-semibold">Report review</h1>
-        <span className="xms-mono text-xms-label text-[12px]">
+        <span className="xms-mono text-xms-label text-[14px]">
           {run.period_start} to {run.period_end}
         </span>
         <RunStatusPill status={run.status} />
@@ -169,19 +169,19 @@ export function ReportRunReview({ runId }: { runId: string }) {
         caption="Held before sending"
         subtitle={deadline ?? "This run has been decided; nothing here changes it."}
       >
-        <dl className="grid gap-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid gap-3 text-[14px] sm:grid-cols-2 lg:grid-cols-4">
           <Fact label="Requested" value={`${requestedByLabel(run.requested_by)}, ${reviewMoment(run.created_at)}`} />
           <Fact label="Review due" value={reviewMoment(run.review_due_at) ?? "No deadline"} />
           <Fact label="Decided" value={reviewMoment(run.reviewed_at) ?? "Not yet"} />
           <Fact label="Recipients told" value={run.delivery ? `${run.delivery.length}` : "Nobody yet"} />
         </dl>
         {run.review_note ? (
-          <p className="text-xms-ink mt-3 text-[13px]">
+          <p className="text-xms-ink mt-3 text-[14px]">
             <span className="text-xms-label">Cancelled because: </span>
             {run.review_note}
           </p>
         ) : null}
-        {run.error ? <p className="text-xms-muted mt-3 text-[13px]">{run.error}</p> : null}
+        {run.error ? <p className="text-xms-muted mt-3 text-[14px]">{run.error}</p> : null}
       </Panel>
 
       {held && run.pack ? (
@@ -221,10 +221,10 @@ export function ReportRunReview({ runId }: { runId: string }) {
           {run.delivery ? (
             <>
               <DeliveryList delivery={run.delivery} />
-              <p className="text-xms-label mt-2 text-[12px]">{DELIVERY_LINK_NOTE}</p>
+              <p className="text-xms-label mt-2 text-[14px]">{DELIVERY_LINK_NOTE}</p>
             </>
           ) : (
-            <p className="text-xms-label text-[13px]">Nothing was delivered.</p>
+            <p className="text-xms-label text-[14px]">Nothing was delivered.</p>
           )}
         </Panel>
       )}
@@ -233,7 +233,7 @@ export function ReportRunReview({ runId }: { runId: string }) {
         visible.map((section) => <SectionPanel key={section.title} section={section} />)
       ) : (
         <Panel title="The pack" caption="Nothing stored">
-          <p className="text-xms-label text-[13px]">
+          <p className="text-xms-label text-[14px]">
             This run stored no pack, so there is nothing to read and nothing to send.
           </p>
         </Panel>
@@ -245,8 +245,8 @@ export function ReportRunReview({ runId }: { runId: string }) {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-xms-label text-[12px]">{label}</dt>
-      <dd className="text-xms-ink xms-mono text-[13px]">{value}</dd>
+      <dt className="text-xms-label text-[14px]">{label}</dt>
+      <dd className="text-xms-ink xms-mono text-[14px]">{value}</dd>
     </div>
   );
 }
@@ -370,7 +370,7 @@ function Decisions({
               onCancel();
             }}
           >
-            <label className="flex flex-col gap-1 text-[12px]">
+            <label className="flex flex-col gap-1 text-[14px]">
               <span className="text-xms-label">Reason</span>
               <textarea
                 aria-label="Reason"
@@ -439,19 +439,19 @@ function NarrativePanel({ run, sections }: { run: ReviewRun; sections: Narrative
     <Panel title="Narrative" caption="The words, not the numbers" subtitle={narrativeSourceLine(run)}>
       <div className="flex flex-col gap-3">
         {NARRATIVE_SECTIONS.map(({ key, title }) => (
-          <label key={key} className="flex flex-col gap-1 text-[12px]">
+          <label key={key} className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">{title}</span>
             <textarea
               aria-label={title}
               rows={key === "headline" ? 4 : 2}
               maxLength={6000}
-              className={cn(INPUT, "h-auto py-1.5 text-[13px]")}
+              className={cn(INPUT, "h-auto py-1.5 text-[14px]")}
               value={draft[key]}
               onChange={(event) => setDraft((current) => ({ ...current, [key]: event.target.value }))}
             />
           </label>
         ))}
-        {needsRegenerate(run) ? <p className="text-xms-label text-[12px]">{UNRENDERED_EDIT_NOTE}</p> : null}
+        {needsRegenerate(run) ? <p className="text-xms-label text-[14px]">{UNRENDERED_EDIT_NOTE}</p> : null}
         <div>
           <button
             type="button"
@@ -482,7 +482,7 @@ function SectionPanel({ section }: { section: ReviewSection }) {
       subtitle="The numbers were frozen when the run rendered; nothing here recomputes one."
     >
       {isEmptySection(section) ? (
-        <p className="text-xms-label text-[13px]">{EMPTY_SECTION_LINE}</p>
+        <p className="text-xms-label text-[14px]">{EMPTY_SECTION_LINE}</p>
       ) : (
         <div className="flex flex-col gap-4">
           {section.paragraphs.map((paragraph, index) => (
@@ -494,7 +494,7 @@ function SectionPanel({ section }: { section: ReviewSection }) {
             <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" data-testid="review-tiles">
               {section.tiles.map((tile) => (
                 <div key={tile.label} className="border-xms-line flex flex-col gap-1 rounded-[6px] border p-3">
-                  <dt className="text-xms-label text-[12px]">{tile.label}</dt>
+                  <dt className="text-xms-label text-[14px]">{tile.label}</dt>
                   <dd className="text-xms-ink xms-mono text-[18px] font-semibold">{tile.value}</dd>
                 </div>
               ))}

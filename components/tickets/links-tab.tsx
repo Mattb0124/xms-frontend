@@ -105,18 +105,18 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
                       push({ title: "Not removed", detail: describeError(apiError(caught)), tone: "error" }),
                     )
                 }
-                className="text-xms-label hover:text-xms-ink shrink-0 text-[12px]"
+                className="text-xms-label hover:text-xms-ink shrink-0 text-[14px]"
               >
                 Remove
               </button>
             ) : null}
           </li>
         ))}
-        {data && data.length === 0 ? <li className="text-xms-label py-3 text-[13px]">No links.</li> : null}
+        {data && data.length === 0 ? <li className="text-xms-label py-3 text-[14px]">No links.</li> : null}
       </ul>
       {!readOnly && !adding.open ? (
         <div>
-          <button type="button" onClick={() => setAdding({ open: true })} className="text-xms-accent text-[13px]">
+          <button type="button" onClick={() => setAdding({ open: true })} className="text-xms-accent text-[14px]">
             + Add link by key
           </button>
         </div>
@@ -130,7 +130,7 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
             void add();
           }}
         >
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">This ticket</span>
             <select
               aria-label="Link type"
@@ -145,7 +145,7 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Ticket key</span>
             <input
               aria-label="Ticket key"
@@ -162,7 +162,7 @@ export function LinksTab({ ticketKey, readOnly }: { ticketKey: string; readOnly?
             Cancel
           </button>
           {error ? (
-            <p role="alert" className="w-full text-[12px] text-[color:var(--state-overdue-text)]">
+            <p role="alert" className="w-full text-[14px] text-[color:var(--state-overdue-text)]">
               {error}
             </p>
           ) : null}

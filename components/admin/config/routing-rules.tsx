@@ -62,9 +62,9 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
 
   return (
     <div className="flex flex-col gap-3">
-      <table className="w-full border-collapse text-[13px]" aria-label="Routing defaults">
+      <table className="w-full border-collapse text-[14px]" aria-label="Routing defaults">
         <thead>
-          <tr className="border-xms-line text-xms-ink border-b text-left text-[12px] font-semibold">
+          <tr className="border-xms-line text-xms-ink border-b text-left text-[14px] font-semibold">
             <th className="px-3 py-2">Type</th>
             <th className="px-3 py-2">Category</th>
             <th className="px-3 py-2">Group</th>
@@ -114,7 +114,7 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
                   <button
                     type="button"
                     onClick={() => setDraft(rules.filter((_, order) => order !== index))}
-                    className="text-xms-accent text-[12px] hover:underline"
+                    className="text-xms-accent text-[14px] hover:underline"
                   >
                     Remove
                   </button>
@@ -131,11 +131,11 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
           ) : null}
         </tbody>
       </table>
-      <p className="text-xms-label text-[12px]">
+      <p className="text-xms-label text-[14px]">
         A rule naming a category wins over the rule for the type as a whole, and a retired group routes nothing.
       </p>
       {problems.length > 0 ? (
-        <ul className="text-[12px] text-[color:var(--state-overdue-text)]">
+        <ul className="text-[14px] text-[color:var(--state-overdue-text)]">
           {problems.map((problem) => (
             <li key={problem}>{problem}</li>
           ))}
@@ -167,7 +167,7 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
           ) : null}
         </div>
       ) : (
-        <p className="text-xms-label text-[12px]">Changing the defaults needs the admin:config permission.</p>
+        <p className="text-xms-label text-[14px]">Changing the defaults needs the admin:config permission.</p>
       )}
     </div>
   );
@@ -190,7 +190,7 @@ export function RoutingRulesPanel({ accountId }: { accountId: string }) {
       {canRead ? (
         <RoutingRulesEditor accountId={accountId} canWrite={me.hasPermission("admin:config")} />
       ) : (
-        <p className="text-xms-label text-[13px]">
+        <p className="text-xms-label text-[14px]">
           Reading the routing defaults needs the tickets:view permission, which this account binding does not carry.
         </p>
       )}

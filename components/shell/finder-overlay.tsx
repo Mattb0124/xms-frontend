@@ -141,7 +141,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                 onChange={(event) => setFilter(event.target.value)}
                 placeholder="Filter screens"
                 aria-label="Filter screens"
-                className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-white/70"
+                className="min-w-0 flex-1 bg-transparent text-[14px] text-white outline-none placeholder:text-white/70"
               />
             </span>
           ) : null}
@@ -182,7 +182,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                   </ul>
                 </section>
               ))}
-              {grouped.length === 0 ? <p className="px-4 py-2 text-[13px] text-white/70">No screens match.</p> : null}
+              {grouped.length === 0 ? <p className="px-4 py-2 text-[14px] text-white/70">No screens match.</p> : null}
             </>
           ) : props.kind === "workspaces" ? (
             <ul>
@@ -196,7 +196,7 @@ export function FinderOverlay(props: FinderOverlayProps) {
                   >
                     {view.label}
                   </Link>
-                  <span className="shrink-0 text-[12px]">System</span>
+                  <span className="shrink-0 text-[14px]">System</span>
                 </li>
               ))}
             </ul>
@@ -216,12 +216,12 @@ export function FinderOverlay(props: FinderOverlayProps) {
                     >
                       {item.label}
                     </Link>
-                    <span className="shrink-0 text-[12px]">{item.type}</span>
+                    <span className="shrink-0 text-[14px]">{item.type}</span>
                   </li>
                 );
               })}
               {favourites.length === 0 ? (
-                <li className="px-4 py-2 text-[13px] text-white/70">
+                <li className="px-4 py-2 text-[14px] text-white/70">
                   Star a view from the workspace pill to see it here.
                 </li>
               ) : null}
@@ -238,11 +238,11 @@ export function FinderOverlay(props: FinderOverlayProps) {
                   >
                     {entry.label}
                   </Link>
-                  <span className="shrink-0 text-[12px]">{relative(entry.at)}</span>
+                  <span className="shrink-0 text-[14px]">{relative(entry.at)}</span>
                 </li>
               ))}
               {history.length === 0 ? (
-                <li className="px-4 py-2 text-[13px] text-white/70">Nothing visited yet.</li>
+                <li className="px-4 py-2 text-[14px] text-white/70">Nothing visited yet.</li>
               ) : null}
             </ul>
           )}

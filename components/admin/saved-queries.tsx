@@ -141,7 +141,7 @@ export function SavedQueriesPanel({
             }}
           >
             <span className="flex flex-col gap-1">
-              <label htmlFor="saved-query-name" className="text-xms-label text-[12px]">
+              <label htmlFor="saved-query-name" className="text-xms-label text-[14px]">
                 Name
               </label>
               <input
@@ -152,7 +152,7 @@ export function SavedQueriesPanel({
               />
             </span>
             <span className="flex flex-col gap-1">
-              <label htmlFor="saved-query-description" className="text-xms-label text-[12px]">
+              <label htmlFor="saved-query-description" className="text-xms-label text-[14px]">
                 Description
               </label>
               <input
@@ -163,7 +163,7 @@ export function SavedQueriesPanel({
               />
             </span>
             {mayShare ? (
-              <label className="text-xms-body flex items-center gap-2 pb-2 text-[13px]">
+              <label className="text-xms-body flex items-center gap-2 pb-2 text-[14px]">
                 <input
                   type="checkbox"
                   checked={draft.shared}
@@ -172,7 +172,7 @@ export function SavedQueriesPanel({
                 Share with everyone who can read the audit
               </label>
             ) : (
-              <p className="text-xms-label pb-2 text-[12px]">{SHARING_NEEDS_EXPORT}</p>
+              <p className="text-xms-label pb-2 text-[14px]">{SHARING_NEEDS_EXPORT}</p>
             )}
             <button type="submit" disabled={creating.isLoading} className={PRIMARY_BUTTON}>
               {editing ? "Update" : "Save"}
@@ -187,13 +187,13 @@ export function SavedQueriesPanel({
             >
               Cancel
             </button>
-            <p className="text-xms-label basis-full text-[12px]">
+            <p className="text-xms-label basis-full text-[14px]">
               {editing
                 ? "Updating rewrites the conditions with the ones in the builder now."
                 : `${conditions.length} condition${conditions.length === 1 ? "" : "s"} from the builder above.`}
             </p>
             {problems.length > 0 ? (
-              <ul className="basis-full text-[12px] text-[color:var(--state-overdue-text)]">
+              <ul className="basis-full text-[14px] text-[color:var(--state-overdue-text)]">
                 {problems.map((problem) => (
                   <li key={problem}>{problem}</li>
                 ))}
@@ -202,9 +202,9 @@ export function SavedQueriesPanel({
           </form>
         ) : null}
 
-        {isLoading ? <p className="text-xms-label text-[13px]">Reading the saved queries.</p> : null}
+        {isLoading ? <p className="text-xms-label text-[14px]">Reading the saved queries.</p> : null}
         {!isLoading && queries.length === 0 ? (
-          <p className="text-xms-label text-[13px]">
+          <p className="text-xms-label text-[14px]">
             No saved queries yet. Build a search above and save it to come back to it.
           </p>
         ) : null}
@@ -217,8 +217,8 @@ export function SavedQueriesPanel({
               data-query={query.id}
             >
               <span className="min-w-0">
-                <span className="text-xms-ink block truncate text-[13px] font-medium">{query.name}</span>
-                <span className="text-xms-label block text-[12px]">
+                <span className="text-xms-ink block truncate text-[14px] font-medium">{query.name}</span>
+                <span className="text-xms-label block text-[14px]">
                   {savedQueryLine(query, me.principal?.userId)}
                   {query.description ? `. ${query.description}` : ""}
                 </span>
@@ -235,7 +235,7 @@ export function SavedQueriesPanel({
                 <button
                   type="button"
                   onClick={() => onLoad(query)}
-                  className="text-xms-accent text-[12px] hover:underline"
+                  className="text-xms-accent text-[14px] hover:underline"
                 >
                   Load into builder
                 </button>
@@ -248,7 +248,7 @@ export function SavedQueriesPanel({
                         setProblems([]);
                         setDraft(draftFromSavedQuery(query));
                       }}
-                      className="text-xms-accent text-[12px] hover:underline"
+                      className="text-xms-accent text-[14px] hover:underline"
                     >
                       Rename
                     </button>

@@ -22,7 +22,7 @@ export const SECTION_HINT: Partial<Record<VersionSection, string>> = {
 };
 
 const CONTROL =
-  "border-xms-line bg-xms-card text-xms-ink w-full rounded-[4px] border px-2 py-2 text-[13px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink w-full rounded-[4px] border px-2 py-2 text-[14px] outline-none disabled:opacity-60";
 
 function SectionField({
   section,
@@ -45,10 +45,10 @@ function SectionField({
   const id = `article-section-${section}`;
   return (
     <div className="flex flex-col gap-1" data-section={section}>
-      <label htmlFor={id} className="text-xms-ink text-[13px] font-semibold">
+      <label htmlFor={id} className="text-xms-ink text-[14px] font-semibold">
         {SECTION_LABEL[section]}
       </label>
-      {SECTION_HINT[section] ? <p className="text-xms-label text-[12px]">{SECTION_HINT[section]}</p> : null}
+      {SECTION_HINT[section] ? <p className="text-xms-label text-[14px]">{SECTION_HINT[section]}</p> : null}
       <textarea
         id={id}
         rows={section === "steps" ? 8 : 4}

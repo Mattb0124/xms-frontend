@@ -60,7 +60,7 @@ export function ModeSwitch({ instance, refetch }: { instance: ConnectorInstance;
               title={hint}
               onClick={() => void set(option.value)}
               className={cn(
-                "border-xms-line px-3 text-[13px] [&:not(:last-child)]:border-r",
+                "border-xms-line px-3 text-[14px] [&:not(:last-child)]:border-r",
                 active ? "bg-xms-tint text-xms-accent font-medium" : "text-xms-body hover:bg-xms-row-hover",
               )}
             >
@@ -70,11 +70,11 @@ export function ModeSwitch({ instance, refetch }: { instance: ConnectorInstance;
         })}
       </div>
       {refused ? (
-        <p className="text-[12px] text-[color:var(--state-overdue-text)]" data-mode-refused>
+        <p className="text-[14px] text-[color:var(--state-overdue-text)]" data-mode-refused>
           {refused}
         </p>
       ) : blocker && instance.mode !== "bidirectional" ? (
-        <p className="text-xms-label text-[12px]" data-mode-hint>
+        <p className="text-xms-label text-[14px]" data-mode-hint>
           {blocker}
         </p>
       ) : null}
@@ -149,11 +149,11 @@ export function TestConnectionButton({ instance }: { instance: ConnectorInstance
       </button>
       {result ? (
         result.ok ? (
-          <span className="xms-mono text-[12px] text-[color:var(--state-complete-text)]" data-test="ok">
+          <span className="xms-mono text-[14px] text-[color:var(--state-complete-text)]" data-test="ok">
             Connected, {result.fields ?? 0} fields, {result.latency_ms} ms
           </span>
         ) : (
-          <span className="text-[12px] text-[color:var(--state-overdue-text)]" data-test="failed" title={result.error}>
+          <span className="text-[14px] text-[color:var(--state-overdue-text)]" data-test="failed" title={result.error}>
             Failed: {result.error}
           </span>
         )
@@ -178,7 +178,7 @@ export function InstanceHeader({ instance, refetch }: { instance: ConnectorInsta
           </>
         }
       />
-      <div className="text-xms-label flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px]">
+      <div className="text-xms-label flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px]">
         <span className="xms-mono">{instance.base_url}</span>
         <span>
           {instance.auth_kind === "basic" ? "Basic auth" : "OAuth client credentials"}, credential{" "}
@@ -196,7 +196,7 @@ export function InstanceHeader({ instance, refetch }: { instance: ConnectorInsta
         />
       ) : null}
       {instance.last_error ? (
-        <p className="text-xms-body text-[12px]">
+        <p className="text-xms-body text-[14px]">
           <span className="text-xms-label">Last error {formatDate(instance.last_error_at)}:</span> {instance.last_error}
         </p>
       ) : null}

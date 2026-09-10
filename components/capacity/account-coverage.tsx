@@ -53,7 +53,7 @@ function AccountCoverageCard({
       flush
     >
       {count === 0 ? (
-        <p className="text-xms-label px-4 py-3 text-[12px]">
+        <p className="text-xms-label px-4 py-3 text-[14px]">
           No technologies on the active contracts. Add technology codes to the rules of a contract.
         </p>
       ) : (
@@ -61,7 +61,7 @@ function AccountCoverageCard({
           {account.technologies.map((technology) => (
             <li
               key={technology.code}
-              className="flex flex-wrap items-center gap-3 px-4 py-2 text-[13px]"
+              className="flex flex-wrap items-center gap-3 px-4 py-2 text-[14px]"
               data-technology={technology.code}
               data-status={technology.status}
             >
@@ -69,7 +69,7 @@ function AccountCoverageCard({
                 {skillName(technology.code)}
               </span>
               <CoveragePill status={technology.status} />
-              <span className="text-xms-body text-[12px]" data-qualified>
+              <span className="text-xms-body text-[14px]" data-qualified>
                 {technology.qualified.length === 0
                   ? `Nobody at level ${requiredLevel}`
                   : technology.qualified.map((person, index) => (

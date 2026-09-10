@@ -52,11 +52,11 @@ export function BudgetEntriesList({ accountId, contract, period, catalogs }: Bud
   if (person) people.set(person.id, person.name);
   for (const entry of data?.entries ?? []) if (entry.person_id) people.set(entry.person_id, entry.person_name);
 
-  const select = cn(INPUT, "h-[28px] text-[12px]");
+  const select = cn(INPUT, "h-[28px] text-[14px]");
 
   return (
     <div className="border-xms-line flex flex-col gap-3 border-t pt-3" data-testid="budget-entries">
-      <div className="flex flex-wrap items-end gap-2 text-[12px]" role="group" aria-label="Entry filters">
+      <div className="flex flex-wrap items-end gap-2 text-[14px]" role="group" aria-label="Entry filters">
         <label className="flex flex-col gap-1">
           <span className="text-xms-label">Person</span>
           <select
@@ -132,21 +132,21 @@ export function BudgetEntriesList({ accountId, contract, period, catalogs }: Bud
         </label>
         <button
           type="button"
-          className={cn(SECONDARY_BUTTON, "ml-auto h-[28px] text-[12px]")}
+          className={cn(SECONDARY_BUTTON, "ml-auto h-[28px] text-[14px]")}
           disabled
           title="Export is not available yet; the export route is still to come."
         >
           Export
         </button>
       </div>
-      {!valid ? <p className="text-xms-label text-[12px]">Choose a range where From is not after To.</p> : null}
+      {!valid ? <p className="text-xms-label text-[14px]">Choose a range where From is not after To.</p> : null}
       {isLoading && !data ? <Skeleton lines={3} /> : null}
-      {isError ? <p className="text-xms-muted text-[12px]">The entries could not be loaded.</p> : null}
+      {isError ? <p className="text-xms-muted text-[14px]">The entries could not be loaded.</p> : null}
       {data ? (
         <div className="overflow-auto">
-          <table className="w-full border-collapse text-[13px]" aria-label={`Entries on ${contract.key}`}>
+          <table className="w-full border-collapse text-[14px]" aria-label={`Entries on ${contract.key}`}>
             <thead>
-              <tr className="border-xms-line text-xms-ink border-b text-left text-[12px] font-semibold">
+              <tr className="border-xms-line text-xms-ink border-b text-left text-[14px] font-semibold">
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Person</th>
                 <th className="px-3 py-2">Ticket or bucket</th>
@@ -191,7 +191,7 @@ export function BudgetEntriesList({ accountId, contract, period, catalogs }: Bud
                     <td className="xms-mono text-xms-ink px-3 text-right">
                       {formatHours(entry.adjusted_minutes ?? entry.minutes)}
                     </td>
-                    <td className="xms-mono text-xms-body px-3 text-right text-[12px]" data-amount>
+                    <td className="xms-mono text-xms-body px-3 text-right text-[14px]" data-amount>
                       {entry.amount === null ? (
                         <span className="text-xms-muted">unrated</span>
                       ) : (
@@ -210,7 +210,7 @@ export function BudgetEntriesList({ accountId, contract, period, catalogs }: Bud
               ) : null}
             </tbody>
             <tfoot>
-              <tr className="text-xms-ink text-[12px] font-semibold">
+              <tr className="text-xms-ink text-[14px] font-semibold">
                 <td colSpan={5} className="px-3 py-2">
                   Total
                 </td>

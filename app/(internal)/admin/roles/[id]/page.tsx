@@ -62,7 +62,7 @@ function AdminRoleRecordPageBody() {
         pill={<StatePill state={data.status === "active" ? "resolved" : "closed"} label={data.status} />}
         actions={
           data.is_system ? (
-            <span className="text-xms-label text-[12px]">System role: name and status are fixed</span>
+            <span className="text-xms-label text-[14px]">System role: name and status are fixed</span>
           ) : data.status === "active" ? (
             <ConfirmButton
               label="Retire"

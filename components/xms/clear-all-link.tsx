@@ -15,7 +15,7 @@ export function ClearAllLink({ onClick, className }: ClearAllLinkProps) {
     <button
       type="button"
       onClick={onClick}
-      className={cn("text-xms-label hover:text-xms-accent shrink-0 px-1 text-[13px] font-medium", className)}
+      className={cn("text-xms-label hover:text-xms-accent shrink-0 px-1 text-[14px] font-medium", className)}
     >
       Clear all
     </button>

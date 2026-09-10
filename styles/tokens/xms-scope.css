@@ -8,28 +8,22 @@
  */
 
 .xms-scope {
-  /* Text: one ink, and a placeholder.
-   *
-   * The scale used to grade down through body, label and muted (#3d4a5c,
-   * #5a6784, #7b8ca0). The product read as washed out, because the greys
-   * carried most of the copy: 622 uses of text-xms-label, 165 of
-   * text-xms-body and 112 of text-xms-muted against 360 of text-xms-ink.
-   * Matt asked for no grey text on 2026-09-10 (AIBL-313), so the three now
-   * alias the ink rather than being retired: 901 call sites keep working,
-   * and restoring the hierarchy is a matter of putting three values back.
-   *
-   * De-emphasis is now weight, size and placement, never colour. The
-   * placeholder stays distinct because a black placeholder reads as a value
-   * somebody typed. */
-  --xms-ink: #0f1623;
-  --xms-body: var(--xms-ink);
-  --xms-label: var(--xms-ink);
-  --xms-muted: var(--xms-ink);
+  /* Text, on the ServiceNow Next Experience palette (2026-09-10, AIBL-316).
+   * That system carries two levels, not five: a primary text and one muted.
+   * Body, label and muted all take the muted value, which reverses AIBL-313
+   * earlier the same day. The placeholder keeps its own lighter value, since
+   * a placeholder at the muted weight reads as a value somebody typed. */
+  --xms-ink: #000e1d;
+  --xms-body: #56606b;
+  --xms-label: #56606b;
+  --xms-muted: #56606b;
   --xms-placeholder: #9aa3b2;
 
-  /* Actions and selection */
-  --xms-accent: #2563eb;
-  --xms-accent-hover: #1d4ed8;
+  /* Actions and selection, on the ServiceNow link and primary blue. One value
+   * covers both there, and it covers more here: links, the selected row
+   * stroke, focus, the active tab and the eyebrow all run on this token. */
+  --xms-accent: #006fba;
+  --xms-accent-hover: #00548d;
   --xms-accent-tint: #eff4ff;
   --xms-accent-tint-strong: #d8e3fa;
   --xms-accent-border: #c7d6f7;
@@ -54,15 +48,21 @@
   --xms-overlay-row-line: rgb(255 255 255 / 0.18);
   --xms-overlay-field-line: rgb(255 255 255 / 0.4);
   --xms-overlay-shadow: 0 18px 44px rgb(16 25 58 / 0.26), 0 0 0 1px rgb(59 130 246 / 0.1);
-  /* The toolbar band is a neutral grey, not a blue tint: the band under the
-   * navy bar reads #E7E9ED over a #CFD5DF rule in every v3 render, and the
-   * prototype's own markup states the same two values. */
-  --xms-bar: #e7e9ed;
-  --xms-bar-line: #cfd5df;
+  /* Toolbar band, on the values sampled from ServiceNow (AIBL-316). The band
+   * shares its fill with the page and the striped rows, and its rule is the
+   * same gray-blue that runs under the column headers, so one value covers
+   * both: a lighter rule under the band was the give-away that it was not the
+   * real thing. */
+  --xms-bar: #f2f5f7;
+  --xms-bar-line: #c2cdd9;
   /* The soft fill behind a mono count: the Count badge, the Dispatch age
    * badge, the Waiting on me counts, the sidebar's own count pills. */
   --xms-chip: #f0f3fa;
-  --xms-bg: #f4f5f7;
+  /* The page canvas, lightened from #f4f5f7 with the band (AIBL-314). It sits
+   * close to the card now, so a card is read by its border rather than by the
+   * ground falling away behind it. If that reads too flat, this is the one
+   * value to put back. */
+  --xms-bg: #fafbfc;
   --xms-card: #ffffff;
   --xms-tint: #eff4ff;
   --xms-line: #e4e8f5;
@@ -70,7 +70,7 @@
   --xms-line-strong: #c9d2e6;
   /* The table header underline, one step darker than a row hairline
    * (the hand-off's --xms-line-strong). */
-  --xms-line-head: #d5dbe5;
+  --xms-line-head: #c2cdd9;
   /* The row divider, and the only thing that separates two rows. */
   --xms-line-row: #eef1f6;
   /* The control border on the grey strip, dark enough to read against it. */
@@ -164,6 +164,19 @@
   --xms-font: var(--font-family-body);
   --xms-mono: var(--font-family-mono);
 
+  /* The ServiceNow Next Experience type scale (2026-09-10, AIBL-316), with a
+   * floor of 14px by request: nothing in this product is set smaller than the
+   * body size. The bottom three steps therefore collapse onto 14, and xs and
+   * sm are kept as names rather than removed so the call sites that ask for
+   * them keep resolving. Anything that needs to recede does it with weight or
+   * colour, not by getting smaller. */
+  --xms-text-xs: 14px;
+  --xms-text-sm: 14px;
+  --xms-text-md: 14px;
+  --xms-text-lg: 18px;
+  --xms-text-xl: 22px;
+  --xms-line-height: 1.4;
+
   /* Geometry */
   --xms-radius-control: 4px;
   --xms-radius-card: 6px;
@@ -211,6 +224,10 @@
   color: var(--xms-body);
   background: var(--xms-bg);
   font-family: var(--xms-font);
+  /* The scope carried no base size, so anything without an explicit one
+   * inherited the browser default of 16px. ServiceNow sets 14px over 1.4. */
+  font-size: var(--xms-text-md);
+  line-height: var(--xms-line-height);
 }
 
 /* Dark: a faithful inversion built from the same hues. The finder bar is
@@ -293,7 +310,7 @@
    * reads as one. */
   .xms-link {
     color: var(--xms-accent);
-    font: 400 13px/1.3 var(--xms-font);
+    font: 400 var(--xms-text-sm)/1.3 var(--xms-font);
     text-decoration: underline;
     text-decoration-color: var(--xms-link-underline);
     text-decoration-thickness: 1px;
@@ -332,7 +349,7 @@
    * read as a different product from the titles beside it. Mono stays for
    * what has to align in a column: keys, clocks, hours and counts. */
   .xms-caption {
-    font: 600 11px/1.35 var(--xms-font);
+    font: 600 var(--xms-text-xs)/1.35 var(--xms-font);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--xms-muted);
@@ -350,7 +367,7 @@
     gap: 10px;
     padding: 9px 14px;
     border-left: 3px solid transparent;
-    font: 400 14px/1.3 var(--xms-font);
+    font: 400 var(--xms-text-md)/1.3 var(--xms-font);
     /* Ink, like the section above it. The row was the softer body grey,
      * which read as half-disabled next to everything else on the screen. */
     color: var(--xms-ink);
@@ -369,7 +386,7 @@
    * selected row it turns white with a link-coloured edge. */
   .xms-nav-badge {
     flex: none;
-    font: 500 11px/1 var(--xms-mono);
+    font: 500 var(--xms-text-xs)/1 var(--xms-mono);
     color: var(--xms-label);
     background: var(--xms-chip);
     border: 1px solid transparent;
@@ -422,7 +439,7 @@
     align-items: center;
     gap: 9px;
     padding: 9px 16px;
-    font: 400 14px/1.3 var(--xms-font);
+    font: 400 var(--xms-text-md)/1.3 var(--xms-font);
     color: #fff;
     width: 100%;
     text-align: left;
@@ -438,14 +455,14 @@
   }
   .xms-overlay-caption {
     padding: 11px 16px 5px;
-    font: 600 11px/1.3 var(--xms-font);
+    font: 600 var(--xms-text-xs)/1.3 var(--xms-font);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: #fff;
   }
   .xms-overlay-badge {
     flex: none;
-    font: 500 11px/1 var(--xms-mono);
+    font: 500 var(--xms-text-xs)/1 var(--xms-mono);
     color: #fff;
     background: var(--xms-overlay-chip);
     border-radius: 999px;
@@ -458,7 +475,7 @@
   .xms-chip-pill {
     display: inline-flex;
     align-items: center;
-    font: 500 12px/1 var(--xms-font);
+    font: 500 var(--xms-text-xs)/1 var(--xms-font);
     color: var(--xms-body);
     background: var(--xms-chip);
     border-radius: 999px;
@@ -495,7 +512,7 @@
   .xms-key {
     font-family: var(--xms-font);
     font-variant-numeric: tabular-nums;
-    font-size: 13px;
+    font-size: var(--xms-text-sm);
     font-weight: 500;
     line-height: 1.3;
     color: var(--xms-accent);
@@ -509,7 +526,7 @@
     /* 5px 10px, the hand-off's .xms-pill; it was 4px, which left every
      * dense row 2px short of the render. */
     padding: 5px 10px;
-    font: 500 12px/1 var(--xms-font);
+    font: 500 var(--xms-text-xs)/1 var(--xms-font);
     white-space: nowrap;
     color: var(--xms-state-closed-fg);
     background: var(--xms-state-closed-bg);
@@ -529,7 +546,7 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font: 500 13px/1.2 var(--xms-font);
+    font: 500 var(--xms-text-sm)/1.2 var(--xms-font);
     white-space: nowrap;
     color: var(--xms-state-closed-fg);
   }
@@ -549,7 +566,7 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font: 500 13px/1.2 var(--xms-font);
+    font: 500 var(--xms-text-sm)/1.2 var(--xms-font);
     white-space: nowrap;
   }
   .xms-priority-mark .xms-priority-dot {

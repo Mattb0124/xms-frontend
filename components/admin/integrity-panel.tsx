@@ -22,7 +22,7 @@ const TONE_CLASS: Record<VerdictTone, string> = {
 
 function Verdict({ tone, children }: { tone: VerdictTone; children: string }) {
   return (
-    <span className={cn("text-[12px]", TONE_CLASS[tone])} data-tone={tone}>
+    <span className={cn("text-[14px]", TONE_CLASS[tone])} data-tone={tone}>
       {children}
     </span>
   );
@@ -39,9 +39,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ label, detail, right }: { label: string; detail?: string; right?: React.ReactNode }) {
   return (
-    <li className="border-xms-line flex flex-wrap items-center gap-3 border-b py-2 text-[13px] last:border-b-0">
+    <li className="border-xms-line flex flex-wrap items-center gap-3 border-b py-2 text-[14px] last:border-b-0">
       <span className="xms-mono text-xms-ink">{label}</span>
-      {detail ? <span className="text-xms-label text-[12px]">{detail}</span> : null}
+      {detail ? <span className="text-xms-label text-[14px]">{detail}</span> : null}
       {right ? <span className="ml-auto">{right}</span> : null}
     </li>
   );
@@ -86,7 +86,7 @@ export function IntegrityPanel() {
             {summary ? <Verdict tone={summary.tone}>{summary.text}</Verdict> : null}
             <ul className="flex flex-col">
               {chain.streams.length === 0 ? (
-                <li className="text-xms-label py-2 text-[13px]">No stream has been digested yet.</li>
+                <li className="text-xms-label py-2 text-[14px]">No stream has been digested yet.</li>
               ) : null}
               {chain.streams.map((row) => {
                 const verdict = verificationLine(row);
@@ -107,7 +107,7 @@ export function IntegrityPanel() {
           <Section title="Archive">
             <ul className="flex flex-col">
               {archive.streams.length === 0 ? (
-                <li className="text-xms-label py-2 text-[13px]">Nothing has been exported to cold storage yet.</li>
+                <li className="text-xms-label py-2 text-[14px]">Nothing has been exported to cold storage yet.</li>
               ) : null}
               {archive.streams.map((row) => (
                 <Row
@@ -115,7 +115,7 @@ export function IntegrityPanel() {
                   label={row.stream}
                   detail={`through ${momentLabel(row.last_day, "no day")}, ${archiveLine(row)}`}
                   right={
-                    <span className="xms-mono text-xms-label text-[12px]">
+                    <span className="xms-mono text-xms-label text-[14px]">
                       last export {momentLabel(row.last_run_at)}
                     </span>
                   }
@@ -133,7 +133,7 @@ export function IntegrityPanel() {
                   key={span.stream}
                   label={span.stream}
                   detail={spanLine(span)}
-                  right={<span className="xms-mono text-xms-ink text-[13px] font-semibold">{span.n}</span>}
+                  right={<span className="xms-mono text-xms-ink text-[14px] font-semibold">{span.n}</span>}
                 />
               ))}
             </ul>
@@ -142,7 +142,7 @@ export function IntegrityPanel() {
 
         {retention ? (
           <Section title="Retention">
-            <ul className="text-xms-body flex flex-col gap-1 text-[13px]">
+            <ul className="text-xms-body flex flex-col gap-1 text-[14px]">
               {retentionLines(retention).map((line) => (
                 <li key={line}>{line}</li>
               ))}

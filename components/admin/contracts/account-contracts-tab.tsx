@@ -289,7 +289,7 @@ function ContractRulesEditor({
 
   return (
     <Panel title={`Contract rules for ${contract.key}`} caption={`${contract.name}, version ${contract.version}`}>
-      <div className="flex flex-col gap-4 text-[12px]" data-rules-editor={contract.id}>
+      <div className="flex flex-col gap-4 text-[14px]" data-rules-editor={contract.id}>
         <fieldset className="flex flex-col gap-2">
           <legend className="text-xms-ink font-semibold">Engagement</legend>
           <label className="flex flex-col gap-1">
@@ -503,7 +503,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
   if (!canRead) {
     return (
       <Panel title="Contracts" caption="Needs the contracts:view permission">
-        <p className="text-xms-label text-[13px]">You can see this account but not its contracts.</p>
+        <p className="text-xms-label text-[14px]">You can see this account but not its contracts.</p>
       </Panel>
     );
   }
@@ -516,7 +516,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
       title: "Engagement",
       sortValue: (row) => engagementName(row.engagement_id, engagements.data ?? []),
       render: (row) => (
-        <span className="text-xms-body text-[12px]" data-engagement={row.id}>
+        <span className="text-xms-body text-[14px]" data-engagement={row.id}>
           {engagementName(row.engagement_id, engagements.data ?? [])}
         </span>
       ),
@@ -541,7 +541,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
         <span data-handling={row.after_hours_handling}>
           {handlingCell(row)}
           {row.after_hours_handling === "premium_rate" && row.after_hours_multiplier ? (
-            <span className="xms-mono text-xms-label ml-2 text-[11px]">
+            <span className="xms-mono text-xms-label ml-2 text-[14px]">
               {formatMultiplier(row.after_hours_multiplier)}
             </span>
           ) : null}
@@ -553,7 +553,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
       title: "Budget rules",
       sortValue: (row) => row.overage_rule,
       render: (row) => (
-        <span className="text-xms-body text-[12px]" data-rules={row.id}>
+        <span className="text-xms-body text-[14px]" data-rules={row.id}>
           {rulesCell(row)}
         </span>
       ),
@@ -563,7 +563,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
       title: "Technologies",
       sortValue: (row) => row.technology_codes.length,
       render: (row) => (
-        <span className="text-xms-body text-[12px]" data-technologies={row.id} title={row.technology_codes.join(", ")}>
+        <span className="text-xms-body text-[14px]" data-technologies={row.id} title={row.technology_codes.join(", ")}>
           {row.technology_codes.length > 0 ? row.technology_codes.map(skillName).join(", ") : "No codes"}
         </span>
       ),
@@ -576,7 +576,7 @@ export function AccountContractsTab({ accountId }: { accountId: string }) {
             render: (row: Contract) => (
               <button
                 type="button"
-                className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[12px]")}
+                className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[14px]")}
                 onClick={() => setEditing(row.id)}
                 aria-label={`Edit rules for ${row.key}`}
               >

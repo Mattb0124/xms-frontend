@@ -87,7 +87,7 @@ export function StatusPill({ status }: { status: CapacityStatus }) {
 /** What the Remaining column counts, on the header and in the panel's subtitle. */
 export const REMAINING_BASIS = "Available minus allocated, never below zero; the actual hours logged do not reduce it";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[13px] font-semibold whitespace-nowrap";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
 const CELL = "text-xms-ink px-3 align-middle whitespace-nowrap";
 
 /**
@@ -156,7 +156,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
           {canManage && addable.length > 0 ? (
             <select
               aria-label="Add account"
-              className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+              className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
               value=""
               onChange={(event) => {
                 if (event.target.value) setExtra((current) => [...current, event.target.value]);
@@ -174,7 +174,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
             <>
               <button
                 type="button"
-                className={cn(SECONDARY_BUTTON, "h-[28px] text-[12px]")}
+                className={cn(SECONDARY_BUTTON, "h-[28px] text-[14px]")}
                 disabled={Object.keys(drafts).length === 0 || saving}
                 onClick={() => setDrafts({})}
               >
@@ -182,7 +182,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
               </button>
               <button
                 type="button"
-                className={cn(PRIMARY_BUTTON, "h-[28px] text-[12px]")}
+                className={cn(PRIMARY_BUTTON, "h-[28px] text-[14px]")}
                 disabled={changes.length === 0 || invalid || saving}
                 onClick={() => void save()}
               >
@@ -193,7 +193,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
         </>
       }
     >
-      <table className="w-full border-collapse text-[13px]" aria-label="Capacity by person">
+      <table className="w-full border-collapse text-[14px]" aria-label="Capacity by person">
         <thead className="bg-xms-card sticky top-0 z-10">
           <tr className="border-xms-line border-b">
             <th className={HEAD}>Person</th>
@@ -235,7 +235,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
                   <Link href={`/roster/${row.person.id}`} className="text-xms-accent font-medium">
                     {row.person.display_name}
                   </Link>
-                  <span className="text-xms-label text-[11px]">
+                  <span className="text-xms-label text-[14px]">
                     {roleLabel(row.person.role)}, {Number(row.person.fte_percent)}% FTE
                   </span>
                 </span>
@@ -274,7 +274,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
                         onChange={(event) => setDrafts((current) => ({ ...current, [key]: event.target.value }))}
                         className={cn(
                           INPUT,
-                          "xms-mono h-[28px] w-[84px] text-right text-[12px]",
+                          "xms-mono h-[28px] w-[84px] text-right text-[14px]",
                           key in drafts && "border-xms-accent",
                           bad && "border-[color:var(--state-overdue-border)]",
                         )}
@@ -296,7 +296,7 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
           ) : null}
         </tbody>
         <tfoot>
-          <tr className="text-xms-ink text-[12px] font-semibold" data-testid="capacity-totals">
+          <tr className="text-xms-ink text-[14px] font-semibold" data-testid="capacity-totals">
             <td className="px-3 py-2">Total</td>
             <td className="xms-mono px-3 py-2 text-right" data-total-available>
               {formatHours(view.totals.available_minutes)}

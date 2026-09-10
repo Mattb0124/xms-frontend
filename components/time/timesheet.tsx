@@ -101,10 +101,10 @@ export function Timesheet({ week, catalogs }: { week: TimesheetWeek; catalogs: D
           the right. */}
       <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
         <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">Timesheet</span>
-        <span className="xms-mono text-xms-muted -ml-[6px] text-[13px]">
+        <span className="xms-mono text-xms-muted -ml-[6px] text-[14px]">
           {week.from} to {week.to}
         </span>
-        <span className="ml-auto flex items-center gap-4 text-[13px]">
+        <span className="ml-auto flex items-center gap-4 text-[14px]">
           <span className="text-xms-label">
             Week total{" "}
             <span className="xms-mono text-xms-ink font-semibold" data-testid="week-total">
@@ -120,9 +120,9 @@ export function Timesheet({ week, catalogs }: { week: TimesheetWeek; catalogs: D
         </span>
       </header>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[13px]">
+        <table className="w-full border-collapse text-[14px]">
           <thead className="bg-xms-card sticky top-0 z-10">
-            <tr className="border-xms-line-head text-xms-ink border-b text-left text-[13px] font-semibold">
+            <tr className="border-xms-line-head text-xms-ink border-b text-left text-[14px] font-semibold">
               <th className="px-[14px] py-[11px]">Day</th>
               <th className="px-[14px] py-[11px]">Ticket or bucket</th>
               <th className="px-[14px] py-[11px]">Activity</th>
@@ -149,14 +149,14 @@ function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: strin
       {/* Every day group stands on the same quiet ground; only the dot and
           the words beside it carry the day's signal. */}
       <tr className="border-xms-line-row bg-xms-quiet-bg border-b" data-day={day.date} data-tone={tone}>
-        <td className="text-xms-ink px-[14px] py-[9px] text-[13px] font-semibold" colSpan={3}>
+        <td className="text-xms-ink px-[14px] py-[9px] text-[14px] font-semibold" colSpan={3}>
           {label} <span className="xms-mono text-xms-label font-normal">{day.date}</span>
         </td>
-        <td className="xms-mono text-xms-ink px-[14px] py-[9px] text-right text-[13px] font-semibold" data-day-total>
+        <td className="xms-mono text-xms-ink px-[14px] py-[9px] text-right text-[14px] font-semibold" data-day-total>
           {day.logged_minutes > 0 ? formatMinutes(day.logged_minutes) : ""}
         </td>
         <td />
-        <td className="px-[14px] py-[9px] text-[13px]" data-day-status>
+        <td className="px-[14px] py-[9px] text-[14px]" data-day-status>
           <span className="inline-flex items-center gap-2">
             <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", TONE_DOT[tone])} />
             <span className={TONE_TEXT[tone]}>{dayStatus(day)}</span>
@@ -170,7 +170,7 @@ function DayRows({ day, label, catalogs }: { day: TimesheetWeekDay; label: strin
         const start = startTimeLabel(entry.performed_start);
         return (
           <tr key={entry.id} className="border-xms-line-row hover:bg-xms-row-hover border-b" data-entry={entry.id}>
-            <td className="xms-mono text-xms-label px-[14px] py-[13px] text-right text-[12px]" data-start>
+            <td className="xms-mono text-xms-label px-[14px] py-[13px] text-right text-[14px]" data-start>
               {start ?? ""}
             </td>
             <td className="px-[14px] py-[13px]">

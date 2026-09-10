@@ -81,7 +81,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
         <div className="flex h-[60px] w-full items-center gap-6 px-5">
           <Link href="/portal" className="flex items-baseline gap-2 outline-none focus-visible:underline">
             <span className="text-[15px] font-semibold">{accountName ?? "Support portal"}</span>
-            <span className="xms-mono text-[11px] uppercase tracking-wide opacity-70">XMS</span>
+            <span className="xms-mono text-[14px] uppercase tracking-wide opacity-70">XMS</span>
           </Link>
           {!isSignIn ? (
             <nav aria-label="Portal" className="ml-4 hidden items-center gap-1 sm:flex">
@@ -111,7 +111,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
           </p>
         ) : null}
       </main>
-      <footer className="border-xms-line text-xms-label w-full border-t px-5 py-4 text-[13px]">
+      <footer className="border-xms-line text-xms-label w-full border-t px-5 py-4 text-[14px]">
         Need help? Open a request or reply to any email from your support team. Every message lands on your request.
       </footer>
     </div>
@@ -147,7 +147,7 @@ function UserMenu({ me }: { me: PortalMe | undefined }) {
           role="menu"
           className="xms-card text-xms-body absolute right-0 z-20 mt-2 w-[220px] rounded-[6px] p-2 text-[14px]"
         >
-          <p className="text-xms-label px-2 py-1 text-[12px]">{me?.principal.email}</p>
+          <p className="text-xms-label px-2 py-1 text-[14px]">{me?.principal.email}</p>
           {CLERK_ENABLED ? <ClerkSignOut onDone={signOut} /> : null}
           <button type="button" role="menuitem" onClick={signOut} className={cn(PORTAL_SECONDARY, "mt-1 w-full")}>
             Sign out

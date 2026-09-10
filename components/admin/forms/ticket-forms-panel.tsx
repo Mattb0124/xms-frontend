@@ -77,14 +77,14 @@ function FieldEditor({
   return (
     <li className="border-xms-line rounded-[6px] border p-3" data-field={draft.key}>
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-xms-label font-mono text-[12px]">Field {number}</span>
-        <span className="text-xms-ink text-[13px] font-medium">{draft.label || "Untitled"}</span>
+        <span className="text-xms-label font-mono text-[14px]">Field {number}</span>
+        <span className="text-xms-ink text-[14px] font-medium">{draft.label || "Untitled"}</span>
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
             onClick={() => onMove(-1)}
             disabled={index === 0}
-            className="text-xms-accent text-[12px] hover:underline disabled:opacity-40"
+            className="text-xms-accent text-[14px] hover:underline disabled:opacity-40"
           >
             Move up
           </button>
@@ -92,17 +92,17 @@ function FieldEditor({
             type="button"
             onClick={() => onMove(1)}
             disabled={index === fields.length - 1}
-            className="text-xms-accent text-[12px] hover:underline disabled:opacity-40"
+            className="text-xms-accent text-[14px] hover:underline disabled:opacity-40"
           >
             Move down
           </button>
-          <button type="button" onClick={onRemove} className="text-xms-accent text-[12px] hover:underline">
+          <button type="button" onClick={onRemove} className="text-xms-accent text-[14px] hover:underline">
             Remove
           </button>
         </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-[12px]">
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Label</span>
           <input
             aria-label={`Label of field ${number}`}
@@ -112,7 +112,7 @@ function FieldEditor({
             className={INPUT}
           />
         </label>
-        <label className="flex flex-col gap-1 text-[12px]">
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Key</span>
           <input
             aria-label={`Key of field ${number}`}
@@ -127,7 +127,7 @@ function FieldEditor({
             className={cn(INPUT, "font-mono")}
           />
         </label>
-        <label className="flex flex-col gap-1 text-[12px]">
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Kind</span>
           <select
             aria-label={`Kind of field ${number}`}
@@ -145,7 +145,7 @@ function FieldEditor({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-[12px]">
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Answer goes to</span>
           <select
             aria-label={`Answer of field ${number} goes to`}
@@ -160,7 +160,7 @@ function FieldEditor({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-[12px] sm:col-span-2">
+        <label className="flex flex-col gap-1 text-[14px] sm:col-span-2">
           <span className="text-xms-label">Help text</span>
           <input
             aria-label={`Help of field ${number}`}
@@ -173,7 +173,7 @@ function FieldEditor({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-4">
-        <label className="text-xms-body flex items-center gap-2 text-[13px]">
+        <label className="text-xms-body flex items-center gap-2 text-[14px]">
           <input
             type="checkbox"
             aria-label={`Field ${number} is required`}
@@ -183,7 +183,7 @@ function FieldEditor({
           />
           Required
         </label>
-        <label className="text-xms-body flex items-center gap-2 text-[13px]">
+        <label className="text-xms-body flex items-center gap-2 text-[14px]">
           <span className="text-xms-label">Asked only when</span>
           <select
             aria-label={`Field ${number} is asked only when`}
@@ -206,7 +206,7 @@ function FieldEditor({
           </select>
         </label>
         {controller ? (
-          <label className="text-xms-body flex items-center gap-2 text-[13px]">
+          <label className="text-xms-body flex items-center gap-2 text-[14px]">
             <span className="text-xms-label">answers</span>
             <select
               aria-label={`Field ${number} is asked when the answer is`}
@@ -226,7 +226,7 @@ function FieldEditor({
 
       {takesOptions ? (
         <div className="border-xms-line mt-3 border-t pt-3">
-          <p className="text-xms-label mb-2 text-[12px]">Options</p>
+          <p className="text-xms-label mb-2 text-[14px]">Options</p>
           <ul className="flex flex-col gap-2">
             {draft.options.map((option, order) => (
               <li key={order} className="flex items-center gap-2">
@@ -259,7 +259,7 @@ function FieldEditor({
                 <button
                   type="button"
                   onClick={() => onChange({ options: draft.options.filter((_, at) => at !== order) })}
-                  className="text-xms-accent text-[12px] hover:underline"
+                  className="text-xms-accent text-[14px] hover:underline"
                 >
                   Remove
                 </button>
@@ -277,7 +277,7 @@ function FieldEditor({
       ) : null}
 
       {draft.kind === "ci_picker" || draft.kind === "contact_picker" ? (
-        <p className="text-xms-label mt-3 text-[12px]">
+        <p className="text-xms-label mt-3 text-[14px]">
           The portal serves no directory for this kind, so a client types the identifier. Asking for it is fine;
           requiring it is a question most clients cannot answer.
         </p>
@@ -288,18 +288,18 @@ function FieldEditor({
 
 /** The published version, read only: what a client is being asked right now. */
 function PublishedFields({ fields }: { fields: FormField[] }) {
-  if (fields.length === 0) return <p className="text-xms-label text-[13px]">This version asks nothing.</p>;
+  if (fields.length === 0) return <p className="text-xms-label text-[14px]">This version asks nothing.</p>;
   return (
     <ol className="flex flex-col gap-1" aria-label="Published fields">
       {fields.map((field) => (
-        <li key={field.key} className="text-xms-body flex flex-wrap items-baseline gap-2 text-[13px]">
+        <li key={field.key} className="text-xms-body flex flex-wrap items-baseline gap-2 text-[14px]">
           <span className="text-xms-ink font-medium">{field.label}</span>
-          <span className="text-xms-label font-mono text-[12px]">{field.key}</span>
-          <span className="text-xms-label text-[12px]">{kindLabel(field.kind)}</span>
-          {field.required ? <span className="text-xms-label text-[12px]">required</span> : null}
-          <span className="text-xms-label font-mono text-[12px]">{field.maps_to}</span>
+          <span className="text-xms-label font-mono text-[14px]">{field.key}</span>
+          <span className="text-xms-label text-[14px]">{kindLabel(field.kind)}</span>
+          {field.required ? <span className="text-xms-label text-[14px]">required</span> : null}
+          <span className="text-xms-label font-mono text-[14px]">{field.maps_to}</span>
           {field.visible_when ? (
-            <span className="text-xms-label text-[12px]">
+            <span className="text-xms-label text-[14px]">
               asked when {field.visible_when.field} is {String(field.visible_when.equals)}
             </span>
           ) : null}
@@ -374,13 +374,13 @@ function FormEditor({ accountId, form }: { accountId: string; form: TicketForm }
       >
         {published ? (
           <div className="flex flex-col gap-2">
-            <p className="text-xms-label text-[12px]">
+            <p className="text-xms-label text-[14px]">
               {versionLabel(published)}, {formatDate(published.published_at)}. This is what clients are asked now.
             </p>
             <PublishedFields fields={published.definition.fields} />
           </div>
         ) : (
-          <p className="text-xms-label text-[13px]">
+          <p className="text-xms-label text-[14px]">
             No version is published, so the portal still serves the fixed default form for this type.
           </p>
         )}
@@ -404,11 +404,11 @@ function FormEditor({ accountId, form }: { accountId: string; form: TicketForm }
           ))}
         </ol>
         {fields.length === 0 ? (
-          <p className="text-xms-label text-[13px]">This draft asks nothing yet. Add the first field.</p>
+          <p className="text-xms-label text-[14px]">This draft asks nothing yet. Add the first field.</p>
         ) : null}
 
         {problems.length > 0 ? (
-          <ul className="mt-3 text-[12px] text-[color:var(--state-overdue-text)]" aria-label="Draft problems">
+          <ul className="mt-3 text-[14px] text-[color:var(--state-overdue-text)]" aria-label="Draft problems">
             {problems.map((problem) => (
               <li key={problem}>{problem}</li>
             ))}
@@ -452,7 +452,7 @@ function FormEditor({ accountId, form }: { accountId: string; form: TicketForm }
             />
           ) : null}
         </div>
-        <p className="text-xms-label mt-2 text-[12px]">
+        <p className="text-xms-label mt-2 text-[14px]">
           {draft !== null ? "Save the draft before publishing it. " : ""}
           {PUBLISH_FREEZES_NOTE}
         </p>
@@ -470,7 +470,7 @@ function NewFormForm({ accountId, taken }: { accountId: string; taken: Set<strin
 
   if (available.length === 0)
     return (
-      <p className="text-xms-label text-[13px]">
+      <p className="text-xms-label text-[14px]">
         Every request type already has a form on this account. Draft a new version of one instead.
       </p>
     );
@@ -489,7 +489,7 @@ function NewFormForm({ accountId, taken }: { accountId: string; taken: Set<strin
         }
       }}
     >
-      <label className="flex flex-col gap-1 text-[12px]">
+      <label className="flex flex-col gap-1 text-[14px]">
         <span className="text-xms-label">Request type</span>
         <select
           aria-label="Request type of the new form"
@@ -504,7 +504,7 @@ function NewFormForm({ accountId, taken }: { accountId: string; taken: Set<strin
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-[12px]">
+      <label className="flex flex-col gap-1 text-[14px]">
         <span className="text-xms-label">Name the client reads</span>
         <input
           aria-label="Name of the new form"
@@ -548,7 +548,7 @@ function TicketFormsEditor({ accountId }: { accountId: string }) {
                   onClick={() => setSelected(form.id)}
                   data-form={form.ticket_type}
                   className={cn(
-                    "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-[4px] px-3 py-2 text-left text-[13px]",
+                    "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-[4px] px-3 py-2 text-left text-[14px]",
                     form.id === active?.id && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
                   )}
                 >
@@ -566,7 +566,7 @@ function TicketFormsEditor({ accountId }: { accountId: string }) {
             );
           })}
           {forms.length === 0 ? (
-            <li className="text-xms-label text-[13px]">
+            <li className="text-xms-label text-[14px]">
               No form is authored. Every request type is served the fixed default form.
             </li>
           ) : null}
@@ -595,7 +595,7 @@ export function TicketFormsPanel({ accountId }: { accountId: string }) {
         caption="CLIENT PORTAL"
         subtitle="Authoring a request form needs the admin:config permission."
       >
-        <p className="text-xms-label text-[13px]">
+        <p className="text-xms-label text-[14px]">
           Authoring the forms a client fills in needs the admin:config permission, which this account binding does not
           carry.
         </p>

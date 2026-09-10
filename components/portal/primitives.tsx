@@ -46,7 +46,7 @@ export function PortalCard({
 export function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p id={id} role="alert" className="text-[13px] text-[color:var(--state-overdue-text)]">
+    <p id={id} role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
       {message}
     </p>
   );

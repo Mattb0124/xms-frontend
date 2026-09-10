@@ -50,7 +50,7 @@ export function BucketLog() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-3 text-[12px]">
+      <div className="flex flex-wrap items-end gap-3 text-[14px]">
         <label className="flex flex-col gap-1">
           <span className="text-xms-label">Account</span>
           <select
@@ -91,11 +91,11 @@ export function BucketLog() {
         ) : null}
       </div>
       {accountId && options.length === 0 ? (
-        <p className="text-xms-label text-[13px]">This account has no bucket to log against.</p>
+        <p className="text-xms-label text-[14px]">This account has no bucket to log against.</p>
       ) : null}
       {bucket ? (
         <>
-          <p className="text-xms-body text-[12px]" data-bucket-class>
+          <p className="text-xms-body text-[14px]" data-bucket-class>
             {bucket.label} is classed {className(bucket.billable_class)}, which{" "}
             {consumes === undefined
               ? "the account's catalog decides the burn for"

@@ -75,7 +75,7 @@ const COLUMNS: DenseColumn<HealthFactor>[] = [
       ) : (
         <span className="flex items-center gap-[10px]">
           <MeterBar percent={row.score} met={row.score >= 80} className="w-[92px]" />
-          <span className="xms-mono text-xms-ink text-[13px] tabular-nums">{row.score}</span>
+          <span className="xms-mono text-xms-ink text-[14px] tabular-nums">{row.score}</span>
         </span>
       ),
   },
@@ -122,7 +122,7 @@ export function AccountHealthTab({ id }: { id: string }) {
   if (isError || !data) {
     return (
       <Panel title="Health">
-        <p className="text-xms-body text-[13px]">
+        <p className="text-xms-body text-[14px]">
           The score could not be read. It is composed on request, so try again.
         </p>
       </Panel>
@@ -145,7 +145,7 @@ export function AccountHealthTab({ id }: { id: string }) {
             {data.score ?? "--"}
           </span>
           <SignalPill tone={HEALTH_TONE[data.band]} label={HEALTH_LABEL[data.band]} />
-          <span className="text-xms-body text-[13px]">
+          <span className="text-xms-body text-[14px]">
             {HEALTH_MEANING[data.band]} Scored {measured}.
           </span>
         </div>

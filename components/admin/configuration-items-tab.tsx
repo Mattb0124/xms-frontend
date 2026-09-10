@@ -69,7 +69,7 @@ export function ConfigurationItemsTab({ accountId }: { accountId: string }) {
         sortValue: (row) => row.external_ref ?? "",
         render: (row) =>
           row.external_ref ? (
-            <span className="xms-mono text-xms-body text-[12px]">{row.external_ref}</span>
+            <span className="xms-mono text-xms-body text-[14px]">{row.external_ref}</span>
           ) : (
             <span className="text-xms-muted">None</span>
           ),
@@ -114,13 +114,13 @@ export function ConfigurationItemsTab({ accountId }: { accountId: string }) {
           placeholder="Name or reference"
           value={q}
           onChange={(event) => setQ(event.target.value)}
-          className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] w-[260px] rounded-[var(--xms-radius-control)] border px-3 text-[13px]"
+          className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] w-[260px] rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
         />
         <select
           aria-label="Kind"
           value={type}
           onChange={(event) => setType(event.target.value)}
-          className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] rounded-[var(--xms-radius-control)] border px-3 text-[13px]"
+          className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
         >
           <option value="">Every kind</option>
           {CI_TYPES.map((value) => (
@@ -159,21 +159,21 @@ export function ConfigurationItemsTab({ accountId }: { accountId: string }) {
             }
           }}
         >
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Name</span>
             <input
               required
               value={draft.name}
               onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-              className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] w-[280px] rounded-[var(--xms-radius-control)] border px-3 text-[13px]"
+              className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] w-[280px] rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
             />
           </label>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Kind</span>
             <select
               value={draft.ci_type}
               onChange={(event) => setDraft((current) => ({ ...current, ci_type: event.target.value as CiType }))}
-              className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] rounded-[var(--xms-radius-control)] border px-3 text-[13px]"
+              className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
             >
               {CI_TYPES.map((value) => (
                 <option key={value} value={value}>
@@ -182,13 +182,13 @@ export function ConfigurationItemsTab({ accountId }: { accountId: string }) {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Reference</span>
             <input
               value={draft.external_ref}
               onChange={(event) => setDraft((current) => ({ ...current, external_ref: event.target.value }))}
               placeholder="The client's own id, where they have one"
-              className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] w-[260px] rounded-[var(--xms-radius-control)] border px-3 text-[13px]"
+              className="border-xms-control-line bg-xms-card h-[var(--xms-control-h)] w-[260px] rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
             />
           </label>
           <button type="submit" className={PRIMARY_BUTTON}>

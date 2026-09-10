@@ -90,7 +90,7 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
                 <p className="text-xms-body text-[14px]">{survey.short_description}</p>
               ) : null}
               {expiryLabel(survey.expires_at) ? (
-                <p className="text-xms-label text-[12px]">{expiryLabel(survey.expires_at)}</p>
+                <p className="text-xms-label text-[14px]">{expiryLabel(survey.expires_at)}</p>
               ) : null}
             </div>
             <SurveyQuestion
@@ -123,14 +123,14 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
                       {survey.ticket_key}
                     </Link>
                   ) : (
-                    <span className="text-xms-label text-[13px]">{surveySubject(survey)}</span>
+                    <span className="text-xms-label text-[14px]">{surveySubject(survey)}</span>
                   )}
                   <span className="text-xms-body">{survey.short_description}</span>
                   <span className="text-xms-ink ml-auto" data-score={survey.score ?? undefined}>
                     {answerLine(survey)}
                   </span>
                   {survey.answered_at ? (
-                    <span className="xms-mono text-xms-label text-[12px]">{survey.answered_at.slice(0, 10)}</span>
+                    <span className="xms-mono text-xms-label text-[14px]">{survey.answered_at.slice(0, 10)}</span>
                   ) : null}
                 </li>
               ))}

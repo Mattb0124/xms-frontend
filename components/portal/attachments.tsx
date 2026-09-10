@@ -29,7 +29,7 @@ export function PortalScanChip({ state }: { state: UploadStage | Attachment["sca
     <span
       data-scan={state}
       className={cn(
-        "inline-flex h-[22px] items-center rounded-[999px] border px-2 text-[12px]",
+        "inline-flex h-[22px] items-center rounded-[999px] border px-2 text-[14px]",
         chip.danger
           ? "border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] text-[color:var(--state-overdue-text)]"
           : chip.ramp === "resolved"
@@ -102,7 +102,7 @@ export function PortalUploadControl({
         <button type="button" className={PORTAL_SECONDARY} disabled={disabled} onClick={() => input.current?.click()}>
           Add a file
         </button>
-        <span className="text-xms-label text-[13px]">Screenshots, logs and documents up to 25 MB.</span>
+        <span className="text-xms-label text-[14px]">Screenshots, logs and documents up to 25 MB.</span>
         <input
           ref={input}
           type="file"
@@ -119,9 +119,9 @@ export function PortalUploadControl({
       {items.length > 0 ? (
         <ul className="flex flex-col gap-1" aria-label="Files being added">
           {items.map((item) => (
-            <li key={item.id} data-stage={item.stage} className="flex flex-wrap items-center gap-2 text-[13px]">
+            <li key={item.id} data-stage={item.stage} className="flex flex-wrap items-center gap-2 text-[14px]">
               <span className="text-xms-ink">{item.name}</span>
-              <span className="xms-mono text-xms-label text-[12px]">{formatBytes(item.size)}</span>
+              <span className="xms-mono text-xms-label text-[14px]">{formatBytes(item.size)}</span>
               <PortalScanChip state={item.stage} />
               {item.stage === "quarantined" ? (
                 <span className="text-xms-label">{PORTAL_QUARANTINE_PLACEHOLDER}</span>
@@ -151,9 +151,9 @@ export function PortalAttachmentList({ requestKey }: { requestKey: string }) {
       {rows.map((attachment) => (
         <li key={attachment.id} className="flex flex-wrap items-center gap-2 text-[14px]">
           <span className="text-xms-ink">{attachment.file_name}</span>
-          <span className="xms-mono text-xms-label text-[12px]">{formatBytes(Number(attachment.size_bytes))}</span>
+          <span className="xms-mono text-xms-label text-[14px]">{formatBytes(Number(attachment.size_bytes))}</span>
           <PortalScanChip state={attachment.scan_state} />
-          <time dateTime={attachment.created_at} className="text-xms-label text-[12px]">
+          <time dateTime={attachment.created_at} className="text-xms-label text-[14px]">
             {formatDateTime(attachment.created_at)}
           </time>
           <button

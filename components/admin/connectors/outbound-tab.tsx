@@ -30,11 +30,11 @@ export function statusFromSearch(search: URLSearchParams): OutboundStatus | unde
 /** The conflict outcome the worker settled the row with: the line, and both lists on expand. */
 export function ConflictCell({ row }: { row: OutboundRow }) {
   const summary = conflictSummary(row.conflict);
-  if (!summary) return <span className="text-xms-muted text-[12px]">none</span>;
+  if (!summary) return <span className="text-xms-muted text-[14px]">none</span>;
   const kept = keptFields(row.conflict);
   const dropped = droppedFields(row.conflict);
   return (
-    <details className="max-w-[320px] text-[12px]" data-conflict={row.id}>
+    <details className="max-w-[320px] text-[14px]" data-conflict={row.id}>
       <summary className="text-xms-accent cursor-pointer">{summary}</summary>
       <dl className="text-xms-body mt-1 flex flex-col gap-1">
         {kept.length > 0 ? (
@@ -196,7 +196,7 @@ export function OutboundTab({ instanceId }: { instanceId: string }) {
       search={
         <select
           aria-label="Status"
-          className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+          className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
           value={status ?? ""}
           onChange={(event) => apply(event.target.value)}
         >

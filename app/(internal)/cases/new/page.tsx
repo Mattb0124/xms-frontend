@@ -182,7 +182,7 @@ function NewTicketForm() {
         <div className="rounded-[6px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-4 py-2">
           <InlineError message={error} />
           {details.map((detail) => (
-            <p key={detail} className="text-xms-label text-[12px]">
+            <p key={detail} className="text-xms-label text-[14px]">
               {detail}
             </p>
           ))}
@@ -328,7 +328,7 @@ function NewTicketForm() {
             <FieldRow label="Priority">
               <span className="flex items-center gap-2" data-testid="priority-preview">
                 <PriorityPill priority={priority} />
-                <span className="text-xms-label text-[12px]">
+                <span className="text-xms-label text-[14px]">
                   {draft.impact && draft.urgency
                     ? "derived from the matrix"
                     : "default until impact and urgency are set"}
@@ -340,7 +340,7 @@ function NewTicketForm() {
       </div>
       <Panel title="Description">
         <div className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Short description *</span>
             <input
               required
@@ -351,7 +351,7 @@ function NewTicketForm() {
               aria-label="Short description"
             />
           </label>
-          <label className="flex flex-col gap-1 text-[12px]">
+          <label className="flex flex-col gap-1 text-[14px]">
             <span className="text-xms-label">Description</span>
             <textarea
               rows={6}
@@ -372,7 +372,7 @@ function NewTicketForm() {
           {files.length > 0 ? (
             <ul className="flex flex-col gap-1" aria-label="Queued files">
               {files.map((file, index) => (
-                <li key={`${file.name}-${index}`} className="flex items-center gap-2 text-[12px]">
+                <li key={`${file.name}-${index}`} className="flex items-center gap-2 text-[14px]">
                   <span className="text-xms-ink">{file.name}</span>
                   <span className="xms-mono text-xms-label">{formatBytes(file.size)}</span>
                   <button

@@ -28,17 +28,17 @@ export function HolidayLibraryList({ rows, loading }: { rows: HolidayCalendar[];
   return (
     <Panel title="Holiday libraries" caption="Shared by account and person calendars">
       {loading ? <Skeleton lines={3} /> : null}
-      {!loading && rows.length === 0 ? <p className="text-xms-label text-[13px]">No library yet.</p> : null}
+      {!loading && rows.length === 0 ? <p className="text-xms-label text-[14px]">No library yet.</p> : null}
       <ul className="divide-xms-line divide-y" aria-label="Holiday libraries">
         {rows.map((library) => (
-          <li key={library.id} className="py-2 text-[13px]" data-library={library.id}>
+          <li key={library.id} className="py-2 text-[14px]" data-library={library.id}>
             <div className="flex flex-wrap items-center gap-3">
               <span className="xms-mono text-xms-accent font-medium">{library.country}</span>
               <span className="text-xms-ink font-medium">{library.name}</span>
-              <span className="text-xms-label text-[12px]">{library.holidays.length} dates</span>
+              <span className="text-xms-label text-[14px]">{library.holidays.length} dates</span>
               <button
                 type="button"
-                className="text-xms-accent ml-auto text-[12px]"
+                className="text-xms-accent ml-auto text-[14px]"
                 aria-expanded={open === library.id}
                 onClick={() => setOpen((current) => (current === library.id ? null : library.id))}
               >
@@ -188,7 +188,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
           <button type="submit" className={PRIMARY_BUTTON} disabled={isLoading}>
             Create library
           </button>
-          <span className="text-xms-label text-[12px]">
+          <span className="text-xms-label text-[14px]">
             {valid.length} valid date{valid.length === 1 ? "" : "s"}
           </span>
         </div>

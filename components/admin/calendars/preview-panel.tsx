@@ -33,7 +33,7 @@ export function PreviewResultView({
   viewerZone: string;
 }) {
   return (
-    <dl className="grid grid-cols-[160px_1fr] gap-x-3 gap-y-1 text-[13px]" data-testid="preview-result">
+    <dl className="grid grid-cols-[160px_1fr] gap-x-3 gap-y-1 text-[14px]" data-testid="preview-result">
       <dt className="text-xms-label">Due ({timeZone})</dt>
       <dd className="xms-mono text-xms-ink font-medium">{formatInZone(result.due_at, timeZone)}</dd>
       {viewerZone !== timeZone ? (

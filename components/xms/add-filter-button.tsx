@@ -18,7 +18,7 @@ export function AddFilterButton({ onClick, className }: AddFilterButtonProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "border-xms-quiet-line bg-xms-card text-xms-body hover:bg-xms-control-hover hover:text-xms-accent inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center gap-[6px] rounded-[var(--xms-radius-control)] border border-dashed px-[11px] text-[13px] font-medium whitespace-nowrap",
+        "border-xms-quiet-line bg-xms-card text-xms-body hover:bg-xms-control-hover hover:text-xms-accent inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center gap-[6px] rounded-[var(--xms-radius-control)] border border-dashed px-[11px] text-[14px] font-medium whitespace-nowrap",
         className,
       )}
     >

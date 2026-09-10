@@ -69,7 +69,7 @@ function TicketLog() {
           void find();
         }}
       >
-        <label className="flex flex-col gap-1 text-[12px]">
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Ticket key</span>
           <input
             aria-label="Ticket key"
@@ -83,12 +83,12 @@ function TicketLog() {
           Find
         </button>
         {resolved ? (
-          <span className="text-xms-ink text-[13px]">
+          <span className="text-xms-ink text-[14px]">
             <KeyText ticketKey={resolved.key} /> {resolved.title}
           </span>
         ) : null}
         {error ? (
-          <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+          <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
             {error}
           </p>
         ) : null}

@@ -93,12 +93,12 @@ export function RecordDrawer({
       {isLoading || !data ? <Skeleton lines={6} /> : null}
       {data ? (
         <>
-          <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2 text-[13px]">
-            <dt className="text-xms-label text-[12px]">Source id</dt>
+          <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2 text-[14px]">
+            <dt className="text-xms-label text-[14px]">Source id</dt>
             <dd className="xms-mono text-xms-ink break-all">{data.source_id}</dd>
-            <dt className="text-xms-label text-[12px]">Source key</dt>
+            <dt className="text-xms-label text-[14px]">Source key</dt>
             <dd className="xms-mono text-xms-ink">{data.source_key ?? ""}</dd>
-            <dt className="text-xms-label text-[12px]">Target</dt>
+            <dt className="text-xms-label text-[14px]">Target</dt>
             <dd className="xms-mono text-xms-ink">
               {data.target_id ? (
                 <Link href={`/cases/${data.target_id}`} className="text-xms-accent">
@@ -108,28 +108,28 @@ export function RecordDrawer({
                 <span className="text-xms-muted">none</span>
               )}
             </dd>
-            <dt className="text-xms-label text-[12px]">Message</dt>
+            <dt className="text-xms-label text-[14px]">Message</dt>
             <dd
               className={cn("text-xms-ink", data.status === "error" && "text-[color:var(--state-overdue-text)]")}
               data-record-message
             >
               {data.message ?? ""}
             </dd>
-            <dt className="text-xms-label text-[12px]">Source time</dt>
+            <dt className="text-xms-label text-[14px]">Source time</dt>
             <dd className="xms-mono text-xms-ink">{formatDate(data.source_timestamp)}</dd>
-            <dt className="text-xms-label text-[12px]">Source hash</dt>
-            <dd className="xms-mono text-xms-ink break-all text-[12px]">{data.source_hash}</dd>
-            <dt className="text-xms-label text-[12px]">Payload key</dt>
-            <dd className="xms-mono text-xms-ink break-all text-[12px]" data-payload-key>
+            <dt className="text-xms-label text-[14px]">Source hash</dt>
+            <dd className="xms-mono text-xms-ink break-all text-[14px]">{data.source_hash}</dd>
+            <dt className="text-xms-label text-[14px]">Payload key</dt>
+            <dd className="xms-mono text-xms-ink break-all text-[14px]" data-payload-key>
               {data.source_payload_key ?? "none"}
             </dd>
           </dl>
           <section aria-label="Source payload" className="flex flex-col gap-1">
             <p className="xms-caption">Source payload</p>
             {data.payload === null || data.payload === undefined ? (
-              <p className="text-xms-label text-[12px]">The raw row is not in the store.</p>
+              <p className="text-xms-label text-[14px]">The raw row is not in the store.</p>
             ) : (
-              <pre className="xms-mono text-xms-body bg-xms-tint max-h-[60vh] overflow-auto rounded-[4px] p-3 text-[11px] whitespace-pre-wrap">
+              <pre className="xms-mono text-xms-body bg-xms-tint max-h-[60vh] overflow-auto rounded-[4px] p-3 text-[14px] whitespace-pre-wrap">
                 {JSON.stringify(data.payload, null, 2)}
               </pre>
             )}
@@ -174,7 +174,7 @@ export function RecordsTab({ batchId }: { batchId: string }) {
           >
             <select
               aria-label="Record status"
-              className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+              className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
               value={status}
               onChange={(event) => setStatus(event.target.value)}
             >
@@ -189,7 +189,7 @@ export function RecordsTab({ batchId }: { batchId: string }) {
               type="search"
               aria-label="Search records"
               placeholder="Source id or key"
-              className={cn(INPUT, "h-[28px] w-[200px] text-[12px]")}
+              className={cn(INPUT, "h-[28px] w-[200px] text-[14px]")}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />

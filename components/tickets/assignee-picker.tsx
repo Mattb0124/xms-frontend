@@ -161,7 +161,7 @@ export function AssigneePicker({
               setQuery("");
               setWanted(true);
             }}
-            className="border-xms-line text-xms-body hover:bg-xms-control-hover h-[34px] shrink-0 rounded-[4px] border px-2 text-[12px]"
+            className="border-xms-line text-xms-body hover:bg-xms-control-hover h-[34px] shrink-0 rounded-[4px] border px-2 text-[14px]"
           >
             Assign to me
           </button>
@@ -171,7 +171,7 @@ export function AssigneePicker({
         <ul
           id={`${id ?? "assignee"}-options`}
           role="listbox"
-          className="xms-card absolute z-20 mt-1 max-h-64 w-full overflow-auto py-1 text-[13px]"
+          className="xms-card absolute z-20 mt-1 max-h-64 w-full overflow-auto py-1 text-[14px]"
         >
           <li>
             <button
@@ -215,22 +215,22 @@ export function AssigneePicker({
                       aria-label={warning}
                       title={warning}
                       data-capacity-warning={check?.status}
-                      className="text-[12px] text-[color:var(--state-overdue-text)]"
+                      className="text-[14px] text-[color:var(--state-overdue-text)]"
                     >
                       ⚠
                     </span>
                   ) : null}
                   {check ? (
-                    <span className="xms-mono text-xms-label text-[12px]" data-capacity-hint>
+                    <span className="xms-mono text-xms-label text-[14px]" data-capacity-hint>
                       {remainingLabel(check)}
                     </span>
                   ) : null}
                   {hint ? (
-                    <span className="text-xms-label text-[12px]" data-roster-hint>
+                    <span className="text-xms-label text-[14px]" data-roster-hint>
                       {hint}
                     </span>
                   ) : null}
-                  <span className="text-xms-label ml-auto text-[12px]">{user.email}</span>
+                  <span className="text-xms-label ml-auto text-[14px]">{user.email}</span>
                 </button>
               </li>
             );

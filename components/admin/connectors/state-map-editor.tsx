@@ -48,7 +48,7 @@ export function StateMapEditor({ entries, readOnly, onChange }: StateMapEditorPr
             aria-label={typeLabelOf(type)}
             data-type={type}
           >
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-[14px]">
               <input
                 type="checkbox"
                 aria-label={`Map ${typeLabelOf(type)}`}
@@ -58,7 +58,7 @@ export function StateMapEditor({ entries, readOnly, onChange }: StateMapEditorPr
               />
               <span className="text-xms-ink font-medium">{typeLabelOf(type)}</span>
               {mapped ? null : (
-                <span className="text-xms-muted text-[12px]">not mapped; tickets of this type do not sync</span>
+                <span className="text-xms-muted text-[14px]">not mapped; tickets of this type do not sync</span>
               )}
             </label>
             {entry ? (
@@ -79,7 +79,7 @@ export function StateMapEditor({ entries, readOnly, onChange }: StateMapEditorPr
                   readOnly={readOnly}
                   onChange={(outbound) => setType(type, { ...entry, outbound })}
                 />
-                <label className="flex flex-col gap-1 text-[12px]">
+                <label className="flex flex-col gap-1 text-[14px]">
                   <span className="text-xms-label">
                     Accept inbound moves into (comma separated XMS states; empty means any mapped state)
                   </span>

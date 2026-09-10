@@ -61,11 +61,11 @@ export default function AdminPage() {
     <section className="xms-card flex min-w-0 flex-col" aria-label="Administration">
       <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
         <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">Administration</span>
-        <span className="text-xms-muted -ml-[6px] text-[13px]">every screen your permissions open</span>
+        <span className="text-xms-muted -ml-[6px] text-[14px]">every screen your permissions open</span>
       </header>
       {sections.map((section) => (
         <div key={section}>
-          <h2 className="text-xms-label bg-xms-quiet-bg border-xms-line-row border-b px-5 py-[9px] text-[11px] font-semibold tracking-[0.06em] uppercase">
+          <h2 className="text-xms-label bg-xms-quiet-bg border-xms-line-row border-b px-5 py-[9px] text-[14px] font-semibold tracking-[0.06em] uppercase">
             {section}
           </h2>
           <ul>
@@ -80,8 +80,8 @@ export default function AdminPage() {
                       className="hover:bg-xms-row-hover flex items-center gap-[10px] px-5 py-[13px] hover:no-underline"
                     >
                       <Glyph size={ICON.row} className="text-xms-label shrink-0" />
-                      <span className="text-xms-ink shrink-0 text-[13px] font-medium">{card.entry.label}</span>
-                      <span className="text-xms-body truncate text-[13px]">{card.detail}</span>
+                      <span className="text-xms-ink shrink-0 text-[14px] font-medium">{card.entry.label}</span>
+                      <span className="text-xms-body truncate text-[14px]">{card.detail}</span>
                     </Link>
                   </li>
                 );

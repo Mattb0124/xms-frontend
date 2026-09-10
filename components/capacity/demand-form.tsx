@@ -63,7 +63,7 @@ export function demandBody(draft: DemandDraft): CreateDemandBody {
   };
 }
 
-const CONTROL = cn(INPUT, "h-[30px] text-[12px]");
+const CONTROL = cn(INPUT, "h-[30px] text-[14px]");
 
 export interface AddDemandFormProps {
   /** The granted accounts (tickets:view); without them only a prospect can be named. */
@@ -111,7 +111,7 @@ export function AddDemandForm({ accounts, defaultMonth }: AddDemandFormProps) {
       subtitle="Pipeline hours are weighted by their probability; project hours count as committed."
     >
       <form
-        className="flex flex-col gap-3 text-[12px]"
+        className="flex flex-col gap-3 text-[14px]"
         aria-label="Add demand"
         onSubmit={(event) => {
           event.preventDefault();

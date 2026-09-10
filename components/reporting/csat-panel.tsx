@@ -23,17 +23,17 @@ import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useAccountCsatQuery, type AccountCsat, type CsatQuarterly } from "@/redux/reportingApi";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[12px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
 
 function Figure({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
     <div className="border-xms-line flex flex-col gap-1 rounded-[6px] border px-4 py-3" aria-label={label}>
-      <span className="text-xms-label text-[12px]">{label}</span>
+      <span className="text-xms-label text-[14px]">{label}</span>
       <span className="text-xms-ink text-[20px] font-semibold" data-value>
         {value}
       </span>
-      {detail ? <span className="text-xms-label text-[12px]">{detail}</span> : null}
+      {detail ? <span className="text-xms-label text-[14px]">{detail}</span> : null}
     </div>
   );
 }
@@ -45,7 +45,7 @@ export function DistributionBars({ summary }: { summary: AccountCsat["summary"] 
       {distributionRows(summary).map((row) => (
         <li
           key={row.score}
-          className="grid grid-cols-[150px_1fr_40px] items-center gap-3 text-[13px]"
+          className="grid grid-cols-[150px_1fr_40px] items-center gap-3 text-[14px]"
           data-score={row.score}
           data-count={row.count}
           data-percent={row.percent}
@@ -90,7 +90,7 @@ export function QuarterlyPanel({ quarterly }: { quarterly: CsatQuarterly }) {
           {questions.map((row) => (
             <li
               key={row.key}
-              className="grid grid-cols-[150px_1fr_70px] items-center gap-3 text-[13px]"
+              className="grid grid-cols-[150px_1fr_70px] items-center gap-3 text-[14px]"
               data-question={row.key}
             >
               <span className="text-xms-body">{row.label}</span>
@@ -106,16 +106,16 @@ export function QuarterlyPanel({ quarterly }: { quarterly: CsatQuarterly }) {
             </li>
           ))}
           {questions.length === 0 ? (
-            <li className="text-xms-label text-[13px]">No question has been answered yet.</li>
+            <li className="text-xms-label text-[14px]">No question has been answered yet.</li>
           ) : null}
         </ol>
         <div>
-          <h3 className="text-xms-label mb-2 text-[12px] font-semibold tracking-wide uppercase">Trend</h3>
+          <h3 className="text-xms-label mb-2 text-[14px] font-semibold tracking-wide uppercase">Trend</h3>
           <ol className="flex flex-col gap-2" aria-label="Quarterly trend">
             {trend.map((row) => (
               <li
                 key={row.period}
-                className="grid grid-cols-[110px_1fr_70px_90px] items-center gap-3 text-[13px]"
+                className="grid grid-cols-[110px_1fr_70px_90px] items-center gap-3 text-[14px]"
                 data-period={row.period}
               >
                 <span className="xms-mono text-xms-ink">{row.label}</span>
@@ -131,7 +131,7 @@ export function QuarterlyPanel({ quarterly }: { quarterly: CsatQuarterly }) {
               </li>
             ))}
             {trend.length === 0 ? (
-              <li className="text-xms-label text-[13px]">No quarter has been answered yet.</li>
+              <li className="text-xms-label text-[14px]">No quarter has been answered yet.</li>
             ) : null}
           </ol>
         </div>
@@ -160,7 +160,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
   if (!allowed) {
     return (
       <Panel title="Satisfaction" caption="Needs the tickets:view permission">
-        <p className="text-xms-label text-[13px]">You can see this account but not its satisfaction scores.</p>
+        <p className="text-xms-label text-[14px]">You can see this account but not its satisfaction scores.</p>
       </Panel>
     );
   }
@@ -172,7 +172,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
         caption="CSAT on ticket close"
         actions={
           <form
-            className="flex items-center gap-2 text-[12px]"
+            className="flex items-center gap-2 text-[14px]"
             aria-label="Date range"
             onSubmit={(event) => event.preventDefault()}
           >
@@ -181,7 +181,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
               <input
                 type="date"
                 aria-label="From"
-                className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[12px]")}
+                className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[14px]")}
                 value={range.from}
                 onChange={(event) => setRange({ ...range, from: event.target.value })}
               />
@@ -191,7 +191,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
               <input
                 type="date"
                 aria-label="To"
-                className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[12px]")}
+                className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[14px]")}
                 value={range.to}
                 onChange={(event) => setRange({ ...range, to: event.target.value })}
               />
@@ -200,7 +200,7 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
         }
       >
         {isLoading && !data ? <Skeleton lines={4} /> : null}
-        {isError ? <p className="text-xms-muted text-[13px]">The satisfaction scores could not be loaded.</p> : null}
+        {isError ? <p className="text-xms-muted text-[14px]">The satisfaction scores could not be loaded.</p> : null}
         {data ? (
           <div className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -259,12 +259,12 @@ export function AccountCsatView({ accountId }: { accountId: string }) {
                     )}
                   </td>
                   <td className={CELL}>{respondentLabel(response)}</td>
-                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>{formatDay(response.created_at)}</td>
+                  <td className={cn(CELL, "xms-mono text-xms-label text-[14px]")}>{formatDay(response.created_at)}</td>
                 </tr>
               ))}
               {data.responses.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-[13px]">
+                  <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-[14px]">
                     No responses in this range.
                   </td>
                 </tr>

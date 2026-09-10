@@ -77,7 +77,7 @@ export function AuditRow({ item }: { item: TimelineItem }) {
           <span className="text-xms-label">{label}</span>
         )}
       </span>
-      <span className="xms-mono text-xms-muted shrink-0 text-[12px]">{formatStamp(item.created_at)}</span>
+      <span className="xms-mono text-xms-muted shrink-0 text-[14px]">{formatStamp(item.created_at)}</span>
     </li>
   );
 }
@@ -92,11 +92,11 @@ export function PauseRow({ item }: { item: TimelineItem }) {
         <span className="text-xms-label">paused clocks:</span>
         <span className="text-xms-sla-paused font-medium">{reason}</span>
         {item.note ? <span className="text-xms-label">({item.note})</span> : null}
-        <span className="xms-mono text-xms-label text-[12px]">
+        <span className="xms-mono text-xms-label text-[14px]">
           {ongoing ? "still paused" : `${formatMinutes(item.excluded_minutes ?? 0)} excluded`}
         </span>
       </span>
-      <span className="xms-mono text-xms-muted shrink-0 text-[12px]">{formatStamp(item.created_at)}</span>
+      <span className="xms-mono text-xms-muted shrink-0 text-[14px]">{formatStamp(item.created_at)}</span>
     </li>
   );
 }
@@ -135,7 +135,7 @@ export function ActivityTab({ ticketKey }: { ticketKey: string }) {
             className={cn(
               // Render 03's pills: 8 by 13 at 12px, filled blue when chosen
               // and on the control edge when not.
-              "rounded-[999px] px-[13px] py-2 text-[12px] font-medium",
+              "rounded-[999px] px-[13px] py-2 text-[14px] font-medium",
               actor === filter.key
                 ? "bg-xms-accent font-semibold text-white"
                 : "border-xms-line-strong bg-xms-card text-xms-body hover:bg-xms-control-hover hover:text-xms-accent border",
@@ -150,7 +150,7 @@ export function ActivityTab({ ticketKey }: { ticketKey: string }) {
           item.kind === "pause" ? <PauseRow key={item.id} item={item} /> : <AuditRow key={item.id} item={item} />,
         )}
         {rows.length === 0 ? (
-          <li className="text-xms-label py-3 text-[13px]">
+          <li className="text-xms-label py-3 text-[14px]">
             {all.length === 0 ? "No activity yet." : "No activity from that actor."}
           </li>
         ) : null}

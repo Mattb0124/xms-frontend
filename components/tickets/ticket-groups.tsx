@@ -121,7 +121,7 @@ function FreezeRows({ freezes, onChange }: { freezes: FreezeDraft[]; onChange: (
           <button
             type="button"
             onClick={() => onChange(freezes.filter((_, order) => order !== index))}
-            className="text-xms-accent pb-2 text-[12px] hover:underline"
+            className="text-xms-accent pb-2 text-[14px] hover:underline"
           >
             Remove freeze
           </button>
@@ -181,7 +181,7 @@ function GroupForm({
   return (
     <form
       aria-label={editing ? "Edit group" : "New group"}
-      className="flex flex-col gap-3 text-[12px]"
+      className="flex flex-col gap-3 text-[14px]"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
@@ -299,7 +299,7 @@ function GroupForm({
         />
       </label>
       {problems.length > 0 ? (
-        <ul className="text-[12px] text-[color:var(--state-overdue-text)]">
+        <ul className="text-[14px] text-[color:var(--state-overdue-text)]">
           {problems.map((problem) => (
             <li key={problem}>{problem}</li>
           ))}

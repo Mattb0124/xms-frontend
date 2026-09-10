@@ -33,27 +33,27 @@ export function AccountCalendarsTab({ accountId }: { accountId: string }) {
     >
       {isLoading ? <Skeleton lines={3} /> : null}
       {data && data.length === 0 ? (
-        <p className="text-xms-label text-[13px]">
+        <p className="text-xms-label text-[14px]">
           No calendar yet; SLA clocks run on the wall clock (24x7) until one is made the default.
         </p>
       ) : null}
       {data && active.length === 0 && retired.length > 0 ? (
-        <p className="text-xms-label text-[13px]">Every calendar is retired; clocks run on the wall clock.</p>
+        <p className="text-xms-label text-[14px]">Every calendar is retired; clocks run on the wall clock.</p>
       ) : null}
       <ul className="divide-xms-line divide-y" aria-label="Calendars">
         {[...active, ...retired].map((calendar) => (
           <li
             key={calendar.id}
-            className="flex flex-wrap items-center gap-3 py-2 text-[13px]"
+            className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
             data-calendar={calendar.id}
           >
             <Link href={`/admin/calendars/${calendar.id}`} className="text-xms-accent font-medium">
               {calendar.name}
             </Link>
-            <span className="xms-mono text-xms-label text-[12px]">{calendar.time_zone}</span>
-            <span className="text-xms-label text-[12px]">{formatDuration(weeklyMinutes(calendar.hours))} per week</span>
+            <span className="xms-mono text-xms-label text-[14px]">{calendar.time_zone}</span>
+            <span className="text-xms-label text-[14px]">{formatDuration(weeklyMinutes(calendar.hours))} per week</span>
             {calendar.holidays.length > 0 ? (
-              <span className="text-xms-label text-[12px]">{calendar.holidays.length} holidays</span>
+              <span className="text-xms-label text-[14px]">{calendar.holidays.length} holidays</span>
             ) : null}
             <span className="ml-auto flex items-center gap-2">
               {calendar.is_default ? <SignalPill tone="ready" label="Default" /> : null}

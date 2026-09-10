@@ -82,7 +82,7 @@ function LoopChips({ signals }: { signals: string[] }) {
   return (
     <span className="flex flex-wrap gap-1">
       {signals.map((signal) => (
-        <span key={signal} className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[11px]">
+        <span key={signal} className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">
           {signal.replace(/_/g, " ")}
         </span>
       ))}
@@ -92,21 +92,21 @@ function LoopChips({ signals }: { signals: string[] }) {
 
 export function InboundRow({ row, onViewRaw }: { row: InboundMessage; onViewRaw: (row: InboundMessage) => void }) {
   return (
-    <li className="flex flex-col gap-1 py-2 text-[13px]" data-inbound={row.id} data-disposition={row.disposition}>
+    <li className="flex flex-col gap-1 py-2 text-[14px]" data-inbound={row.id} data-disposition={row.disposition}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="xms-mono text-xms-label w-[110px] shrink-0 text-[12px]">{formatStamp(row.received_at)}</span>
+        <span className="xms-mono text-xms-label w-[110px] shrink-0 text-[14px]">{formatStamp(row.received_at)}</span>
         <span className="text-xms-ink font-medium">{row.from_name || row.from_address}</span>
-        <span className="xms-mono text-xms-label text-[12px]">{row.from_address}</span>
+        <span className="xms-mono text-xms-label text-[14px]">{row.from_address}</span>
         <span className="text-xms-body">{row.subject || "(no subject)"}</span>
         <button
           type="button"
           onClick={() => onViewRaw(row)}
-          className="text-xms-accent ml-auto text-[12px] hover:underline"
+          className="text-xms-accent ml-auto text-[14px] hover:underline"
         >
           View raw
         </button>
       </div>
-      <div className="text-xms-label flex flex-wrap items-center gap-2 text-[12px]">
+      <div className="text-xms-label flex flex-wrap items-center gap-2 text-[14px]">
         <span>{dispositionCopy(row.disposition)}</span>
         <span>·</span>
         <span>{matchedByCopy(row.matched_by, row.disposition)}</span>
@@ -123,11 +123,11 @@ export function InboundRow({ row, onViewRaw }: { row: InboundMessage; onViewRaw:
 
 export function OutboundRow({ row }: { row: OutboundMessage }) {
   return (
-    <li className="flex flex-wrap items-center gap-2 py-2 text-[13px]" data-outbound={row.id}>
-      <span className="xms-mono text-xms-label w-[110px] shrink-0 text-[12px]">{formatStamp(row.created_at)}</span>
+    <li className="flex flex-wrap items-center gap-2 py-2 text-[14px]" data-outbound={row.id}>
+      <span className="xms-mono text-xms-label w-[110px] shrink-0 text-[14px]">{formatStamp(row.created_at)}</span>
       <span className="text-xms-ink font-medium">{kindCopy(row.kind)}</span>
       <span className="text-xms-label">to</span>
-      <span className="xms-mono text-xms-label text-[12px]">{row.to_addresses.join(", ")}</span>
+      <span className="xms-mono text-xms-label text-[14px]">{row.to_addresses.join(", ")}</span>
       <span className="text-xms-body truncate">{row.subject}</span>
       <StatePill state={deliveryRamp(row.state)} label={row.state ?? "unknown"} className="ml-auto" />
     </li>
@@ -154,7 +154,7 @@ export function EmailPanel({ ticketKey }: { ticketKey: string }) {
     <div className="flex flex-col gap-4">
       <section aria-label="Inbound email">
         <p className="xms-caption mb-1">Inbound ({inbound.length})</p>
-        {inbound.length === 0 ? <p className="text-xms-label text-[13px]">No email received on this ticket.</p> : null}
+        {inbound.length === 0 ? <p className="text-xms-label text-[14px]">No email received on this ticket.</p> : null}
         <ul className="divide-xms-line divide-y">
           {inbound.map((row) => (
             <InboundRow key={row.id} row={row} onViewRaw={viewRaw} />
@@ -163,7 +163,7 @@ export function EmailPanel({ ticketKey }: { ticketKey: string }) {
       </section>
       <section aria-label="Outbound email">
         <p className="xms-caption mb-1">Outbound ({outbound.length})</p>
-        {outbound.length === 0 ? <p className="text-xms-label text-[13px]">Nothing sent yet.</p> : null}
+        {outbound.length === 0 ? <p className="text-xms-label text-[14px]">Nothing sent yet.</p> : null}
         <ul className="divide-xms-line divide-y">
           {outbound.map((row) => (
             <OutboundRow key={row.id} row={row} />

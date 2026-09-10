@@ -26,7 +26,7 @@ export function VisibilityTab({ article }: { article: ArticleView }) {
   const dirty = others.some((account) => selected.has(account.id) !== current.has(account.id));
 
   return (
-    <div className="flex flex-col gap-3 text-[13px]">
+    <div className="flex flex-col gap-3 text-[14px]">
       {article.is_global ? (
         <p className="text-xms-label">This article is global: every account and every internal user can read it.</p>
       ) : (
@@ -53,7 +53,7 @@ export function VisibilityTab({ article }: { article: ArticleView }) {
             <label htmlFor={`vis-${account.id}`} className="text-xms-ink">
               {account.name}
             </label>
-            <span className="xms-mono text-xms-label ml-auto text-[12px]">{account.key}</span>
+            <span className="xms-mono text-xms-label ml-auto text-[14px]">{account.key}</span>
           </li>
         ))}
         {others.length === 0 ? <li className="text-xms-label py-2">No other accounts on your grants.</li> : null}

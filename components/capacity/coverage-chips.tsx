@@ -50,7 +50,7 @@ export function AccountCoverageChips({ accountId }: { accountId: string }) {
       ))}
       <Link
         href={`/capacity/skills${skillsFilterToSearch({ lens: "account", account: accountId })}`}
-        className="text-xms-accent text-[12px]"
+        className="text-xms-accent text-[14px]"
       >
         Skills matrix
       </Link>

@@ -81,7 +81,7 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
             render 10 does not draw and which pushed every band below it down
             by the height of that line. */}
         {data ? (
-          <span className="text-xms-label text-[12px] whitespace-nowrap">
+          <span className="text-xms-label text-[14px] whitespace-nowrap">
             {formatPeriod(data.period)}
             {isFetching ? " · refreshing" : ""}
           </span>

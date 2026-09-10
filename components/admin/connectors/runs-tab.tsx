@@ -93,7 +93,7 @@ export function RunsTab({ instanceId }: { instanceId: string }) {
         <div className="flex items-center gap-2">
           <select
             aria-label="Direction"
-            className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+            className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
             value={direction}
             onChange={(event) => setDirection(event.target.value as RunDirection | "")}
           >
@@ -106,7 +106,7 @@ export function RunsTab({ instanceId }: { instanceId: string }) {
           </select>
           <select
             aria-label="Outcome"
-            className={cn(INPUT, "h-[28px] w-auto text-[12px]")}
+            className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
             value={outcome}
             onChange={(event) => setOutcome(event.target.value as RunOutcome | "")}
           >

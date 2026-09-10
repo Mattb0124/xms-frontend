@@ -100,7 +100,7 @@ function rate(value: number): string {
 function RateCardVersion({ card }: { card: RateCard }) {
   return (
     <li className="border-xms-line flex flex-col gap-1 border-b py-2 last:border-b-0" data-rate-card={card.id}>
-      <div className="flex items-center gap-2 text-[12px]">
+      <div className="flex items-center gap-2 text-[14px]">
         <span className="text-xms-label">Effective</span>
         <span className="xms-mono text-xms-ink" data-effective-from>
           {card.effective_from}
@@ -108,7 +108,7 @@ function RateCardVersion({ card }: { card: RateCard }) {
         <span className="xms-mono text-xms-label">{card.currency}</span>
         {card.note ? <span className="text-xms-label truncate">{card.note}</span> : null}
       </div>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
+      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[14px]">
         {card.entries.map((entry) => (
           <li key={entry.role} className="text-xms-ink" data-role={entry.role}>
             {roleLabel(entry.role)} <span className="xms-mono">{rate(entry.bill_rate)}</span>
@@ -149,7 +149,7 @@ export function NewRateCardForm({
   return (
     <form
       aria-label={`New rate card version for ${scope}`}
-      className="border-xms-line mt-2 flex flex-col gap-3 rounded-[6px] border p-3 text-[12px]"
+      className="border-xms-line mt-2 flex flex-col gap-3 rounded-[6px] border p-3 text-[14px]"
       onSubmit={async (event) => {
         event.preventDefault();
         const invalid = validateRateCard(draft);
@@ -249,7 +249,7 @@ export function NewRateCardForm({
               <td className="py-1">
                 <button
                   type="button"
-                  className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[12px]")}
+                  className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[14px]")}
                   aria-label={`Remove line ${index + 1}`}
                   disabled={draft.lines.length === 1}
                   onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, at) => at !== index) })}
@@ -264,7 +264,7 @@ export function NewRateCardForm({
       <div>
         <button
           type="button"
-          className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[12px]")}
+          className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[14px]")}
           onClick={() =>
             setDraft({
               ...draft,
@@ -298,14 +298,14 @@ function VersionList({ accountId, contract, canEdit }: { accountId: string; cont
   return (
     <div className="flex flex-col gap-2" data-rate-cards={contract?.id ?? "account"}>
       {isLoading && !data ? <Skeleton lines={2} /> : null}
-      {isError ? <p className="text-xms-muted text-[12px]">The rate cards could not be loaded.</p> : null}
+      {isError ? <p className="text-xms-muted text-[14px]">The rate cards could not be loaded.</p> : null}
       {data ? (
         <ul aria-label={`Rate card versions for ${scope}`} className="flex flex-col">
           {versions.map((card) => (
             <RateCardVersion key={card.id} card={card} />
           ))}
           {versions.length === 0 ? (
-            <li className="text-xms-label py-2 text-[12px]">
+            <li className="text-xms-label py-2 text-[14px]">
               {contract
                 ? "No rate card of its own; entries take the account default in force on their date."
                 : "No account default yet; entries without a contract card save unrated."}
@@ -317,7 +317,7 @@ function VersionList({ accountId, contract, canEdit }: { accountId: string; cont
         <div>
           <button
             type="button"
-            className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[12px]")}
+            className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[14px]")}
             onClick={() => setAdding(true)}
             aria-label={`New version for ${scope}`}
           >
@@ -344,15 +344,15 @@ function ContractRateCards({
     <div className="border-xms-line border-b py-2 last:border-b-0" data-contract-rate-cards={contract.id}>
       <button
         type="button"
-        className="text-xms-ink flex w-full items-center gap-2 text-left text-[13px]"
+        className="text-xms-ink flex w-full items-center gap-2 text-left text-[14px]"
         aria-expanded={open}
         aria-label={`Rate cards for ${contract.key}`}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="xms-mono text-xms-label w-3 text-[11px]">{open ? "v" : ">"}</span>
+        <span className="xms-mono text-xms-label w-3 text-[14px]">{open ? "v" : ">"}</span>
         <KeyText ticketKey={contract.key} />
         <span className="truncate">{contract.name}</span>
-        <span className="xms-mono text-xms-label ml-auto text-[11px]">{contract.currency}</span>
+        <span className="xms-mono text-xms-label ml-auto text-[14px]">{contract.currency}</span>
       </button>
       {open ? (
         <div className="mt-2 pl-5">
@@ -384,11 +384,11 @@ export function RateCardsPanel({ accountId, contracts }: { accountId: string; co
             <ContractRateCards key={contract.id} accountId={accountId} contract={contract} canEdit={canEdit} />
           ))}
           {contracts.length === 0 ? (
-            <p className="text-xms-label text-[12px]">No contracts on this account yet.</p>
+            <p className="text-xms-label text-[14px]">No contracts on this account yet.</p>
           ) : null}
         </div>
         <section aria-label="Account default rate cards" className="flex flex-col gap-2">
-          <h3 className="text-xms-ink text-[13px] font-semibold">Account default</h3>
+          <h3 className="text-xms-ink text-[14px] font-semibold">Account default</h3>
           <VersionList accountId={accountId} canEdit={canEdit} />
         </section>
       </div>

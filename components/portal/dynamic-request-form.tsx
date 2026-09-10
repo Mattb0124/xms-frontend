@@ -221,7 +221,7 @@ export function DynamicRequestForm({
         onSubmit({ type: view.ticket_type as PortalTicketType, answers: body });
       }}
     >
-      {view.description ? <p className="text-xms-label text-[13px]">{view.description}</p> : null}
+      {view.description ? <p className="text-xms-label text-[14px]">{view.description}</p> : null}
       {wholeForm ? <PortalNotice tone="error">{wholeForm}</PortalNotice> : null}
       {tooLarge ? <PortalNotice tone="error">{ANSWERS_TOO_LARGE}</PortalNotice> : null}
 
@@ -232,7 +232,7 @@ export function DynamicRequestForm({
           return (
             <div key={field.key} className="flex flex-col gap-1">
               <p className="text-xms-ink text-[14px] font-medium">{field.label}</p>
-              <p className="text-xms-label text-[12px]">
+              <p className="text-xms-label text-[14px]">
                 {hint ?? "Add the files below. They are checked and attached once the request is created."}
               </p>
             </div>
@@ -250,7 +250,7 @@ export function DynamicRequestForm({
               onChange={(value) => setAnswers((current) => ({ ...current, [field.key]: value }))}
             />
             {hint ? (
-              <p id={`${id}-hint`} className="text-xms-label text-[12px]">
+              <p id={`${id}-hint`} className="text-xms-label text-[14px]">
                 {hint}
               </p>
             ) : null}
@@ -263,7 +263,7 @@ export function DynamicRequestForm({
         <button type="submit" className={PORTAL_PRIMARY} disabled={submitting}>
           {submitting ? "Sending..." : "Send request"}
         </button>
-        <p className="text-xms-label text-[13px]">You will get an email with the request key and every reply.</p>
+        <p className="text-xms-label text-[14px]">You will get an email with the request key and every reply.</p>
       </div>
     </form>
   );

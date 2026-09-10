@@ -17,11 +17,11 @@ import { useMe } from "@/redux/me";
  * underlining like body copy.
  */
 export const PRIMARY_BUTTON =
-  "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[13px] font-medium text-white hover:text-white hover:no-underline disabled:opacity-50";
+  "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white hover:text-white hover:no-underline disabled:opacity-50";
 export const SECONDARY_BUTTON =
-  "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-control-hover hover:no-underline h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
+  "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-control-hover hover:no-underline h-[32px] rounded-[4px] border px-3 text-[14px] disabled:opacity-50";
 export const DANGER_BUTTON =
-  "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-[4px] border px-3 text-[13px] disabled:opacity-50";
+  "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-[4px] border px-3 text-[14px] disabled:opacity-50";
 /**
  * A field control. The 420px cap is on the control, never on the page: every
  * screen is full width, so a form on a 2560px window keeps its fields at a
@@ -29,7 +29,7 @@ export const DANGER_BUTTON =
  * longest form standing on it.
  */
 export const INPUT =
-  "xms-field border-xms-line bg-xms-card text-xms-ink h-[34px] w-full max-w-[420px] rounded-[4px] border px-2 text-[13px] outline-none disabled:opacity-60";
+  "xms-field border-xms-line bg-xms-card text-xms-ink h-[34px] w-full max-w-[420px] rounded-[4px] border px-2 text-[14px] outline-none disabled:opacity-60";
 
 /**
  * Display gating for an admin screen. Nothing renders until `me` has loaded
@@ -98,7 +98,7 @@ export function ConfirmButton({
       >
         {armed ? (confirmLabel ?? `Confirm ${label.toLowerCase()}`) : label}
       </button>
-      {armed ? <span className="text-xms-label text-[12px]">Click again to confirm</span> : null}
+      {armed ? <span className="text-xms-label text-[14px]">Click again to confirm</span> : null}
     </span>
   );
 }
@@ -166,8 +166,8 @@ export function SwitchRow({
         onChange={(event) => onChange(event.target.checked)}
         className="h-4 w-4"
       />
-      <span className="text-xms-ink text-[13px]">{label}</span>
-      {detail ? <span className="text-xms-label ml-auto text-[12px]">{detail}</span> : null}
+      <span className="text-xms-ink text-[14px]">{label}</span>
+      {detail ? <span className="text-xms-label ml-auto text-[14px]">{detail}</span> : null}
     </label>
   );
 }
@@ -175,7 +175,7 @@ export function SwitchRow({
 export function FieldRow({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode }) {
   return (
     <div className="grid grid-cols-[140px_1fr] items-center gap-3">
-      <label htmlFor={htmlFor} className="text-xms-label text-[12px]">
+      <label htmlFor={htmlFor} className="text-xms-label text-[14px]">
         {label}
       </label>
       {children}
@@ -186,7 +186,7 @@ export function FieldRow({ label, htmlFor, children }: { label: string; htmlFor?
 export function InlineError({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+    <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
       {message}
     </p>
   );

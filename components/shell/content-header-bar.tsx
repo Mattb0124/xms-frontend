@@ -129,7 +129,7 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                   >
                     <FunnelIcon size={ICON.bar} />
                     {panel.count > 0 ? (
-                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[9px] font-semibold text-white">
+                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[14px] font-semibold text-white">
                         {panel.count}
                       </span>
                     ) : null}
@@ -303,7 +303,7 @@ export function HeaderSearchField({
         placeholder="Search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+        className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
       />
     </form>
   );

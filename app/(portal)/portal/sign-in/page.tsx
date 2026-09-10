@@ -40,7 +40,7 @@ export default function PortalSignInPage() {
               router.replace("/portal");
             }}
           >
-            <label htmlFor="portal-dev-token" className="text-xms-body text-[13px]">
+            <label htmlFor="portal-dev-token" className="text-xms-body text-[14px]">
               Paste a token from <code className="xms-mono">pnpm dev:token --email pat@client.test --org acct-brk</code>{" "}
               run in the backend folder.
             </label>

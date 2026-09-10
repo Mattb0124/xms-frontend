@@ -17,8 +17,12 @@
    * sans (reviewer finding 6).
    * "Noto Color Emoji" stays AFTER every text font: moving it earlier turns
    * plain numerals into keycap emoji glyphs (verified in AIX). */
+  /* Lato leads: the ServiceNow Next Experience face, adopted 2026-09-10 so the
+   * product reads like the system it replaces. Inter stays behind it as the
+   * fallback rather than being removed, so a subset Lato does not cover falls
+   * to a face already hosted here instead of to the platform default. */
   --font-family-body:
-    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Lato", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Color Emoji", sans-serif;
   --font-family-heading: var(--font-family-body);
   --font-family-mono:
@@ -84,7 +88,9 @@
     background: var(--state-blocked-bg);
     color: var(--state-blocked-text);
     padding: 3px 9px;
-    font: 500 12px/1 var(--font-family-body);
+    /* 14px, the floor set on 2026-09-10: nothing in the product renders
+     * smaller than the body size, state pills included. */
+    font: 500 14px/1 var(--font-family-body);
     white-space: nowrap;
   }
   .aix-state-pill[data-state="needs-input"] { color: var(--state-needs-input-text); background: var(--state-needs-input-bg); border-color: var(--state-needs-input-border); }

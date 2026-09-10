@@ -200,7 +200,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
         <table
           aria-label={props.title}
           data-plain={display && !display.coloring ? "true" : undefined}
-          className="xms-sticky-head w-full border-collapse text-[13px]"
+          className="xms-sticky-head w-full border-collapse text-[15px]"
         >
           {/* Without a header row the widths have nowhere else to live. */}
           {props.headless ? (
@@ -213,7 +213,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
             </colgroup>
           ) : null}
           <thead className={cn("bg-xms-card sticky top-0 z-10", props.headless && "hidden")}>
-            <tr className={cn(!props.headless && "border-xms-line-head border-b")}>
+            <tr className={cn(!props.headless && "border-xms-line-head border-b-[1px]")}>
               {selectable ? (
                 <th className={cn("w-11 px-5", display?.compact ? "py-[7px]" : "py-[11px]")}>
                   <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />
@@ -228,7 +228,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     style={{ width: column.width }}
                     aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : undefined}
                     className={cn(
-                      "text-xms-ink px-[14px] text-left text-[13px] font-semibold whitespace-nowrap",
+                      "text-xms-ink px-[14px] text-left text-[16px] font-bold whitespace-nowrap",
                       display?.compact ? "py-[7px]" : "py-[11px]",
                       column.align === "right" && "text-right",
                     )}

@@ -37,9 +37,9 @@ import {
   type BillingPeriod,
 } from "@/redux/timeApi";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[12px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
-const SMALL = "h-[26px] px-2 text-[12px]";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
+const SMALL = "h-[26px] px-2 text-[14px]";
 
 export function BillingStatusPill({ status }: { status: BillingPeriod["status"] }) {
   const { label, tone } = BILLING_STATUS[status];
@@ -50,10 +50,10 @@ export function BillingStatusPill({ status }: { status: BillingPeriod["status"] 
 export function BillingExportsList({ accountId, periodId }: { accountId: string; periodId: string }) {
   const { data, isLoading, isError } = useBillingExportsQuery({ accountId, periodId });
   if (isLoading && !data) return <Skeleton lines={2} />;
-  if (isError) return <p className="text-xms-muted text-[12px]">The export records could not be loaded.</p>;
-  if (!data || data.length === 0) return <p className="text-xms-label text-[12px]">No finance file produced yet.</p>;
+  if (isError) return <p className="text-xms-muted text-[14px]">The export records could not be loaded.</p>;
+  if (!data || data.length === 0) return <p className="text-xms-label text-[14px]">No finance file produced yet.</p>;
   return (
-    <ul className="divide-xms-line divide-y text-[12px]" aria-label="Finance files">
+    <ul className="divide-xms-line divide-y text-[14px]" aria-label="Finance files">
       {data.map((record) => (
         <li key={record.id} className="flex flex-wrap items-center gap-3 py-1.5" data-export={record.id}>
           <span className="text-xms-ink font-medium">{record.format.toUpperCase()}</span>
@@ -84,7 +84,7 @@ export function PeriodPeople({ period }: { period: BillingPeriod }) {
   return (
     <span className="flex flex-col gap-0.5" data-period-people>
       {moves.map((move) => (
-        <span key={move.key} className="text-xms-label text-[11px]" data-by={move.key}>
+        <span key={move.key} className="text-xms-label text-[14px]" data-by={move.key}>
           {move.label} <span className="text-xms-body">{move.name}</span>
           {move.at ? <span className="xms-mono"> {move.at.slice(0, 10)}</span> : null}
         </span>
@@ -95,7 +95,7 @@ export function PeriodPeople({ period }: { period: BillingPeriod }) {
 
 function SummaryCell({ period }: { period: BillingPeriod }) {
   const summary = period.summary;
-  if (!summary) return <span className="text-xms-label text-[12px]">Not summarized yet</span>;
+  if (!summary) return <span className="text-xms-label text-[14px]">Not summarized yet</span>;
   const classes = Object.entries(summary.by_class);
   return (
     <div className="flex flex-col gap-1" data-summary>
@@ -107,7 +107,7 @@ function SummaryCell({ period }: { period: BillingPeriod }) {
         <span className="xms-mono" data-summary-amount>
           {formatMoney(summary.amount)}
         </span>
-        <span className="text-xms-label text-[12px]">
+        <span className="text-xms-label text-[14px]">
           {" "}
           from {summary.entries} entr{summary.entries === 1 ? "y" : "ies"}
           {summary.adjustments > 0
@@ -116,14 +116,14 @@ function SummaryCell({ period }: { period: BillingPeriod }) {
         </span>
       </span>
       {classes.length > 0 ? (
-        <span className="text-xms-label text-[12px]">
+        <span className="text-xms-label text-[14px]">
           {classes
             .map(([key, value]) => `${key} ${formatHours(value.minutes)} (${formatMoney(value.amount)})`)
             .join(", ")}
         </span>
       ) : null}
       {summary.unrated_minutes > 0 ? (
-        <span className="text-[12px] text-[color:var(--state-needs-input-text)]" data-unrated>
+        <span className="text-[14px] text-[color:var(--state-needs-input-text)]" data-unrated>
           {formatHours(summary.unrated_minutes)} carry no rate
         </span>
       ) : null}
@@ -159,7 +159,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
   if (!allowed) {
     return (
       <Panel title="Billing periods" caption="Needs the contracts:view permission">
-        <p className="text-xms-label text-[13px]">You can see this account but not its billing periods.</p>
+        <p className="text-xms-label text-[14px]">You can see this account but not its billing periods.</p>
       </Panel>
     );
   }
@@ -228,13 +228,13 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
               }
             }}
           >
-            <label className="flex flex-col gap-1 text-[12px]">
+            <label className="flex flex-col gap-1 text-[14px]">
               <span className="text-xms-label">Month</span>
               <input
                 type="month"
                 aria-label="Period month"
                 required
-                className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-[12px]")}
+                className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-[14px]")}
                 value={month}
                 onChange={(event) => setMonth(event.target.value)}
               />
@@ -251,7 +251,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
             <Skeleton lines={3} />
           </div>
         ) : null}
-        {isError ? <p className="text-xms-muted p-4 text-[13px]">The billing periods could not be loaded.</p> : null}
+        {isError ? <p className="text-xms-muted p-4 text-[14px]">The billing periods could not be loaded.</p> : null}
         {data ? (
           <table className="w-full border-collapse" aria-label="Billing periods">
             <thead className="bg-xms-card">
@@ -278,7 +278,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
                     <td className={CELL}>
                       <span className="flex flex-col">
                         <span className="text-xms-ink font-medium">{periodLabel(period)}</span>
-                        <span className="xms-mono text-xms-label text-[11px]">
+                        <span className="xms-mono text-xms-label text-[14px]">
                           {period.starts_on} to {period.ends_on}
                         </span>
                       </span>
@@ -289,7 +289,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
                           <BillingStatusPill status={period.status} />
                         </span>
                         {period.status === "approved" && period.auto_lock_at ? (
-                          <span className="text-xms-label text-[11px]">
+                          <span className="text-xms-label text-[14px]">
                             Locks on its own {period.auto_lock_at.slice(0, 10)}
                           </span>
                         ) : null}
@@ -300,7 +300,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
                       <SummaryCell period={period} />
                     </td>
                     <td
-                      className={cn(CELL, "xms-mono text-xms-label text-[12px]")}
+                      className={cn(CELL, "xms-mono text-xms-label text-[14px]")}
                       title={period.checksum ?? undefined}
                     >
                       {checksumPrefix(period.checksum)}
@@ -369,7 +369,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
               })}
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-[13px]">
+                  <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-[14px]">
                     No billing period yet.{canLock ? " Create one for the month above." : ""}
                   </td>
                 </tr>

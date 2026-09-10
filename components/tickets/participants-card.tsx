@@ -135,9 +135,9 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
       <ul className="divide-xms-line divide-y" data-testid="participants">
         {rows.map((row) => (
           <li key={row.id} data-participant={row.id} data-status={row.status} className="flex flex-col gap-1 py-2">
-            <div className="flex flex-wrap items-center gap-2 text-[12px]">
+            <div className="flex flex-wrap items-center gap-2 text-[14px]">
               <span className="text-xms-ink truncate font-medium">{participantLine(row)}</span>
-              <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[11px]">
+              <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">
                 {roleLabel(row.role)}
               </span>
               {row.can_answer ? (
@@ -180,12 +180,12 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
               ) : null}
             </div>
             {row.status === "active" && row.joined_at ? (
-              <p className="text-xms-label text-[11px]">since {formatDay(row.joined_at)}</p>
+              <p className="text-xms-label text-[14px]">since {formatDay(row.joined_at)}</p>
             ) : null}
             {row.status === "invited" && row.invited_by_name ? (
-              <p className="text-xms-label text-[11px]">asked by {row.invited_by_name}</p>
+              <p className="text-xms-label text-[14px]">asked by {row.invited_by_name}</p>
             ) : null}
-            {row.decline_reason ? <p className="text-xms-body text-[12px]">{row.decline_reason}</p> : null}
+            {row.decline_reason ? <p className="text-xms-body text-[14px]">{row.decline_reason}</p> : null}
           </li>
         ))}
       </ul>
@@ -196,7 +196,7 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
           </label>
           <select
             id="participant-who"
-            className="xms-field text-[12px]"
+            className="xms-field text-[14px]"
             value={who}
             onChange={(event) => {
               setWho(event.target.value);
@@ -228,7 +228,7 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
           </label>
           <select
             id="participant-role"
-            className="xms-field text-[12px]"
+            className="xms-field text-[14px]"
             value={role}
             onChange={(event) => setRole(event.target.value as ParticipantRole)}
           >
@@ -239,12 +239,12 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
             ))}
           </select>
           {person ? (
-            <label className="text-xms-body flex items-center gap-2 text-[12px]">
+            <label className="text-xms-body flex items-center gap-2 text-[14px]">
               <input type="checkbox" checked={already} onChange={(event) => setAlready(event.target.checked)} />
               They are already working it
             </label>
           ) : null}
-          <div className="flex items-center gap-3 text-[12px]">
+          <div className="flex items-center gap-3 text-[14px]">
             <button type="button" className="xms-link" disabled={!who || inviteState.isLoading} onClick={submit}>
               {already ? "Add" : "Ask"}
             </button>
@@ -262,7 +262,7 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
           </div>
         </div>
       ) : (
-        <button type="button" className="xms-link mt-2 text-[12px]" onClick={() => setAsking(true)}>
+        <button type="button" className="xms-link mt-2 text-[14px]" onClick={() => setAsking(true)}>
           Ask somebody on
         </button>
       )}

@@ -11,9 +11,9 @@ import type { DeliveryOutcome } from "@/redux/reportingApi";
  * approving that the history shows afterwards.
  */
 export function DeliveryList({ delivery }: { delivery: DeliveryOutcome[] }) {
-  if (delivery.length === 0) return <p className="text-xms-label text-[12px]">No recipients on this schedule.</p>;
+  if (delivery.length === 0) return <p className="text-xms-label text-[14px]">No recipients on this schedule.</p>;
   return (
-    <ul className="divide-xms-line divide-y text-[12px]" aria-label="Delivery outcomes">
+    <ul className="divide-xms-line divide-y text-[14px]" aria-label="Delivery outcomes">
       {delivery.map((row, index) => (
         <li
           key={`${row.kind}-${row.to}-${index}`}

@@ -73,7 +73,7 @@ export function PermissionChecklist({ catalog, selected, onChange, disabled }: P
               const id = `perm-${row.key}`;
               return (
                 <li key={row.key} className="px-3 py-2">
-                  <label htmlFor={id} className="flex items-start gap-3 text-[13px]">
+                  <label htmlFor={id} className="flex items-start gap-3 text-[14px]">
                     <input
                       id={id}
                       type="checkbox"
@@ -85,13 +85,13 @@ export function PermissionChecklist({ catalog, selected, onChange, disabled }: P
                     />
                     <span className={isImplied ? "text-xms-muted" : "text-xms-ink"}>
                       <span className="xms-mono">{row.key}</span>
-                      <span className="text-xms-label block text-[12px]">{row.label}</span>
+                      <span className="text-xms-label block text-[14px]">{row.label}</span>
                       {isImplied ? (
-                        <span className="text-xms-muted block text-[11px]">
+                        <span className="text-xms-muted block text-[14px]">
                           Implied by {impliedBy.get(row.key)?.join(", ")}
                         </span>
                       ) : row.implies.length > 0 ? (
-                        <span className="text-xms-muted block text-[11px]">Implies {row.implies.join(", ")}</span>
+                        <span className="text-xms-muted block text-[14px]">Implies {row.implies.join(", ")}</span>
                       ) : null}
                     </span>
                   </label>

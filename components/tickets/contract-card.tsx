@@ -61,7 +61,7 @@ export function ContractCardView({ position }: { position: ContractPosition }) {
         </span>
       </p>
       <MeterBar percent={percent} breached={position.status === "over"} className="mt-[11px] mb-2" />
-      <p className="text-xms-muted text-[12px] leading-[1.5]">
+      <p className="text-xms-muted text-[14px] leading-[1.5]">
         <span className={cn("font-medium", TONE_CLASS[tone])} data-tone={tone}>
           {STATUS_LABEL[position.status]}
         </span>
@@ -80,7 +80,7 @@ export function ContractCard({ accountId, contractId }: { accountId: string; con
   return (
     <RailCard caption="Contract">
       {isLoading ? <Skeleton lines={3} /> : null}
-      {isError ? <p className="text-xms-muted text-[12px]">No contract period covers today.</p> : null}
+      {isError ? <p className="text-xms-muted text-[14px]">No contract period covers today.</p> : null}
       {data ? <ContractCardView position={data} /> : null}
     </RailCard>
   );

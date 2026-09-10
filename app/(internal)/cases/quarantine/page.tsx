@@ -64,7 +64,7 @@ const COLUMNS: DenseColumn<QuarantineItem>[] = [
     render: (row) => (
       <span className="flex flex-col">
         <span className="text-xms-ink">{row.from_name || row.from_address}</span>
-        <span className="xms-mono text-xms-label text-[11px]">{row.from_address}</span>
+        <span className="xms-mono text-xms-label text-[14px]">{row.from_address}</span>
       </span>
     ),
   },
@@ -109,10 +109,10 @@ export function QuarantineDecisionPanel({
       caption={`${item.from_name || item.from_address} · ${formatStamp(item.received_at)}`}
     >
       <div className="flex flex-col gap-3">
-        <p className="text-xms-label text-[12px]">
+        <p className="text-xms-label text-[14px]">
           {reasonCopy(item.reason)}. <span className="xms-mono">{item.from_address}</span>
         </p>
-        <pre className="text-xms-body bg-xms-tint max-h-[320px] overflow-auto rounded-[6px] p-3 text-[13px] whitespace-pre-wrap">
+        <pre className="text-xms-body bg-xms-tint max-h-[320px] overflow-auto rounded-[6px] p-3 text-[14px] whitespace-pre-wrap">
           {item.stripped_body_text || "(empty message)"}
         </pre>
         {item.state === "open" ? (
@@ -137,12 +137,12 @@ export function QuarantineDecisionPanel({
             <ConfirmButton label="Mark spam" onConfirm={() => onDecide("mark_spam")} disabled={deciding} danger />
           </div>
         ) : (
-          <p className="text-xms-label text-[13px]">
+          <p className="text-xms-label text-[14px]">
             {decisionCopy(item.decision)}
             {item.resulting_ticket_id ? " (a ticket was created)" : ""}
           </p>
         )}
-        <button type="button" onClick={onClose} className="text-xms-label self-start text-[12px] hover:underline">
+        <button type="button" onClick={onClose} className="text-xms-label self-start text-[14px] hover:underline">
           Close
         </button>
       </div>

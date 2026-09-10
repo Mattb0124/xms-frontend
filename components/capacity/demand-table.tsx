@@ -22,7 +22,7 @@ export function SourcePill({ source }: { source: DemandSource }) {
   return <SignalPill tone={tone} label={label} />;
 }
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[13px] font-semibold whitespace-nowrap";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
 const CELL = "text-xms-ink px-3 align-middle";
 
 /**
@@ -40,7 +40,7 @@ export function DemandTable({ list, canManage, onRemove, removing }: DemandTable
       subtitle={`${monthLabel(list.from)} to ${monthLabel(list.to)}, ${list.rows.length} line${list.rows.length === 1 ? "" : "s"} with the weighted hours.`}
       flush
     >
-      <table className="w-full border-collapse text-[13px]" aria-label="Demand lines">
+      <table className="w-full border-collapse text-[14px]" aria-label="Demand lines">
         <thead className="bg-xms-card sticky top-0 z-10">
           <tr className="border-xms-line border-b">
             <th className={HEAD}>Source</th>
@@ -62,7 +62,7 @@ export function DemandTable({ list, canManage, onRemove, removing }: DemandTable
               </td>
               <td className={cn(CELL, row.account_key && "xms-mono")} data-subject>
                 {demandSubject(row)}
-                {row.prospect_name ? <span className="text-xms-label ml-2 text-[11px]">prospect</span> : null}
+                {row.prospect_name ? <span className="text-xms-label ml-2 text-[14px]">prospect</span> : null}
               </td>
               <td className={cn(CELL, "whitespace-nowrap")} data-month>
                 {monthLabel(row.period_month)}
@@ -79,7 +79,7 @@ export function DemandTable({ list, canManage, onRemove, removing }: DemandTable
               <td className={CELL} data-role>
                 {roleLabel(row.role)}
               </td>
-              <td className={cn(CELL, "text-xms-body max-w-[280px] truncate text-[12px]")} title={row.note} data-note>
+              <td className={cn(CELL, "text-xms-body max-w-[280px] truncate text-[14px]")} title={row.note} data-note>
                 {row.note}
               </td>
               {canManage ? (
@@ -88,7 +88,7 @@ export function DemandTable({ list, canManage, onRemove, removing }: DemandTable
                     label="Remove"
                     danger
                     disabled={removing === row.id}
-                    className="h-[26px] px-2 text-[12px]"
+                    className="h-[26px] px-2 text-[14px]"
                     onConfirm={() => onRemove(row)}
                   />
                 </td>
@@ -104,7 +104,7 @@ export function DemandTable({ list, canManage, onRemove, removing }: DemandTable
           ) : null}
         </tbody>
         <tfoot>
-          <tr className="text-xms-ink text-[12px] font-semibold" data-testid="demand-totals">
+          <tr className="text-xms-ink text-[14px] font-semibold" data-testid="demand-totals">
             <td className="px-3 py-2" colSpan={3}>
               Total
             </td>

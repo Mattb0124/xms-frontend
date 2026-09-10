@@ -38,7 +38,7 @@ export function RunProgress({ batch }: { batch: BatchDetail }) {
   return (
     <div
       role="status"
-      className="bg-xms-tint text-xms-body flex items-center gap-3 rounded-[6px] px-4 py-2 text-[13px]"
+      className="bg-xms-tint text-xms-body flex items-center gap-3 rounded-[6px] px-4 py-2 text-[14px]"
     >
       <span className="bg-xms-accent h-2 w-2 animate-pulse rounded-full" aria-hidden />
       <span>
@@ -47,7 +47,7 @@ export function RunProgress({ batch }: { batch: BatchDetail }) {
           ? `, ${batch.checkpoint.offset} rows so far`
           : ""}
       </span>
-      <span className="text-xms-label ml-auto text-[12px]">refreshes every 10 seconds</span>
+      <span className="text-xms-label ml-auto text-[14px]">refreshes every 10 seconds</span>
     </div>
   );
 }
@@ -75,7 +75,7 @@ export function BatchProperties({ batch, accountName }: { batch: BatchDetail; ac
     {
       label: "Maps",
       value: (
-        <span className="xms-mono text-[12px]">
+        <span className="xms-mono text-[14px]">
           field {fieldMap ? fieldMap.slice(0, 8) : "none"}, state {stateMap ? stateMap.slice(0, 8) : "none"}
         </span>
       ),
@@ -96,16 +96,16 @@ export function BatchProperties({ batch, accountName }: { batch: BatchDetail; ac
   ];
   return (
     <Panel title="Properties" caption={`version ${batch.version}`}>
-      <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-2 text-[13px]">
+      <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-2 text-[14px]">
         {rows.map((row) => (
           <div key={row.label} className="contents">
-            <dt className="text-xms-label text-[12px]">{row.label}</dt>
+            <dt className="text-xms-label text-[14px]">{row.label}</dt>
             <dd className={row.mono ? "xms-mono text-xms-ink" : "text-xms-ink"}>{row.value}</dd>
           </div>
         ))}
       </dl>
       {batch.error ? (
-        <p role="alert" className="mt-3 text-[12px] text-[color:var(--state-overdue-text)]" data-batch-error>
+        <p role="alert" className="mt-3 text-[14px] text-[color:var(--state-overdue-text)]" data-batch-error>
           {batch.error}
         </p>
       ) : null}
@@ -117,17 +117,17 @@ export function BatchProperties({ batch, accountName }: { batch: BatchDetail; ac
 export function LogTab({ batch }: { batch: BatchDetail }) {
   return (
     <Panel title="Log" caption={`${batch.log.length} lines`}>
-      {batch.log.length === 0 ? <p className="text-xms-label text-[13px]">Nothing logged yet. Run the batch.</p> : null}
+      {batch.log.length === 0 ? <p className="text-xms-label text-[14px]">Nothing logged yet. Run the batch.</p> : null}
       <ol className="flex flex-col gap-1" aria-label="Log lines">
         {batch.log.map((entry, index) => (
-          <li key={`${entry.at}-${index}`} className="flex gap-3 text-[13px]">
-            <span className="xms-mono text-xms-label shrink-0 text-[12px]">{formatDate(entry.at)}</span>
+          <li key={`${entry.at}-${index}`} className="flex gap-3 text-[14px]">
+            <span className="xms-mono text-xms-label shrink-0 text-[14px]">{formatDate(entry.at)}</span>
             <span className="text-xms-ink">{entry.message}</span>
           </li>
         ))}
       </ol>
       {batch.error ? (
-        <p className="mt-3 text-[13px] text-[color:var(--state-overdue-text)]">Failed: {batch.error}</p>
+        <p className="mt-3 text-[14px] text-[color:var(--state-overdue-text)]">Failed: {batch.error}</p>
       ) : null}
     </Panel>
   );

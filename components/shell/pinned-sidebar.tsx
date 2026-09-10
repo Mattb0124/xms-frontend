@@ -117,9 +117,7 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
                       size={ICON.glyph}
                       className={cn("shrink-0 transition-transform", open ? undefined : "-rotate-90")}
                     />
-                    <span className="flex-1 text-[12px] font-semibold tracking-[0.04em] uppercase">
-                      {group.section}
-                    </span>
+                    <span className="flex-1 text-[14px] tracking-[0.04em] uppercase">{group.section}</span>
                   </button>
                   {open
                     ? group.screens.map((screen) => {
@@ -153,12 +151,12 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
         )}
         {props.permissions && props.starredViews.length > 0 ? (
           <>
-            <p className="text-xms-ink px-[14px] pt-[18px] pb-2 text-[12px] font-semibold tracking-[0.04em] uppercase">
+            <p className="text-xms-ink px-[14px] pt-[18px] pb-2 text-[14px] tracking-[0.04em] uppercase">
               Starred views
             </p>
             <nav aria-label="Starred views" className="flex flex-col">
               {props.starredViews.map((view) => (
-                <Link key={view.path} href={view.path} className="xms-nav-row text-[13px] hover:no-underline">
+                <Link key={view.path} href={view.path} className="xms-nav-row text-[14px] hover:no-underline">
                   <StarIcon size={ICON.field} className="text-xms-placeholder shrink-0" />
                   <span className="min-w-0 flex-1 truncate">{view.label}</span>
                   {typeof view.count === "number" ? <span className="xms-nav-badge">{view.count}</span> : null}

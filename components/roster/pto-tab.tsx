@@ -85,7 +85,7 @@ export function PtoTab({ personId, userId, canManage }: PtoTabProps) {
   if (!canWrite) {
     return (
       <Panel title="PTO" caption="Time off reduces the month's capacity">
-        <p className="text-xms-label text-[13px]">
+        <p className="text-xms-label text-[14px]">
           Time off is visible to the person themselves and to capacity managers.
         </p>
       </Panel>
@@ -96,18 +96,18 @@ export function PtoTab({ personId, userId, canManage }: PtoTabProps) {
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
       <Panel title="PTO" caption="Time off reduces the month's capacity the moment it is entered">
         {isLoading && !data ? <Skeleton lines={3} /> : null}
-        {isError ? <p className="text-xms-muted text-[13px]">The time off could not be loaded.</p> : null}
-        {data && data.length === 0 ? <p className="text-xms-label text-[13px]">No time off recorded.</p> : null}
+        {isError ? <p className="text-xms-muted text-[14px]">The time off could not be loaded.</p> : null}
+        {data && data.length === 0 ? <p className="text-xms-label text-[14px]">No time off recorded.</p> : null}
         {data ? (
           <ul className="divide-xms-line divide-y" aria-label="Time off">
             {data.map((pto) => (
-              <li key={pto.id} className="flex flex-wrap items-center gap-3 py-2 text-[13px]" data-pto={pto.id}>
+              <li key={pto.id} className="flex flex-wrap items-center gap-3 py-2 text-[14px]" data-pto={pto.id}>
                 <span className="xms-mono text-xms-ink min-w-[200px]">{rangeLabel(pto.starts_on, pto.ends_on)}</span>
                 <span className="text-xms-body">{PTO_KIND_LABEL[pto.kind] ?? pto.kind}</span>
-                <span className="text-xms-label text-[12px]" data-fraction>
+                <span className="text-xms-label text-[14px]" data-fraction>
                   {fractionLabel(pto.fraction)}
                 </span>
-                {pto.note ? <span className="text-xms-label text-[12px]">{pto.note}</span> : null}
+                {pto.note ? <span className="text-xms-label text-[14px]">{pto.note}</span> : null}
                 <span className="ml-auto">
                   <ConfirmButton
                     label="Remove"

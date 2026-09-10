@@ -24,7 +24,7 @@ export function CalendarSubscribe() {
     <section className="xms-card flex flex-col gap-3 p-4" aria-label="Subscribe to this calendar">
       <div>
         <p className="xms-eyebrow">In your own calendar</p>
-        <p className="text-xms-body mt-2 text-[13px]">
+        <p className="text-xms-body mt-2 text-[14px]">
           A subscription keeps the change windows and freezes in front of you without opening this screen. The address
           carries a secret, so it is shown once and never again.
         </p>
@@ -32,7 +32,7 @@ export function CalendarSubscribe() {
 
       {url ? (
         <div className="flex flex-col gap-2">
-          <label className="text-xms-label text-[12px]" htmlFor="calendar-feed-url">
+          <label className="text-xms-label text-[14px]" htmlFor="calendar-feed-url">
             Paste this into your calendar client, then keep it somewhere safe.
           </label>
           <div className="flex flex-wrap items-center gap-2">
@@ -41,7 +41,7 @@ export function CalendarSubscribe() {
               readOnly
               value={url}
               onFocus={(event) => event.currentTarget.select()}
-              className="border-xms-control-line bg-xms-card xms-mono h-[var(--xms-control-h)] min-w-0 flex-1 rounded-[var(--xms-radius-control)] border px-3 text-[12px]"
+              className="border-xms-control-line bg-xms-card xms-mono h-[var(--xms-control-h)] min-w-0 flex-1 rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
             />
             <button
               type="button"

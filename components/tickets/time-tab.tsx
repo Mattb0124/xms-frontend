@@ -122,7 +122,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
   return (
     <form
       aria-label="Log time"
-      className="flex flex-col gap-3 text-[12px]"
+      className="flex flex-col gap-3 text-[14px]"
       onSubmit={async (event) => {
         event.preventDefault();
         const problem = validateDraft(draft);
@@ -166,7 +166,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
               type="button"
               onClick={() => setDraft({ ...draft, minutes: String(minutes) })}
               className={cn(
-                "border-xms-line h-[28px] rounded-[999px] border px-2 text-[12px]",
+                "border-xms-line h-[28px] rounded-[999px] border px-2 text-[14px]",
                 draft.minutes === String(minutes)
                   ? "bg-xms-accent border-xms-accent text-white"
                   : "text-xms-body hover:bg-xms-control-hover",
@@ -258,7 +258,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
         />
       </label>
       {error ? (
-        <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+        <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
           {error}
         </p>
       ) : null}
@@ -295,13 +295,13 @@ function EntryRow({ entry, catalogs, rule }: { entry: TimeEntry; catalogs: DeskC
       data-entry={entry.id}
     >
       <span className="flex w-[150px] shrink-0 items-baseline gap-2">
-        <span className="text-xms-ink truncate text-[13px] font-medium">{entry.person_name}</span>
-        <span className="xms-mono text-xms-muted shrink-0 text-[11px]" data-performed-on>
+        <span className="text-xms-ink truncate text-[14px] font-medium">{entry.person_name}</span>
+        <span className="xms-mono text-xms-muted shrink-0 text-[14px]" data-performed-on>
           {entry.performed_on.slice(5)}
           {start ? <span data-start>{` ${start}`}</span> : null}
         </span>
       </span>
-      <span className="text-xms-body min-w-0 flex-1 truncate text-[13px]">
+      <span className="text-xms-body min-w-0 flex-1 truncate text-[14px]">
         {activity}
         {entry.description ? (
           <>
@@ -316,11 +316,11 @@ function EntryRow({ entry, catalogs, rule }: { entry: TimeEntry; catalogs: DeskC
           <OverBudgetPill entry={entry} />
         </span>
       ) : null}
-      <span className="text-xms-muted shrink-0 text-[12px]">
+      <span className="text-xms-muted shrink-0 text-[14px]">
         <EntryAmount entry={entry} />
       </span>
       <span className="xms-chip-pill shrink-0">{billable}</span>
-      <span className="xms-mono text-xms-ink w-[56px] shrink-0 text-right text-[13px] font-semibold">
+      <span className="xms-mono text-xms-ink w-[56px] shrink-0 text-right text-[14px] font-semibold">
         {changed ? (
           <>
             <span className="text-xms-muted line-through">{decimalHours(entry.minutes)}</span>{" "}
@@ -402,7 +402,7 @@ export function TimeTab({
         <header className="border-xms-line bg-xms-quiet-bg flex items-center gap-[10px] border-b px-[14px] py-[13px]">
           <h3 className="text-xms-ink text-[14px] leading-[1.3] font-semibold">Time on this ticket</h3>
           {canLog ? (
-            <span className="text-xms-muted text-[12px] leading-none">shortcut t · under five seconds to log</span>
+            <span className="text-xms-muted text-[14px] leading-none">shortcut t · under five seconds to log</span>
           ) : null}
           <span className="flex-1" />
           {canLog ? (
@@ -423,13 +423,13 @@ export function TimeTab({
               ))}
             </ul>
             {data.entries.length === 0 ? (
-              <p className="text-xms-label px-[14px] py-6 text-center text-[13px]">
+              <p className="text-xms-label px-[14px] py-6 text-center text-[14px]">
                 No time logged on this ticket yet.
               </p>
             ) : (
               <div className="bg-xms-quiet-bg flex items-center px-[14px] py-[13px]">
-                <span className="text-xms-ink flex-1 text-[13px] font-semibold">Total</span>
-                <span className="xms-mono text-xms-ink text-[13px] font-semibold" data-testid="time-total">
+                <span className="text-xms-ink flex-1 text-[14px] font-semibold">Total</span>
+                <span className="xms-mono text-xms-ink text-[14px] font-semibold" data-testid="time-total">
                   {`${decimalHours(data.total_minutes)} h`}
                 </span>
               </div>

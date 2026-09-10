@@ -65,10 +65,10 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
         {account ? (
           <>
             <span className="text-xms-ink text-[18px] font-semibold">{account.name}</span>
-            <span className="xms-mono text-xms-label text-[12px]">{account.key}</span>
+            <span className="xms-mono text-xms-label text-[14px]">{account.key}</span>
           </>
         ) : null}
-        <div className="ml-auto flex items-center gap-3 text-[12px]">
+        <div className="ml-auto flex items-center gap-3 text-[14px]">
           <Link href={queueBase} className="xms-link">
             Open the queue
           </Link>
@@ -92,7 +92,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
       {asClient ? (
         <p
           role="status"
-          className="border-xms-accent-border bg-xms-tint text-xms-ink rounded-[6px] border px-4 py-2 text-[13px]"
+          className="border-xms-accent-border bg-xms-tint text-xms-ink rounded-[6px] border px-4 py-2 text-[14px]"
         >
           This is what the client sees. Measures the account does not expose are left out.
         </p>
@@ -109,7 +109,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
 
       {data ? (
         <>
-          <p className="text-xms-label text-[12px]">{formatPeriod(data.period)}</p>
+          <p className="text-xms-label text-[14px]">{formatPeriod(data.period)}</p>
           {!asClient ? (
             // The same ruling Operations took in pass three: a line written
             // from the measures the tiles read is generated text, so it takes

@@ -11,7 +11,7 @@ export interface AccountDotProps {
 export function AccountDot({ name, hue, className }: AccountDotProps) {
   const safeHue = hue && hue >= 1 && hue <= 6 ? String(hue) : undefined;
   return (
-    <span className={cn("xms-account text-[13px]", className)} data-hue={safeHue}>
+    <span className={cn("xms-account text-[14px]", className)} data-hue={safeHue}>
       {name}
     </span>
   );

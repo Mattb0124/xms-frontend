@@ -189,7 +189,7 @@ function localMoment(iso: string): string {
   return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}T${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
-const CONTROL = "border-xms-line bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[13px]";
+const CONTROL = "border-xms-line bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[14px]";
 
 function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange: (rows: AuditRow[]) => void }) {
   const update = (index: number, patch: Partial<AuditRow>) =>
@@ -203,7 +203,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
         const operators = operatorsFor(spec);
         return (
           <div key={index} className="flex items-center gap-2" data-condition-row>
-            <span className="xms-mono text-xms-muted w-8 text-[11px]">{index === 0 ? "" : "AND"}</span>
+            <span className="xms-mono text-xms-muted w-8 text-[14px]">{index === 0 ? "" : "AND"}</span>
             {/* The Cases list's builder settled this in pass two: a bare select
                 takes the platform's height, padding and chevron, so a row of
                 them reads as browser widgets rather than as the reference's
@@ -270,7 +270,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
           </div>
         );
       })}
-      <button type="button" onClick={add} className="text-xms-accent self-start text-[12px] hover:underline">
+      <button type="button" onClick={add} className="text-xms-accent self-start text-[14px] hover:underline">
         + Add condition
       </button>
     </div>
@@ -351,12 +351,12 @@ function RecordDrawer({
       <header className="flex items-center gap-3">
         <StreamChip stream={event.stream} />
         {scopeOf(event) ? <ScopeChip scope={scopeOf(event)!} /> : null}
-        <span className="xms-mono text-xms-ink text-[13px] font-semibold">{event.event_type}</span>
+        <span className="xms-mono text-xms-ink text-[14px] font-semibold">{event.event_type}</span>
         <button type="button" onClick={onClose} className="text-xms-muted hover:text-xms-ink ml-auto text-[14px]">
           Close
         </button>
       </header>
-      <p className="xms-mono text-xms-label text-[12px]">{event.occurred_at}</p>
+      <p className="xms-mono text-xms-label text-[14px]">{event.occurred_at}</p>
       {event.request_id ? (
         <button type="button" onClick={() => onPivot(event.request_id!)} className={cn(SECONDARY_BUTTON, "self-start")}>
           Show this request
@@ -364,7 +364,7 @@ function RecordDrawer({
       ) : null}
       <section>
         <h3 className="xms-caption mb-1">Envelope</h3>
-        <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[12px]">
+        <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[14px]">
           {Object.entries(envelope).map(([key, value]) => (
             <div key={key} className="contents">
               <dt className="text-xms-label">{key}</dt>
@@ -385,7 +385,7 @@ function RecordDrawer({
             <div key={side}>
               <h3 className="xms-caption mb-1">{side === "old" ? "Old values" : "New values"}</h3>
               <pre
-                className="xms-mono bg-xms-tint overflow-auto rounded-[4px] p-2 text-[11px]"
+                className="xms-mono bg-xms-tint overflow-auto rounded-[4px] p-2 text-[14px]"
                 data-testid={`attrs-${side}`}
               >
                 {JSON.stringify((changes as Record<string, unknown>)[side] ?? null, null, 2)}
@@ -396,7 +396,7 @@ function RecordDrawer({
       ) : null}
       <section>
         <h3 className="xms-caption mb-1">Attributes</h3>
-        <pre className="xms-mono bg-xms-tint overflow-auto rounded-[4px] p-2 text-[11px]" data-testid="attrs">
+        <pre className="xms-mono bg-xms-tint overflow-auto rounded-[4px] p-2 text-[14px]" data-testid="attrs">
           {JSON.stringify(attrs ?? {}, null, 2)}
         </pre>
       </section>
@@ -603,7 +603,7 @@ export function AuditSearch({ initialRows }: { initialRows?: AuditRow[] }) {
           footer={
             items.length === 0 ? null : (
               <div className="border-xms-line flex items-center gap-4 border-t px-4 py-2">
-                <span className="xms-mono text-xms-label text-[12px]">{summary}</span>
+                <span className="xms-mono text-xms-label text-[14px]">{summary}</span>
                 {cursor ? (
                   <button
                     type="button"

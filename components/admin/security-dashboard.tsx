@@ -29,13 +29,13 @@ interface Count {
 
 /** A dense list of counts with the mono number on the right; a row with a screen behind it links to it. */
 export function CountList({ rows, empty }: { rows: Count[]; empty: string }) {
-  if (rows.length === 0) return <p className="text-xms-label text-[13px]">{empty}</p>;
+  if (rows.length === 0) return <p className="text-xms-label text-[14px]">{empty}</p>;
   return (
     <ul className="flex flex-col">
       {rows.map((row, index) => (
         <li
           key={`${row.label}-${index}`}
-          className="border-xms-line flex items-center gap-3 border-b py-2 text-[13px] last:border-b-0"
+          className="border-xms-line flex items-center gap-3 border-b py-2 text-[14px] last:border-b-0"
         >
           {row.href ? (
             <Link href={row.href} className="xms-mono text-xms-accent truncate hover:underline">
@@ -44,7 +44,7 @@ export function CountList({ rows, empty }: { rows: Count[]; empty: string }) {
           ) : (
             <span className="xms-mono text-xms-ink truncate">{row.label}</span>
           )}
-          {row.detail ? <span className="xms-mono text-xms-muted text-[11px]">{row.detail}</span> : null}
+          {row.detail ? <span className="xms-mono text-xms-muted text-[14px]">{row.detail}</span> : null}
           {row.n === undefined ? null : <span className="xms-mono text-xms-ink ml-auto font-semibold">{row.n}</span>}
         </li>
       ))}

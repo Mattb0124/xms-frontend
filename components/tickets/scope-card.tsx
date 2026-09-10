@@ -30,13 +30,13 @@ import {
   type TicketView,
 } from "@/redux/ticketsApi";
 
-const LABEL = "text-xms-label text-[11px]";
+const LABEL = "text-xms-label text-[14px]";
 
 function Line({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-[2px]">
       <span className={LABEL}>{label}</span>
-      <span className="text-xms-body text-[13px] whitespace-pre-wrap">{children}</span>
+      <span className="text-xms-body text-[14px] whitespace-pre-wrap">{children}</span>
     </div>
   );
 }
@@ -171,11 +171,11 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
                   id={`scope-reason-${ticket.key}`}
                   rows={3}
                   maxLength={2000}
-                  className={cn(INPUT, "h-auto py-1 text-[13px]")}
+                  className={cn(INPUT, "h-auto py-1 text-[14px]")}
                   value={reason}
                   onChange={(event) => setReason(event.target.value)}
                 />
-                <p className="text-xms-label text-[11px]">
+                <p className="text-xms-label text-[14px]">
                   The account&apos;s contract managers are told, and they decide it.
                 </p>
                 <div className="flex gap-2">
@@ -211,7 +211,7 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
 
         {canDecide && flagged ? (
           blocked ? (
-            <p className="text-xms-label text-[12px]" data-decision-blocked>
+            <p className="text-xms-label text-[14px]" data-decision-blocked>
               {blocked}
             </p>
           ) : (
@@ -222,11 +222,11 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
               <input
                 id={`scope-allowance-${ticket.key}`}
                 inputMode="numeric"
-                className={cn(INPUT, "xms-mono text-[13px]")}
+                className={cn(INPUT, "xms-mono text-[14px]")}
                 value={allowance}
                 onChange={(event) => setAllowance(event.target.value)}
               />
-              <p className="text-xms-label text-[11px]">
+              <p className="text-xms-label text-[14px]">
                 Added to the contract period the ticket bills against, so the time logged on it is inside budget. Leave
                 it empty to approve with no extra budget.
               </p>
@@ -237,7 +237,7 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
                 id={`scope-note-${ticket.key}`}
                 rows={2}
                 maxLength={2000}
-                className={cn(INPUT, "h-auto py-1 text-[13px]")}
+                className={cn(INPUT, "h-auto py-1 text-[14px]")}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
               />
@@ -254,11 +254,11 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
         ) : null}
 
         {!canWork && !canDecide ? (
-          <p className="text-xms-label text-[12px]">Flagging and deciding scope are not yours to do on this ticket.</p>
+          <p className="text-xms-label text-[14px]">Flagging and deciding scope are not yours to do on this ticket.</p>
         ) : null}
 
         {error ? (
-          <p role="alert" className="text-[12px] text-[color:var(--state-overdue-text)]">
+          <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
             {error}
           </p>
         ) : null}

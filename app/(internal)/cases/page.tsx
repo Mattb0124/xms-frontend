@@ -409,7 +409,7 @@ function CasesScreen() {
               if (action === "assign") void assignSelected();
               if (action === "watch") void watchSelected();
             }}
-            className="border-xms-control-line bg-xms-card text-xms-body h-[var(--xms-header-pill-h)] rounded-[var(--xms-radius-control)] border px-[10px] text-[13px] disabled:opacity-50"
+            className="border-xms-control-line bg-xms-card text-xms-body h-[var(--xms-header-pill-h)] rounded-[var(--xms-radius-control)] border px-[10px] text-[14px] disabled:opacity-50"
           >
             <option value="">{selected.size === 0 ? "Actions on selected rows" : `Actions on ${selected.size}`}</option>
             <option value="assign">Assign to me</option>
@@ -469,7 +469,7 @@ function CasesScreen() {
       </div>
 
       {isError ? (
-        <div className="border-xms-line bg-xms-card flex items-center gap-3 rounded-[6px] border px-4 py-2 text-[13px]">
+        <div className="border-xms-line bg-xms-card flex items-center gap-3 rounded-[6px] border px-4 py-2 text-[14px]">
           <span className="text-xms-ink">The list could not be refreshed. The last data stays visible.</span>
           <button type="button" onClick={() => refetch()} className="text-xms-accent ml-auto hover:underline">
             Retry
@@ -513,7 +513,7 @@ function CasesScreen() {
                 placeholder="Search by key, description or requester"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
               />
               <button type="submit" aria-label="Run the search" className="text-xms-muted hover:text-xms-ink shrink-0">
                 <SearchIcon size={ICON.action} />
@@ -539,7 +539,7 @@ function CasesScreen() {
                   onChange={(event) => {
                     if (event.target.value) void changeStateSelected(event.target.value);
                   }}
-                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-[4px] border pr-6 pl-[10px] text-[12px] font-medium"
+                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-[4px] border pr-6 pl-[10px] text-[14px] font-medium"
                 >
                   <option value="">Change state</option>
                   {STATE_OPTIONS.map((state) => (
@@ -562,7 +562,7 @@ function CasesScreen() {
                     event.currentTarget.value = "";
                     if (priority) void setPrioritySelected(priority);
                   }}
-                  className="border-xms-line-strong bg-xms-card text-xms-body h-[30px] appearance-none rounded-[4px] border pr-[22px] pl-[10px] text-[13px]"
+                  className="border-xms-line-strong bg-xms-card text-xms-body h-[30px] appearance-none rounded-[4px] border pr-[22px] pl-[10px] text-[14px]"
                 >
                   <option value="">Priority</option>
                   <option value="p1">1 - Critical</option>

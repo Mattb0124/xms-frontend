@@ -106,7 +106,7 @@ function AdminMigrationBatchPageBody() {
               </>
             }
           />
-          {blocked ? <p className="text-xms-label mb-3 text-[12px]">{blocked}</p> : null}
+          {blocked ? <p className="text-xms-label mb-3 text-[14px]">{blocked}</p> : null}
           <div className="mb-4 flex flex-col gap-4">
             <RunProgress batch={data} />
             <CountsStrip batch={data} />

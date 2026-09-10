@@ -136,7 +136,7 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
           <fieldset className="border-xms-line rounded-[4px] border p-3">
             <legend className="xms-caption px-1">Roles</legend>
             {(roles.data ?? []).map((role) => (
-              <label key={role.id} className="flex items-center gap-2 py-1 text-[13px]">
+              <label key={role.id} className="flex items-center gap-2 py-1 text-[14px]">
                 <input
                   type="checkbox"
                   checked={roleIds.has(role.id)}
@@ -149,7 +149,7 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
           <fieldset className="border-xms-line rounded-[4px] border p-3">
             <legend className="xms-caption px-1">Accounts</legend>
             {(accounts.data ?? []).map((account) => (
-              <label key={account.id} className="flex items-center gap-2 py-1 text-[13px]">
+              <label key={account.id} className="flex items-center gap-2 py-1 text-[14px]">
                 <input
                   type="checkbox"
                   checked={accountIds.has(account.id)}
@@ -159,7 +159,7 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
                 <span className="text-xms-ink">{account.name}</span>
               </label>
             ))}
-            {(accounts.data ?? []).length === 0 ? <p className="text-xms-label text-[12px]">No accounts yet.</p> : null}
+            {(accounts.data ?? []).length === 0 ? <p className="text-xms-label text-[14px]">No accounts yet.</p> : null}
           </fieldset>
         </div>
         <div className="flex flex-col gap-2 md:col-span-2">

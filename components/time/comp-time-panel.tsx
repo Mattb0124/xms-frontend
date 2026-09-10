@@ -38,7 +38,7 @@ export function CompTimePanel({ accountId, today = localToday() }: { accountId: 
       caption="Per person"
       subtitle="Non-standard entries on comp-time contracts, per person."
       actions={
-        <div className="flex items-center gap-2 text-[12px]" role="group" aria-label="Comp time range">
+        <div className="flex items-center gap-2 text-[14px]" role="group" aria-label="Comp time range">
           <label className="flex items-center gap-1">
             <span className="text-xms-label">From</span>
             <input
@@ -47,7 +47,7 @@ export function CompTimePanel({ accountId, today = localToday() }: { accountId: 
               value={from}
               max={to}
               onChange={(event) => setFrom(event.target.value)}
-              className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[12px]")}
+              className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[14px]")}
             />
           </label>
           <label className="flex items-center gap-1">
@@ -59,19 +59,19 @@ export function CompTimePanel({ accountId, today = localToday() }: { accountId: 
               min={from}
               max={today}
               onChange={(event) => setTo(event.target.value)}
-              className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[12px]")}
+              className={cn(INPUT, "xms-mono h-[28px] w-[140px] text-[14px]")}
             />
           </label>
         </div>
       }
     >
-      {!valid ? <p className="text-xms-label text-[12px]">Choose a range where From is not after To.</p> : null}
+      {!valid ? <p className="text-xms-label text-[14px]">Choose a range where From is not after To.</p> : null}
       {isLoading && !data ? <Skeleton lines={3} /> : null}
-      {isError ? <p className="text-xms-muted text-[12px]">The comp-time report could not be loaded.</p> : null}
+      {isError ? <p className="text-xms-muted text-[14px]">The comp-time report could not be loaded.</p> : null}
       {data ? (
-        <table className="w-full border-collapse text-[13px]" aria-label="Comp time by person">
+        <table className="w-full border-collapse text-[14px]" aria-label="Comp time by person">
           <thead>
-            <tr className="border-xms-line text-xms-ink border-b text-left text-[12px] font-semibold">
+            <tr className="border-xms-line text-xms-ink border-b text-left text-[14px] font-semibold">
               <th className="px-3 py-2">Person</th>
               <th className="px-3 py-2 text-right">Entries</th>
               <th className="px-3 py-2 text-right">Comp time</th>
@@ -100,7 +100,7 @@ export function CompTimePanel({ accountId, today = localToday() }: { accountId: 
             ) : null}
           </tbody>
           <tfoot>
-            <tr className="text-xms-ink text-[12px] font-semibold">
+            <tr className="text-xms-ink text-[14px] font-semibold">
               <td className="px-3 py-2">Total</td>
               <td className="xms-mono px-3 py-2 text-right" data-testid="comp-time-entries">
                 {data.entries.length}

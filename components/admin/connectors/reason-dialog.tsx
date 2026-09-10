@@ -50,8 +50,8 @@ export function ReasonDialog({
         }}
       >
         <h2 className="text-xms-ink text-[15px] font-semibold">{title}</h2>
-        {detail ? <p className="text-xms-body text-[13px]">{detail}</p> : null}
-        <label className="flex flex-col gap-1 text-[12px]">
+        {detail ? <p className="text-xms-body text-[14px]">{detail}</p> : null}
+        <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">
             {fieldLabel}
             {required ? "" : " (optional)"}

@@ -120,8 +120,8 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, kind, c
   return (
     <span
       className={cn(
-        "xms-mono text-[13px] tabular-nums",
-        dot ? "text-xms-ink inline-flex items-center gap-[7px] text-[12px]" : TONE_CLASS[display.tone],
+        "xms-mono text-[14px] tabular-nums",
+        dot ? "text-xms-ink inline-flex items-center gap-[7px] text-[14px]" : TONE_CLASS[display.tone],
         className,
       )}
       data-tone={display.tone}

@@ -172,7 +172,7 @@ export function NewPersonForm({
             <fieldset className="border-xms-line rounded-[4px] border p-3">
               <legend className="xms-caption px-1">Groups</legend>
               {groups.map((group) => (
-                <label key={group.id} className="flex items-center gap-2 py-1 text-[13px]">
+                <label key={group.id} className="flex items-center gap-2 py-1 text-[14px]">
                   <input
                     type="checkbox"
                     checked={groupIds.has(group.id)}

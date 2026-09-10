@@ -22,7 +22,7 @@ import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
 // The shared table measures: 11px above and below in the header, 13 by 14 in
 // a cell (hand-off section 4).
-const HEAD = "text-xms-ink px-[14px] py-[11px] text-left text-[13px] font-semibold whitespace-nowrap";
+const HEAD = "text-xms-ink px-[14px] py-[11px] text-left text-[14px] font-semibold whitespace-nowrap";
 const CELL = "text-xms-ink px-[14px] py-[13px] align-middle whitespace-nowrap";
 
 /** Largest variances first (functional 5.6), by absolute hours; ties by name. */
@@ -115,7 +115,7 @@ function VarianceScreen() {
             caption={`${monthLabel(report.data.month)}; planned from the allocation grid, actual from logged time in every billable class`}
             flush
           >
-            <table className="w-full border-collapse text-[13px]" aria-label="Planned versus actual">
+            <table className="w-full border-collapse text-[14px]" aria-label="Planned versus actual">
               <thead className="bg-xms-card sticky top-0 z-10">
                 <tr className="border-xms-line border-b">
                   <th className={HEAD}>Person</th>
@@ -168,7 +168,7 @@ function VarianceScreen() {
                 ) : null}
               </tbody>
               <tfoot>
-                <tr className="text-xms-ink text-[12px] font-semibold" data-testid="variance-totals">
+                <tr className="text-xms-ink text-[14px] font-semibold" data-testid="variance-totals">
                   <td className="px-3 py-2" colSpan={2}>
                     Total
                   </td>

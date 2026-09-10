@@ -41,9 +41,9 @@ import {
 } from "@/redux/apiClientsApi";
 import { useMe } from "@/redux/me";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[12px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 py-2 align-top text-[13px]";
-const SMALL = "h-[26px] px-2 text-[12px]";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
+const SMALL = "h-[26px] px-2 text-[14px]";
 
 export function ApiClientStatusPill({ status }: { status: ApiClient["status"] }) {
   const { label, tone } = API_CLIENT_STATUS[status];
@@ -52,13 +52,13 @@ export function ApiClientStatusPill({ status }: { status: ApiClient["status"] })
 
 /** The scopes as chips, in the order the client was granted them. */
 function ScopeChips({ scopes }: { scopes: string[] }) {
-  if (scopes.length === 0) return <span className="text-xms-label text-[12px]">No scope</span>;
+  if (scopes.length === 0) return <span className="text-xms-label text-[14px]">No scope</span>;
   return (
     <span className="flex flex-wrap gap-1" data-scopes>
       {scopes.map((scope) => (
         <span
           key={scope}
-          className="border-xms-line text-xms-body xms-mono rounded-[999px] border px-2 py-[1px] text-[11px]"
+          className="border-xms-line text-xms-body xms-mono rounded-[999px] border px-2 py-[1px] text-[14px]"
         >
           {scope}
         </span>
@@ -84,12 +84,12 @@ export function NewKeyPanel({ name, apiKey, onDismiss }: { name: string; apiKey:
       }
     >
       <div className="flex flex-col gap-2" data-testid="new-api-key">
-        <p className="text-[13px] text-[color:var(--state-needs-input-text)]">
+        <p className="text-[14px] text-[color:var(--state-needs-input-text)]">
           Copy this key now. It will not be shown again, and it cannot be recovered. Issue a new client if it is lost.
         </p>
         <div className="flex items-center gap-2">
           <code
-            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-[4px] border px-2 py-2 text-[12px]"
+            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-[4px] border px-2 py-2 text-[14px]"
             data-api-key
           >
             {apiKey}
@@ -198,7 +198,7 @@ export function ApiClientsView() {
           </button>
         }
       >
-        <p className="text-xms-label text-[12px]">
+        <p className="text-xms-label text-[14px]">
           Webhook subscriptions are not registered here. A client with the webhooks:manage scope registers its own
           endpoints through the API with its key, and receives the signing secret once in the same way.
         </p>
@@ -223,10 +223,10 @@ export function ApiClientsView() {
               />
             </FieldRow>
             <fieldset className="flex flex-col gap-1">
-              <legend className="text-xms-label text-[12px]">Scopes</legend>
+              <legend className="text-xms-label text-[14px]">Scopes</legend>
               {scopes.isLoading && !scopes.data ? <Skeleton lines={3} /> : null}
               {(scopes.data ?? []).map((scope) => (
-                <label key={scope.scope} className="flex items-start gap-2 text-[13px]">
+                <label key={scope.scope} className="flex items-start gap-2 text-[14px]">
                   <input
                     type="checkbox"
                     className="mt-[3px]"
@@ -241,12 +241,12 @@ export function ApiClientsView() {
               ))}
             </fieldset>
             <fieldset className="flex flex-col gap-1">
-              <legend className="text-xms-label text-[12px]">Accounts</legend>
+              <legend className="text-xms-label text-[14px]">Accounts</legend>
               {me.grantedAccounts.length === 0 ? (
-                <p className="text-xms-label text-[12px]">You have no granted accounts to give this client.</p>
+                <p className="text-xms-label text-[14px]">You have no granted accounts to give this client.</p>
               ) : null}
               {me.grantedAccounts.map((id) => (
-                <label key={id} className="flex items-center gap-2 text-[13px]">
+                <label key={id} className="flex items-center gap-2 text-[14px]">
                   <input
                     type="checkbox"
                     checked={draft.accountIds.includes(id)}
@@ -267,7 +267,7 @@ export function ApiClientsView() {
                 onChange={(event) => set({ expiresOn: event.target.value })}
               />
             </FieldRow>
-            <p className="text-xms-label text-[12px]">Leave the expiry empty for a key that does not expire.</p>
+            <p className="text-xms-label text-[14px]">Leave the expiry empty for a key that does not expire.</p>
             <FieldRow label="Rate limit (requests a minute)" htmlFor="client-rate">
               <input
                 id="client-rate"
@@ -277,7 +277,7 @@ export function ApiClientsView() {
                 onChange={(event) => set({ ratePerMinute: event.target.value })}
               />
             </FieldRow>
-            <p className="text-xms-label text-[12px]">
+            <p className="text-xms-label text-[14px]">
               The API throttles this client past its limit. It is per client, not per account, and {DEFAULT_RATE_LIMIT}{" "}
               a minute is what a key carries unless you change it here.
             </p>
@@ -296,7 +296,7 @@ export function ApiClientsView() {
             <Skeleton lines={3} />
           </div>
         ) : null}
-        {isError ? <p className="text-xms-muted p-4 text-[13px]">The API clients could not be loaded.</p> : null}
+        {isError ? <p className="text-xms-muted p-4 text-[14px]">The API clients could not be loaded.</p> : null}
         {data ? (
           <table className="w-full border-collapse" aria-label="API clients">
             <thead className="bg-xms-card">
@@ -322,10 +322,10 @@ export function ApiClientsView() {
                   <td className={CELL}>
                     <span className="flex flex-col">
                       <span className="text-xms-ink font-medium">{client.name}</span>
-                      <span className="text-xms-label text-[11px]">{expiryLabel(client.expires_at)}</span>
+                      <span className="text-xms-label text-[14px]">{expiryLabel(client.expires_at)}</span>
                     </span>
                   </td>
-                  <td className={cn(CELL, "xms-mono text-xms-body text-[12px]")} data-key-prefix>
+                  <td className={cn(CELL, "xms-mono text-xms-body text-[14px]")} data-key-prefix>
                     {client.key_prefix}
                   </td>
                   <td className={CELL}>
@@ -334,10 +334,10 @@ export function ApiClientsView() {
                   <td className={CELL} data-accounts>
                     {client.account_ids.length} account{client.account_ids.length === 1 ? "" : "s"}
                   </td>
-                  <td className={cn(CELL, "xms-mono text-xms-body text-[12px]")} data-rate-limit>
+                  <td className={cn(CELL, "xms-mono text-xms-body text-[14px]")} data-rate-limit>
                     {rateLimitLabel(client.rate_limit_per_minute)}
                   </td>
-                  <td className={cn(CELL, "xms-mono text-xms-label text-[12px]")}>
+                  <td className={cn(CELL, "xms-mono text-xms-label text-[14px]")}>
                     {lastUsedLabel(client.last_used_at)}
                   </td>
                   <td className={CELL}>
@@ -353,14 +353,14 @@ export function ApiClientsView() {
                         onConfirm={() => revokeClient(client)}
                       />
                     ) : (
-                      <span className="text-xms-label text-[12px]">Revoked</span>
+                      <span className="text-xms-label text-[14px]">Revoked</span>
                     )}
                   </td>
                 </tr>
               ))}
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-xms-label px-4 py-8 text-center text-[13px]">
+                  <td colSpan={8} className="text-xms-label px-4 py-8 text-center text-[14px]">
                     No API client issued yet.
                   </td>
                 </tr>

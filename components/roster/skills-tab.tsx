@@ -57,7 +57,7 @@ export function LevelControl({
           title={entry.label}
           onClick={() => onChange(entry.level)}
           className={cn(
-            "border-xms-line h-[28px] border px-2 text-[12px] first:rounded-l-[4px] last:rounded-r-[4px] disabled:opacity-60",
+            "border-xms-line h-[28px] border px-2 text-[14px] first:rounded-l-[4px] last:rounded-r-[4px] disabled:opacity-60",
             value === entry.level ? "bg-xms-accent border-xms-accent text-white" : "bg-xms-card text-xms-body",
           )}
         >
@@ -182,16 +182,16 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
       <Panel title="Skills" caption={canEdit ? "Saved as one set" : "Read only: needs capacity:manage to change"}>
-        {draft.length === 0 ? <p className="text-xms-label text-[13px]">No skills recorded.</p> : null}
+        {draft.length === 0 ? <p className="text-xms-label text-[14px]">No skills recorded.</p> : null}
         <ul className="divide-xms-line divide-y" aria-label="Skills">
           {draft.map((entry) => (
             <li
               key={entry.skill_id}
-              className="flex flex-wrap items-center gap-3 py-2 text-[13px]"
+              className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
               data-skill={entry.code}
             >
               <span className="text-xms-ink min-w-[160px] font-medium">{entry.name}</span>
-              <span className="text-xms-label text-[12px]">{SKILL_KIND_LABEL[entry.kind] ?? entry.kind}</span>
+              <span className="text-xms-label text-[14px]">{SKILL_KIND_LABEL[entry.kind] ?? entry.kind}</span>
               <span className="ml-auto flex items-center gap-2">
                 {canEdit ? (
                   <LevelControl
@@ -284,7 +284,7 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
               >
                 Add skill
               </button>
-              <button type="button" className="text-xms-accent text-[13px]" onClick={() => setAdding((v) => !v)}>
+              <button type="button" className="text-xms-accent text-[14px]" onClick={() => setAdding((v) => !v)}>
                 {adding ? "Hide new skill" : "Add a new skill"}
               </button>
             </div>

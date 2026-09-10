@@ -131,7 +131,7 @@ export function CostRatesTab({ personId }: { personId: string }) {
           subtitle="It applies from the day you name until a later one replaces it. Naming a day that already has a rate corrects it."
         >
           <form
-            className="flex flex-wrap items-end gap-3 text-[12px]"
+            className="flex flex-wrap items-end gap-3 text-[14px]"
             noValidate
             onSubmit={async (event) => {
               event.preventDefault();
@@ -187,7 +187,7 @@ export function CostRatesTab({ personId }: { personId: string }) {
               Save rate
             </button>
           </form>
-          {problem ? <p className="mt-2 text-[12px] text-[color:var(--state-overdue-text)]">{problem}</p> : null}
+          {problem ? <p className="mt-2 text-[14px] text-[color:var(--state-overdue-text)]">{problem}</p> : null}
         </Panel>
       ) : null}
     </div>

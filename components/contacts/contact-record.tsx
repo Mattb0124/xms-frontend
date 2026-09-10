@@ -84,9 +84,9 @@ export function ContactRecord({ contactId }: { contactId: string }) {
           </span>
         ) : null}
         {contact.portal_user_id ? (
-          <span className="text-xms-label text-[13px]">Signs in to the portal</span>
+          <span className="text-xms-label text-[14px]">Signs in to the portal</span>
         ) : (
-          <span className="text-xms-muted text-[13px]">No portal sign-in</span>
+          <span className="text-xms-muted text-[14px]">No portal sign-in</span>
         )}
       </div>
 
@@ -120,7 +120,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
               )}
             </p>
             {account?.owner_name ? (
-              <p className="text-xms-label mt-2 text-[13px]">
+              <p className="text-xms-label mt-2 text-[14px]">
                 CSM{" "}
                 {account.owner_id ? (
                   <TextLink href={`/roster/${account.owner_id}`}>{account.owner_name}</TextLink>
@@ -136,17 +136,17 @@ export function ContactRecord({ contactId }: { contactId: string }) {
             {cases?.items?.length ? (
               <ul className="mt-2 flex flex-col gap-2">
                 {cases.items.slice(0, 8).map((row) => (
-                  <li key={row.key} className="flex items-baseline gap-2 text-[13px]">
+                  <li key={row.key} className="flex items-baseline gap-2 text-[14px]">
                     <KeyLink ticketKey={row.key} />
                     <span className="text-xms-body min-w-0 flex-1 truncate">{row.short_description}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xms-label mt-2 text-[13px]">Nothing raised yet.</p>
+              <p className="text-xms-label mt-2 text-[14px]">Nothing raised yet.</p>
             )}
             {cases?.items?.length ? (
-              <p className="mt-3 text-[13px]">
+              <p className="mt-3 text-[14px]">
                 <Link href={`/cases?q=${encodeURIComponent(contact.email)}`} className="xms-link">
                   Every case from this contact
                 </Link>

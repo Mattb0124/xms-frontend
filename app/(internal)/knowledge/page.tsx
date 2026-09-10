@@ -164,7 +164,7 @@ function KnowledgeList() {
                   placeholder="Search articles by title, category or key"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  className="text-xms-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+                  className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
                 />
                 <button
                   type="submit"
