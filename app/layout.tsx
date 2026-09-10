@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   return (
-    <html lang="en" suppressHydrationWarning className="xms-scope h-full antialiased">
+    <html lang="en" suppressHydrationWarning className="xms-scope h-full overflow-hidden antialiased">
       <body className="flex h-full min-h-0 flex-col overflow-hidden">
         <Providers nonce={nonce}>{children}</Providers>
       </body>

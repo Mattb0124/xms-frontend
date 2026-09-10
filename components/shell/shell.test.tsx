@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CommandPalette } from "@/components/shell/command-palette";
@@ -206,5 +208,22 @@ describe("what scrolls", () => {
     for (let node = main!.parentElement; node && node !== container; node = node.parentElement) {
       expect(node.className).toContain("min-h-0");
     }
+  });
+});
+
+describe("nothing scrolls but the work area", () => {
+  /**
+   * The navy bar stays because the document cannot move, and the document
+   * cannot move because both the root element and the body are clipped. With
+   * only the body clipped the root was still the scroller: a screen fifteen
+   * pixels taller than the window dragged the bar off the top, which is the
+   * one thing the sticky headers exist to prevent.
+   */
+  it("clips the root element as well as the body", () => {
+    const layout = readFileSync(join(process.cwd(), "app", "layout.tsx"), "utf8");
+    const html = layout.slice(layout.indexOf("<html"), layout.indexOf(">", layout.indexOf("<html")));
+    const body = layout.slice(layout.indexOf("<body"), layout.indexOf(">", layout.indexOf("<body")));
+    expect(html).toContain("overflow-hidden");
+    expect(body).toContain("overflow-hidden");
   });
 });
