@@ -57,7 +57,7 @@ export function ScoreTile({ label, value, detail, detailBeside, href, onClick, s
     // number, so the two go together rather than needing a second prop.
     "xms-card block text-left",
     detailBeside ? "p-[18px]" : "p-4",
-    (href || onClick) && "hover:border-xms-accent-border",
+    (href || onClick) && "hover:bg-xms-control-hover",
     selected && "border-xms-accent bg-xms-nav-wash",
     className,
   );

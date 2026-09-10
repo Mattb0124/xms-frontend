@@ -21,10 +21,10 @@ export interface PersonalizeColumnsProps {
 }
 
 const LIST_BOX =
-  "border-xms-control-line bg-xms-card text-xms-ink h-[260px] w-full rounded-[4px] border p-0 text-[13px] outline-none";
+  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[260px] w-full rounded-[4px] border p-0 text-[13px] outline-none";
 
 const MOVE_BUTTON =
-  "border-xms-control-line text-xms-ink hover:border-xms-accent hover:text-xms-accent flex h-[30px] w-[30px] items-center justify-center rounded-[4px] border disabled:opacity-40 disabled:hover:border-[color:var(--xms-control-line)] disabled:hover:text-[color:var(--xms-ink)]";
+  "xms-field border-xms-control-line text-xms-ink hover:text-xms-accent flex h-[30px] w-[30px] items-center justify-center rounded-[4px] border disabled:opacity-40";
 
 const SWITCHES: { key: keyof DisplayOptions; label: string }[] = [
   { key: "wrap", label: "Wrap column text" },

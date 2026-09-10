@@ -138,7 +138,7 @@ export function ActivityTab({ ticketKey }: { ticketKey: string }) {
               "rounded-[999px] px-[13px] py-2 text-[12px] font-medium",
               actor === filter.key
                 ? "bg-xms-accent font-semibold text-white"
-                : "border-xms-line-strong bg-xms-card text-xms-body hover:border-xms-accent hover:text-xms-accent border",
+                : "border-xms-line-strong bg-xms-card text-xms-body hover:bg-xms-control-hover hover:text-xms-accent border",
             )}
           >
             {filter.label}

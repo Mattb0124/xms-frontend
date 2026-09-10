@@ -160,3 +160,20 @@ describe("the display key face", () => {
     expect(body).toContain("var(--xms-accent)");
   });
 });
+
+describe("the field treatment", () => {
+  it("draws a field recessed and fills it on hover, in both grounds", () => {
+    expect(scope).toMatch(/--xms-field-inset: inset 0 1px 2px/);
+    expect(scope).toMatch(/--xms-control-hover: #e7edf8/);
+    // The dark ground reverses it: a light top edge, since a shadow on a
+    // dark field is invisible.
+    expect(scope).toMatch(/--xms-field-inset: inset 0 1px 0 rgb\(255 255 255/);
+    expect(scope).toMatch(/--xms-control-hover: #1e2c46/);
+  });
+
+  it("makes hover a fill and never a change of edge", () => {
+    expect(scope).toMatch(/\.xms-field:hover[\s\S]{0,140}background: var\(--xms-control-hover\)/);
+    // A control that already reads blue fills with the blue wash instead.
+    expect(scope).toMatch(/\.xms-field\[data-active="true"\][\s\S]{0,140}background: var\(--xms-tint\)/);
+  });
+});

@@ -63,6 +63,14 @@
   --xms-line-row: #eef1f6;
   /* The control border on the grey strip, dark enough to read against it. */
   --xms-control-line: #c3cad6;
+  /* A control the pointer is over. A fill, not a change of edge: a border
+   * that changes colour on hover makes a control look like it has become
+   * active when it has only been pointed at. */
+  --xms-control-hover: #e7edf8;
+  /* The recess. A field is a well you put something into, so it carries a
+   * faint inner shadow at its top edge, the way the reference draws its
+   * selects and text boxes. A button is a surface you press and stays flat. */
+  --xms-field-inset: inset 0 1px 2px rgb(15 23 42 / 0.08);
   /* The quietest drawn line: the dashed Add filter edge and the idle sort
    * glyph on a column header. */
   --xms-quiet-line: #b4bdcc;
@@ -213,6 +221,10 @@
   --xms-line-head: #2f4160;
   --xms-line-row: #1c2740;
   --xms-control-line: #2f4160;
+  --xms-control-hover: #1e2c46;
+  /* On a dark ground the recess is a light top edge rather than a shadow,
+   * because a darker shadow on a dark field is invisible. */
+  --xms-field-inset: inset 0 1px 0 rgb(255 255 255 / 0.05);
   --xms-quiet-line: #3a4d70;
   --xms-nav-wash: #16233f;
   --xms-note-bg: #172033;
@@ -607,6 +619,35 @@
   .xms-rows > *:hover {
     background: var(--xms-row-hover);
   }
+}
+
+/* A field is drawn recessed and fills on hover.
+ *
+ * `.xms-field` is opt-in because a control is not always an element: the
+ * strip's dimensions are a drawn span with a transparent native select over
+ * them, and a card search is a form wrapping a borderless input. The class
+ * goes on whichever element draws the box, so the recess and the hover fill
+ * land once rather than twice.
+ *
+ * Hover is the fill alone. The resting and active inks stay as they are: ink
+ * on an ink edge until the control carries a value, blue on a blue edge once
+ * it does. */
+.xms-scope .xms-field {
+  box-shadow: var(--xms-field-inset);
+}
+.xms-scope .xms-field:hover,
+.xms-scope .xms-field:focus-within {
+  background: var(--xms-control-hover);
+}
+/* A control that carries a value already reads blue, so its fill is the
+ * blue wash rather than the grey one, hover included. */
+.xms-scope .xms-field[data-active="true"],
+.xms-scope .xms-field[data-active="true"]:hover {
+  background: var(--xms-tint);
+}
+.xms-scope .xms-field:disabled,
+.xms-scope .xms-field[aria-disabled="true"] {
+  box-shadow: none;
 }
 
 /* Control geometry inside the scope (wins over utilities on purpose).

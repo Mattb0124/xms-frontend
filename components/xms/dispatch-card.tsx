@@ -103,7 +103,7 @@ export function DispatchRow(props: DispatchRowProps) {
               if (match) setAssigneeId(match.id);
             }}
             data-suggestion
-            className="border-xms-note-line bg-xms-note-bg text-xms-body hover:border-xms-accent-border rounded-[999px] border px-[13px] py-2 text-[12px] font-medium whitespace-nowrap"
+            className="border-xms-note-line bg-xms-note-bg text-xms-body hover:bg-xms-control-hover-border rounded-[999px] border px-[13px] py-2 text-[12px] font-medium whitespace-nowrap"
           >
             {`Axel suggests ${props.suggestion}`}
           </button>
