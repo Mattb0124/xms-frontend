@@ -350,7 +350,7 @@ function CasesScreen() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex h-full min-h-0 flex-col gap-5">
       <HeaderFilters>
         <div className="flex items-center gap-2">
           {/* "Show: All open (26)": the primary dimension, in the link colour,

@@ -171,7 +171,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
       className={cn(
         "flex min-w-0 flex-col",
         // A list screen is bands edge to edge; every other surface is a card.
-        props.bleed ? "bg-xms-card border-xms-line border-y" : "xms-card",
+        props.bleed ? "bg-xms-card border-xms-line min-h-0 flex-1 border-y" : "xms-card",
         props.className,
       )}
       aria-label={props.title}
@@ -192,8 +192,11 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
       </header>
       {props.banner}
       {/* Horizontal overflow scrolls inside the card, never the page
-          (hand-off section 5). */}
-      <div className="overflow-x-auto">
+          (hand-off section 5). On a list screen it carries the vertical
+          scroll too, so the sticky column header has something to pin
+          against: a header stuck to a box that never scrolls vertically
+          simply travels with the rows. */}
+      <div className={cn("overflow-x-auto", props.bleed && "min-h-0 flex-1 overflow-y-auto")}>
         {/* The card names itself even where the header draws a search in
             place of the title, so the table is still findable by name. */}
         <table
