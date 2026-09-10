@@ -5,7 +5,6 @@ import { MeterBar } from "@/components/xms/meter-bar";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
-import { formatDate } from "@/components/admin/primitives";
 import { HEALTH_LABEL, HEALTH_MEANING, HEALTH_TONE } from "@/lib/health/bands";
 import { useAccountHealthQuery, type HealthFactor } from "@/redux/reportingApi";
 
@@ -138,7 +137,7 @@ export function AccountHealthTab({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <Panel
         title="Health"
-        subtitle={`Composed on read over the ${data.window.days} days to ${formatDate(data.window.end)}.`}
+        subtitle={`Composed on read over the ${data.window.days} days to ${data.window.end.slice(0, 10)}.`}
       >
         <div className="flex flex-wrap items-baseline gap-x-[14px] gap-y-2">
           <span className="xms-mono text-xms-ink text-[34px] leading-none font-semibold tabular-nums">
