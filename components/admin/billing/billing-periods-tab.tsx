@@ -276,7 +276,7 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
                     data-status={period.status}
                   >
                     <td className={CELL}>
-                      <span className="flex flex-col">
+                      <span className="xms-stack">
                         <span className="text-xms-ink font-medium">{periodLabel(period)}</span>
                         <span className="xms-mono text-xms-label text-[14px]">
                           {period.starts_on} to {period.ends_on}

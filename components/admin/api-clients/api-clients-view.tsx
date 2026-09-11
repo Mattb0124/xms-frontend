@@ -320,7 +320,7 @@ export function ApiClientsView() {
                   data-status={client.status}
                 >
                   <td className={CELL}>
-                    <span className="flex flex-col">
+                    <span className="xms-stack">
                       <span className="text-xms-ink font-medium">{client.name}</span>
                       <span className="text-xms-label text-[14px]">{expiryLabel(client.expires_at)}</span>
                     </span>

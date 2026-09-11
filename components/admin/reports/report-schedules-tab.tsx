@@ -486,7 +486,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                   </td>
                   <td className={CELL}>{nameOf(run.schedule_id)}</td>
                   <td className={CELL}>
-                    <span className="flex flex-col">
+                    <span className="xms-stack">
                       <span>{requestedByLabel(run.requested_by)}</span>
                       <span className="xms-mono text-xms-label text-[14px]">{formatMoment(run.created_at)}</span>
                     </span>

@@ -50,7 +50,7 @@ export function PeopleList({ rows, groupNames, loading, search, emptyState }: Pe
       title: "Name",
       sortValue: (row) => row.display_name,
       render: (row) => (
-        <span className="flex flex-col">
+        <span className="xms-stack">
           <Link href={`/roster/${row.id}`} className="text-xms-accent font-medium" data-person={row.id}>
             {row.display_name}
           </Link>

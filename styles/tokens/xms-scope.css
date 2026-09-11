@@ -373,11 +373,24 @@
    * markup both set the UI face here, and mono at 11px with .06em tracking
    * read as a different product from the titles beside it. Mono stays for
    * what has to align in a column: keys, clocks, hours and counts. */
+  /* Two lines that belong together: a name over its role, a value over its
+   * basis. They were drawn as a bare flex column with no gap inside a row
+   * pinned to its own height, so two lines of 14px at 1.4 filled the row
+   * exactly and the text read as smushed. The gap is the point of the class;
+   * the row must be free to grow, which is why nothing here sets a height. */
+  .xms-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: 1.35;
+  }
+
   .xms-caption {
     font: 600 var(--xms-text-xs)/1.35 var(--xms-font);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--xms-muted);
+    margin-bottom: 3px;
   }
 
   /* The sidebar row, from the hand-off's own rule (`xms-ui.css` section 5b).

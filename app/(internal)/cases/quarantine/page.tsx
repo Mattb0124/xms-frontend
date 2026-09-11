@@ -62,7 +62,7 @@ const COLUMNS: DenseColumn<QuarantineItem>[] = [
     title: "From",
     sortValue: (row) => row.from_address,
     render: (row) => (
-      <span className="flex flex-col">
+      <span className="xms-stack">
         <span className="text-xms-ink">{row.from_name || row.from_address}</span>
         <span className="xms-mono text-xms-label text-[14px]">{row.from_address}</span>
       </span>

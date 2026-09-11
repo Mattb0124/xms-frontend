@@ -88,7 +88,7 @@ export function StatusPill({ status }: { status: CapacityStatus }) {
 export const REMAINING_BASIS = "Available minus allocated, never below zero; the actual hours logged do not reduce it";
 
 const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 align-middle whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-[9px] align-middle whitespace-nowrap";
 
 /**
  * The capacity view (functional 5.4 and 5.5): one row per person with the
@@ -226,12 +226,12 @@ export function CapacityGrid({ view, month, accounts, canManage }: CapacityGridP
           {rows.map((row) => (
             <tr
               key={row.person.id}
-              className="border-xms-line hover:bg-xms-row-hover h-[47px] border-b"
+              className="border-xms-line hover:bg-xms-row-hover border-b"
               data-person={row.person.id}
               data-status={row.month.status}
             >
               <td className={CELL}>
-                <span className="flex flex-col">
+                <span className="xms-stack">
                   <Link href={`/roster/${row.person.id}`} className="text-xms-accent font-medium">
                     {row.person.display_name}
                   </Link>

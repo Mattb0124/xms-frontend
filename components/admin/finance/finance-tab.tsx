@@ -335,7 +335,7 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
                   data-status={delivery.status}
                 >
                   <td className={CELL}>
-                    <span className="flex flex-col">
+                    <span className="xms-stack">
                       <span className="text-xms-ink font-medium">
                         {names[delivery.billing_period_id] ?? delivery.billing_period_id.slice(0, 8)}
                       </span>
@@ -343,7 +343,7 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
                     </span>
                   </td>
                   <td className={CELL}>
-                    <span className="flex flex-col">
+                    <span className="xms-stack">
                       <span>{DESTINATION_KINDS[delivery.destination_kind].label}</span>
                       {delivery.manifest_key ? (
                         <span className="xms-mono text-xms-label text-[14px]" data-manifest>
