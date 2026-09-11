@@ -232,6 +232,38 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
         </div>
       </Panel>
 
+      <Panel
+        title="Container cases"
+        caption="When a ticket has quietly become a project, raise it for a scope decision (TM-27)"
+      >
+        <p className="text-muted mb-3 text-sm">
+          A ticket crossing any threshold set here is flagged out of scope with the reason, and the account owner is
+          told. A person still makes the decision. Leave a threshold empty to switch it off.
+        </p>
+        {(
+          [
+            ["container_time_entries", "Time entries", "entries logged against one ticket"],
+            ["container_elapsed_days", "Days open", "days since the ticket was raised"],
+            ["container_effort_minutes", "Effort (minutes)", "minutes logged against one ticket"],
+          ] as const
+        ).map(([key, label, hint]) => (
+          <div key={key} className="mt-3 first:mt-0">
+            <FieldRow label={label} htmlFor={key}>
+              <input
+                id={key}
+                type="number"
+                min={1}
+                placeholder="Off"
+                value={current[key] ?? ""}
+                onChange={(event) => set(key, event.target.value === "" ? null : Number(event.target.value))}
+                className={INPUT}
+              />
+            </FieldRow>
+            <p className="text-muted mt-1 text-xs">{hint}</p>
+          </div>
+        ))}
+      </Panel>
+
       <div className="flex items-center gap-2 lg:col-span-2">
         <button type="button" className={PRIMARY_BUTTON} disabled={!dirty || saving} onClick={() => void save()}>
           {saving ? "Saving" : "Save settings"}

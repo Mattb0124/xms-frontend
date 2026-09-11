@@ -15,6 +15,7 @@ import { AccountContractsTab } from "@/components/admin/contracts/account-contra
 import { AccountCoverageChips } from "@/components/capacity/coverage-chips";
 import { GrantsReconcile } from "@/components/admin/grants-reconcile";
 import { IntakeTab } from "@/components/admin/intake-tab";
+import { AccountOwnerPanel } from "@/components/admin/owner-panel";
 import { ReportSchedulesTab } from "@/components/admin/reports/report-schedules-tab";
 import { AccountBudgetView } from "@/components/time/budget-view";
 import {
@@ -109,26 +110,29 @@ function OverviewTab({ id }: { id: string }) {
     { key: "updated_at", label: "Updated", value: formatDate(data.updated_at), readOnly: true, mono: true },
   ];
   return (
-    <Panel title="Identity and residency" caption={`version ${data.version}`}>
-      <RecordForm
-        fields={fields}
-        onCommit={async (key, value) => {
-          const body: Record<string, unknown> = {
-            version: data.version,
-            [key]: key === "legal_name" && value === "" ? null : value,
-          };
-          await update({ id, body: body as never }).unwrap();
-          if (key === "isolation_tier") {
-            push({
-              title: "Isolation tier recorded",
-              detail: "A migration runbook follows before the account moves.",
-              tone: "info",
-            });
-          }
-        }}
-        onRollback={(_key, _restored, error) => onError(error)}
-      />
-    </Panel>
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Panel title="Identity and residency" caption={`version ${data.version}`}>
+        <RecordForm
+          fields={fields}
+          onCommit={async (key, value) => {
+            const body: Record<string, unknown> = {
+              version: data.version,
+              [key]: key === "legal_name" && value === "" ? null : value,
+            };
+            await update({ id, body: body as never }).unwrap();
+            if (key === "isolation_tier") {
+              push({
+                title: "Isolation tier recorded",
+                detail: "A migration runbook follows before the account moves.",
+                tone: "info",
+              });
+            }
+          }}
+          onRollback={(_key, _restored, error) => onError(error)}
+        />
+      </Panel>
+      <AccountOwnerPanel account={data} />
+    </div>
   );
 }
 
