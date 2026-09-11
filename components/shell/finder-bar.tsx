@@ -90,7 +90,7 @@ export function FinderBar(props: FinderBarProps) {
               onClick={props.onWorkspace}
               aria-expanded={props.workspaceOpen ?? false}
               aria-label={`Scope: THG PROD, ${props.workspaceLabel}`}
-              className="flex min-w-0 flex-1 items-center gap-[6px] text-left"
+              className="xms-plain flex min-w-0 flex-1 items-center gap-[6px] text-left"
             >
               <span className="text-[14px] font-semibold whitespace-nowrap text-white">THG PROD</span>
               <span aria-hidden className="text-white/40">
@@ -117,7 +117,7 @@ export function FinderBar(props: FinderBarProps) {
         <button
           type="button"
           onClick={props.onSearchFocus}
-          className="border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border bg-[color:var(--xms-navy-sunken)] px-3 text-left"
+          className="xms-plain border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border bg-[color:var(--xms-navy-sunken)] px-3 text-left"
         >
           <SearchIcon size={ICON.action} className="shrink-0 text-white/55" />
           <span className="flex-1 truncate text-[14px] text-white/60">Search</span>

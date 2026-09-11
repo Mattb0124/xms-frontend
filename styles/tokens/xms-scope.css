@@ -840,6 +840,31 @@
   color: var(--xms-accent);
 }
 
+/* A button's label is bold (wins over utilities on purpose).
+ *
+ * The weight was written per button and drifted: the primary fills in both
+ * primitives files carried 500, the dispatch card's Confirm carried 600, and
+ * the great majority of the app's buttons named no weight at all and took the
+ * body's 400. Stated once here, an action reads as an action wherever it is,
+ * and a new button is right without anyone remembering to say so.
+ *
+ * Two exemptions, both because the element is a button without being an
+ * action:
+ *
+ * - A tab row spends weight on saying which tab is selected (500 at rest, 600
+ *   selected). Bolding every tab spends that signal for nothing, which is why
+ *   the geometry rule below exempts tabs too.
+ * - `.xms-plain` is for a button impersonating another control: the finder
+ *   bar's search box, which is a text field you press, the workspace scope
+ *   beside it, which is a label, and the sidebar's section disclosure, whose
+ *   bolding was taken off by hand on 2026-09-10 and is not being put back. */
+.xms-scope button:not([role="tab"]):not(.xms-plain) {
+  font-weight: 700;
+}
+.xms-scope .xms-plain {
+  font-weight: 400;
+}
+
 /* Control geometry inside the scope (wins over utilities on purpose).
  *
  * A tab is not a control with a box: its selected mark is a straight rule on

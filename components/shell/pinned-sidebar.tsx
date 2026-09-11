@@ -111,7 +111,7 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
                         return next;
                       })
                     }
-                    className="text-xms-nav-text hover:bg-xms-row-hover flex items-center gap-[6px] px-[14px] pt-[10px] pb-[4px] text-left"
+                    className="xms-plain text-xms-nav-text hover:bg-xms-row-hover flex items-center gap-[6px] px-[14px] pt-[10px] pb-[4px] text-left"
                   >
                     <ChevronDownIcon
                       size={ICON.glyph}
