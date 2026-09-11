@@ -394,34 +394,16 @@ function CasesScreen() {
         />
       </HeaderFilterPanel>
       <HeaderAction>
-        {/* "Actions on selected rows", beside the primary button. It is drawn
-            disabled with nothing ticked rather than appearing and vanishing,
-            so the row of controls never moves under the pointer. The same
-            four actions stand in the selection bar over the rows. */}
-        <span className="flex items-center gap-2">
-          <select
-            aria-label="Actions on selected rows"
-            disabled={selected.size === 0}
-            value=""
-            onChange={(event) => {
-              const action = event.target.value;
-              event.currentTarget.value = "";
-              if (action === "assign") void assignSelected();
-              if (action === "watch") void watchSelected();
-            }}
-            className="border-xms-control-line bg-xms-card text-xms-body h-[var(--xms-header-pill-h)] rounded-[var(--xms-radius-control)] border px-[10px] text-[14px] disabled:opacity-50"
-          >
-            <option value="">{selected.size === 0 ? "Actions on selected rows" : `Actions on ${selected.size}`}</option>
-            <option value="assign">Assign to me</option>
-            <option value="watch">Watch</option>
-          </select>
-          {me.hasPermission("tickets:create") ? (
-            <Link href="/cases/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
-              <PlusIcon size={ICON.action} />
-              New
-            </Link>
-          ) : null}
-        </span>
+        {/* The primary action alone. "Actions on selected rows" stood here
+            disabled whenever nothing was ticked, which is most of the time,
+            and every action it offered is already in the selection bar that
+            appears over the rows once something is. */}
+        {me.hasPermission("tickets:create") ? (
+          <Link href="/cases/new" className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
+            <PlusIcon size={ICON.action} />
+            New
+          </Link>
+        ) : null}
       </HeaderAction>
 
       {/* The condition trail and Save as view are one line. The open-ticket
