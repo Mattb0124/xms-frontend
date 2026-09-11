@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ICON, BellIcon, ChevronDownIcon, SearchIcon, StarIcon } from "@/components/xms/icons";
+import { ICON, BellIcon, CaretDownIcon, ChevronDownIcon, SearchIcon, StarIcon } from "@/components/xms/icons";
 import { cn } from "@/lib/utils";
 
 export type FinderKind = "all" | "favourites" | "history" | "workspaces";
@@ -38,7 +38,7 @@ const FINDERS: Array<{ kind: FinderKind; label: string }> = [
  * Every zone carries a fixed size rather than one derived from its content, so
  * nothing in the bar moves when `me`, the unread count or the current screen
  * label arrive: the logo is its native 196 by 24, the scope pill a fixed 320px, the search
- * field 330px, and the Axel pill, bell and avatar are sized in the class list
+ * field 244px, and the Axel pill, bell and avatar are sized in the class list
  * rather than by their text. The bar itself is `shrink-0`, which the built bar
  * was not: as a flex child of a column it was squeezed from 56px to about
  * 32px, which is the height the reviewer measured.
@@ -114,16 +114,36 @@ export function FinderBar(props: FinderBarProps) {
           </span>
         </div>
 
+        {/* The search field, measured off the reference bar Matt supplied on
+            2026-09-11: a 244 by 34 rounded rectangle, not a pill, on the
+            blue fill with a light edge, the magnifier and the word both in
+            plain white rather than the two greys they were, and a caret in
+            its own segment behind a hairline.
+
+            The caret is drawn, not wired. The reference splits the field
+            into a box and a list button, but this bar has one search and one
+            overlay, so a second control there would be a second way to do
+            the same thing. The segment is what the reference looks like; the
+            whole field is the button.
+
+            The `/` hint the field used to print is gone with the pill it sat
+            in. The shortcut still works, so it moves onto the control as a
+            title and aria-keyshortcuts rather than being lost. */}
         <button
           type="button"
           onClick={props.onSearchFocus}
-          className="xms-plain border-xms-navy-line flex h-[34px] w-[264px] shrink-0 items-center gap-2 rounded-[999px] border bg-[color:var(--xms-navy-sunken)] px-3 text-left"
+          title="Search (/)"
+          aria-keyshortcuts="/"
+          className="xms-plain flex h-[34px] w-[244px] shrink-0 items-stretch rounded-[4px] border border-[color:var(--xms-navy-field-line)] bg-[color:var(--xms-navy-sunken)] text-left"
         >
-          <SearchIcon size={ICON.action} className="shrink-0 text-white/55" />
-          <span className="flex-1 truncate text-[14px] text-white/60">Search</span>
-          <kbd className="xms-mono rounded-[4px] border border-white/20 px-[5px] py-[1px] text-[14px] text-white/55">
-            /
-          </kbd>
+          <span className="flex min-w-0 flex-1 items-center gap-[10px] px-[10px]">
+            <SearchIcon size={ICON.action} className="shrink-0 text-white" />
+            <span className="flex-1 truncate text-[14px] text-white">Search</span>
+          </span>
+          <span aria-hidden className="w-px self-stretch bg-[color:var(--xms-navy-field-line)]" />
+          <span aria-hidden className="flex w-[35px] shrink-0 items-center justify-center">
+            <CaretDownIcon size={ICON.action} className="text-white" />
+          </span>
         </button>
 
         <button
@@ -145,11 +165,21 @@ export function FinderBar(props: FinderBarProps) {
           ) : null}
         </button>
 
+        {/* The avatar is the reference's own inversion: a light disc with the
+            initials in the link blue, rather than the accent disc with white
+            initials it was. The reference measures 24px across; `h-7` lands
+            on 24.5 here, because the root font size in this app is 14 and not
+            16, which is also why the bell beside it at `h-8` is 28 rather
+            than 32. Measured in the browser, not assumed.
+
+            The reference also carries a green presence dot on the disc. It is
+            not drawn here: XMS has no presence, and a status mark that is
+            always the same colour tells the reader something untrue. */}
         <button
           type="button"
           aria-label="Account menu"
           onClick={props.onUser}
-          className="bg-xms-accent ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[999px] text-[14px] font-semibold text-white"
+          className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-[999px] bg-[color:var(--xms-avatar-bg)] text-[14px] leading-none text-[color:var(--xms-avatar-ink)]"
         >
           {props.userInitials}
         </button>

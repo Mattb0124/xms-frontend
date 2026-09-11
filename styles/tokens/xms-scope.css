@@ -33,8 +33,23 @@
   --xms-navy-overlay: #1a2450;
   --xms-navy-line: #232f60;
   /* The search field stands lighter than the scope pill beside it: two
-   * controls on one bar read as one surface when they share a fill. */
-  --xms-navy-sunken: #2b3870;
+   * controls on one bar read as one surface when they share a fill.
+   *
+   * The three values below are sampled from the reference bar Matt supplied
+   * on 2026-09-11 rather than eyeballed, and they are deliberately fixed in
+   * both grounds: the finder bar is a navy identity surface that does not
+   * invert, so a field, an edge and an avatar sitting on it must not either.
+   * The fill moved off the violet-leaning #2b3870 onto the reference's
+   * blue, and the edge is light enough to draw the field as a field rather
+   * than as a slightly different navy. */
+  --xms-navy-sunken: #2b527a;
+  --xms-navy-field-line: #7a93ac;
+  /* The avatar: a light disc with the initials in the link blue, which is the
+   * reference's own inversion of the bar. The disc cannot be --xms-bar, close
+   * as the light value is, because that token darkens on the dark ground and
+   * the bar under it does not. */
+  --xms-avatar-bg: #f2f5f7;
+  --xms-avatar-ink: #006fba;
   /* The finder overlay (renders 12 to 14): a translucent blue panel hanging
    * from the navy bar over a dimmed workspace. Every value is the
    * prototype's own. */
@@ -107,18 +122,24 @@
   --xms-row-hover: #f0f3fa;
   --xms-cell-hover: #eff4ff;
   --xms-selected-bar: #2563eb;
-  /* The tree (2026-09-10). Text, icons and the selected row's bar all read in
-   * the primary ink, so the column carries one colour and the light band is
-   * the only thing that says which row is selected. They alias --xms-ink
-   * rather than repeating #000e1d, so the palette moves in one place. The
-   * band itself is still eyeballed from the reference screenshot.
+  /* The tree (2026-09-10). Text and icons read in the primary ink, so the
+   * column carries one colour and nothing in it competes with the content
+   * beside it. They sit a shade under --xms-ink (#000e1d) rather than
+   * aliasing it, so the column reads a touch heavier than body copy. That is
+   * deliberate: if the two should move together, alias --xms-ink here.
    *
-   * These sit a shade under --xms-ink (#000e1d) rather than aliasing it, so
-   * the column reads a touch heavier than body copy. That is deliberate: if
-   * the two should move together, alias --xms-ink here instead. */
+   * The selected row's bar is the exception, and it is the accent
+   * (2026-09-11). It went ink for a while, which left the band doing the
+   * work on its own and the bar reading as another divider. The bar is the
+   * one mark in the column that means "you are here", so it is allowed the
+   * one colour nothing else in the column uses. Aliasing rather than
+   * repeating #006fba also gives the dark ground the right value for free:
+   * the dark block below redefines --xms-accent, and a var() resolves
+   * against the element it lands on. The band itself is still eyeballed from
+   * the reference screenshot. */
   --xms-nav-wash: #dbe4f6;
   --xms-nav-text: #04091d;
-  --xms-nav-bar: #04091d;
+  --xms-nav-bar: var(--xms-accent);
   --xms-nav-icon: #3d4b80;
 
   /* The note block: a quiet grey card standing inside another card. The Axel

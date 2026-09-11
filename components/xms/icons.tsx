@@ -190,6 +190,21 @@ export function ChevronDownIcon(props: IconProps) {
   );
 }
 
+/**
+ * The solid triangle a field's own dropdown segment carries, as against the
+ * stroked ChevronDownIcon a pill, a menu or a disclosure uses. The two are
+ * not interchangeable: the stroked chevron says "this opens", the filled
+ * caret says "this field has a list behind it", which is the distinction the
+ * reference bar draws and the one the finder bar's search field needs.
+ */
+export function CaretDownIcon(props: IconProps) {
+  return (
+    <Icon {...props} fill="currentColor" stroke="none">
+      <path d="M4.5 9h15l-7.5 9Z" />
+    </Icon>
+  );
+}
+
 /** A pager's step back and forward, and its jump to either end. */
 export function ChevronLeftIcon(props: IconProps) {
   return (
