@@ -189,7 +189,7 @@ function localMoment(iso: string): string {
   return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}T${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
-const CONTROL = "border-xms-line bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[14px]";
+const CONTROL = "border-xms-line-strong bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[14px]";
 
 function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange: (rows: AuditRow[]) => void }) {
   const update = (index: number, patch: Partial<AuditRow>) =>

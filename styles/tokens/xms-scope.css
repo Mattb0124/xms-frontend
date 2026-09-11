@@ -17,7 +17,7 @@
   --xms-body: #56606b;
   --xms-label: #56606b;
   --xms-muted: #56606b;
-  --xms-placeholder: #9aa3b2;
+  --xms-placeholder: #6b7083;
 
   /* Actions and selection, on the ServiceNow link and primary blue. One value
    * covers both there, and it covers more here: links, the selected row
@@ -65,16 +65,24 @@
   --xms-bg: #fafbfc;
   --xms-card: #ffffff;
   --xms-tint: #eff4ff;
-  --xms-line: #e4e8f5;
-  /* The input and card-control edge (the hand-off's --xms-line-input). */
-  --xms-line-strong: #c9d2e6;
+  /* Lines, on the three ServiceNow values (2026-09-10, AIBL-317). That system
+   * draws three and this one had nine, so they map by the job each does:
+   * --sn-border #c2cdd9 is the structural line under a column header and
+   * around a control, --sn-border-subtle #dde3ea is the card edge, and
+   * --sn-divider #bdc0c4 is the heavier rule between two regions. */
+  --xms-line: #dde3ea;
+  /* The input and card-control edge: the structural line, since a control's
+   * border and a column header's rule are the same weight in ServiceNow. */
+  --xms-line-strong: #c2cdd9;
   /* The table header underline, one step darker than a row hairline
    * (the hand-off's --xms-line-strong). */
   --xms-line-head: #c2cdd9;
-  /* The row divider, and the only thing that separates two rows. */
-  --xms-line-row: #eef1f6;
+  /* The row divider, and the only thing that separates two rows. ServiceNow
+   * separates rows by striping instead, so this takes the card edge rather
+   * than a value of its own: it should read as the quietest rule drawn. */
+  --xms-line-row: #dde3ea;
   /* The control border on the grey strip, dark enough to read against it. */
-  --xms-control-line: #c3cad6;
+  --xms-control-line: #c2cdd9;
   /* A control the pointer is over. A fill, not a change of edge: a border
    * that changes colour on hover makes a control look like it has become
    * active when it has only been pointed at. */
@@ -92,22 +100,33 @@
   /* The quietest ground in the product: the prototype hovers a card on it and
    * stands the Axel panel body on it. */
   --xms-quiet-bg: #fafafb;
-  /* The edge between two regions of the shell, one step darker than a card
-   * hairline: the Axel panel's own left edge. */
-  --xms-line-region: #d8dde5;
+  /* The edge between two regions of the shell, the Axel panel's own left
+   * edge. This is the one place the heavier --sn-divider belongs: it marks a
+   * boundary between regions rather than the edge of a thing. */
+  --xms-line-region: #bdc0c4;
   --xms-row-hover: #f0f3fa;
   --xms-cell-hover: #eff4ff;
   --xms-selected-bar: #2563eb;
-  /* The selected navigation row's fill (the hand-off's --xms-link-wash). It
-   * is a shade warmer than --xms-tint, which is the selected table row. */
-  --xms-nav-wash: #edf1ff;
+  /* The tree (2026-09-10). Text, icons and the selected row's bar all read in
+   * the primary ink, so the column carries one colour and the light band is
+   * the only thing that says which row is selected. They alias --xms-ink
+   * rather than repeating #000e1d, so the palette moves in one place. The
+   * band itself is still eyeballed from the reference screenshot.
+   *
+   * These sit a shade under --xms-ink (#000e1d) rather than aliasing it, so
+   * the column reads a touch heavier than body copy. That is deliberate: if
+   * the two should move together, alias --xms-ink here instead. */
+  --xms-nav-wash: #dbe4f6;
+  --xms-nav-text: #04091d;
+  --xms-nav-bar: #04091d;
+  --xms-nav-icon: #3d4b80;
 
   /* The note block: a quiet grey card standing inside another card. The Axel
    * brief line, the unlogged-time nudge and the Axel panel's own suggestion
    * all run on it. The hand-off's section 2f says the desk's Axel surfaces
    * run on greys by request, which is why these are not the violet family. */
   --xms-note-bg: #f4f6f8;
-  --xms-note-line: #d8dde5;
+  --xms-note-line: #dde3ea;
   --xms-note-ink: #26303f;
   /* The quiet primary inside a note block: Log now, Accept. */
   --xms-note-action: #4a5568;
@@ -118,7 +137,7 @@
    * --xms-quiet-fill. Neither carries state, which is why neither is on the
    * blue --xms-chip. */
   --xms-neutral-bg: #f1f3f6;
-  --xms-neutral-line: #dde2ea;
+  --xms-neutral-line: #dde3ea;
   --xms-neutral-ink: #334155;
   --xms-quiet-fill: #eff1f4;
 
@@ -308,16 +327,22 @@
    * an assignee, a breadcrumb segment and "Save as view" are links; a filled
    * blue button or an active nav row is not, because a solid chip never
    * reads as one. */
+  /* The reference draws a link with no underline and adds one on hover
+     (servicenow-style.css: `.sn-app a { text-decoration: none }`). A table of
+     keys, contacts and assignees was four underlines to a row, which read as
+     clutter rather than as affordance. The colour carries it; the underline
+     answers the pointer. */
   .xms-link {
     color: var(--xms-accent);
     font: 400 var(--xms-text-sm)/1.3 var(--xms-font);
-    text-decoration: underline;
+    text-decoration: none;
     text-decoration-color: var(--xms-link-underline);
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
   }
   .xms-link:hover {
     color: var(--xms-accent-hover);
+    text-decoration: underline;
     text-decoration-color: var(--xms-accent-hover);
   }
 
@@ -368,18 +393,28 @@
     padding: 9px 14px;
     border-left: 3px solid transparent;
     font: 400 var(--xms-text-md)/1.3 var(--xms-font);
-    /* Ink, like the section above it. The row was the softer body grey,
-     * which read as half-disabled next to everything else on the screen. */
-    color: var(--xms-ink);
+    color: var(--xms-nav-text);
+  }
+
+  /* The icons stand a step lighter than the label beside them, so the column
+   * reads as words with marks against them rather than as two equal weights.
+   * Lucide draws on currentColor, so this is the only rule that has to say it. */
+  .xms-nav-row svg {
+    color: var(--xms-nav-icon);
   }
   .xms-nav-row:hover {
     background: var(--xms-row-hover);
   }
   .xms-nav-row.is-active {
     background: var(--xms-nav-wash);
-    border-left-color: var(--xms-accent);
-    font-weight: 600;
-    color: var(--xms-accent-hover);
+    border-left-color: var(--xms-nav-bar);
+    /* The fill and the bar say which row is selected, so the text does not
+     * have to. It used to go accent and semibold, which made the selected row
+     * the only blue text in the column and read as a link rather than as a
+     * position. */
+    /* Selected keeps the same colour: the fill and the bar say which row it
+     * is, so the text does not change to say it a second time. */
+    color: var(--xms-nav-text);
   }
 
   /* The count on a sidebar row: a 999px chip, mono, on the soft fill. On the
@@ -569,6 +604,16 @@
     font: 500 var(--xms-text-sm)/1.2 var(--xms-font);
     white-space: nowrap;
   }
+  /* The caret belongs to the sorted column, and to whatever the pointer is
+     over. Eleven idle arrows across a header row is noise, and the reference
+     draws one only for th[aria-sort]. */
+  .xms-sticky-head th:not([aria-sort]) .xms-sort-caret {
+    opacity: 0;
+  }
+  .xms-sticky-head th:hover .xms-sort-caret {
+    opacity: 1;
+  }
+
   .xms-priority-mark .xms-priority-dot {
     width: 8px;
     height: 8px;
@@ -723,7 +768,7 @@
  * overlay selects keep their native drawing: neither shows a face. */
 .xms-scope select:not([class*="opacity-0"]):not([multiple]) {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1623' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000e1d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 9px center;
   background-size: 14px 14px;

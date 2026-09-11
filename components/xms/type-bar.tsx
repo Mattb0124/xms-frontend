@@ -27,7 +27,7 @@ export interface TypeBarProps {
 /** The 3px type bar beside the type label (Wireframes section 8.2). */
 export function TypeBar({ type, label, className }: TypeBarProps) {
   return (
-    <span className={cn("xms-type text-[14px]", className)} data-type={TYPE_SLUG[type]}>
+    <span className={cn("xms-type", className)} data-type={TYPE_SLUG[type]}>
       {label ?? TYPE_LABEL[type]}
     </span>
   );

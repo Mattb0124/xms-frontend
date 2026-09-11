@@ -15,7 +15,7 @@ import { EmptyBanner } from "@/components/xms/empty-banner";
 import { BreadcrumbTrail } from "@/components/xms/breadcrumb-trail";
 import { ConditionBuilder } from "@/components/xms/condition-builder";
 import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
-import { ICON, ChevronDownIcon, PlusIcon, SearchIcon, SwitchIcon, TagIcon } from "@/components/xms/icons";
+import { ICON, PlusIcon, SearchIcon, SwitchIcon, TagIcon } from "@/components/xms/icons";
 import { BulkAction, SelectionBar } from "@/components/xms/selection-bar";
 import { Skeleton } from "@/components/xms/skeleton";
 import { TablePager } from "@/components/xms/table-pager";
@@ -501,7 +501,7 @@ function CasesScreen() {
           onRowPreview={(row, anchor) => setPreview({ key: row.key, anchor })}
           search={
             <form
-              className="xms-field xms-field-typed border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+              className="xms-field xms-field-typed border-xms-line-strong bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
               onSubmit={(event) => {
                 event.preventDefault();
                 navigate({ q: query.trim() });
@@ -548,10 +548,6 @@ function CasesScreen() {
                     </option>
                   ))}
                 </select>
-                <ChevronDownIcon
-                  size={ICON.glyph}
-                  className="text-xms-accent pointer-events-none absolute right-[7px]"
-                />
               </span>
               <span className="relative inline-flex items-center">
                 <select
@@ -562,7 +558,7 @@ function CasesScreen() {
                     event.currentTarget.value = "";
                     if (priority) void setPrioritySelected(priority);
                   }}
-                  className="border-xms-line-strong bg-xms-card text-xms-body h-[30px] appearance-none rounded-[4px] border pr-[22px] pl-[10px] text-[14px]"
+                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-[4px] border pr-6 pl-[10px] text-[14px] font-medium"
                 >
                   <option value="">Priority</option>
                   <option value="p1">1 - Critical</option>
@@ -570,10 +566,6 @@ function CasesScreen() {
                   <option value="p3">3 - Moderate</option>
                   <option value="p4">4 - Low</option>
                 </select>
-                <ChevronDownIcon
-                  size={ICON.glyph}
-                  className="text-xms-accent pointer-events-none absolute right-[7px]"
-                />
               </span>
               <BulkAction
                 icon={<TagIcon size={ICON.control} />}

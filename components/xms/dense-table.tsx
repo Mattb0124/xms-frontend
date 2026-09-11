@@ -200,7 +200,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
         <table
           aria-label={props.title}
           data-plain={display && !display.coloring ? "true" : undefined}
-          className="xms-sticky-head w-full border-collapse text-[15px]"
+          className="xms-sticky-head w-full border-collapse text-[14px]"
         >
           {/* Without a header row the widths have nowhere else to live. */}
           {props.headless ? (
@@ -228,7 +228,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     style={{ width: column.width }}
                     aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : undefined}
                     className={cn(
-                      "text-xms-ink px-[14px] text-left text-[16px] font-bold whitespace-nowrap",
+                      "text-xms-ink px-[14px] text-left font-bold whitespace-nowrap",
                       display?.compact ? "py-[7px]" : "py-[11px]",
                       column.align === "right" && "text-right",
                     )}
@@ -244,7 +244,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                             the system, not the label grey it was drawn in
                             (hand-off section 5). */}
                         <SortCaret
-                          className={active ? "text-xms-accent" : "text-xms-quiet-line"}
+                          className={cn("xms-sort-caret", active ? "text-xms-accent" : "text-xms-quiet-line")}
                           direction={active ? sort?.direction : undefined}
                         />
                       </button>

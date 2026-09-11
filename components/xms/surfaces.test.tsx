@@ -367,9 +367,10 @@ describe("the full-width rule", () => {
 });
 
 /**
- * A hyperlink is one thing everywhere: #2563EB, a faint persistent underline,
- * Inter at 13px. The rule lives once in the scope, so a component that reaches
- * for the accent colour and a hover underline of its own is a link drawn twice.
+ * A hyperlink is one thing everywhere: the accent colour, no underline until
+ * the pointer is on it, one face. The rule lives once in the scope, so a
+ * component reaching for the accent colour and a hover underline of its own is
+ * a link drawn twice.
  */
 describe("a link is drawn once", () => {
   it("states the colour, the underline and the face in the scope", () => {
@@ -380,7 +381,9 @@ describe("a link is drawn once", () => {
     // 2026-09-10: every size in the scope runs on a --xms-text-* step, and the
     // bottom of that scale is pinned at the 14px floor by tokens.test.ts.
     expect(scope).toContain("font: 400 var(--xms-text-sm)/1.3 var(--xms-font)");
-    expect(scope).toContain("text-decoration-color: var(--xms-link-underline)");
+    // No underline at rest, one on hover, per servicenow-style.css.
+    expect(scope).toContain("text-decoration: none");
+    expect(scope).toMatch(/\.xms-link:hover \{[^}]*text-decoration: underline/);
   });
 
   it("leaves no component styling a link by hand", () => {

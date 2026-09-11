@@ -152,7 +152,7 @@ function KnowledgeList() {
             search={
               // The Cases list's own card search, at the same 38px and 400px.
               <form
-                className="xms-field xms-field-typed border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+                className="xms-field xms-field-typed border-xms-line-strong bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
                 onSubmit={(event) => {
                   event.preventDefault();
                   navigate({ q: query.trim() });

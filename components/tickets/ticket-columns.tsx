@@ -313,7 +313,7 @@ function Stamp({ iso }: { iso: string }) {
   return (
     <span className="text-xms-label flex flex-col leading-[1.3]">
       <span>{day}</span>
-      <span className="xms-mono text-xms-muted text-[14px]">{time}</span>
+      <span className="text-xms-muted tabular-nums">{time}</span>
     </span>
   );
 }

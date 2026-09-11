@@ -11,6 +11,8 @@
 
 @theme inline {
   --color-xms-ink: var(--xms-ink);
+  --color-xms-nav-icon: var(--xms-nav-icon);
+  --color-xms-nav-text: var(--xms-nav-text);
   --color-xms-body: var(--xms-body);
   --color-xms-label: var(--xms-label);
   --color-xms-muted: var(--xms-muted);

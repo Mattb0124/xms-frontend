@@ -111,13 +111,13 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
                         return next;
                       })
                     }
-                    className="text-xms-ink hover:bg-xms-row-hover flex items-center gap-[6px] px-[14px] pt-[10px] pb-[4px] text-left"
+                    className="text-xms-nav-text hover:bg-xms-row-hover flex items-center gap-[6px] px-[14px] pt-[10px] pb-[4px] text-left"
                   >
                     <ChevronDownIcon
                       size={ICON.glyph}
                       className={cn("shrink-0 transition-transform", open ? undefined : "-rotate-90")}
                     />
-                    <span className="flex-1 text-[14px] tracking-[0.04em] uppercase">{group.section}</span>
+                    <span className="flex-1 text-[14px]">{group.section}</span>
                   </button>
                   {open
                     ? group.screens.map((screen) => {
@@ -131,10 +131,7 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
                             aria-current={active ? "page" : undefined}
                             className={cn("xms-nav-row pl-[30px] hover:no-underline", active && "is-active")}
                           >
-                            <ScreenIcon
-                              size={ICON.row}
-                              className={cn("shrink-0", active ? "text-xms-accent-hover" : "text-xms-label")}
-                            />
+                            <ScreenIcon size={ICON.row} className="shrink-0" />
                             <span className="min-w-0 flex-1 truncate">{screen.label}</span>
                             {/* The chip is drawn only where the server counted
                                 something; the row has nothing to reserve, since
@@ -151,13 +148,11 @@ export function PinnedSidebar(props: PinnedSidebarProps) {
         )}
         {props.permissions && props.starredViews.length > 0 ? (
           <>
-            <p className="text-xms-ink px-[14px] pt-[18px] pb-2 text-[14px] tracking-[0.04em] uppercase">
-              Starred views
-            </p>
+            <p className="text-xms-nav-text px-[14px] pt-[18px] pb-2 text-[14px]">Starred views</p>
             <nav aria-label="Starred views" className="flex flex-col">
               {props.starredViews.map((view) => (
                 <Link key={view.path} href={view.path} className="xms-nav-row text-[14px] hover:no-underline">
-                  <StarIcon size={ICON.field} className="text-xms-placeholder shrink-0" />
+                  <StarIcon size={ICON.field} className="shrink-0" />
                   <span className="min-w-0 flex-1 truncate">{view.label}</span>
                   {typeof view.count === "number" ? <span className="xms-nav-badge">{view.count}</span> : null}
                 </Link>
