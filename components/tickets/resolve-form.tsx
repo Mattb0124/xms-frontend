@@ -6,7 +6,22 @@ import { SolutionPicker, type PickedSolution } from "@/components/tickets/soluti
 import { CloseDisciplineChecklist, type DisciplineItem } from "@/components/xms/close-discipline-checklist";
 import { isNoSolutionCode, RESOLUTION_CODES, type ResolutionCode } from "@/lib/tickets/vocab";
 import type { SearchHit } from "@/redux/knowledgeApi";
-import type { ResolutionBody } from "@/redux/ticketsApi";
+import type { ExemptionReason, ResolutionBody } from "@/redux/ticketsApi";
+
+/**
+ * The gate's own fallback (TB-02), mirroring the server's: a browser that
+ * could not read the account's catalog offers the five the spec names rather
+ * than a free-text box, because free text is exactly what this replaced.
+ */
+export const DEFAULT_EXEMPTION_REASONS: ExemptionReason[] = [
+  { key: "duplicate", label: "Duplicate of another ticket" },
+  { key: "cancelled_by_client", label: "Cancelled by the client" },
+  { key: "resolved_by_client", label: "Resolved by the client" },
+  { key: "administrative_close", label: "Administrative close" },
+  { key: "merged", label: "Merged into another ticket" },
+];
+
+export const DEFAULT_MIN_NOTES_CHARS = 40;
 
 export interface ResolveDraft {
   code: string;
@@ -35,11 +50,20 @@ export function disciplineItems(
   requires: string[],
   loggedMinutes = 0,
   codes: ResolutionCode[] = RESOLUTION_CODES,
+  minNotesChars = DEFAULT_MIN_NOTES_CHARS,
 ): DisciplineItem[] {
   const items: DisciplineItem[] = [];
   if (requires.includes("resolution")) {
     items.push({ key: "resolution_code", label: "Resolution code", done: draft.code !== "" });
-    items.push({ key: "notes", label: "Resolution notes", done: draft.notes.trim() !== "" });
+    const notes = draft.notes.trim();
+    // The bar is shown while it is unmet, so the reader learns it from the
+    // checklist rather than from a refusal (TB-02).
+    items.push({
+      key: "notes",
+      label: "Resolution notes",
+      done: notes.length >= minNotesChars,
+      detail: notes.length >= minNotesChars ? undefined : `${notes.length} of ${minNotesChars} characters`,
+    });
   }
   if (requires.includes("solution_link")) {
     const waived = isNoSolutionCode(draft.code, codes);
@@ -74,6 +98,10 @@ export function toResolutionBody(draft: ResolveDraft): ResolutionBody {
 export interface ResolveFormProps {
   requires: string[];
   loggedMinutes?: number;
+  /** The exemption reasons this account accepts (TB-02); the built-in five are the fallback. */
+  exemptionReasons?: ExemptionReason[];
+  /** The account's resolution-notes completeness bar (TB-02). */
+  minNotesChars?: number;
   onSubmit: (draft: ResolveDraft) => void | Promise<void>;
   onCancel: () => void;
   pending?: boolean;
@@ -92,6 +120,8 @@ export interface ResolveFormProps {
 export function ResolveForm({
   requires,
   loggedMinutes = 0,
+  exemptionReasons = DEFAULT_EXEMPTION_REASONS,
+  minNotesChars = DEFAULT_MIN_NOTES_CHARS,
   onSubmit,
   onCancel,
   pending,
@@ -104,8 +134,8 @@ export function ResolveForm({
   const [draft, setDraft] = useState<ResolveDraft>({ ...EMPTY_RESOLVE, solutionArticleId: preselected?.id ?? "" });
   const [picked, setPicked] = useState<PickedSolution | null>(preselected);
   const items = useMemo(
-    () => disciplineItems(draft, requires, loggedMinutes, codes),
-    [draft, requires, loggedMinutes, codes],
+    () => disciplineItems(draft, requires, loggedMinutes, codes, minNotesChars),
+    [draft, requires, loggedMinutes, codes, minNotesChars],
   );
   const ready = items.every((item) => item.done);
   const waived = isNoSolutionCode(draft.code, codes);
@@ -176,12 +206,19 @@ export function ResolveForm({
       {requires.includes("time_logged") && loggedMinutes === 0 ? (
         <label className="flex flex-col gap-1 text-[14px]">
           <span className="text-xms-label">Time exemption reason (no time logged yet)</span>
-          <input
+          <select
             aria-label="Time exemption reason"
             value={draft.timeExemptionReason}
             onChange={(event) => setDraft({ ...draft, timeExemptionReason: event.target.value })}
             className={INPUT}
-          />
+          >
+            <option value="">Choose a reason</option>
+            {exemptionReasons.map((reason) => (
+              <option key={reason.key} value={reason.key}>
+                {reason.label}
+              </option>
+            ))}
+          </select>
         </label>
       ) : null}
       <CloseDisciplineChecklist items={items} />
