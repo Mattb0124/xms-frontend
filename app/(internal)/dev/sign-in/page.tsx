@@ -80,7 +80,7 @@ export default function DevSignInPage() {
     );
   }
 
-  const useToken = (value: string) => {
+  const applyToken = (value: string) => {
     setDevToken(value);
     dispatch(xmsApi.util.resetApiState());
     router.push("/");
@@ -97,7 +97,7 @@ export default function DevSignInPage() {
       });
       if (!response.ok) throw new Error(`the API answered ${response.status}`);
       const body = (await response.json()) as { token: string };
-      useToken(body.token);
+      applyToken(body.token);
     } catch (caught) {
       setLoadError((caught as Error).message);
       setSigningIn(null);
@@ -130,7 +130,11 @@ export default function DevSignInPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Panel title="Sign in as" subtitle="One of the users the seed created. No password, local only." caption="Development">
+      <Panel
+        title="Sign in as"
+        subtitle="One of the users the seed created. No password, local only."
+        caption="Development"
+      >
         {users === null && loadError === null ? <Skeleton lines={6} /> : null}
         {users !== null ? (
           <div className="grid gap-4 lg:grid-cols-2">
@@ -161,7 +165,7 @@ export default function DevSignInPage() {
           onSubmit={(event) => {
             event.preventDefault();
             const trimmed = token.trim();
-            if (trimmed) useToken(trimmed);
+            if (trimmed) applyToken(trimmed);
           }}
         >
           <label htmlFor="dev-token" className="text-xms-label text-[14px]">
