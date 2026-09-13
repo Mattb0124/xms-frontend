@@ -155,7 +155,7 @@ export function BacklogPanel({ measures }: { measures: Partial<Measures> }) {
               title={`${bucket.label}: ${count}`}
             >
               <div
-                className="bg-xms-accent w-full rounded-t-[4px]"
+                className="bg-xms-accent w-full rounded-t-control"
                 style={{ height: `${Math.max(4, Math.round((count / max) * 126))}px` }}
                 data-testid={`backlog-${bucket.key}`}
               />
@@ -210,11 +210,8 @@ export function BreakdownPanel({
               ) : (
                 <span className="text-xms-ink min-w-0 flex-1 truncate capitalize">{label}</span>
               )}
-              <span className="bg-xms-line-row h-2 w-[130px] shrink-0 overflow-hidden rounded-[999px]">
-                <span
-                  className="bg-xms-accent block h-2 rounded-[999px]"
-                  style={{ width: `${(count / max) * 100}%` }}
-                />
+              <span className="bg-xms-line-row h-2 w-[130px] shrink-0 overflow-hidden rounded-pill">
+                <span className="bg-xms-accent block h-2 rounded-pill" style={{ width: `${(count / max) * 100}%` }} />
               </span>
               <span className="xms-mono text-xms-body w-12 shrink-0 text-right text-[14px]">{count}</span>
             </li>

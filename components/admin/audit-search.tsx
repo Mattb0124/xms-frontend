@@ -189,7 +189,7 @@ function localMoment(iso: string): string {
   return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}T${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
-const CONTROL = "border-xms-line-strong bg-xms-card text-xms-ink h-[32px] rounded-[4px] border px-2 text-[14px]";
+const CONTROL = "border-xms-line-strong bg-xms-card text-xms-ink h-[32px] rounded-control border px-2 text-[14px]";
 
 function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange: (rows: AuditRow[]) => void }) {
   const update = (index: number, patch: Partial<AuditRow>) =>
@@ -385,7 +385,7 @@ function RecordDrawer({
             <div key={side}>
               <h3 className="xms-caption mb-1">{side === "old" ? "Old values" : "New values"}</h3>
               <pre
-                className="xms-mono bg-xms-tint overflow-auto rounded-[4px] p-2 text-[14px]"
+                className="xms-mono bg-xms-tint overflow-auto rounded-control p-2 text-[14px]"
                 data-testid={`attrs-${side}`}
               >
                 {JSON.stringify((changes as Record<string, unknown>)[side] ?? null, null, 2)}
@@ -396,7 +396,7 @@ function RecordDrawer({
       ) : null}
       <section>
         <h3 className="xms-caption mb-1">Attributes</h3>
-        <pre className="xms-mono bg-xms-tint overflow-auto rounded-[4px] p-2 text-[14px]" data-testid="attrs">
+        <pre className="xms-mono bg-xms-tint overflow-auto rounded-control p-2 text-[14px]" data-testid="attrs">
           {JSON.stringify(attrs ?? {}, null, 2)}
         </pre>
       </section>

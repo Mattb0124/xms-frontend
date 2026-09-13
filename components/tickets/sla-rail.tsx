@@ -5,7 +5,14 @@ import { MeterBar } from "@/components/xms/meter-bar";
 import { RailCard } from "@/components/xms/rail-card";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { meterCaption, meterPercent, pauseCaption, type ClockView, type TicketSla } from "@/lib/tickets/sla";
+import {
+  clockDisplay,
+  meterCaption,
+  meterPercent,
+  pauseCaption,
+  type ClockView,
+  type TicketSla,
+} from "@/lib/tickets/sla";
 import { useWatchTicketMutation, type TicketView } from "@/redux/ticketsApi";
 
 function Meter({
@@ -24,9 +31,28 @@ function Meter({
   const percent = meterPercent(clock, fetchedAt, now);
   const pauseShare = clock.targetMinutes > 0 ? (clock.pausedTotalMinutes / clock.targetMinutes) * 100 : 0;
   const pause = pauseCaption(clock, pausedReason);
+  // The caption's own words decide the treatment, not the latched flag.
+  const breached = clockDisplay(clock, now).tone === "breach";
   return (
     <div className="flex flex-col gap-1" data-clock={clock.kind}>
-      <span className="text-xms-body text-[14px] leading-[1.4]">{meterCaption(clock, fetchedAt, now, metAt)}</span>
+      {/* A breached clock says so in the overdue colour and the weight; a
+          running or met one stays quiet. The card carried every state in the
+          same grey whatever had happened (2026-09-13 design pass).
+          
+          It stays at the body size on purpose. The record bar's breach pill
+          is the one element on this screen set above the body, and it only
+          reads as dominant while nothing else competes with it; a rail with
+          two clocks in it would otherwise put two more of them on the page.
+          Here the colour and the weight are enough. */}
+      <span
+        className={
+          breached
+            ? "text-body leading-[1.4] font-semibold text-[color:var(--state-overdue-text)]"
+            : "text-xms-body text-body leading-[1.4]"
+        }
+      >
+        {meterCaption(clock, fetchedAt, now, metAt)}
+      </span>
       <MeterBar
         percent={clock.met ? 100 : percent}
         met={clock.met}
@@ -35,7 +61,7 @@ function Meter({
         pauses={pauseShare > 0 ? [{ startPct: Math.max(0, percent - pauseShare), endPct: percent }] : []}
       />
       {pause ? (
-        <span className="text-xms-label text-[14px]" data-pause-caption>
+        <span className="text-xms-label text-body" data-pause-caption>
           {pause}
         </span>
       ) : null}

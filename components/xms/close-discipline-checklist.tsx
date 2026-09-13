@@ -24,7 +24,7 @@ export function CloseDisciplineChecklist({ items, className }: CloseDisciplineCh
             <span
               aria-hidden
               className={cn(
-                "xms-mono flex h-4 w-4 items-center justify-center rounded-[999px] border text-[14px]",
+                "xms-mono flex h-4 w-4 items-center justify-center rounded-pill border text-[14px]",
                 item.done
                   ? "border-[color:var(--state-complete-border)] bg-[color:var(--state-complete-bg)] text-[color:var(--state-complete-text)]"
                   : "border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] text-[color:var(--state-overdue-text)]",

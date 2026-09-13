@@ -26,7 +26,7 @@ export interface ConditionBuilderProps {
  * glyph of their own.
  */
 const CONTROL =
-  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[var(--xms-header-pill-h)] rounded-[var(--xms-radius-control)] border px-2 text-[14px]";
+  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[var(--xms-header-pill-h)] rounded-control border px-2 text-[14px]";
 
 function firstOperator(field: ConditionField | undefined): Operator {
   return field ? OPERATORS_BY_KIND[field.kind][0] : "eq";

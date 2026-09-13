@@ -126,7 +126,7 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, kind, c
       )}
       data-tone={display.tone}
     >
-      {dot ? <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-[999px]", TONE_DOT[display.tone])} /> : null}
+      {dot ? <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-pill", TONE_DOT[display.tone])} /> : null}
       {kind ? `${kind} ${spoken}` : spoken}
     </span>
   );

@@ -18,7 +18,7 @@ export function BulkAction({ label, onClick, disabled, icon, title }: BulkAction
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint inline-flex h-[28px] items-center gap-[6px] rounded-[4px] border px-[10px] text-[14px] font-medium disabled:opacity-50"
+      className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint inline-flex h-[28px] items-center gap-[6px] rounded-control border px-[10px] text-[14px] font-medium disabled:opacity-50"
     >
       {icon}
       {label}

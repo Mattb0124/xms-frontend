@@ -16,7 +16,7 @@ export function RowsPerPage({ value, onChange }: RowsPerPageProps) {
       <select
         value={value}
         onChange={(event) => onChange(Number(event.target.value) as RowsPerPageOption)}
-        className="border-xms-line bg-xms-card text-xms-ink h-[28px] rounded-[4px] border px-2 text-[14px]"
+        className="border-xms-line bg-xms-card text-xms-ink h-[28px] rounded-control border px-2 text-[14px]"
         aria-label="Rows per page"
       >
         {ROWS_PER_PAGE_OPTIONS.map((option) => (

@@ -91,7 +91,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
     <div className="bg-xms-bg flex min-h-full flex-1 flex-col">
       <a
         href="#portal-main"
-        className="bg-xms-card text-xms-ink sr-only rounded-[6px] px-3 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
+        className="bg-xms-card text-xms-ink sr-only rounded-card px-3 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
       >
         Skip to content
       </a>
@@ -207,7 +207,7 @@ function UserMenu({ me }: { me: PortalMe | undefined }) {
       {open ? (
         <div
           role="menu"
-          className="xms-card text-xms-body absolute right-0 z-20 mt-2 w-[220px] rounded-[6px] p-2 text-[14px]"
+          className="xms-card text-xms-body absolute right-0 z-20 mt-2 w-[220px] rounded-card p-2 text-[14px]"
         >
           {/* The name moved in here when the bar took the avatar: an avatar
               alone says who you are only to someone who already knows. */}

@@ -211,7 +211,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
           subtitle="Copy it now. It is stored sealed and this is the only time it can be read."
         >
           <p className="text-xms-label text-[14px]">{secret.endpoint}</p>
-          <p className="xms-field border-xms-line xms-mono text-xms-ink mt-2 rounded-[4px] border px-3 py-2 text-[14px] break-all">
+          <p className="xms-field border-xms-line xms-mono text-xms-ink mt-2 rounded-control border px-3 py-2 text-[14px] break-all">
             {secret.value}
           </p>
           <button type="button" className={cn(SECONDARY_BUTTON, "mt-3")} onClick={() => setSecret(null)}>

@@ -88,7 +88,7 @@ describe("MessageRow", () => {
     const row = container.querySelector("article")!;
     expect(row.className).toContain("border-b");
     expect(row.className).not.toContain("xms-card");
-    expect(row.className).not.toContain("rounded-[6px]");
+    expect(row.className).not.toContain("rounded-card");
     expect(screen.getByText("HL")).toBeInTheDocument();
     expect(screen.getByText("Helena Lindqvist")).toHaveClass("text-[14px]");
   });

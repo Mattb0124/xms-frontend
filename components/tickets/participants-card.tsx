@@ -137,7 +137,7 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
           <li key={row.id} data-participant={row.id} data-status={row.status} className="flex flex-col gap-1 py-2">
             <div className="flex flex-wrap items-center gap-2 text-[14px]">
               <span className="text-xms-ink truncate font-medium">{participantLine(row)}</span>
-              <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">
+              <span className="bg-xms-tint text-xms-label rounded-pill px-2 py-[1px] text-[14px]">
                 {roleLabel(row.role)}
               </span>
               {row.can_answer ? (

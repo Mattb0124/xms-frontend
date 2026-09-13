@@ -231,14 +231,14 @@ export function ResolveForm({
         <button
           type="button"
           onClick={onCancel}
-          className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
+          className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-[14px]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!ready || pending}
-          className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white disabled:opacity-50"
+          className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-[14px] font-medium text-white disabled:opacity-50"
         >
           Move to {targetLabel}
         </button>

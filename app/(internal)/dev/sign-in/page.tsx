@@ -113,7 +113,7 @@ export default function DevSignInPage() {
       type="button"
       disabled={signingIn !== null}
       onClick={() => void signInAs(user)}
-      className="border-xms-line hover:bg-xms-hover flex w-full items-center justify-between gap-3 rounded-[4px] border px-3 py-2 text-left text-[14px] disabled:opacity-50"
+      className="border-xms-line hover:bg-xms-hover flex w-full items-center justify-between gap-3 rounded-control border px-3 py-2 text-left text-[14px] disabled:opacity-50"
     >
       <span className="flex flex-col">
         <span className="text-xms-ink font-medium">
@@ -177,13 +177,13 @@ export default function DevSignInPage() {
             value={token}
             onChange={(event) => setToken(event.target.value)}
             rows={4}
-            className="border-xms-line bg-xms-card text-xms-ink xms-mono rounded-[4px] border p-2 text-[14px]"
+            className="border-xms-line bg-xms-card text-xms-ink xms-mono rounded-control border p-2 text-[14px]"
             placeholder="eyJhbGciOi..."
           />
           <div className="flex gap-2">
             <button
               type="submit"
-              className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white"
+              className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-[14px] font-medium text-white"
             >
               Use token
             </button>
@@ -194,7 +194,7 @@ export default function DevSignInPage() {
                 dispatch(xmsApi.util.resetApiState());
                 setToken("");
               }}
-              className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
+              className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-[14px]"
             >
               Sign out
             </button>

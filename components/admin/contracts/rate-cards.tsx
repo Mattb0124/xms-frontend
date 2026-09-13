@@ -149,7 +149,7 @@ export function NewRateCardForm({
   return (
     <form
       aria-label={`New rate card version for ${scope}`}
-      className="border-xms-line mt-2 flex flex-col gap-3 rounded-[6px] border p-3 text-[14px]"
+      className="border-xms-line mt-2 flex flex-col gap-3 rounded-card border p-3 text-[14px]"
       onSubmit={async (event) => {
         event.preventDefault();
         const invalid = validateRateCard(draft);

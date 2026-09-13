@@ -120,7 +120,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
             onChange={(event) => setName(event.target.value)}
           />
         </FieldRow>
-        <fieldset className="border-xms-line rounded-[4px] border p-3">
+        <fieldset className="border-xms-line rounded-control border p-3">
           <legend className="xms-caption px-1">Dates</legend>
           <div className="flex flex-col gap-2">
             {rows.map((row, index) => (

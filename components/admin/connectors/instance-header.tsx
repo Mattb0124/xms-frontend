@@ -45,7 +45,7 @@ export function ModeSwitch({ instance, refetch }: { instance: ConnectorInstance;
       <div
         role="radiogroup"
         aria-label="Mode"
-        className="border-xms-line inline-flex h-[32px] overflow-hidden rounded-[4px] border"
+        className="border-xms-line inline-flex h-[32px] overflow-hidden rounded-control border"
       >
         {MODES.map((option) => {
           const active = instance.mode === option.value;

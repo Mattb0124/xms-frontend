@@ -37,7 +37,7 @@ export function decisionPermission(capability: AiCapability): string {
 }
 
 const REQUEST_BUTTON =
-  "border-xms-ai-border text-xms-body hover:bg-xms-card h-[28px] rounded-[4px] border px-3 text-[14px] font-medium disabled:opacity-50";
+  "border-xms-ai-border text-xms-body hover:bg-xms-card h-[28px] rounded-control border px-3 text-[14px] font-medium disabled:opacity-50";
 
 export interface AxelSuggestStripProps {
   ticket: TicketView;

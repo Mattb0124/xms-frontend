@@ -216,14 +216,14 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
             <button
               type="button"
               onClick={() => setSheet({ kind: "none" })}
-              className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
+              className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-[14px]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="bg-xms-accent h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white disabled:opacity-50"
+              className="bg-xms-accent h-[32px] rounded-control px-3 text-[14px] font-medium text-white disabled:opacity-50"
             >
               Move to {sheet.target.label}
             </button>
@@ -269,7 +269,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
             <button
               type="button"
               onClick={() => setSheet({ kind: "none" })}
-              className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3"
+              className="border-xms-line text-xms-body h-[32px] rounded-control border px-3"
             >
               Cancel
             </button>
@@ -277,7 +277,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
               type="button"
               disabled={pending}
               onClick={() => void finish({ version: ticket.version, to: sheet.target.to }, sheet.target)}
-              className="bg-xms-accent h-[32px] rounded-[4px] px-3 font-medium text-white disabled:opacity-50"
+              className="bg-xms-accent h-[32px] rounded-control px-3 font-medium text-white disabled:opacity-50"
             >
               {sheet.target.reopen ? "Reopen" : `Move to ${sheet.target.label}`}
             </button>
@@ -379,14 +379,14 @@ function ChangeWindowSheet({
         <button
           type="button"
           onClick={onCancel}
-          className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
+          className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-[14px]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="bg-xms-accent h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white disabled:opacity-50"
+          className="bg-xms-accent h-[32px] rounded-control px-3 text-[14px] font-medium text-white disabled:opacity-50"
         >
           {acknowledging ? "Acknowledge and move" : "Override and move"}
         </button>

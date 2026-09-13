@@ -77,7 +77,7 @@ export function ExportMenu({
         <ul
           role="menu"
           aria-label="Export format"
-          className="border-xms-line bg-xms-card absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-[6px] border py-1 shadow-lg"
+          className="border-xms-line bg-xms-card absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-card border py-1 shadow-lg"
         >
           <li role="none">
             <button

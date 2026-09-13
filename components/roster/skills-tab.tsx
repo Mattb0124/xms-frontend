@@ -46,7 +46,7 @@ export function LevelControl({
   name: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={`Level for ${name}`} className="inline-flex overflow-hidden rounded-[4px]">
+    <div role="radiogroup" aria-label={`Level for ${name}`} className="inline-flex overflow-hidden rounded-control">
       {SKILL_LEVELS.map((entry) => (
         <button
           key={entry.level}
@@ -57,7 +57,7 @@ export function LevelControl({
           title={entry.label}
           onClick={() => onChange(entry.level)}
           className={cn(
-            "border-xms-line h-[28px] border px-2 text-[14px] first:rounded-l-[4px] last:rounded-r-[4px] disabled:opacity-60",
+            "border-xms-line h-[28px] border px-2 text-[14px] first:rounded-l-control last:rounded-r-control disabled:opacity-60",
             value === entry.level ? "bg-xms-accent border-xms-accent text-white" : "bg-xms-card text-xms-body",
           )}
         >
@@ -75,7 +75,7 @@ function AddSkillForm({ onCreated }: { onCreated: (skill: Skill) => void }) {
   const [error, setError] = useState<string | null>(null);
   return (
     <form
-      className="border-xms-line flex flex-col gap-3 rounded-[4px] border p-3"
+      className="border-xms-line flex flex-col gap-3 rounded-control border p-3"
       aria-label="Add a new skill"
       onSubmit={async (event) => {
         event.preventDefault();

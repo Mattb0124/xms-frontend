@@ -77,7 +77,7 @@ export function NotificationsMenu({ onClose }: NotificationsMenuProps) {
               <span className="flex items-center gap-2">
                 <span className={cn("truncate", !row.read_at && "font-medium")}>{row.title}</span>
                 {row.count > 1 ? (
-                  <span className="xms-mono bg-xms-accent-tint text-xms-accent rounded-[999px] px-1.5 text-[14px]">
+                  <span className="xms-mono bg-xms-accent-tint text-xms-accent rounded-pill px-1.5 text-[14px]">
                     ×{row.count}
                   </span>
                 ) : null}

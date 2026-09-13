@@ -22,7 +22,7 @@ export function AliasStatePill({ state, reason }: { state: AliasState; reason?: 
     return (
       <span
         data-alias-state={state}
-        className="inline-flex h-[22px] items-center rounded-[999px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 text-[14px] text-[color:var(--state-overdue-text)]"
+        className="inline-flex h-[22px] items-center rounded-pill border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 text-[14px] text-[color:var(--state-overdue-text)]"
         title={reason ?? undefined}
       >
         Disabled by loop guard{reason ? `: ${reason}` : ""}
@@ -65,7 +65,7 @@ export function IntakeTab({ accountId }: { accountId: string }) {
               data-alias={alias.address}
             >
               <span className="xms-mono text-xms-ink">{alias.address}</span>
-              <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">{alias.kind}</span>
+              <span className="bg-xms-tint text-xms-label rounded-pill px-2 py-[1px] text-[14px]">{alias.kind}</span>
               {alias.default_ticket_type ? (
                 <span className="text-xms-label text-[14px]">
                   defaults to {alias.default_ticket_type.replace(/_/g, " ")}

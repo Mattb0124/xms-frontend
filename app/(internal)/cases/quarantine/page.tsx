@@ -112,7 +112,7 @@ export function QuarantineDecisionPanel({
         <p className="text-xms-label text-[14px]">
           {reasonCopy(item.reason)}. <span className="xms-mono">{item.from_address}</span>
         </p>
-        <pre className="text-xms-body bg-xms-tint max-h-[320px] overflow-auto rounded-[6px] p-3 text-[14px] whitespace-pre-wrap">
+        <pre className="text-xms-body bg-xms-tint max-h-[320px] overflow-auto rounded-card p-3 text-[14px] whitespace-pre-wrap">
           {item.stripped_body_text || "(empty message)"}
         </pre>
         {item.state === "open" ? (

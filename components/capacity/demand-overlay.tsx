@@ -160,7 +160,7 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
               {demand.by_subject.map((row, index) => (
                 <li
                   key={`${row.account_id ?? row.prospect_name}:${index}`}
-                  className="border-xms-line flex items-center gap-2 rounded-[4px] border px-2 py-1"
+                  className="border-xms-line flex items-center gap-2 rounded-control border px-2 py-1"
                   data-subject={demandSubject(row)}
                 >
                   <span className={cn("text-xms-ink font-medium", row.account_key && "xms-mono")}>

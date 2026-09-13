@@ -66,7 +66,7 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
-        className="bg-xms-line-row mt-3 mb-[14px] h-2 overflow-hidden rounded-[999px]"
+        className="bg-xms-line-row mt-3 mb-[14px] h-2 overflow-hidden rounded-pill"
       >
         <div className="bg-xms-accent h-2" style={{ width: `${percent}%` }} />
       </div>
@@ -79,14 +79,14 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
             <button
               type="button"
               onClick={() => router.push("/time")}
-              className="bg-xms-note-action rounded-[var(--xms-radius-control)] px-[13px] py-[9px] text-[14px] font-semibold whitespace-nowrap text-white"
+              className="bg-xms-note-action rounded-control px-[13px] py-[9px] text-[14px] font-semibold whitespace-nowrap text-white"
             >
               Log now
             </button>
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              className="border-xms-line-strong bg-xms-card text-xms-body rounded-[var(--xms-radius-control)] border px-[13px] py-[9px] text-[14px] font-medium whitespace-nowrap"
+              className="border-xms-line-strong bg-xms-card text-xms-body rounded-control border px-[13px] py-[9px] text-[14px] font-medium whitespace-nowrap"
             >
               Not now
             </button>

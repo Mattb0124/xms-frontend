@@ -493,7 +493,7 @@ function SectionPanel({ section }: { section: ReviewSection }) {
           {section.tiles.length > 0 ? (
             <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" data-testid="review-tiles">
               {section.tiles.map((tile) => (
-                <div key={tile.label} className="border-xms-line flex flex-col gap-1 rounded-[6px] border p-3">
+                <div key={tile.label} className="border-xms-line flex flex-col gap-1 rounded-card border p-3">
                   <dt className="text-xms-label text-[14px]">{tile.label}</dt>
                   <dd className="text-xms-ink xms-mono text-[18px] font-semibold">{tile.value}</dd>
                 </div>

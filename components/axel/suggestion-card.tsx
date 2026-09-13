@@ -42,7 +42,7 @@ export interface AxelSuggestionCardProps {
   className?: string;
 }
 
-const SMALL_BUTTON = "h-[28px] rounded-[4px] px-3 text-[14px] font-medium disabled:opacity-50";
+const SMALL_BUTTON = "h-[28px] rounded-control px-3 text-[14px] font-medium disabled:opacity-50";
 const PRIMARY = `${SMALL_BUTTON} bg-xms-accent hover:bg-xms-accent-hover text-white`;
 const QUIET = `${SMALL_BUTTON} border-xms-ai-border text-xms-body border`;
 
@@ -320,7 +320,7 @@ function FeedbackRow({ suggestionId }: { suggestionId: string }) {
               // feedback is best effort; the decision is what matters
             }
           }}
-          className="border-xms-ai-border text-xms-body hover:bg-xms-card h-[22px] w-[22px] rounded-[4px] border"
+          className="border-xms-ai-border text-xms-body hover:bg-xms-card h-[22px] w-[22px] rounded-control border"
         >
           {rating}
         </button>

@@ -61,7 +61,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
         className={INPUT}
       />
       <ul
-        className="border-xms-line max-h-[180px] divide-y overflow-auto rounded-[4px] border"
+        className="border-xms-line max-h-[180px] divide-y overflow-auto rounded-control border"
         aria-label="Matching articles"
       >
         {hits.map((hit) => (

@@ -66,7 +66,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
         <textarea
           id="axel-ask"
           placeholder="Ask about this ticket..."
-          className="border-xms-line-strong bg-xms-card text-xms-ink placeholder:text-xms-muted h-16 w-full resize-none rounded-[var(--xms-radius-control)] border p-3 text-[14px] outline-none"
+          className="border-xms-line-strong bg-xms-card text-xms-ink placeholder:text-xms-muted h-16 w-full resize-none rounded-control border p-3 text-[14px] outline-none"
         />
         <p className="text-xms-muted mt-[9px] text-[14px] leading-[1.5]">
           Nothing applies without a click. Every accept, edit and reject lands in Activity.

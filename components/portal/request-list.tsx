@@ -40,7 +40,7 @@ export function RequestList({ items, emptyText }: { items: PortalTicket[]; empty
         {items.map((item) => (
           <tr key={item.id} className="border-xms-line hover:bg-xms-row-hover border-b last:border-b-0">
             <td className="py-3 pr-3">
-              <Link href={`/portal/requests/${item.key}`} className="flex flex-col gap-0.5 rounded-[4px]">
+              <Link href={`/portal/requests/${item.key}`} className="flex flex-col gap-0.5 rounded-control">
                 <span className="xms-mono text-xms-label text-[14px]">{item.key}</span>
                 <span className="text-xms-ink font-medium">{item.short_description}</span>
               </Link>

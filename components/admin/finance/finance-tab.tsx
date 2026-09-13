@@ -66,7 +66,7 @@ export function NewSecretPanel({ secret, onDismiss }: { secret: string; onDismis
         </p>
         <div className="flex items-center gap-2">
           <code
-            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-[4px] border px-2 py-2 text-[14px]"
+            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-control border px-2 py-2 text-[14px]"
             data-secret
           >
             {secret}

@@ -108,7 +108,7 @@ export function ImportDemandPanel() {
         <InlineError message={problem} />
         {problems.length > 0 ? (
           <ul
-            className="divide-xms-line divide-y rounded-[4px] border border-[color:var(--state-overdue-border)]"
+            className="divide-xms-line divide-y rounded-control border border-[color:var(--state-overdue-border)]"
             aria-label="Import problems"
           >
             {problems.map((row, index) => (

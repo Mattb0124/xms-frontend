@@ -58,7 +58,7 @@ function ScopeChips({ scopes }: { scopes: string[] }) {
       {scopes.map((scope) => (
         <span
           key={scope}
-          className="border-xms-line text-xms-body xms-mono rounded-[999px] border px-2 py-[1px] text-[14px]"
+          className="border-xms-line text-xms-body xms-mono rounded-pill border px-2 py-[1px] text-[14px]"
         >
           {scope}
         </span>
@@ -89,7 +89,7 @@ export function NewKeyPanel({ name, apiKey, onDismiss }: { name: string; apiKey:
         </p>
         <div className="flex items-center gap-2">
           <code
-            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-[4px] border px-2 py-2 text-[14px]"
+            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-control border px-2 py-2 text-[14px]"
             data-api-key
           >
             {apiKey}

@@ -179,7 +179,7 @@ function NewTicketForm() {
         </button>
       </HeaderAction>
       {error ? (
-        <div className="rounded-[6px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-4 py-2">
+        <div className="rounded-card border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-4 py-2">
           <InlineError message={error} />
           {details.map((detail) => (
             <p key={detail} className="text-xms-label text-[14px]">

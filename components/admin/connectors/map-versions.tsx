@@ -65,7 +65,7 @@ export function ValidationReportView({ report }: { report: ValidationReport | nu
           {report.problems.map((problem) => (
             <li
               key={problem}
-              className="rounded-[4px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 py-1 text-[color:var(--state-overdue-text)]"
+              className="rounded-control border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 py-1 text-[color:var(--state-overdue-text)]"
             >
               {problem}
             </li>
@@ -77,7 +77,7 @@ export function ValidationReportView({ report }: { report: ValidationReport | nu
           {report.warnings.map((warning) => (
             <li
               key={warning}
-              className="rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[color:var(--state-needs-input-text)]"
+              className="rounded-control border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[color:var(--state-needs-input-text)]"
             >
               {warning}
             </li>

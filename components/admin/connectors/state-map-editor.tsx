@@ -44,7 +44,7 @@ export function StateMapEditor({ entries, readOnly, onChange }: StateMapEditorPr
         return (
           <section
             key={type}
-            className={cn("border-xms-line rounded-[4px] border p-3", !mapped && "opacity-80")}
+            className={cn("border-xms-line rounded-control border p-3", !mapped && "opacity-80")}
             aria-label={typeLabelOf(type)}
             data-type={type}
           >

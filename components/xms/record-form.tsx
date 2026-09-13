@@ -53,7 +53,7 @@ export interface RecordFormProps {
 }
 
 const CONTROL =
-  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-[4px] border px-2 text-[14px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-control border px-2 text-[14px] outline-none disabled:opacity-60";
 
 // Label 104px, value takes the rest and may shrink below its content, which is
 // what lets a long value wrap instead of being clipped (review finding 9).
@@ -114,7 +114,7 @@ export function StackedReveal({
           onClick={() => setEditing(true)}
           aria-label={label}
           className={cn(
-            "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[14px] leading-[1.4] font-medium",
+            "hover:bg-xms-row-hover -mx-1 rounded-control px-1 py-[1px] text-left text-[14px] leading-[1.4] font-medium",
             value ? "text-xms-ink" : "text-xms-muted font-normal",
           )}
         >
@@ -302,7 +302,7 @@ function Field({
         onClick={() => setEditing(true)}
         aria-label={bare ? field.label : undefined}
         className={cn(
-          "hover:bg-xms-row-hover -mx-1 rounded-[4px] px-1 py-[1px] text-left text-[14px] font-medium",
+          "hover:bg-xms-row-hover -mx-1 rounded-control px-1 py-[1px] text-left text-[14px] font-medium",
           text ? "text-xms-ink" : "text-xms-muted font-normal",
           field.mono && "xms-mono",
         )}

@@ -82,7 +82,7 @@ function LoopChips({ signals }: { signals: string[] }) {
   return (
     <span className="flex flex-wrap gap-1">
       {signals.map((signal) => (
-        <span key={signal} className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">
+        <span key={signal} className="bg-xms-tint text-xms-label rounded-pill px-2 py-[1px] text-[14px]">
           {signal.replace(/_/g, " ")}
         </span>
       ))}

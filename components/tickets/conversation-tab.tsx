@@ -76,7 +76,7 @@ export function Composer({
           aria-selected={mode === "reply"}
           onClick={() => setMode("reply")}
           className={cn(
-            "rounded-[999px] px-[13px] py-[7px] text-[14px] leading-none",
+            "rounded-pill px-[13px] py-[7px] text-[14px] leading-none",
             mode === "reply"
               ? "bg-xms-accent font-semibold text-white"
               : "text-xms-body hover:bg-xms-row-hover font-medium",
@@ -90,7 +90,7 @@ export function Composer({
           aria-selected={note}
           onClick={() => setMode("note")}
           className={cn(
-            "rounded-[999px] px-[13px] py-[7px] text-[14px] leading-none",
+            "rounded-pill px-[13px] py-[7px] text-[14px] leading-none",
             note ? "bg-xms-navy font-semibold text-white" : "text-xms-body hover:bg-xms-row-hover font-medium",
           )}
         >
@@ -106,7 +106,7 @@ export function Composer({
             type="button"
             disabled
             title="There is no reply template catalog on the API yet."
-            className="border-xms-line-strong bg-xms-card text-xms-body rounded-[4px] border px-[11px] py-[7px] text-[14px] leading-none font-medium disabled:opacity-50"
+            className="border-xms-line-strong bg-xms-card text-xms-body rounded-control border px-[11px] py-[7px] text-[14px] leading-none font-medium disabled:opacity-50"
           >
             Template
           </button>
@@ -132,7 +132,7 @@ export function Composer({
           type="submit"
           disabled={readOnly || pending || !body.trim() || Boolean(blockedReason)}
           className={cn(
-            "ml-auto rounded-[4px] px-4 py-[10px] text-[14px] leading-none font-semibold text-white disabled:opacity-50",
+            "ml-auto rounded-control px-4 py-[10px] text-[14px] leading-none font-semibold text-white disabled:opacity-50",
             note ? "bg-xms-navy" : "bg-xms-accent hover:bg-xms-accent-hover",
           )}
         >
@@ -155,7 +155,7 @@ export function initialsOf(name: string): string {
   return letters.toUpperCase();
 }
 
-const THREAD_PILL = "rounded-[999px] px-[9px] py-[4px] text-[14px] leading-none font-medium whitespace-nowrap";
+const THREAD_PILL = "rounded-pill px-[9px] py-[4px] text-[14px] leading-none font-medium whitespace-nowrap";
 
 /**
  * One message in the thread, measured off the prototype's own markup: a 34px
@@ -174,7 +174,7 @@ export function MessageRow({ item, viaEmail }: { item: TimelineItem; viaEmail?: 
       <span
         aria-hidden
         className={cn(
-          "xms-mono h-[34px] w-[34px] flex-none rounded-[999px] text-center text-[14px] leading-[34px] font-semibold",
+          "xms-mono h-[34px] w-[34px] flex-none rounded-pill text-center text-[14px] leading-[34px] font-semibold",
           note ? "bg-xms-navy text-white" : "bg-xms-nav-wash text-xms-accent-hover",
         )}
       >

@@ -180,7 +180,7 @@ export function SettingsForm({ instance, refetch }: { instance: ConnectorInstanc
             <option value="skip">Skip the file</option>
           </select>
         </FieldRow>
-        <fieldset className="border-xms-line flex flex-col gap-2 rounded-[4px] border p-3">
+        <fieldset className="border-xms-line flex flex-col gap-2 rounded-control border p-3">
           <legend className="text-xms-label px-1 text-[14px]">Automatic trip threshold</legend>
           <FieldRow label="Failure ratio (%)" htmlFor="cx-ratio">
             <input

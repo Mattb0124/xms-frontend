@@ -75,7 +75,7 @@ function FieldEditor({
   const controller = controllers.find((field) => field.key === draft.conditionField);
   const takesOptions = draft.kind === "choice" || draft.kind === "multi_choice";
   return (
-    <li className="border-xms-line rounded-[6px] border p-3" data-field={draft.key}>
+    <li className="border-xms-line rounded-card border p-3" data-field={draft.key}>
       <div className="mb-3 flex items-center gap-2">
         <span className="text-xms-label font-mono text-[14px]">Field {number}</span>
         <span className="text-xms-ink text-[14px] font-medium">{draft.label || "Untitled"}</span>
@@ -548,7 +548,7 @@ function TicketFormsEditor({ accountId }: { accountId: string }) {
                   onClick={() => setSelected(form.id)}
                   data-form={form.ticket_type}
                   className={cn(
-                    "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-[4px] px-3 py-2 text-left text-[14px]",
+                    "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-control px-3 py-2 text-left text-[14px]",
                     form.id === active?.id && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
                   )}
                 >

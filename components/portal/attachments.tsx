@@ -29,7 +29,7 @@ export function PortalScanChip({ state }: { state: UploadStage | Attachment["sca
     <span
       data-scan={state}
       className={cn(
-        "inline-flex h-[22px] items-center rounded-[999px] border px-2 text-[14px]",
+        "inline-flex h-[22px] items-center rounded-pill border px-2 text-[14px]",
         chip.danger
           ? "border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] text-[color:var(--state-overdue-text)]"
           : chip.ramp === "resolved"

@@ -134,7 +134,7 @@ export function SavedQueriesPanel({
         {draft ? (
           <form
             aria-label={editing ? "Edit saved query" : "Save these conditions"}
-            className="border-xms-line flex flex-wrap items-end gap-3 rounded-[6px] border p-3"
+            className="border-xms-line flex flex-wrap items-end gap-3 rounded-card border p-3"
             onSubmit={(event) => {
               event.preventDefault();
               void save();

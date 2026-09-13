@@ -206,7 +206,7 @@ function VersionHistory({ view }: { view: AccountConfigView }) {
         {view.effective?.source === "override" && view.default ? (
           <details className="mt-2">
             <summary className="text-xms-accent cursor-pointer text-[14px]">Show the operator default body</summary>
-            <pre className="xms-mono text-xms-body bg-xms-tint mt-2 max-h-[320px] overflow-auto rounded-[4px] p-3 text-[14px] whitespace-pre-wrap">
+            <pre className="xms-mono text-xms-body bg-xms-tint mt-2 max-h-[320px] overflow-auto rounded-control p-3 text-[14px] whitespace-pre-wrap">
               {formatBody(view.default.body)}
             </pre>
           </details>

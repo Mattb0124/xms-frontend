@@ -12,7 +12,7 @@ export function FilterChip({ label, value, onRemove, className }: FilterChipProp
   return (
     <span
       className={cn(
-        "border-xms-control-line bg-xms-card text-xms-body inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center gap-1 rounded-[var(--xms-radius-control)] border pr-1 pl-[11px] text-[14px] whitespace-nowrap",
+        "border-xms-control-line bg-xms-card text-xms-body inline-flex h-[var(--xms-header-pill-h)] shrink-0 items-center gap-1 rounded-control border pr-1 pl-[11px] text-[14px] whitespace-nowrap",
         className,
       )}
     >
@@ -22,7 +22,7 @@ export function FilterChip({ label, value, onRemove, className }: FilterChipProp
         type="button"
         aria-label={`Remove ${label} filter`}
         onClick={onRemove}
-        className="text-xms-muted hover:text-xms-ink hover:bg-xms-control-hover ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-[var(--xms-radius-control)] text-[14px] leading-none"
+        className="text-xms-muted hover:text-xms-ink hover:bg-xms-control-hover ml-1 flex h-[22px] w-[22px] items-center justify-center rounded-control text-[14px] leading-none"
       >
         ×
       </button>

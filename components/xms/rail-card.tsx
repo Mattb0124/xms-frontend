@@ -24,7 +24,7 @@ export function RailCard({ caption, children, action, tone = "card", glyph, clas
   const note = tone === "note";
   return (
     <section
-      className={cn("p-4", note ? "bg-xms-note-bg border-xms-note-line rounded-[6px] border" : "xms-card", className)}
+      className={cn("p-4", note ? "bg-xms-note-bg border-xms-note-line rounded-card border" : "xms-card", className)}
       aria-label={caption}
     >
       <header className="mb-[13px] flex items-center gap-2">

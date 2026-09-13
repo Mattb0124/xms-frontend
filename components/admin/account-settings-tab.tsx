@@ -163,7 +163,7 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
             {aliases.map((alias) => (
               <span
                 key={alias}
-                className="border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-[999px] border pr-1 pl-[10px] text-[14px]"
+                className="border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-pill border pr-1 pl-[10px] text-[14px]"
               >
                 <span className="xms-mono">{alias}</span>
                 <button
@@ -175,7 +175,7 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
                       aliases.filter((item) => item !== alias),
                     )
                   }
-                  className="text-xms-muted hover:text-xms-ink ml-1 flex h-5 w-5 items-center justify-center rounded-[999px]"
+                  className="text-xms-muted hover:text-xms-ink ml-1 flex h-5 w-5 items-center justify-center rounded-pill"
                 >
                   ×
                 </button>

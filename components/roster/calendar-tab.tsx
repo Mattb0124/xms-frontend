@@ -70,7 +70,7 @@ export function CalendarTab({ personId, calendar, canEdit, timeZone }: CalendarT
           }
         }}
       >
-        <fieldset className="border-xms-line rounded-[4px] border p-3" disabled={disabled}>
+        <fieldset className="border-xms-line rounded-control border p-3" disabled={disabled}>
           <legend className="xms-caption px-1">Working days</legend>
           <div className="flex flex-wrap gap-3">
             {ISO_WEEKDAYS.map((day) => (

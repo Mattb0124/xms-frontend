@@ -36,10 +36,7 @@ export function CountsStrip({ batch }: { batch: BatchDetail }) {
 export function RunProgress({ batch }: { batch: BatchDetail }) {
   if (!isRunning(batch.status)) return null;
   return (
-    <div
-      role="status"
-      className="bg-xms-tint text-xms-body flex items-center gap-3 rounded-[6px] px-4 py-2 text-[14px]"
-    >
+    <div role="status" className="bg-xms-tint text-xms-body flex items-center gap-3 rounded-card px-4 py-2 text-[14px]">
       <span className="bg-xms-accent h-2 w-2 animate-pulse rounded-full" aria-hidden />
       <span>
         {batchStatusLabel(batch.status)}

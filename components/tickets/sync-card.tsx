@@ -38,7 +38,7 @@ function ConflictNote({ link, inline }: { link: TicketSyncLink; inline?: boolean
       className={
         inline
           ? "mt-2 text-[14px] leading-[1.6]"
-          : "rounded-[4px] border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[14px] text-[color:var(--state-needs-input-text)]"
+          : "rounded-control border border-[color:var(--state-needs-input-border)] bg-[color:var(--state-needs-input-bg)] px-2 py-1 text-[14px] text-[color:var(--state-needs-input-text)]"
       }
       data-conflict={fields.join(",")}
       data-conflict-direction={outbound ? "out" : "in"}
@@ -121,7 +121,7 @@ function LinkFacts({ link }: { link: TicketSyncLink }) {
     `kill switch ${link.health === "tripped" ? "tripped" : "armed, not tripped"}`,
   ];
   return (
-    <div className="border-xms-line bg-xms-quiet-bg xms-mono text-xms-body rounded-[var(--xms-radius-card)] border p-4 text-[14px] leading-[1.9]">
+    <div className="border-xms-line bg-xms-quiet-bg xms-mono text-xms-body rounded-card border p-4 text-[14px] leading-[1.9]">
       <p>
         {"external record: "}
         <ExternalRecordLink link={link} />

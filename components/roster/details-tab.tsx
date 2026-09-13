@@ -247,7 +247,7 @@ export function DetailsTab({ person, refetch, canEdit, groups }: DetailsTabProps
               onChange={(e) => set("end_date", e.target.value)}
             />
           </FieldRow>
-          <fieldset className="border-xms-line rounded-[4px] border p-3" disabled={disabled}>
+          <fieldset className="border-xms-line rounded-control border p-3" disabled={disabled}>
             <legend className="xms-caption px-1">Groups</legend>
             {groups && groups.length > 0 ? (
               groups.map((group) => (

@@ -166,7 +166,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
               type="button"
               onClick={() => setDraft({ ...draft, minutes: String(minutes) })}
               className={cn(
-                "border-xms-line h-[28px] rounded-[999px] border px-2 text-[14px]",
+                "border-xms-line h-[28px] rounded-pill border px-2 text-[14px]",
                 draft.minutes === String(minutes)
                   ? "bg-xms-accent border-xms-accent text-white"
                   : "text-xms-body hover:bg-xms-control-hover",

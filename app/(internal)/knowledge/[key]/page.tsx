@@ -183,7 +183,7 @@ function ArticleRecord({ articleKey }: { articleKey: string }) {
               <div className="flex flex-col gap-4">
                 {editingPublished && article.draft ? (
                   <div
-                    className="border-xms-line bg-xms-tint flex items-center gap-3 rounded-[6px] border px-3 py-2 text-[14px]"
+                    className="border-xms-line bg-xms-tint flex items-center gap-3 rounded-card border px-3 py-2 text-[14px]"
                     data-testid="draft-banner"
                   >
                     <span className="text-xms-ink">

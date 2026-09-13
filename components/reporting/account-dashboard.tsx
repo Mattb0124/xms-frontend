@@ -92,7 +92,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
       {asClient ? (
         <p
           role="status"
-          className="border-xms-accent-border bg-xms-tint text-xms-ink rounded-[6px] border px-4 py-2 text-[14px]"
+          className="border-xms-accent-border bg-xms-tint text-xms-ink rounded-card border px-4 py-2 text-[14px]"
         >
           This is what the client sees. Measures the account does not expose are left out.
         </p>

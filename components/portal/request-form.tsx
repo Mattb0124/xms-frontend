@@ -106,7 +106,7 @@ export function RequestForm({
         {PORTAL_TYPES.map((option) => (
           <label
             key={option.value}
-            className="border-xms-line has-[:checked]:border-xms-accent has-[:checked]:bg-xms-tint flex cursor-pointer items-start gap-3 rounded-[6px] border p-3"
+            className="border-xms-line has-[:checked]:border-xms-accent has-[:checked]:bg-xms-tint flex cursor-pointer items-start gap-3 rounded-card border p-3"
           >
             <input
               type="radio"

@@ -451,7 +451,7 @@ function CasesScreen() {
       </div>
 
       {isError ? (
-        <div className="border-xms-line bg-xms-card flex items-center gap-3 rounded-[6px] border px-4 py-2 text-[14px]">
+        <div className="border-xms-line bg-xms-card flex items-center gap-3 rounded-card border px-4 py-2 text-[14px]">
           <span className="text-xms-ink">The list could not be refreshed. The last data stays visible.</span>
           <button type="button" onClick={() => refetch()} className="text-xms-accent ml-auto hover:underline">
             Retry
@@ -483,7 +483,7 @@ function CasesScreen() {
           onRowPreview={(row, anchor) => setPreview({ key: row.key, anchor })}
           search={
             <form
-              className="xms-field xms-field-typed border-xms-line-strong bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+              className="xms-field xms-field-typed border-xms-line-strong bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-control border px-[14px]"
               onSubmit={(event) => {
                 event.preventDefault();
                 navigate({ q: query.trim() });
@@ -521,7 +521,7 @@ function CasesScreen() {
                   onChange={(event) => {
                     if (event.target.value) void changeStateSelected(event.target.value);
                   }}
-                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-[4px] border pr-6 pl-[10px] text-[14px] font-medium"
+                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-control border pr-6 pl-[10px] text-[14px] font-medium"
                 >
                   <option value="">Change state</option>
                   {STATE_OPTIONS.map((state) => (
@@ -540,7 +540,7 @@ function CasesScreen() {
                     event.currentTarget.value = "";
                     if (priority) void setPrioritySelected(priority);
                   }}
-                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-[4px] border pr-6 pl-[10px] text-[14px] font-medium"
+                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-control border pr-6 pl-[10px] text-[14px] font-medium"
                 >
                   <option value="">Priority</option>
                   <option value="p1">1 - Critical</option>

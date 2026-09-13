@@ -64,7 +64,7 @@ export function PermissionChecklist({ catalog, selected, onChange, disabled }: P
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {groups.map(([area, rows]) => (
-        <fieldset key={area} className="border-xms-line rounded-[4px] border">
+        <fieldset key={area} className="border-xms-line rounded-control border">
           <legend className="xms-caption px-2">{area}</legend>
           <ul className="divide-y">
             {rows.map((row) => {

@@ -37,7 +37,7 @@ function WaitingRow({ item, permitted }: { item: WaitingItem; permitted: readonl
     <>
       <span className="text-xms-body flex-1 text-[14px] leading-[1.4]">{item.label}</span>
       {/* The count is a chip on the right (render 08), not a bold figure. */}
-      <span className="xms-mono bg-xms-chip text-xms-body rounded-[999px] px-[10px] py-[5px] text-[14px] leading-none font-medium">
+      <span className="xms-mono bg-xms-chip text-xms-body rounded-pill px-[10px] py-[5px] text-[14px] leading-none font-medium">
         {item.count}
       </span>
     </>

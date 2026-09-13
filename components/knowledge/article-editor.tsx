@@ -22,7 +22,7 @@ export const SECTION_HINT: Partial<Record<VersionSection, string>> = {
 };
 
 const CONTROL =
-  "border-xms-line bg-xms-card text-xms-ink w-full rounded-[4px] border px-2 py-2 text-[14px] outline-none disabled:opacity-60";
+  "border-xms-line bg-xms-card text-xms-ink w-full rounded-control border px-2 py-2 text-[14px] outline-none disabled:opacity-60";
 
 function SectionField({
   section,

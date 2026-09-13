@@ -78,7 +78,7 @@ export function GrantsReconcile({
         />
         <span className="xms-mono text-xms-label ml-auto text-[14px]">{draft.size} selected</span>
       </div>
-      <ul className="border-xms-line max-h-[360px] divide-y overflow-auto rounded-[4px] border">
+      <ul className="border-xms-line max-h-[360px] divide-y overflow-auto rounded-control border">
         {visible.map((option) => {
           const id = `reconcile-${option.id}`;
           return (

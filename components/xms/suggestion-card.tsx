@@ -48,7 +48,7 @@ export function SuggestionCard({
         <button
           type="button"
           onClick={onAccept}
-          className="bg-xms-accent hover:bg-xms-accent-hover h-[28px] rounded-[4px] px-3 text-[14px] font-medium text-white"
+          className="bg-xms-accent hover:bg-xms-accent-hover h-[28px] rounded-control px-3 text-[14px] font-medium text-white"
         >
           Accept
         </button>
@@ -56,7 +56,7 @@ export function SuggestionCard({
           <button
             type="button"
             onClick={onEdit}
-            className="border-xms-ai-border text-xms-body h-[28px] rounded-[4px] border px-3 text-[14px]"
+            className="border-xms-ai-border text-xms-body h-[28px] rounded-control border px-3 text-[14px]"
           >
             Edit
           </button>
@@ -64,7 +64,7 @@ export function SuggestionCard({
         <button
           type="button"
           onClick={onReject}
-          className="border-xms-ai-border text-xms-body h-[28px] rounded-[4px] border px-3 text-[14px]"
+          className="border-xms-ai-border text-xms-body h-[28px] rounded-control border px-3 text-[14px]"
         >
           Reject
         </button>

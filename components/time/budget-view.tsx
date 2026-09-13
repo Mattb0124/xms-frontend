@@ -80,12 +80,9 @@ export function BurnBar({ percent, tone, markers, label }: BurnBarProps) {
         aria-valuemin={0}
         aria-valuemax={100}
         data-tone={tone}
-        className="bg-xms-tint relative h-2.5 w-full rounded-[999px]"
+        className="bg-xms-tint relative h-2.5 w-full rounded-pill"
       >
-        <div
-          className="absolute inset-y-0 left-0 rounded-[999px]"
-          style={{ width: `${fill}%`, background: FILL[tone] }}
-        />
+        <div className="absolute inset-y-0 left-0 rounded-pill" style={{ width: `${fill}%`, background: FILL[tone] }} />
         {markers
           .filter((marker) => marker.percent <= 100)
           .map((marker) => (

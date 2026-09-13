@@ -233,7 +233,7 @@ export function SavedViewsBar({
                   aria-label="Sharing"
                   value={current.share}
                   onChange={(event) => void reshare(current, event.target.value as ShareMode)}
-                  className="border-xms-line bg-xms-card text-xms-ink h-[26px] rounded-[4px] border px-1 text-[14px]"
+                  className="border-xms-line bg-xms-card text-xms-ink h-[26px] rounded-control border px-1 text-[14px]"
                 >
                   {SHARE_MODES.map((mode) => (
                     <option key={mode} value={mode}>
@@ -295,7 +295,7 @@ export function SavedViewsBar({
 
       {open ? (
         <form
-          className="border-xms-line bg-xms-card flex flex-wrap items-end gap-3 rounded-[6px] border p-3"
+          className="border-xms-line bg-xms-card flex flex-wrap items-end gap-3 rounded-card border p-3"
           aria-label="Save as view"
           onSubmit={(event) => {
             event.preventDefault();

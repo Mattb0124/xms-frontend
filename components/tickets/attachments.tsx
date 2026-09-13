@@ -31,7 +31,7 @@ export function ScanChip({ state, portal }: { state: ScanState | UploadStage; po
     return (
       <span
         data-scan={state}
-        className="inline-flex h-[20px] items-center rounded-[999px] border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 text-[14px] text-[color:var(--state-overdue-text)]"
+        className="inline-flex h-[20px] items-center rounded-pill border border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] px-2 text-[14px] text-[color:var(--state-overdue-text)]"
       >
         {chip.label}
       </span>
@@ -133,7 +133,7 @@ export function DropZone({
         if (!disabled && event.dataTransfer.files.length > 0) onFiles(event.dataTransfer.files);
       }}
       className={cn(
-        "border-xms-line text-xms-label flex items-center gap-2 rounded-[6px] border border-dashed px-3 py-2 text-[14px]",
+        "border-xms-line text-xms-label flex items-center gap-2 rounded-card border border-dashed px-3 py-2 text-[14px]",
         over && "border-xms-accent bg-xms-accent-tint",
         disabled && "opacity-50",
       )}
@@ -223,7 +223,7 @@ function VisibilityChip({ visibility }: { visibility: AttachmentVisibility }) {
   return (
     <span
       className={cn(
-        "rounded-[999px] px-2 py-[1px] text-[14px]",
+        "rounded-pill px-2 py-[1px] text-[14px]",
         visibility === "internal" ? "bg-xms-navy text-white" : "bg-xms-accent-tint text-xms-accent",
       )}
     >
@@ -253,7 +253,7 @@ export function AttachmentRow({
         <ScanChip state={attachment.scan_state} portal={portal} />
         {!portal ? (
           <>
-            <span className="bg-xms-tint text-xms-label rounded-[999px] px-2 py-[1px] text-[14px]">
+            <span className="bg-xms-tint text-xms-label rounded-pill px-2 py-[1px] text-[14px]">
               {originLabel(attachment.origin)}
             </span>
             <VisibilityChip visibility={attachment.visibility} />

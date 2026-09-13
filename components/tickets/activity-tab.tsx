@@ -135,7 +135,7 @@ export function ActivityTab({ ticketKey }: { ticketKey: string }) {
             className={cn(
               // Render 03's pills: 8 by 13 at 12px, filled blue when chosen
               // and on the control edge when not.
-              "rounded-[999px] px-[13px] py-2 text-[14px] font-medium",
+              "rounded-pill px-[13px] py-2 text-[14px] font-medium",
               actor === filter.key
                 ? "bg-xms-accent font-semibold text-white"
                 : "border-xms-line-strong bg-xms-card text-xms-body hover:bg-xms-control-hover hover:text-xms-accent border",

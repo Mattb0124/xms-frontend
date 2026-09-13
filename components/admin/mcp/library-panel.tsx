@@ -243,7 +243,7 @@ export function McpLibraryPanel() {
 
             <SwitchRow
               id="mcp-caller-token"
-              label="Authorise with the caller's own token"
+              label="Authorize with the caller's own token"
               detail="For a connection XMS serves itself"
               checked={Boolean(editing.caller_token)}
               onChange={(next) => setEditing({ ...editing, caller_token: next })}

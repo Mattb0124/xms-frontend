@@ -28,7 +28,7 @@ const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
 
 function Figure({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
-    <div className="border-xms-line flex flex-col gap-1 rounded-[6px] border px-4 py-3" aria-label={label}>
+    <div className="border-xms-line flex flex-col gap-1 rounded-card border px-4 py-3" aria-label={label}>
       <span className="text-xms-label text-[14px]">{label}</span>
       <span className="text-xms-ink text-[20px] font-semibold" data-value>
         {value}

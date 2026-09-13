@@ -41,7 +41,7 @@ export function CalendarSubscribe() {
               readOnly
               value={url}
               onFocus={(event) => event.currentTarget.select()}
-              className="border-xms-control-line bg-xms-card xms-mono h-[var(--xms-control-h)] min-w-0 flex-1 rounded-[var(--xms-radius-control)] border px-3 text-[14px]"
+              className="border-xms-control-line bg-xms-card xms-mono h-[var(--xms-control-h)] min-w-0 flex-1 rounded-control border px-3 text-[14px]"
             />
             <button
               type="button"

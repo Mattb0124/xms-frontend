@@ -17,11 +17,11 @@ import { useMe } from "@/redux/me";
  * underlining like body copy.
  */
 export const PRIMARY_BUTTON =
-  "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white hover:text-white hover:no-underline disabled:opacity-50";
+  "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-[14px] font-medium text-white hover:text-white hover:no-underline disabled:opacity-50";
 export const SECONDARY_BUTTON =
-  "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-control-hover hover:no-underline h-[32px] rounded-[4px] border px-3 text-[14px] disabled:opacity-50";
+  "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-control-hover hover:no-underline h-[32px] rounded-control border px-3 text-[14px] disabled:opacity-50";
 export const DANGER_BUTTON =
-  "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-[4px] border px-3 text-[14px] disabled:opacity-50";
+  "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-control border px-3 text-[14px] disabled:opacity-50";
 /**
  * A field control. The 420px cap is on the control, never on the page: every
  * screen is full width, so a form on a 2560px window keeps its fields at a
@@ -29,7 +29,7 @@ export const DANGER_BUTTON =
  * longest form standing on it.
  */
 export const INPUT =
-  "xms-field border-xms-line bg-xms-card text-xms-ink h-[34px] w-full max-w-[420px] rounded-[4px] border px-2 text-[14px] outline-none disabled:opacity-60";
+  "xms-field border-xms-line bg-xms-card text-xms-ink h-[34px] w-full max-w-[420px] rounded-control border px-2 text-[14px] outline-none disabled:opacity-60";
 
 /**
  * Display gating for an admin screen. Nothing renders until `me` has loaded

@@ -129,7 +129,7 @@ export function RecordDrawer({
             {data.payload === null || data.payload === undefined ? (
               <p className="text-xms-label text-[14px]">The raw row is not in the store.</p>
             ) : (
-              <pre className="xms-mono text-xms-body bg-xms-tint max-h-[60vh] overflow-auto rounded-[4px] p-3 text-[14px] whitespace-pre-wrap">
+              <pre className="xms-mono text-xms-body bg-xms-tint max-h-[60vh] overflow-auto rounded-control p-3 text-[14px] whitespace-pre-wrap">
                 {JSON.stringify(data.payload, null, 2)}
               </pre>
             )}

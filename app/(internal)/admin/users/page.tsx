@@ -133,7 +133,7 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
           </FieldRow>
         </div>
         <div className="flex flex-col gap-3">
-          <fieldset className="border-xms-line rounded-[4px] border p-3">
+          <fieldset className="border-xms-line rounded-control border p-3">
             <legend className="xms-caption px-1">Roles</legend>
             {(roles.data ?? []).map((role) => (
               <label key={role.id} className="flex items-center gap-2 py-1 text-[14px]">
@@ -146,7 +146,7 @@ function InviteUserForm({ onDone }: { onDone: (id: string) => void }) {
               </label>
             ))}
           </fieldset>
-          <fieldset className="border-xms-line rounded-[4px] border p-3">
+          <fieldset className="border-xms-line rounded-control border p-3">
             <legend className="xms-caption px-1">Accounts</legend>
             {(accounts.data ?? []).map((account) => (
               <label key={account.id} className="flex items-center gap-2 py-1 text-[14px]">
