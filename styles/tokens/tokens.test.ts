@@ -100,7 +100,11 @@ describe("xms token contract", () => {
   // the top of the app.
   it("uses the ServiceNow palette for the core identity", () => {
     expect(scope).toContain("--xms-navy: #10193a");
-    expect(scope).toContain("--xms-accent: #006fba");
+    // Lightened from the palette's own #006fba on 2026-09-13. The constraint
+    // that decides this value is contrast, not taste: the accent is link text,
+    // so it clears 4.5:1 on white (4.71) and on the canvas (4.54). The next
+    // step lighter, #0d7cc4, measures 4.47 and fails.
+    expect(scope).toContain("--xms-accent: #0b78c0");
     expect(scope).toContain("--xms-ink: #000e1d");
     expect(scope).toContain("--xms-bg: #fafbfc");
   });

@@ -35,10 +35,24 @@
    * 75 per cent, which is the one operation that moves lightness without
    * touching hue, so the family is provably one colour. Everything that used
    * to hold a blue of its own now points at one of these four values. */
-  --xms-accent: #006fba;
-  --xms-accent-hover: #00548d;
-  --xms-accent-tint: #ebf4fa;
-  --xms-accent-tint-strong: #d9e9f5;
+  /* Lightened 2026-09-13 at Matt's request ("a bit lighter, a bit more of a
+   * lighter blue"), from the #006fba the ServiceNow palette gave it.
+   *
+   * #0b78c0 is the ceiling, not a taste call. The accent is link text: every
+   * key, contact and consultant name in a 25-row list is set in it, so it has
+   * to clear 4.5:1 on both grounds. It measures 4.71 on white and 4.54 on the
+   * page canvas. The next steps up were tried and fail: #0d7cc4 is 4.47,
+   * #1683c9 is 4.10, #1a86d0 is 3.91. Anything lighter than this needs the
+   * links to stop being the accent first.
+   *
+   * The tints carry no text of their own and are unconstrained, so they took
+   * most of the lightening: ink on the highlight wash measures 16.9:1. */
+  --xms-accent: #0b78c0;
+  --xms-accent-hover: #005f9e;
+  --xms-accent-tint: #f1f8fd;
+  /* The highlight: the selected sidebar row, the selected table row, the
+   * cell wash. It was #d9e9f5 and read heavy against the white card. */
+  --xms-accent-tint-strong: #e4f1fb;
   --xms-accent-border: #bfdbee;
 
   /* Shell */
@@ -85,7 +99,7 @@
   --xms-bar-line: #c2cdd9;
   /* The soft fill behind a mono count: the Count badge, the Dispatch age
    * badge, the Waiting on me counts, the sidebar's own count pills. */
-  --xms-chip: #f0f6fb;
+  --xms-chip: #f5fafd;
   /* The page canvas, lightened from #f4f5f7 with the band (AIBL-314). It sits
    * close to the card now, so a card is read by its border rather than by the
    * ground falling away behind it. If that reads too flat, this is the one
