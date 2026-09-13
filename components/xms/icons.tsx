@@ -163,21 +163,48 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
+/**
+ * The bell, drawn to the reference's geometry rather than the house's.
+ *
+ * It is used in one place, the shell header, and that header now wears
+ * AIXelerator's chrome throughout. The house bell filled about 62% of its
+ * 24-unit box where the reference's fills about 73%, so at the same nominal
+ * size it read a size down from everything beside it. Stroke 2 rather than the
+ * set's 1.5 for the same reason: it is standing among the reference's marks,
+ * not among this product's.
+ */
 export function BellIcon(props: IconProps) {
   return (
-    <Icon {...props}>
-      <path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.5 18h15Z" />
-      <path d="M10 21h4" />
+    <Icon strokeWidth={2} {...props}>
+      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
     </Icon>
   );
 }
 
-/** The Axel sparkle: AI-origin content and the Axel controls only. */
+/**
+ * The Axel sparkle: AI-origin content and the Axel controls only.
+ *
+ * Drawn to the reference's own geometry (lucide's Sparkles, which is what the
+ * AIXelerator header renders) rather than the house's, so the mark on the
+ * assistant's button is the mark on the assistant's button over there. The
+ * house version was a four-point star with one small companion; this is the
+ * same star with two, one up and right and one down and left, and it fills
+ * more of the box, which is why it reads at a size the old one did not.
+ *
+ * All three call sites are Axel surfaces (the header CTA, the docked panel and
+ * My work's brief line), so there is one Axel mark and not two. The set's 1.5
+ * stroke is kept here; the header's button passes 2, which is what the
+ * reference renders it at, and nothing else does.
+ */
 export function SparkleIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M12 3.5 13.6 8l4.4 1.6L13.6 11 12 15.5 10.4 11 6 9.6 10.4 8Z" />
-      <path d="M18.5 15.5l.7 1.9 1.8.7-1.8.7-.7 1.9-.7-1.9-1.8-.7 1.8-.7Z" />
+      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+      <path d="M20 3v4" />
+      <path d="M22 5h-4" />
+      <path d="M4 17v2" />
+      <path d="M5 18H3" />
     </Icon>
   );
 }
@@ -291,6 +318,28 @@ export function PlusIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <path d="M12 5v14M5 12h14" />
+    </Icon>
+  );
+}
+
+/** Send, on the composer's round button. */
+export function ArrowUpIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </Icon>
+  );
+}
+
+/**
+ * Stop, which the composer's send button becomes while a turn streams. Filled
+ * rather than stroked: at 16px a stroked square reads as an empty checkbox,
+ * and the one thing this control must not look like is something to tick.
+ */
+export function StopIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none" />
     </Icon>
   );
 }

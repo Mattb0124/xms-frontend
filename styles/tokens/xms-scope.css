@@ -21,12 +21,25 @@
 
   /* Actions and selection, on the ServiceNow link and primary blue. One value
    * covers both there, and it covers more here: links, the selected row
-   * stroke, focus, the active tab and the eyebrow all run on this token. */
+   * stroke, focus, the active tab and the eyebrow all run on this token.
+   *
+   * That was the intent and it was not the state of things (2026-09-11). The
+   * accent moved to the ServiceNow blue on 2026-09-10 and its family did not
+   * come with it: the accent sits at hue 204 and all three of its own tints
+   * were left at 221, as were the row and cell hovers, the count chip, the
+   * link underline and the field tint, while the selected row stroke and the
+   * in-progress state carried two further blues of their own. Eight blues were
+   * doing the work of one.
+   *
+   * The three tints below are now the accent mixed with white at 92, 85 and
+   * 75 per cent, which is the one operation that moves lightness without
+   * touching hue, so the family is provably one colour. Everything that used
+   * to hold a blue of its own now points at one of these four values. */
   --xms-accent: #006fba;
   --xms-accent-hover: #00548d;
-  --xms-accent-tint: #eff4ff;
-  --xms-accent-tint-strong: #d8e3fa;
-  --xms-accent-border: #c7d6f7;
+  --xms-accent-tint: #ebf4fa;
+  --xms-accent-tint-strong: #d9e9f5;
+  --xms-accent-border: #bfdbee;
 
   /* Shell */
   --xms-navy: #10193a;
@@ -72,14 +85,14 @@
   --xms-bar-line: #c2cdd9;
   /* The soft fill behind a mono count: the Count badge, the Dispatch age
    * badge, the Waiting on me counts, the sidebar's own count pills. */
-  --xms-chip: #f0f3fa;
+  --xms-chip: #f0f6fb;
   /* The page canvas, lightened from #f4f5f7 with the band (AIBL-314). It sits
    * close to the card now, so a card is read by its border rather than by the
    * ground falling away behind it. If that reads too flat, this is the one
    * value to put back. */
   --xms-bg: #fafbfc;
   --xms-card: #ffffff;
-  --xms-tint: #eff4ff;
+  --xms-tint: var(--xms-accent-tint);
   /* Lines, on the three ServiceNow values (2026-09-10, AIBL-317). That system
    * draws three and this one had nine, so they map by the job each does:
    * --sn-border #c2cdd9 is the structural line under a column header and
@@ -98,10 +111,21 @@
   --xms-line-row: #dde3ea;
   /* The control border on the grey strip, dark enough to read against it. */
   --xms-control-line: #c2cdd9;
-  /* A control the pointer is over. A fill, not a change of edge: a border
-   * that changes colour on hover makes a control look like it has become
-   * active when it has only been pointed at. */
+  /* A control the pointer is over.
+   *
+   * This was a fill, and the note here argued for it: a border that changes
+   * colour on hover can make a control look like it has become active when it
+   * has only been pointed at. Matt asked for the edge instead (2026-09-12),
+   * and the objection is answered by WHICH edge rather than by refusing it.
+   * The accent now means one thing on a control's border, which is that it
+   * carries a value somebody chose, so hover is a neutral two steps down from
+   * the resting line and never the accent. A pointed-at field darkens its
+   * edge; a filled-in one goes blue; the two cannot be confused.
+   *
+   * The fill token stays: it is still the hover on the quiet buttons and the
+   * catalog rows, which are surfaces you press rather than wells you type in. */
   --xms-control-hover: #d3dcec;
+  --xms-control-line-hover: #9fb0c4;
   /* The recess. A field is a well you put something into, so it carries a
    * faint inner shadow at its top edge, the way the reference draws its
    * selects and text boxes. A button is a surface you press and stays flat. */
@@ -119,9 +143,11 @@
    * edge. This is the one place the heavier --sn-divider belongs: it marks a
    * boundary between regions rather than the edge of a thing. */
   --xms-line-region: #bdc0c4;
-  --xms-row-hover: #f0f3fa;
-  --xms-cell-hover: #eff4ff;
-  --xms-selected-bar: #2563eb;
+  --xms-row-hover: var(--xms-chip);
+  --xms-cell-hover: var(--xms-accent-tint);
+  /* The stroke on a selected row. It was #2563eb, a second blue doing the
+   * job the accent comment above already claimed. */
+  --xms-selected-bar: var(--xms-accent);
   /* The tree (2026-09-10). Text and icons read in the primary ink, so the
    * column carries one colour and nothing in it competes with the content
    * beside it. They sit a shade under --xms-ink (#000e1d) rather than
@@ -137,10 +163,20 @@
    * the dark block below redefines --xms-accent, and a var() resolves
    * against the element it lands on. The band itself is still eyeballed from
    * the reference screenshot. */
-  --xms-nav-wash: #dbe4f6;
+  /* The selected row in the left column, and the one place the split blues
+   * showed worst: the wash was hue 220, the bar down its left edge was the
+   * accent at 204, the icon beside them 227 and the count chip's text and
+   * border 204 again. Four blues touching on one row (2026-09-11).
+   *
+   * The wash is now the accent's own second step, which lands within a
+   * shade of the lightness the old value had, so the row reads as it did and
+   * only its hue moved. The icon keeps its lightness and saturation exactly
+   * and moves the same 23 degrees, so it is the same weight of mark against
+   * the label, in the family everything else on the row is in. */
+  --xms-nav-wash: var(--xms-accent-tint-strong);
   --xms-nav-text: #04091d;
   --xms-nav-bar: var(--xms-accent);
-  --xms-nav-icon: #3d4b80;
+  --xms-nav-icon: #3d657f;
 
   /* The note block: a quiet grey card standing inside another card. The Axel
    * brief line, the unlogged-time nudge and the Axel panel's own suggestion
@@ -178,7 +214,7 @@
 
   /* v3 state ramp: ticket state pills only */
   --xms-state-new-fg: #334155;               --xms-state-new-bg: #f1f5f9;               --xms-state-new-br: #d7dee8;
-  --xms-state-in-progress-fg: #1d4ed8;       --xms-state-in-progress-bg: #eff4ff;       --xms-state-in-progress-br: #cbdcfa;
+  --xms-state-in-progress-fg: var(--xms-accent-hover); --xms-state-in-progress-bg: var(--xms-accent-tint); --xms-state-in-progress-br: var(--xms-accent-border);
   --xms-state-awaiting-client-fg: #9a5b06;   --xms-state-awaiting-client-bg: #fef6e7;   --xms-state-awaiting-client-br: #f4ddb4;
   --xms-state-awaiting-approval-fg: #0e7490; --xms-state-awaiting-approval-bg: #ecfafe; --xms-state-awaiting-approval-br: #bfe6f0;
   --xms-state-resolved-fg: #0f7a50;          --xms-state-resolved-bg: #edfaf3;          --xms-state-resolved-br: #bee6d3;
@@ -221,6 +257,8 @@
   --xms-radius-control: 4px;
   --xms-radius-card: 6px;
   --xms-finder-bar-h: 56px;
+  /* The dark chrome at the top of the application. */
+  --xms-shell-chrome: #1a1a20;
   /* 52px, not the 44px the v2 table quoted: measured off v3 render 01, where
    * the grey band runs y=116 to y=167 under the 56px navy bar, which is 51px
    * of content and the 1px rule. The pills inside it are 32px with 8px gaps. */
@@ -229,6 +267,10 @@
   --xms-sidebar-w: 238px;
   --xms-rail-w: 262px;
   --xms-axel-panel-w: 340px;
+  /* The reading column inside the full-screen Axel surface. Full screen
+   * without one reads as a single very wide line; this is the width AIX's
+   * own centered transcript uses. */
+  --xms-axel-read-w: 720px;
   --xms-control-h: 34px;
   /* 32px on the grey strip, 38px in a card toolbar (hand-off section 4). */
   --xms-control-h-lg: 38px;
@@ -258,8 +300,8 @@
 
   /* Blue belongs to links alone: the colour and a faint persistent underline
    * together. A state or a mark that borrowed it now stands on its own hue. */
-  --xms-link-underline: #a9c4f5;
-  --xms-state-progress: #0369a1;
+  --xms-link-underline: #a6cde7;
+  --xms-state-progress: var(--xms-accent);
 
   color: var(--xms-body);
   background: var(--xms-bg);
@@ -297,6 +339,7 @@
   --xms-line-row: #1c2740;
   --xms-control-line: #2f4160;
   --xms-control-hover: #24344f;
+  --xms-control-line-hover: #43597d;
   /* On a dark ground the recess is a light top edge rather than a shadow,
    * because a darker shadow on a dark field is invisible. */
   --xms-field-inset: inset 0 1px 0 rgb(255 255 255 / 0.07);
@@ -729,6 +772,71 @@
     border-radius: var(--xms-radius-card);
   }
 
+  /* The full-screen Axel surface. Everything about how it LOOKS comes from
+   * the vendored `.aibl-chat-min` skin in aix-tokens.css, which is AIX's own
+   * CSS hung on the same `data-chat-el` hooks the components carry. Only the
+   * two things that are XMS's and not AIX's are said here: where the surface
+   * sits in this shell, and the type floor.
+   *
+   * Fixed rather than a flex sibling, because the point of the AIX behaviour
+   * is that the finder bar stays live and clickable while the assistant is
+   * up, so the surface must not push the shell around or take the bar with
+   * it. It sits above the drawer and the strip; the bar is not overlapped. */
+  .xms-axel-full {
+    position: fixed;
+    inset: var(--xms-finder-bar-h) 0 0 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* The reading column. AIX centres its transcript on the same width. */
+  .xms-axel-column {
+    width: 100%;
+    max-width: var(--xms-axel-read-w);
+    margin-inline: auto;
+  }
+
+  /* The composer docks with room under it rather than against the window
+   * edge: a field pinned to the very bottom of a tall screen reads as cut
+   * off. The figure is measured off the reference rather than chosen: AIX
+   * leaves about a twelfth of the viewport below its disclaimer (the capture
+   * Matt supplied is 1936 by 1046 with the line at y=919), and 40px here left
+   * a twentieth, which is what made the field look dropped to the floor. */
+  .xms-axel-dock {
+    flex-shrink: 0;
+    padding: 8px var(--xms-gutter) 100px;
+  }
+
+  /* Nothing here about the chat's type or its face any more.
+   *
+   * Both were XMS answers to an AIX question and both were wrong on the
+   * screen: the 14px floor made the thread pill and the quick starts read a
+   * size too big, and Lato made the greeting a different sentence from the
+   * reference's. The vendored layer now carries AIX's face and AIX's own
+   * steps, which is the point of vendoring it. Mono stays for the work trace,
+   * because a tool call aligning in a column is this product's convention and
+   * the reference has nothing to say about it. */
+  .aibl-chat-min [data-chat-el="work-trace"] {
+    font-family: var(--xms-mono);
+  }
+
+  /* The finder's results, hanging off the box on the bar above. It is a card
+   * on the light ground rather than the dark translucent overlay the old
+   * finders used: those were a surface of their own over a dimmed workspace,
+   * and this is a list of things you are about to open. */
+  .xms-finder-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 40;
+    width: 100%;
+    min-width: 420px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-bottom: 4px;
+  }
+
   /* Dense list rows: hairline plus hover, no striping */
   .xms-rows > * + * {
     border-top: 1px solid var(--xms-line);
@@ -760,41 +868,76 @@
  *
  * The recess stays on both. It is what makes a field read as a well rather
  * than as a bordered rectangle, and that is true whether or not you may
- * write in it. */
+ * write in it.
+ *
+ * Two things opt out. `.bg-transparent` is the long-standing one. `[data-chat-el]`
+ * is the vendored AIX chat skin's hook, and had to be: this recipe painted a
+ * white fill and the recess onto the composer's textarea, which drew a sunken
+ * box inside the rounded pill the skin had just drawn around it. A composer is
+ * a pill, not a well. */
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent),
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent),
-.xms-scope textarea:not(.bg-transparent),
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el]),
+.xms-scope textarea:not(.bg-transparent):not([data-chat-el]),
 .xms-scope .xms-field {
   box-shadow: var(--xms-field-inset);
   background-color: var(--xms-card);
 }
 
 /* A pointer resting on a field it could use. Only on one it could use:
- * hovering something inert should say nothing. */
-.xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):enabled:hover,
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):enabled:hover,
-.xms-scope textarea:not(.bg-transparent):enabled:hover,
-.xms-scope .xms-field:hover {
-  background-color: var(--xms-control-hover);
+ * hovering something inert should say nothing.
+ *
+ * The edge darkens; the ground does not move (2026-09-12). A control already
+ * carrying a value is left alone: its border is the accent, and that is the
+ * louder fact of the two, so hover must not paint over it. That is what the
+ * `[data-active]` exclusions are doing, and they have to be here rather than
+ * in the component, because this rule is unlayered and would otherwise beat
+ * the `border-xms-accent` utility the strip's own controls set. */
+.xms-scope
+  select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):enabled:hover,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el]):enabled:hover,
+.xms-scope textarea:not(.bg-transparent):not([data-chat-el]):enabled:hover,
+.xms-scope .xms-field:not([data-active="true"]):hover {
+  border-color: var(--xms-control-line-hover);
 }
 
 /* Clicked into, it goes back to white and stays there: the hover wash is for
  * a pointer passing over, not for the control being used. */
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):enabled:focus,
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):enabled:focus,
-.xms-scope textarea:not(.bg-transparent):enabled:focus,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el]):enabled:focus,
+.xms-scope textarea:not(.bg-transparent):not([data-chat-el]):enabled:focus,
 .xms-scope .xms-field:focus-within {
   background-color: var(--xms-card);
 }
 
 /* And the grey, on the fields that earn it. */
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent):disabled,
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):disabled,
-.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent)[readonly],
-.xms-scope textarea:not(.bg-transparent):disabled,
-.xms-scope textarea:not(.bg-transparent)[readonly],
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el]):disabled,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el])[readonly],
+.xms-scope textarea:not(.bg-transparent):not([data-chat-el]):disabled,
+.xms-scope textarea:not(.bg-transparent):not([data-chat-el])[readonly],
 .xms-scope .xms-field[aria-disabled="true"] {
   background-color: var(--xms-field-bg);
+}
+
+/* A dropdown reads in ink, and in the accent once it carries a value somebody
+ * chose (2026-09-11).
+ *
+ * The strip's own controls have always done this (`components/xms/filter-select`
+ * inks the label, the value, the chevron and the edge together, quiet or
+ * active). The native ones did not: Tailwind's preflight puts `color: inherit`
+ * on a select, so every one of them was inheriting --xms-body, a blue-grey,
+ * while the chevron drawn beside it was ink. Grey words under a black mark.
+ *
+ * `[data-active="true"]` is the same hook the strip uses, so one attribute
+ * means one thing everywhere: this control is carrying a value, rather than
+ * sitting at its default. A select that nobody has told stays in ink, which is
+ * the honest reading of a control whose state nothing has declared. */
+.xms-scope select:not([class*="opacity-0"]) {
+  color: var(--xms-ink);
+}
+.xms-scope select:not([class*="opacity-0"])[data-active="true"] {
+  color: var(--xms-accent);
+  border-color: var(--xms-accent);
 }
 
 /* A single-choice dropdown draws its own chevron, so the platform never
@@ -808,6 +951,13 @@
   background-size: 14px 14px;
   padding-right: 28px;
 }
+/* The chevron follows the words it stands beside. Both marks are drawn as
+ * data URIs, which cannot read a custom property, so the two inks are written
+ * out: #000e1d is --xms-ink and #006fba is --xms-accent. If either token
+ * moves, these move with it by hand. */
+.xms-scope select:not([class*="opacity-0"]):not([multiple])[data-active="true"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23006fba' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
 .xms-scope select:not([class*="opacity-0"]):not([multiple]):disabled {
   opacity: 0.6;
 }
@@ -820,6 +970,29 @@
   outline-offset: 0;
 }
 .xms-scope .xms-field-typed :focus-visible {
+  outline: none;
+}
+
+/* The finder, which is the same problem as the field above and a different
+ * answer (2026-09-12).
+ *
+ * Same shape: a borderless input inside a pill that draws the box, so the
+ * scope's focus outline landed on the input and read as a small rectangle
+ * sitting inside the control rather than around it.
+ *
+ * Different answer, because of where it stands. `.xms-field-typed` marks focus
+ * in the accent, which is a token for the light ground; the finder is on the
+ * near-black bar, where the accent reads as a blue smudge on black and is not
+ * what anything else up there is drawn in. The mark is the bar's own white,
+ * offset a pixel so it rings the pill instead of thickening its edge.
+ *
+ * The vendored `.aix-finder:focus-within` already brightens the fill and the
+ * border; this is the ring around the outside of both. */
+.xms-scope .aix-finder:focus-within {
+  outline: 2px solid rgb(255 255 255 / 0.4);
+  outline-offset: 1px;
+}
+.xms-scope .aix-finder :focus-visible {
   outline: none;
 }
 
@@ -878,8 +1051,14 @@
  * - `.xms-plain` is for a button impersonating another control: the finder
  *   bar's search box, which is a text field you press, the workspace scope
  *   beside it, which is a label, and the sidebar's section disclosure, whose
- *   bolding was taken off by hand on 2026-09-10 and is not being put back. */
-.xms-scope button:not([role="tab"]):not(.xms-plain) {
+ *   bolding was taken off by hand on 2026-09-10 and is not being put back.
+ *
+ * And a third, added 2026-09-11: anything the vendored AIX layer dresses. The
+ * chat's thread pill is set at 600 and its quick starts at 500 by that
+ * stylesheet, and this rule was overriding both to 700, so the two controls
+ * came out heavier than the reference. The markers are the same two the
+ * geometry and field recipes below take. */
+.xms-scope button:not([role="tab"]):not(.xms-plain):not([data-chat-el]):not([class*="aix-"]) {
   font-weight: 700;
 }
 .xms-scope .xms-plain {
@@ -890,11 +1069,20 @@
  *
  * A tab is not a control with a box: its selected mark is a straight rule on
  * the row edge, so the radius here curved both ends of it upward. Anything
- * that draws its own edge instead of a box opts out with rounded-none. */
-.xms-scope button:not([role="tab"]):not(.xms-square):not([class*="rounded-"]),
+ * that draws its own edge instead of a box opts out with rounded-none.
+ *
+ * Anything the vendored AIX layer dresses opts out too, and had to: this rule
+ * beat aix-tokens.css on specificity and squared off every round thing it
+ * draws, the assistant's 8px call to action, the chat's quick starts and its
+ * round send button among them. Something wearing a whole vendored skin brings
+ * its own geometry with it, so the two are not in competition. The two markers
+ * are `[data-chat-el]`, the hooks the chat skin selects on, and an `aix-`
+ * class; the latter is on buttons alone here, `aix-state-pill` being a span. */
+.xms-scope
+  button:not([role="tab"]):not(.xms-square):not([data-chat-el]):not([class*="aix-"]):not([class*="rounded-"]),
 .xms-scope select:not([class*="rounded-"]),
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([class*="rounded-"]),
-.xms-scope textarea:not([class*="rounded-"]) {
+.xms-scope textarea:not([data-chat-el]):not([class*="rounded-"]) {
   border-radius: var(--xms-radius-control);
 }
 .xms-scope button[role="tab"] {
@@ -934,4 +1122,56 @@
  * drawn inside the field instead. */
 .xms-scope textarea:focus-visible {
   outline-offset: -2px;
+}
+
+/* The shell header, softened for a light application (2026-09-11).
+ *
+ * The recipe is vendored from AIXelerator and stays as it is; this is the one
+ * place XMS disagrees with it, and it disagrees for a reason the reference
+ * could not have: over there the whole application is dark and the bar meets
+ * more dark. Here it meets --xms-bg at the very first edge of the screen, an
+ * 18.5:1 jump, and it read as heavy.
+ *
+ * Two changes, and no rounding. The bar is flush to three edges of the
+ * viewport, so a curve on any corner of it would open a sliver of page ground
+ * where there is nothing to see, which reads as a mistake rather than as a
+ * softening. Instead:
+ *
+ * - the ground lifts off near-black to a charcoal, which keeps the bar clearly
+ *   the darkest thing on the screen without being the darkest thing possible;
+ * - the cast goes. A drop shadow under a near-black bar puts grey on near-white
+ *   and is most of what made it feel thick. The inset highlight stays, because
+ *   that is what keeps the bar reading as a surface rather than as a painted
+ *   strip, and the hairline stays with it.
+ *
+ * Revert by deleting this block: the vendored recipe underneath is untouched. */
+.xms-scope .aix-app-header,
+.aix-app-header {
+  background: var(--xms-shell-chrome);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  /* The bar draws nothing outside itself in AIX, so the vendored recipe can
+   * afford `overflow-x: hidden` there. It cannot here, and the reason is a
+   * rule worth stating twice: a box with one axis hidden and the other visible
+   * computes the visible one to AUTO, so the bar was a scroll container. The
+   * finder's results hang off the box on the bar, which put a 73px panel
+   * inside a 56px scroller: the panel was clipped to a five pixel sliver and
+   * the header scrolled instead (found by Matt, 2026-09-12).
+   *
+   * Nothing on this bar is wide enough to need the clip. The logo and the
+   * standing controls are fixed, and the finder shrinks, so the row fits and
+   * the results can hang below it. */
+  overflow: visible;
+}
+
+
+/* The Axel chat's greeting takes focus when the surface opens, so that the
+ * move to a new surface is announced rather than leaving the reader on the
+ * header button with nothing said. It is a heading and not a control, and a
+ * cobalt box drawn around "Hey Matt, I'm Axel." says it can be operated. The
+ * focus stays, because that is the part a screen reader needs; the ring goes,
+ * because the sighted reader is already looking at a screen that just
+ * changed. Its own `outline-none` utility cannot do this: the focus rule
+ * above is unlayered and beats every layered utility. */
+.xms-scope [data-chat-el="welcome-title"]:focus-visible {
+  outline: none;
 }
