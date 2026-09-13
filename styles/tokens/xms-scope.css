@@ -248,7 +248,23 @@
 
   /* Type */
   --xms-font: var(--font-family-body);
-  --xms-mono: var(--font-family-mono);
+  /* There is one face in this product (Matt, 2026-09-13). IBM Plex Mono was
+   * the second, and it announced itself: its dotted zero, drawn to tell 0
+   * from O in code, is a small artefact at 14px in a table and a loud one at
+   * 28px on a scorecard, which is where it started reading as two fonts on
+   * one screen.
+   *
+   * The job mono was doing here was alignment, not texture: a column of
+   * figures lining up. Tabular figures in the UI face do that without a
+   * second family, which is the call already made for the display key on
+   * 2026-09-09 ("a display key is text a person reads and follows, so it
+   * wears the UI face like every other link"). This finishes it.
+   *
+   * The token stays rather than being deleted: 345 call sites ask for it, and
+   * what they are asking for is figures that line up, which is what they now
+   * get. The @font-face blocks for Plex are gone from fonts.css, so nothing
+   * is fetched for it either. */
+  --xms-mono: var(--font-family-body);
 
   /* The ServiceNow Next Experience type scale (2026-09-10, AIBL-316), with a
    * floor of 14px by request: nothing in this product is set smaller than the
@@ -679,11 +695,13 @@
   /* Mono value: SLA values, counts, identifiers that are not display keys */
   .xms-mono {
     font-family: var(--xms-mono);
+    /* What the mono face was actually for: a column of figures that line up. */
+    font-variant-numeric: tabular-nums;
     font-variant-numeric: tabular-nums;
   }
 
   /* The display key, one treatment everywhere it is drawn: a ticket (CS0001204),
-   * an article (KB000123), an account key. IBM Plex Mono per the wireframes,
+   * an article (KB000123), an account key. The UI face with
    * tabular figures so a column of keys aligns, and the accent so a key reads as
    * the record's own identifier whether or not it links. Declared after
    * .xms-link so the shorthand there cannot put a key back in the sans face,
