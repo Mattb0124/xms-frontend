@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { EffectivePill, OverrideEditor } from "@/components/admin/config/override-editor";
 import { RoutingRulesPanel } from "@/components/admin/config/routing-rules";
+import { AccountMcpPanel } from "@/components/admin/mcp/account-mcp-panel";
 import { TicketFormsPanel } from "@/components/admin/forms/ticket-forms-panel";
 import { Panel } from "@/components/xms/panel";
 import { CATALOG_KINDS, defaultScope, type CatalogKind } from "@/lib/admin/config-catalog";
@@ -103,6 +104,7 @@ export function AccountConfigTab({ accountId }: { accountId: string }) {
           <p className="text-xms-label text-[14px]">You can see this account but not its configuration overrides.</p>
         </Panel>
       )}
+      {permitted ? <AccountMcpPanel accountId={accountId} /> : null}
       <RoutingRulesPanel accountId={accountId} />
       <TicketFormsPanel accountId={accountId} />
     </div>

@@ -189,7 +189,13 @@ export interface AssignableUser {
 }
 
 export type ConfigKind =
-  "state_machine" | "priority_matrix" | "sla_policy" | "activity_types" | "billable_classes" | "resolution_codes";
+  | "state_machine"
+  | "priority_matrix"
+  | "sla_policy"
+  | "activity_types"
+  | "billable_classes"
+  | "resolution_codes"
+  | "mcp";
 
 export interface ConfigVersion {
   id: string;
@@ -511,6 +517,35 @@ export const adminApi = xmsApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, key) => [accountConfigTag(key)],
     }),
+    /**
+     * A new operator version of a catalog, as a draft. Editing the library is
+     * two calls on purpose: the server keeps every version and only one is
+     * active, so a change is written first and switched on second, and the
+     * history shows both. The screens call `activateConfigVersion` straight
+     * after, which is what makes an edit feel like one action.
+     */
+    createConfigVersion: build.mutation<
+      ConfigVersion,
+      { kind: ConfigKind; scope?: string; body: Record<string, unknown> }
+    >({
+      query: ({ kind, scope, body }) => ({
+        url: `/v1/admin/config/${kind}/versions`,
+        method: "POST",
+        params: scope ? { scope } : undefined,
+        body: { body },
+      }),
+      invalidatesTags: (_result, _error, { kind, scope }) => [{ type: "Config", id: `${kind}:${scope ?? "*"}` }],
+    }),
+
+    /** Switches a draft version on. Every account without an override follows it at once. */
+    activateConfigVersion: build.mutation<ConfigVersion, { kind: ConfigKind; scope?: string; id: string }>({
+      query: ({ kind, id }) => ({ url: `/v1/admin/config/${kind}/versions/${id}/activate`, method: "POST" }),
+      invalidatesTags: (_result, _error, { kind, scope }) => [
+        { type: "Config", id: `${kind}:${scope ?? "*"}` },
+        "AccountConfig",
+      ],
+    }),
+
     removeAccountOverride: build.mutation<{ removed: string }, AccountConfigKey>({
       query: ({ accountId, kind, scope }) => ({
         url: `/v1/accounts/${accountId}/config/${kind}/override`,
@@ -621,6 +656,8 @@ export const {
   useSetTeamAccountsMutation,
   useGetConfigQuery,
   useGetAccountConfigQuery,
+  useCreateConfigVersionMutation,
+  useActivateConfigVersionMutation,
   useSetAccountOverrideMutation,
   useRemoveAccountOverrideMutation,
   useListTicketFormsQuery,
