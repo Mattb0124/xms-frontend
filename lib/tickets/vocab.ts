@@ -55,6 +55,10 @@ export const RESOLUTION_CODES: ResolutionCode[] = [
   { key: "user_guidance", label: "User guidance", noSolution: false },
   { key: "data_correction", label: "Data correction", noSolution: false },
   { key: "vendor_fix", label: "Vendor fix", noSolution: false },
+  // Planned work that was delivered rather than a fault that was fixed: the
+  // code a project task and a completed change close under. No solution link,
+  // because a delivered task is not a problem anybody will search for later.
+  { key: "delivered", label: "Delivered as specified", noSolution: true },
   { key: "no_fault_found", label: "No fault found", noSolution: true },
   { key: "duplicate", label: "Duplicate", noSolution: true },
   { key: "cancelled_by_client", label: "Cancelled by client", noSolution: true },

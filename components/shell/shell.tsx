@@ -2,28 +2,28 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { CommandPalette } from "@/components/shell/command-palette";
 import { ContentHeaderBar } from "@/components/shell/content-header-bar";
-import { FinderBar, type FinderKind } from "@/components/shell/finder-bar";
-import { FinderOverlay, type HistoryEntry } from "@/components/shell/finder-overlay";
+import { Finder, type FinderRecent } from "@/components/shell/finder";
+import { FinderBar } from "@/components/shell/finder-bar";
+import { AxelChat } from "@/components/axel/axel-chat";
 import { AxelPanel } from "@/components/shell/axel-panel";
 import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
 import { initials } from "@/components/xms/actor-chip";
-import { HISTORY_KEY, PINS_KEY, STARS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
+import { HISTORY_KEY, PINS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
 import { isDynamicPath, matchScreen, visibleScreens } from "@/lib/routes";
 import { NARROW_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { useListQuarantineQuery } from "@/redux/emailApi";
 import { useMe } from "@/redux/me";
-import { useListTicketsQuery, useUnreadCountQuery } from "@/redux/ticketsApi";
+import { useGetTicketQuery, useListTicketsQuery, useUnreadCountQuery } from "@/redux/ticketsApi";
 
-function parseHistory(raw: string): HistoryEntry | null {
+function parseHistory(raw: string): FinderRecent | null {
   try {
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return null;
-    const entry = parsed as Partial<HistoryEntry>;
+    const entry = parsed as Partial<FinderRecent>;
     return typeof entry.path === "string" && typeof entry.label === "string" && typeof entry.at === "string"
-      ? { path: entry.path, label: entry.label, at: entry.at }
+      ? { path: entry.path, label: entry.label, at: entry.at, ...(entry.code ? { code: entry.code } : {}) }
       : null;
   } catch {
     return null;
@@ -42,8 +42,6 @@ export function Shell({ children }: { children: ReactNode }) {
   const current = matchScreen(pathname);
   const screens = useMemo(() => visibleScreens(me.permissions), [me.permissions]);
 
-  const [finder, setFinder] = useState<FinderKind | null>(null);
-  const [palette, setPalette] = useState(false);
   // The sidebar follows the viewport until the reader says otherwise: open on a
   // desk-width window, closed below the md breakpoint where 238px would leave
   // about 150px of content (frontend review finding 8). The content header
@@ -60,6 +58,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const axel = axelChoice ?? axelParam;
   const setAxel = (next: boolean | ((open: boolean) => boolean)) =>
     setAxelChoice(typeof next === "function" ? next(axel) : next);
+  // The finder bar's Axel button opens the full-screen surface (AIBL-321),
+  // which is a different thing from the docked panel above it: the panel is
+  // the rail beside a record, this is the conversation. Both can be reached,
+  // neither is the other's state.
+  const [axelChat, setAxelChat] = useState(false);
 
   // The sidebar's counts come from the routes the screens themselves read,
   // asked for one row each so a badge costs a count and not a page: the ticket
@@ -76,6 +79,13 @@ export function Shell({ children }: { children: ReactNode }) {
     { state: "open" },
     { pollingInterval: 60_000, skip: !canWorkTickets },
   );
+  // Axel turns run against a ticket, so the full-screen surface takes the one
+  // the reader is looking at. The record page has already asked for the same
+  // ticket by the same key, so in practice this reads RTK Query's cache rather
+  // than making a second request, and it asks for nothing at all on a screen
+  // that is not a record.
+  const ticketKey = current?.screen === "ticket" ? decodeURIComponent(pathname.split("/")[2] ?? "").toUpperCase() : "";
+  const { data: axelTicket } = useGetTicketQuery(ticketKey, { skip: !ticketKey || !canSeeTickets });
   const counts = useMemo(
     () => ({
       cases: queueStats?.stats.open,
@@ -86,60 +96,45 @@ export function Shell({ children }: { children: ReactNode }) {
   );
 
   const [pins, togglePin] = useToggleInList(PINS_KEY);
-  const [stars, toggleStar, hasStar] = useToggleInList(STARS_KEY);
   const [historyRaw, setHistory] = usePersistedList(HISTORY_KEY, 30);
 
   const currentHref = typeof window === "undefined" ? pathname : `${pathname}${window.location.search}`;
-  // The pill names the workspace, not just the screen: on the Cases list it
-  // reads "Cases View: Workspace" as the design states it.
-  const workspaceLabel = current ? (current.screen === "cases" ? "Cases View: Workspace" : current.label) : "XMS";
 
-  // History: one entry per visited screen, newest first (Wireframes v2 section 2).
+  // Recents: one entry per RECORD opened, newest first.
+  //
+  // It used to write `current.label`, which is the route registry's name for
+  // the screen, so every ticket visited was filed as "Ticket" and a list of ten
+  // read "Ticket" ten times (AIBL-329). A record names itself: the ticket the
+  // shell has already fetched for Axel gives its key and its description, and
+  // nothing extra is asked for to get them.
   useEffect(() => {
     if (!current) return;
-    const entry: HistoryEntry = { path: currentHref, label: current.label, at: new Date().toISOString() };
+    const label =
+      axelTicket && current.screen === "ticket" ? `${axelTicket.key}  ${axelTicket.short_description}` : current.label;
+    const entry: FinderRecent = { path: currentHref, label, at: new Date().toISOString() };
     const rest = historyRaw.filter((raw) => parseHistory(raw)?.path !== currentHref);
     setHistory([JSON.stringify(entry), ...rest]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentHref]);
+  }, [currentHref, axelTicket?.key]);
 
-  const history = useMemo<HistoryEntry[]>(
-    () => historyRaw.map(parseHistory).filter((entry): entry is HistoryEntry => entry !== null),
+  const history = useMemo<FinderRecent[]>(
+    () => historyRaw.map(parseHistory).filter((entry): entry is FinderRecent => entry !== null),
     [historyRaw],
   );
-  const favourites = useMemo(
-    () =>
-      stars.map((path) => ({
-        path,
-        label: matchScreen(path.split("?")[0])?.label ?? path,
-        // Render 13 words the meta in lower case: "saved view", "screen".
-        type: path.includes("?") ? "saved view" : "screen",
-      })),
-    [stars],
-  );
 
+  // Ctrl+K and `/` belong to the finder, which binds them itself: it is the
+  // thing that has to take focus, and a shortcut that lives away from the
+  // control it drives goes stale the moment either moves.
   const onKey = useCallback(
     (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const typing =
         target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setPalette((open) => !open);
-        setFinder(null);
-        return;
-      }
       if (event.key === "Escape") {
-        setFinder(null);
-        setPalette(false);
         setNotifications(false);
         return;
       }
       if (typing) return;
-      if (event.key === "/") {
-        event.preventDefault();
-        setFinder("all");
-      }
       if (event.key === "c" && !event.ctrlKey && !event.metaKey && me.hasPermission("tickets:create")) {
         router.push("/cases/new");
       }
@@ -154,14 +149,23 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <FinderBar
-        activeFinder={finder}
-        onFinder={(kind) => setFinder((open) => (open === kind ? null : kind))}
-        workspaceLabel={workspaceLabel}
-        starred={hasStar(currentHref)}
-        onToggleStar={() => toggleStar(currentHref)}
-        onWorkspace={() => setFinder((open) => (open === "favourites" ? null : "favourites"))}
-        workspaceOpen={finder === "favourites"}
-        onSearchFocus={() => setFinder("all")}
+        finder={
+          <Finder
+            screens={screens}
+            recents={history}
+            pinned={new Set(sidebarItems(me.permissions, new Set(pins)).map((screen) => screen.path))}
+            // A dynamic path is a pattern, not an address, so it can never be
+            // one the sidebar links; the pin is refused rather than stored and
+            // filtered out again on the way back.
+            onTogglePin={(path: string) => {
+              if (!isDynamicPath(path)) togglePin(path);
+            }}
+            canSeeTickets={canSeeTickets}
+            canSeeKnowledge={me.hasPermission("knowledge:view")}
+          />
+        }
+        onAxel={() => setAxelChat((open) => !open)}
+        axelOpen={axelChat}
         unreadCount={unread?.count ?? 0}
         onNotifications={() => setNotifications((open) => !open)}
         userInitials={me.principal?.displayName ? initials(me.principal.displayName) : "?"}
@@ -178,9 +182,12 @@ export function Shell({ children }: { children: ReactNode }) {
             permissions={me.permissions}
             extraPins={new Set(pins)}
             counts={counts}
-            starredViews={favourites
-              .filter((f) => f.type === "Saved view")
-              .map((f) => ({ path: f.path, label: f.label }))}
+            // Empty since the star came off the scope pill (AIBL-321), and
+            // empty before that too: this filtered on "Saved view" where the
+            // favourites list wrote "saved view", so the section never drew a
+            // row in its life. The prop stays so the saved views the server
+            // holds (/v1/views) have somewhere to arrive.
+            starredViews={[]}
             currentPath={pathname}
           />
         ) : null}
@@ -206,29 +213,12 @@ export function Shell({ children }: { children: ReactNode }) {
           <AxelPanel context={current?.path.includes("[") ? "ticket" : "desk"} onClose={() => setAxel(false)} />
         ) : null}
       </div>
-      {finder ? (
-        <FinderOverlay
-          kind={finder}
-          screens={screens}
-          // Exactly what the sidebar is showing this reader, so the pin
-          // glyph in the overlay and the row in the sidebar always agree.
-          // It used to be every ranked screen, which since the ranks run past
-          // the sixth would have drawn a pin on rows the sidebar does not
-          // carry.
-          pinned={new Set(sidebarItems(me.permissions, new Set(pins)).map((screen) => screen.path))}
-          // A dynamic path is a pattern, not an address, so it can never be
-          // an address the sidebar links; the pin is refused rather than
-          // stored and filtered out again on the way back.
-          onTogglePin={(path: string) => {
-            if (!isDynamicPath(path)) togglePin(path);
-          }}
-          favourites={favourites}
-          counts={counts}
-          history={history}
-          onClose={() => setFinder(null)}
-        />
+      {/* Everything below the finder bar, which stays live above it: the
+          reader can move to another screen without closing Axel first, which
+          is the behaviour the AIX chat has. */}
+      {axelChat ? (
+        <AxelChat ticketId={axelTicket?.id ?? null} ticketKey={axelTicket?.key} onClose={() => setAxelChat(false)} />
       ) : null}
-      {palette ? <CommandPalette screens={screens} onClose={() => setPalette(false)} /> : null}
     </div>
   );
 }

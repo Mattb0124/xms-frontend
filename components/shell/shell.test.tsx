@@ -1,10 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import type React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CommandPalette } from "@/components/shell/command-palette";
 import { FinderBar } from "@/components/shell/finder-bar";
-import { FinderOverlay } from "@/components/shell/finder-overlay";
 import { Shell } from "@/components/shell/shell";
 import { visibleScreens } from "@/lib/routes";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
@@ -19,100 +18,72 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("FinderBar", () => {
-  it("marks the active finder and stars the current view", () => {
-    const onFinder = vi.fn();
-    const onToggleStar = vi.fn();
-    render(
-      <FinderBar
-        activeFinder="all"
-        onFinder={onFinder}
-        workspaceLabel="Cases"
-        starred={false}
-        onToggleStar={onToggleStar}
-        onWorkspace={() => {}}
-        onSearchFocus={() => {}}
-        unreadCount={3}
-        onNotifications={() => {}}
-        userInitials="MB"
-        onUser={() => {}}
-      />,
-    );
-    expect(screen.getByRole("button", { name: "All" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "History" }));
-    expect(onFinder).toHaveBeenCalledWith("history");
-    fireEvent.click(screen.getByLabelText("Star this view"));
-    expect(onToggleStar).toHaveBeenCalled();
+  const bar = (overrides: Partial<React.ComponentProps<typeof FinderBar>> = {}) => (
+    <FinderBar
+      finder={<div data-testid="finder-slot" />}
+      onAxel={() => {}}
+      axelOpen={false}
+      unreadCount={0}
+      onNotifications={() => {}}
+      userInitials="MB"
+      onUser={() => {}}
+      {...overrides}
+    />
+  );
+
+  it("carries the finder it is given and counts the unread on the bell", () => {
+    render(bar({ unreadCount: 3 }));
+    expect(screen.getByTestId("finder-slot")).toBeInTheDocument();
     expect(screen.getByLabelText("Notifications, 3 unread")).toBeInTheDocument();
-    // v3 render 01: the bell carries the unread count as a badge on the icon,
-    // and the scope pill names the instance beside the view.
     expect(screen.getByTestId("unread-badge")).toHaveTextContent("3");
-    expect(screen.getByTestId("workspace-pill")).toHaveTextContent("THG PROD");
-    expect(screen.getByTestId("workspace-pill")).toHaveTextContent("Cases");
-  });
-});
-
-describe("FinderOverlay", () => {
-  it("groups permitted screens by section, filters them and toggles pins", () => {
-    const onTogglePin = vi.fn();
-    render(
-      <FinderOverlay
-        kind="all"
-        screens={visibleScreens(new Set(["tickets:view", "admin:accounts", "reports:view-portfolio"]))}
-        pinned={new Set(["/cases"])}
-        onTogglePin={onTogglePin}
-        favourites={[]}
-        history={[]}
-        onClose={() => {}}
-      />,
-    );
-    // The overlay header is the render's plain "All screens"; the tree count
-    // lives on the sidebar's own "Browse all screens" footer (render 12).
-    expect(screen.getByRole("dialog", { name: "All screens" })).toBeInTheDocument();
-    expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
-    expect(screen.queryByText("Dispatch")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "oper" } });
-    expect(screen.getByText("Operations")).toBeInTheDocument();
-    expect(screen.queryByText("Cases")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Filter screens"), { target: { value: "" } });
-    fireEvent.click(screen.getByLabelText("Unpin Cases"));
-    expect(onTogglePin).toHaveBeenCalledWith("/cases");
   });
 
-  it("lists history with relative times", () => {
-    render(
-      <FinderOverlay
-        kind="history"
-        screens={[]}
-        pinned={new Set()}
-        onTogglePin={() => {}}
-        favourites={[]}
-        history={[{ path: "/cases/CS0001204", label: "Ticket", at: new Date(Date.now() - 5 * 60_000).toISOString() }]}
-        onClose={() => {}}
-      />,
-    );
-    expect(screen.getByRole("link", { name: "Ticket" })).toHaveAttribute("href", "/cases/CS0001204");
-    expect(screen.getByText("5m ago")).toBeInTheDocument();
+  // The reference stops counting at nine, where this bar used to stop at 99.
+  it("stops the count at nine, as the reference does", () => {
+    render(bar({ unreadCount: 42 }));
+    expect(screen.getByTestId("unread-badge")).toHaveTextContent("9+");
   });
-});
 
-describe("CommandPalette", () => {
-  it("navigates to a filtered screen on Enter and jumps to a ticket key", () => {
-    push.mockClear();
-    const onClose = vi.fn();
-    render(
-      <CommandPalette
-        screens={visibleScreens(new Set(["tickets:view", "reports:view-portfolio"]))}
-        onClose={onClose}
-      />,
-    );
-    const input = screen.getByLabelText("Command");
-    fireEvent.change(input, { target: { value: "oper" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-    expect(push).toHaveBeenCalledWith("/operations");
-    expect(onClose).toHaveBeenCalled();
-    fireEvent.change(input, { target: { value: "cs0001204" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-    expect(push).toHaveBeenCalledWith("/cases/CS0001204");
+  /**
+   * The search field and the scope pill came off on 2026-09-11 so the bar
+   * matches AIXelerator's. The field was a second door onto the room the All
+   * finder already opens, and the `/` shortcut still opens it from the shell.
+   * The star that lived in the pill is the one thing with nowhere to go, and
+   * this records that it is gone rather than leaving it to be noticed later.
+   */
+  // The four ServiceNow finders came off with the overlay behind them
+  // (AIBL-329), and the scope pill and its star before that (AIBL-321).
+  it("carries none of the four finders, and no scope pill", () => {
+    render(bar());
+    for (const gone of ["All", "Favourites", "History", "Workspaces"]) {
+      expect(screen.queryByRole("button", { name: gone })).not.toBeInTheDocument();
+    }
+    expect(screen.queryByTestId("workspace-pill")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Star this view")).not.toBeInTheDocument();
+  });
+
+  it("carries the Axel button and says whether the surface is up", () => {
+    const onAxel = vi.fn();
+    const { rerender } = render(bar({ onAxel }));
+    const axel = screen.getByRole("button", { name: "Axel" });
+    // The words are the accessible name whether or not the label is drawn, so
+    // the control is still findable on a narrow window where it is a sparkle.
+    expect(axel).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(axel);
+    expect(onAxel).toHaveBeenCalled();
+    rerender(bar({ onAxel, axelOpen: true }));
+    expect(screen.getByRole("button", { name: "Axel" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  // The bar wears the vendored AIX chrome, not the house navy, and every one
+  // of those recipes lives in aix-tokens.css rather than in this component.
+  it("stands on the vendored AIX header, not the house navy", () => {
+    render(bar({ unreadCount: 1 }));
+    const banner = screen.getByTestId("finder-bar");
+    expect(banner).toHaveClass("aix-app-header");
+    expect(banner.className).not.toContain("bg-xms-navy");
+    expect(screen.getByLabelText("Account menu").firstElementChild).toHaveClass("aix-avatar-disc");
+    expect(screen.getByTestId("unread-badge")).toHaveClass("aix-header-badge");
   });
 });
 
@@ -149,24 +120,34 @@ describe("the / shortcut", () => {
     );
   };
 
-  it("opens the finder and puts the caret in its search box", async () => {
+  // The box is always on the bar now, so the shortcut focuses rather than
+  // opens, and Escape hands focus back rather than unmounting anything.
+  it("puts the caret in the finder", async () => {
     desk();
     await screen.findByTestId("finder-bar");
-    expect(screen.queryByRole("dialog")).toBeNull();
+    const box = await screen.findByLabelText("Search");
+    expect(document.activeElement).not.toBe(box);
     fireEvent.keyDown(window, { key: "/" });
-    const box = await screen.findByLabelText("Filter screens");
     await waitFor(() => expect(document.activeElement).toBe(box));
-    // Escape closes it again.
-    fireEvent.keyDown(window, { key: "Escape" });
-    await waitFor(() => expect(screen.queryByLabelText("Filter screens")).toBeNull());
+    fireEvent.keyDown(box, { key: "Escape" });
+    await waitFor(() => expect(document.activeElement).not.toBe(box));
+  });
+
+  it("answers Ctrl+K as well, which is where the palette used to live", async () => {
+    desk();
+    const box = await screen.findByLabelText("Search");
+    fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    await waitFor(() => expect(document.activeElement).toBe(box));
   });
 
   it("stays out of the way while the reader is typing", async () => {
     desk();
     const field = await screen.findByLabelText("In the page");
+    const box = await screen.findByLabelText("Search");
     field.focus();
     fireEvent.keyDown(field, { key: "/" });
-    expect(screen.queryByLabelText("Filter screens")).toBeNull();
+    expect(document.activeElement).toBe(field);
+    expect(document.activeElement).not.toBe(box);
   });
 });
 

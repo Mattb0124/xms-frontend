@@ -10,6 +10,10 @@ import {
 /** The typed 409 bodies of POST /tickets/:key/transitions (Ticket Management technical 3.3). */
 export interface TransitionError extends ApiError {
   items?: string[];
+  /** The completeness bar the notes fell under (TB-02). */
+  minResolutionNotesChars?: number;
+  /** The exemption reasons this account accepts (TB-02). */
+  exemptionReasons?: string[];
   from?: string;
   to?: string;
   allowed?: string[];
@@ -25,6 +29,9 @@ export const MISSING_ITEM_COPY: Record<string, string> = {
   time_logged: "logged time or a time exemption reason",
   pause_reason: "a pause reason",
   unknown_resolution_code: "a resolution code from the catalog",
+  // TB-02: the two halves of the gate that used to accept any character.
+  resolution_notes_too_short: "fuller resolution notes",
+  unknown_exemption_reason: "a time exemption reason from the account's list",
   // A Change cannot reach Scheduled unless it belongs to a change window
   // with both ends (TM-10); the close-discipline check answers it.
   change_window: "a change window with a start and an end",
@@ -47,6 +54,10 @@ export function transitionError(error: unknown): TransitionError {
     if (typeof data.to === "string") parsed.to = data.to;
     if (Array.isArray(data.allowed)) parsed.allowed = data.allowed.map(String);
     if (typeof data.version === "number") parsed.version = data.version;
+    if (typeof data.min_resolution_notes_chars === "number") {
+      parsed.minResolutionNotesChars = data.min_resolution_notes_chars;
+    }
+    if (Array.isArray(data.exemption_reasons)) parsed.exemptionReasons = data.exemption_reasons.map(String);
   }
   const window = changeWindowRefusal(error);
   if (window) parsed.changeWindow = window;

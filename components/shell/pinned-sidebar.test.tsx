@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { FinderOverlay } from "@/components/shell/finder-overlay";
 import { PinnedSidebar, sidebarTree, sidebarItems } from "@/components/shell/pinned-sidebar";
 import { visibleScreens } from "@/lib/routes";
 
@@ -77,19 +76,10 @@ describe("PinnedSidebar", () => {
       "Solutions",
     ]);
     unmount();
-
-    const overlay = render(
-      <FinderOverlay
-        kind="all"
-        screens={screens}
-        pinned={new Set()}
-        onTogglePin={() => {}}
-        favourites={[]}
-        history={[]}
-        onClose={() => {}}
-      />,
-    );
-    expect(overlay.container.querySelectorAll("[data-screen]")).toHaveLength(screens.length);
+    // The claim this used to make through the All overlay, which is gone
+    // (AIBL-329): the sidebar shows six of the permitted screens and the
+    // finder is what reaches the rest.
+    expect(screens.length).toBeGreaterThan(6);
   });
 });
 

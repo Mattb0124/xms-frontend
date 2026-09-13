@@ -21,6 +21,7 @@ import { useTicketTimeQuery } from "@/redux/timeApi";
 import { PAUSE_REASONS, type PauseReason } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
 import {
+  useGetTimeGateQuery,
   useGetTransitionsQuery,
   type AllowedTransition,
   type TicketView,
@@ -83,6 +84,10 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
   const { data: rail } = useTicketSolutionsQuery(ticket.key);
   const [open, setOpen] = useState(false);
   const [sheet, setSheet] = useState<Sheet>({ kind: "none" });
+  // The gate's own terms (TB-02): which exemptions this account accepts and
+  // how much resolution note it wants. Asked for only while the sheet is
+  // open, since a reader browsing the record does not need it.
+  const { data: gate } = useGetTimeGateQuery(ticket.key, { skip: sheet.kind !== "resolve" });
   const [pauseReason, setPauseReason] = useState<PauseReason>("awaiting_client");
   const [pauseNote, setPauseNote] = useState("");
   const [serverMissing, setServerMissing] = useState<string[]>([]);
@@ -231,7 +236,9 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
             requires={sheet.target.requires}
             targetLabel={sheet.target.label}
             codes={catalogs.resolutionCodes}
-            loggedMinutes={time?.total_minutes ?? 0}
+            loggedMinutes={gate?.logged_minutes ?? time?.total_minutes ?? 0}
+            exemptionReasons={gate?.exemption_reasons}
+            minNotesChars={gate?.min_resolution_notes_chars}
             suggested={rail?.articles ?? []}
             pending={pending}
             serverMissing={serverMissing}

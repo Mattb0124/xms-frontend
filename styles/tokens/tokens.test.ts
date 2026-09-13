@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 const tokensDir = join(process.cwd(), "styles", "tokens");
 const scope = readFileSync(join(tokensDir, "xms-scope.css"), "utf8");
 const house = readFileSync(join(tokensDir, "house.css"), "utf8");
+const aix = readFileSync(join(tokensDir, "aix-tokens.css"), "utf8");
 const globals = readFileSync(join(process.cwd(), "app", "globals.css"), "utf8");
 
 /** Every top-level rule in a stylesheet, paired with the `@layer` it sits in ("" when unlayered). */
@@ -113,6 +114,60 @@ describe("xms token contract", () => {
     }
     expect(scope).not.toMatch(/font(-size)?: *(?:[0-9]+ )?(9|10|11|12|13)px/);
     expect(house).not.toMatch(/font(-size)?: *(?:[0-9]+ )?(9|10|11|12|13)px/);
+    // aix-tokens.css is deliberately NOT checked; see the test below.
+  });
+
+  // The floor is XMS's rule about XMS's own surfaces. The Axel chat is not one:
+  // it is a surface carried over whole from AIXelerator and dressed by that
+  // product's stylesheet, and it reads as the thing it was carried from or it
+  // reads as neither. Lifting its 11.5 and 12px steps to 14 was tried first
+  // (2026-09-11) and made the thread pill and the quick starts a size too big
+  // beside the reference, which is what Matt saw.
+  //
+  // So the exemption is scoped to that one vendored file, and pinned here so
+  // it is a decision on the record rather than a rule quietly leaking. Every
+  // other surface in the product still answers to the floor above.
+  it("exempts the vendored AIX chat from the 14px floor, deliberately", () => {
+    expect(aix).toMatch(/\[data-chat-el="thread-picker"\]\s*{\s*font-size: 11\.5px/);
+    expect(aix).toMatch(/\[data-chat-el="quick-start"\]\s*{\s*font-size: 12px/);
+    expect(aix).toMatch(/\[data-chat-el="composer-note"\]\s*{\s*font-size: 10\.5px/);
+    // and the scope must not put them back: that override was the bug.
+    expect(scope).not.toMatch(/data-chat-el="thread-picker"[\s\S]{0,200}font-size/);
+  });
+
+  // AIX sets its chat in Inter and this desk is set in Lato. The greeting is
+  // where it shows: the same words in the two faces are visibly two different
+  // sentences. The vendored layer names the face, and this product already
+  // self-hosts that family, so nothing is fetched to honour it.
+  it("sets the vendored chat in AIX's face, off a family XMS already hosts", () => {
+    expect(aix).toMatch(/--aix-font-body:\s*\n?\s*"Inter"/);
+    expect(aix).toMatch(/\.aibl-chat-min\s*{[^}]*font-family: var\(--aix-font-body\)/);
+    const fonts = readFileSync(join(tokensDir, "fonts.css"), "utf8");
+    expect(fonts).toMatch(/font-family: "Inter"/);
+  });
+
+  // The vendored AIX layer is copied from a product whose root font size is
+  // 16px. This one's is 14px, so a rem pasted straight across renders 12.5%
+  // small and nothing says so: it cost a 26.25px greeting where AIX paints 30,
+  // a 31.5px send button where AIX paints 36, and a composer set in 14 where
+  // AIX sets 16. Every length in that file is therefore in px, and this is
+  // what keeps it that way on the next re-copy.
+  it("keeps the vendored AIX layer free of rem, which this root would shrink", () => {
+    const withoutComments = aix.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(withoutComments).not.toMatch(/[0-9.]+rem/);
+  });
+
+  // The scope's control geometry sets a 4px radius on every button and wins on
+  // specificity. It squared off the assistant's call to action and every pill
+  // the chat skin draws until both markers were exempted, which is invisible
+  // in a screenshot and only shows in a computed style.
+  it("lets anything the vendored AIX layer dresses keep its own radius", () => {
+    const rule = scope
+      .split("\n")
+      .find((line) => line.includes(".xms-scope") && line.includes('button:not([role="tab"])'));
+    const selector = rule ?? scope.slice(scope.indexOf('button:not([role="tab"])') - 200);
+    expect(selector + scope).toMatch(/button:not\(\[role="tab"\]\)[^,]*:not\(\[data-chat-el\]\)/);
+    expect(scope).toMatch(/:not\(\[class\*="aix-"\]\)/);
   });
 
   // Tailwind v4 emits every utility inside the `utilities` cascade layer, and an
@@ -210,7 +265,12 @@ describe("the field treatment", () => {
   });
 
   it("makes hover a fill and never a change of edge", () => {
-    expect(scope).toMatch(/\.xms-field:hover[\s\S]{0,140}background-color: var\(--xms-control-hover\)/);
+    // The edge, not the ground (2026-09-12), and never on a control that is
+    // already carrying a value: the accent border is the louder fact.
+    expect(scope).toMatch(
+      /\.xms-field:not\(\[data-active="true"\]\):hover[\s\S]{0,160}border-color: var\(--xms-control-line-hover\)/,
+    );
+    expect(scope).not.toMatch(/\.xms-field:hover[\s\S]{0,140}background-color/);
     // A control that already reads blue fills with the blue wash instead.
     expect(scope).toMatch(/\.xms-field\[data-active="true"\][\s\S]{0,140}background-color: var\(--xms-tint\)/);
   });

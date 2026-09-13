@@ -76,6 +76,8 @@ export const xmsApi = createApi({
     "Role",
     "Groups",
     "Group",
+    "Teams",
+    "Team",
     "Config",
     "Tickets",
     "Ticket",

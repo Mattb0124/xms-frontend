@@ -47,6 +47,10 @@ export interface AccountSettings {
   attachment_max_bytes: number | string;
   usage_analytics_portal: boolean;
   store_search_terms: boolean;
+  /** Container-case thresholds (TM-27); null is a threshold switched off. */
+  container_time_entries: number | null;
+  container_elapsed_days: number | null;
+  container_effort_minutes: number | null;
   version: number;
 }
 
@@ -134,6 +138,47 @@ export interface GroupRecord {
 
 export interface GroupDetail extends GroupRecord {
   members: Grantee[];
+}
+
+/**
+ * A team groups people and the accounts they are responsible for (TM-23).
+ * Not an assignment group: a group is a bag of people to assign work to, a
+ * team is the unit that owns a book of business.
+ */
+export interface TeamRecord {
+  id: string;
+  name: string;
+  description: string;
+  lead_user_id: string | null;
+  status: "active" | "retired";
+  version: number;
+}
+
+export interface TeamSummary extends TeamRecord {
+  lead_name: string | null;
+  member_count: number;
+  account_count: number;
+}
+
+export interface TeamMember {
+  user_id: string;
+  email: string;
+  display_name: string | null;
+  status: string;
+}
+
+export interface TeamAccount {
+  account_id: string;
+  key: string;
+  name: string;
+  status: string;
+  owner_user_id: string | null;
+  owner_name: string | null;
+}
+
+export interface TeamDetail extends TeamRecord {
+  members: TeamMember[];
+  accounts: TeamAccount[];
 }
 
 export interface AssignableUser {
@@ -301,6 +346,18 @@ export const adminApi = xmsApi.injectEndpoints({
       query: ({ id, user_ids }) => ({ url: `/v1/admin/accounts/${id}/grants`, method: "PUT", body: { user_ids } }),
       invalidatesTags: (_result, _error, { id }) => [{ type: "Account", id: `${id}:grants` }, "Me"],
     }),
+    /**
+     * Hand the account to a different owner (TM-23). Its own endpoint, not a
+     * field on the account PATCH: the server audits it as a handover and
+     * refuses anybody who cannot see the account.
+     */
+    changeAccountOwner: build.mutation<
+      AccountRow,
+      { id: string; version: number; owner_user_id: string; reason?: string }
+    >({
+      query: ({ id, ...body }) => ({ url: `/v1/admin/accounts/${id}/owner`, method: "PUT", body }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Account", id }, "Accounts", "Teams"],
+    }),
     listPortalUsers: build.query<UserRecord[], string>({
       query: (id) => `/v1/admin/accounts/${id}/portal-users`,
       providesTags: (_result, _error, id) => [{ type: "Account", id: `${id}:portal-users` }],
@@ -407,6 +464,31 @@ export const adminApi = xmsApi.injectEndpoints({
     replaceGroupMembers: build.mutation<Grantee[], { id: string; user_ids: string[] }>({
       query: ({ id, user_ids }) => ({ url: `/v1/admin/groups/${id}/members`, method: "PUT", body: { user_ids } }),
       invalidatesTags: (_result, _error, { id }) => [{ type: "Group", id }],
+    }),
+
+    listTeams: build.query<TeamSummary[], { status?: "active" | "retired" } | void>({
+      query: (params) => ({ url: "/v1/admin/teams", params: params?.status ? { status: params.status } : undefined }),
+      providesTags: ["Teams"],
+    }),
+    getTeam: build.query<TeamDetail, string>({
+      query: (id) => `/v1/admin/teams/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Team", id }],
+    }),
+    createTeam: build.mutation<TeamRecord, { name: string; description?: string; lead_user_id?: string | null }>({
+      query: (body) => ({ url: "/v1/admin/teams", method: "POST", body }),
+      invalidatesTags: ["Teams"],
+    }),
+    updateTeam: build.mutation<TeamRecord, { id: string; body: Partial<TeamRecord> & { version: number } }>({
+      query: ({ id, body }) => ({ url: `/v1/admin/teams/${id}`, method: "PATCH", body }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Team", id }, "Teams"],
+    }),
+    setTeamMembers: build.mutation<TeamMember[], { id: string; user_ids: string[] }>({
+      query: ({ id, user_ids }) => ({ url: `/v1/admin/teams/${id}/members`, method: "PUT", body: { user_ids } }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Team", id }, "Teams"],
+    }),
+    setTeamAccounts: build.mutation<TeamAccount[], { id: string; account_ids: string[] }>({
+      query: ({ id, account_ids }) => ({ url: `/v1/admin/teams/${id}/accounts`, method: "PUT", body: { account_ids } }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Team", id }, "Teams"],
     }),
 
     getConfig: build.query<ConfigDescription, { kind: ConfigKind; scope?: string }>({
@@ -530,6 +612,13 @@ export const {
   useCreateGroupMutation,
   useUpdateGroupMutation,
   useReplaceGroupMembersMutation,
+  useChangeAccountOwnerMutation,
+  useListTeamsQuery,
+  useGetTeamQuery,
+  useCreateTeamMutation,
+  useUpdateTeamMutation,
+  useSetTeamMembersMutation,
+  useSetTeamAccountsMutation,
   useGetConfigQuery,
   useGetAccountConfigQuery,
   useSetAccountOverrideMutation,

@@ -169,6 +169,25 @@ export interface ResolutionBody {
   time_exemption_reason?: string;
 }
 
+/** One of the exemption reasons an account accepts (TB-02). */
+export interface ExemptionReason {
+  key: string;
+  label: string;
+}
+
+/**
+ * What the resolve dialog asks for before it asks the reader for anything
+ * (TB-02): the time logged, whether that alone satisfies the gate, the
+ * completeness bar, and the reasons this account accepts.
+ */
+export interface TimeGate {
+  ticket_key: string;
+  logged_minutes: number;
+  can_resolve: boolean;
+  min_resolution_notes_chars: number;
+  exemption_reasons: ExemptionReason[];
+}
+
 export interface TransitionBody {
   version: number;
   to: string;
@@ -653,6 +672,14 @@ export const ticketsApi = xmsApi.injectEndpoints({
       query: (key) => `/v1/tickets/${key}/transitions`,
       providesTags: (_result, _error, key) => [ticketTag(`${key}:transitions`)],
     }),
+    getTimeGate: build.query<TimeGate, string>({
+      query: (key) => `/v1/tickets/${key}/time-gate`,
+      // Logging time moves the answer, so this takes the same tag the time
+      // list does (timeApi's `{ type: "Time", id: ticketKey }`) rather than a
+      // ticket sub-tag no mutation invalidates. A gate that says "0 logged"
+      // after somebody logged an hour is worse than no gate.
+      providesTags: (_result, _error, key) => [{ type: "Time" as const, id: key }],
+    }),
     createTicket: build.mutation<TicketView, CreateTicketBody>({
       query: (body) => ({ url: "/v1/tickets", method: "POST", body }),
       invalidatesTags: ["Tickets"],
@@ -942,6 +969,7 @@ export const {
   useLazyListTicketsQuery,
   useGetTicketQuery,
   useGetTransitionsQuery,
+  useGetTimeGateQuery,
   useCreateTicketMutation,
   usePatchTicketMutation,
   useTransitionTicketMutation,

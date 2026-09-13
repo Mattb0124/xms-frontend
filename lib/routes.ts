@@ -332,6 +332,22 @@ export const SCREENS: Screen[] = [
     purpose: "Group identity, lead and members.",
   },
   {
+    path: "/admin/teams",
+    screen: "admin.teams",
+    label: "Teams",
+    section: "Admin",
+    permission: "admin:users",
+    purpose: "Teams: the people and the accounts they answer for.",
+  },
+  {
+    path: "/admin/teams/[id]",
+    screen: "admin.team",
+    label: "Team record",
+    section: "Admin",
+    permission: "admin:users",
+    purpose: "Team identity, lead, people and book of business.",
+  },
+  {
     path: "/admin/api-clients",
     screen: "admin.api_clients",
     label: "API clients",
