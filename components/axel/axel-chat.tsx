@@ -154,8 +154,8 @@ export function AxelChat({ ticketId, ticketKey, onClose }: AxelChatProps) {
                   }}
                   className="border-xms-line hover:bg-xms-row-hover w-full border-b px-3 py-[10px] text-left"
                 >
-                  <span className="text-xms-ink block text-[14px] font-semibold">New conversation</span>
-                  <span className="text-xms-muted mt-[2px] block text-[14px]">Start again from nothing</span>
+                  <span className="text-xms-ink block text-body font-semibold">New conversation</span>
+                  <span className="text-xms-muted mt-[2px] block text-body">Start again from nothing</span>
                 </button>
               </li>
               {earlier.map((thread) => (
@@ -167,7 +167,7 @@ export function AxelChat({ ticketId, ticketKey, onClose }: AxelChatProps) {
                       resume(thread.thread_id);
                       setThreadsOpen(false);
                     }}
-                    className="border-xms-line text-xms-ink hover:bg-xms-row-hover w-full truncate border-b px-3 py-[10px] text-left text-[14px] last:border-b-0"
+                    className="border-xms-line text-xms-ink hover:bg-xms-row-hover w-full truncate border-b px-3 py-[10px] text-left text-body last:border-b-0"
                   >
                     {thread.title ?? "Untitled conversation"}
                   </button>
@@ -283,7 +283,7 @@ function TranscriptRow({
     case "notice":
       return (
         <p
-          className="border-xms-note-line bg-xms-note-bg text-xms-note-ink rounded-card border p-3 text-[14px]"
+          className="border-xms-note-line bg-xms-note-bg text-xms-note-ink rounded-card border p-3 text-body"
           data-code={item.code}
         >
           {item.text}

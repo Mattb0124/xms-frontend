@@ -63,7 +63,7 @@ export function FunnelPanel({ funnel }: { funnel: UsageFunnel }) {
             return (
               <li key={step.step} className="flex flex-col gap-1" data-step={step.step}>
                 <span className="xms-caption">{stepLabel(step.step)}</span>
-                <span className="xms-mono text-xms-ink text-[20px] font-semibold">{step.n}</span>
+                <span className="xms-mono text-xms-ink text-lead font-semibold">{step.n}</span>
                 <span className="bg-xms-tint h-[6px] w-full rounded-[3px]">
                   <span
                     className="bg-xms-accent block h-[6px] rounded-[3px]"
@@ -72,11 +72,11 @@ export function FunnelPanel({ funnel }: { funnel: UsageFunnel }) {
                   />
                 </span>
                 {drop ? (
-                  <span className="text-xms-label text-[14px]" data-drop-off={step.drop_off}>
+                  <span className="text-xms-label text-body" data-drop-off={step.drop_off}>
                     {drop}
                   </span>
                 ) : (
-                  <span className="text-xms-label text-[14px]">The start of the loop</span>
+                  <span className="text-xms-label text-body">The start of the loop</span>
                 )}
               </li>
             );

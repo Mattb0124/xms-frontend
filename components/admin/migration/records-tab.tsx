@@ -84,7 +84,7 @@ export function RecordDrawer({
       className="border-xms-line bg-xms-card fixed inset-y-0 right-0 z-30 flex w-full max-w-[560px] flex-col gap-3 overflow-auto border-l p-4 shadow-xl"
     >
       <header className="flex items-center gap-3">
-        <h2 className="text-xms-ink text-[15px] font-semibold">Record</h2>
+        <h2 className="text-xms-ink text-lead font-semibold">Record</h2>
         {data ? <RecordStatusPill status={data.status} /> : null}
         <button type="button" className={cn(SECONDARY_BUTTON, "ml-auto")} onClick={onClose}>
           Close
@@ -93,12 +93,12 @@ export function RecordDrawer({
       {isLoading || !data ? <Skeleton lines={6} /> : null}
       {data ? (
         <>
-          <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2 text-[14px]">
-            <dt className="text-xms-label text-[14px]">Source id</dt>
+          <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2 text-body">
+            <dt className="text-xms-label text-body">Source id</dt>
             <dd className="xms-mono text-xms-ink break-all">{data.source_id}</dd>
-            <dt className="text-xms-label text-[14px]">Source key</dt>
+            <dt className="text-xms-label text-body">Source key</dt>
             <dd className="xms-mono text-xms-ink">{data.source_key ?? ""}</dd>
-            <dt className="text-xms-label text-[14px]">Target</dt>
+            <dt className="text-xms-label text-body">Target</dt>
             <dd className="xms-mono text-xms-ink">
               {data.target_id ? (
                 <Link href={`/cases/${data.target_id}`} className="text-xms-accent">
@@ -108,28 +108,28 @@ export function RecordDrawer({
                 <span className="text-xms-muted">none</span>
               )}
             </dd>
-            <dt className="text-xms-label text-[14px]">Message</dt>
+            <dt className="text-xms-label text-body">Message</dt>
             <dd
               className={cn("text-xms-ink", data.status === "error" && "text-[color:var(--state-overdue-text)]")}
               data-record-message
             >
               {data.message ?? ""}
             </dd>
-            <dt className="text-xms-label text-[14px]">Source time</dt>
+            <dt className="text-xms-label text-body">Source time</dt>
             <dd className="xms-mono text-xms-ink">{formatDate(data.source_timestamp)}</dd>
-            <dt className="text-xms-label text-[14px]">Source hash</dt>
-            <dd className="xms-mono text-xms-ink break-all text-[14px]">{data.source_hash}</dd>
-            <dt className="text-xms-label text-[14px]">Payload key</dt>
-            <dd className="xms-mono text-xms-ink break-all text-[14px]" data-payload-key>
+            <dt className="text-xms-label text-body">Source hash</dt>
+            <dd className="xms-mono text-xms-ink break-all text-body">{data.source_hash}</dd>
+            <dt className="text-xms-label text-body">Payload key</dt>
+            <dd className="xms-mono text-xms-ink break-all text-body" data-payload-key>
               {data.source_payload_key ?? "none"}
             </dd>
           </dl>
           <section aria-label="Source payload" className="flex flex-col gap-1">
             <p className="xms-caption">Source payload</p>
             {data.payload === null || data.payload === undefined ? (
-              <p className="text-xms-label text-[14px]">The raw row is not in the store.</p>
+              <p className="text-xms-label text-body">The raw row is not in the store.</p>
             ) : (
-              <pre className="xms-mono text-xms-body bg-xms-tint max-h-[60vh] overflow-auto rounded-control p-3 text-[14px] whitespace-pre-wrap">
+              <pre className="xms-mono text-xms-body bg-xms-tint max-h-[60vh] overflow-auto rounded-control p-3 text-body whitespace-pre-wrap">
                 {JSON.stringify(data.payload, null, 2)}
               </pre>
             )}
@@ -174,7 +174,7 @@ export function RecordsTab({ batchId }: { batchId: string }) {
           >
             <select
               aria-label="Record status"
-              className={cn(INPUT, "h-[28px] w-auto text-[14px]")}
+              className={cn(INPUT, "h-[28px] w-auto text-body")}
               value={status}
               onChange={(event) => setStatus(event.target.value)}
             >
@@ -189,7 +189,7 @@ export function RecordsTab({ batchId }: { batchId: string }) {
               type="search"
               aria-label="Search records"
               placeholder="Source id or key"
-              className={cn(INPUT, "h-[28px] w-[200px] text-[14px]")}
+              className={cn(INPUT, "h-[28px] w-[200px] text-body")}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />

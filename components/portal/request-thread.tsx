@@ -15,7 +15,7 @@ import type { PortalTimelineItem } from "@/redux/portalApi";
 export function RequestThread({ items, requesterName }: { items: PortalTimelineItem[]; requesterName: string }) {
   if (items.length === 0) {
     return (
-      <p role="status" className="text-xms-label text-[14px]">
+      <p role="status" className="text-xms-label text-body">
         No messages yet. Your support team will reply here and by email.
       </p>
     );
@@ -25,7 +25,7 @@ export function RequestThread({ items, requesterName }: { items: PortalTimelineI
       {items.map((item) => {
         if (item.kind === "state_change") {
           return (
-            <li key={item.item_id} className="text-xms-label flex items-center gap-2 text-[14px]">
+            <li key={item.item_id} className="text-xms-label flex items-center gap-2 text-body">
               <span className="bg-xms-line h-px flex-1" aria-hidden />
               <span>
                 {clientStatus(item.to_state ?? "")}
@@ -38,7 +38,7 @@ export function RequestThread({ items, requesterName }: { items: PortalTimelineI
         }
         if (item.kind === "attachment") {
           return (
-            <li key={item.item_id} className="text-xms-label text-[14px]">
+            <li key={item.item_id} className="text-xms-label text-body">
               Attachment {item.file_name} added by {item.actor_name ?? "your support team"}{" "}
               <time dateTime={item.created_at}>{formatDateTime(item.created_at)}</time>
             </li>
@@ -47,13 +47,13 @@ export function RequestThread({ items, requesterName }: { items: PortalTimelineI
         const mine = item.actor_name === requesterName;
         return (
           <li key={item.item_id} className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}>
-            <p className="text-xms-label text-[14px]">
+            <p className="text-xms-label text-body">
               <span className="text-xms-ink font-medium">{mine ? "You" : (item.actor_name ?? "Support team")}</span>{" "}
               <time dateTime={item.created_at}>{formatDateTime(item.created_at)}</time>
             </p>
             <div
               className={cn(
-                "max-w-[85%] rounded-[8px] px-4 py-3 text-[14px] whitespace-pre-wrap",
+                "max-w-[85%] rounded-[8px] px-4 py-3 text-body whitespace-pre-wrap",
                 mine ? "bg-xms-accent-tint text-xms-ink" : "xms-card text-xms-body",
               )}
             >
@@ -78,7 +78,7 @@ export function CommentComposer({
   const [body, setBody] = useState("");
   if (disabledReason) {
     return (
-      <p role="status" className="text-xms-label text-[14px]">
+      <p role="status" className="text-xms-label text-body">
         {disabledReason}
       </p>
     );
@@ -93,7 +93,7 @@ export function CommentComposer({
         if (await onSend(text)) setBody("");
       }}
     >
-      <label htmlFor="reply" className="text-xms-ink text-[14px] font-medium">
+      <label htmlFor="reply" className="text-xms-ink text-body font-medium">
         Reply
       </label>
       <textarea

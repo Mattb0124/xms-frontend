@@ -148,7 +148,7 @@ export function ResolveForm({
         if (ready) void onSubmit(draft);
       }}
     >
-      <label className="flex flex-col gap-1 text-[14px]">
+      <label className="flex flex-col gap-1 text-body">
         <span className="text-xms-label">Resolution code</span>
         <select
           aria-label="Resolution code"
@@ -164,7 +164,7 @@ export function ResolveForm({
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-[14px]">
+      <label className="flex flex-col gap-1 text-body">
         <span className="text-xms-label">Resolution notes</span>
         <textarea
           aria-label="Resolution notes"
@@ -175,7 +175,7 @@ export function ResolveForm({
         />
       </label>
       {requires.includes("solution_link") ? (
-        <div className="flex flex-col gap-2 text-[14px]" data-testid="solution-section">
+        <div className="flex flex-col gap-2 text-body" data-testid="solution-section">
           {waived ? (
             <p className="text-xms-label">This code needs no solution link.</p>
           ) : (
@@ -204,7 +204,7 @@ export function ResolveForm({
         </div>
       ) : null}
       {requires.includes("time_logged") && loggedMinutes === 0 ? (
-        <label className="flex flex-col gap-1 text-[14px]">
+        <label className="flex flex-col gap-1 text-body">
           <span className="text-xms-label">Time exemption reason (no time logged yet)</span>
           <select
             aria-label="Time exemption reason"
@@ -223,7 +223,7 @@ export function ResolveForm({
       ) : null}
       <CloseDisciplineChecklist items={items} />
       {serverMissing && serverMissing.length > 0 ? (
-        <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
+        <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
           The server still needs: {serverMissing.join(", ")}.
         </p>
       ) : null}
@@ -231,14 +231,14 @@ export function ResolveForm({
         <button
           type="button"
           onClick={onCancel}
-          className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-[14px]"
+          className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-body"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!ready || pending}
-          className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-[14px] font-medium text-white disabled:opacity-50"
+          className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-body font-medium text-white disabled:opacity-50"
         >
           Move to {targetLabel}
         </button>

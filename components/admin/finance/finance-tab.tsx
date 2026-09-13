@@ -37,9 +37,9 @@ import {
 import { useMe } from "@/redux/me";
 import { useBillingPeriodsQuery } from "@/redux/timeApi";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
-const SMALL = "h-[26px] px-2 text-[14px]";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-body font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-2 align-top text-body";
+const SMALL = "h-[26px] px-2 text-body";
 
 export function DeliveryStatusPill({ status }: { status: FinanceDelivery["status"] }) {
   const { label, tone } = DELIVERY_STATUS[status];
@@ -60,13 +60,13 @@ export function NewSecretPanel({ secret, onDismiss }: { secret: string; onDismis
       }
     >
       <div className="flex flex-col gap-2" data-testid="new-finance-secret">
-        <p className="text-[14px] text-[color:var(--state-needs-input-text)]">
+        <p className="text-body text-[color:var(--state-needs-input-text)]">
           Give this secret to finance now so they can check the signature on each delivery. It will not be shown again;
           saving the endpoint afresh mints a new one.
         </p>
         <div className="flex items-center gap-2">
           <code
-            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-control border px-2 py-2 text-[14px]"
+            className="border-xms-line bg-xms-tint text-xms-ink xms-mono flex-1 overflow-x-auto rounded-control border px-2 py-2 text-body"
             data-secret
           >
             {secret}
@@ -133,9 +133,9 @@ function DestinationEditor({
         }}
       >
         <fieldset className="flex flex-col gap-1">
-          <legend className="text-xms-label text-[14px]">Kind</legend>
+          <legend className="text-xms-label text-body">Kind</legend>
           {(Object.keys(DESTINATION_KINDS) as DestinationKind[]).map((kind) => (
-            <label key={kind} className="flex items-start gap-2 text-[14px]">
+            <label key={kind} className="flex items-start gap-2 text-body">
               <input
                 type="radio"
                 name="destination-kind"
@@ -151,7 +151,7 @@ function DestinationEditor({
           ))}
         </fieldset>
         {draft.kind === "https" ? (
-          <label className="flex flex-col gap-1 text-[14px]">
+          <label className="flex flex-col gap-1 text-body">
             <span className="text-xms-label">Endpoint URL</span>
             <input
               aria-label="Endpoint URL"
@@ -169,7 +169,7 @@ function DestinationEditor({
             )}
           </label>
         ) : (
-          <label className="flex flex-col gap-1 text-[14px]">
+          <label className="flex flex-col gap-1 text-body">
             <span className="text-xms-label">Object prefix</span>
             <input
               aria-label="Object prefix"
@@ -183,7 +183,7 @@ function DestinationEditor({
             </span>
           </label>
         )}
-        <label className="flex flex-col gap-1 text-[14px]">
+        <label className="flex flex-col gap-1 text-body">
           <span className="text-xms-label">Format</span>
           <select
             className={cn(INPUT, "w-[200px]")}
@@ -197,10 +197,10 @@ function DestinationEditor({
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-[14px]">
+        <label className="flex items-center gap-2 text-body">
           <input type="checkbox" checked={draft.enabled} onChange={(event) => set({ enabled: event.target.checked })} />
           <span className="text-xms-ink">Enabled</span>
-          <span className="text-xms-label text-[14px]">A disabled destination refuses every delivery.</span>
+          <span className="text-xms-label text-body">A disabled destination refuses every delivery.</span>
         </label>
         <InlineError message={error} />
         <div>
@@ -224,7 +224,7 @@ function DestinationForm({ accountId }: { accountId: string }) {
     <div className="flex flex-col gap-4">
       {secret ? <NewSecretPanel secret={secret} onDismiss={() => setSecret(null)} /> : null}
       <Panel title="Finance destination" caption={data ? `version ${data.version}` : "Not set yet"}>
-        {isError ? <p className="text-xms-muted text-[14px]">The destination could not be loaded.</p> : null}
+        {isError ? <p className="text-xms-muted text-body">The destination could not be loaded.</p> : null}
         <DestinationEditor
           key={data ? `${data.id}:${data.version}` : "empty"}
           accountId={accountId}
@@ -263,11 +263,11 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
     <div className="flex flex-col gap-4">
       <Panel title="Deliver now" caption="A locked or exported period; a re-delivery supersedes the earlier one">
         {!canReadPeriods ? (
-          <p className="text-xms-label text-[14px]">
+          <p className="text-xms-label text-body">
             The billing periods need the contracts:view permission, so there is nothing to pick here.
           </p>
         ) : deliverable.length === 0 ? (
-          <p className="text-xms-label text-[14px]">No period is locked yet. Lock one on the Billing tab first.</p>
+          <p className="text-xms-label text-body">No period is locked yet. Lock one on the Billing tab first.</p>
         ) : (
           <form
             className="flex flex-wrap items-end gap-3"
@@ -287,11 +287,11 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
               }
             }}
           >
-            <label className="flex flex-col gap-1 text-[14px]">
+            <label className="flex flex-col gap-1 text-body">
               <span className="text-xms-label">Period</span>
               <select
                 aria-label="Period"
-                className={cn(INPUT, "h-[30px] w-[220px] text-[14px]")}
+                className={cn(INPUT, "h-[30px] w-[220px] text-body")}
                 value={chosen}
                 onChange={(event) => setPeriodId(event.target.value)}
               >
@@ -314,7 +314,7 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
             <Skeleton lines={3} />
           </div>
         ) : null}
-        {isError ? <p className="text-xms-muted p-4 text-[14px]">The deliveries could not be loaded.</p> : null}
+        {isError ? <p className="text-xms-muted p-4 text-body">The deliveries could not be loaded.</p> : null}
         {data ? (
           <table className="w-full border-collapse" aria-label="Finance deliveries">
             <thead className="bg-xms-card">
@@ -339,14 +339,14 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
                       <span className="text-xms-ink font-medium">
                         {names[delivery.billing_period_id] ?? delivery.billing_period_id.slice(0, 8)}
                       </span>
-                      <span className="xms-mono text-xms-label text-[14px]">{formatMoment(delivery.created_at)}</span>
+                      <span className="xms-mono text-xms-label text-body">{formatMoment(delivery.created_at)}</span>
                     </span>
                   </td>
                   <td className={CELL}>
                     <span className="xms-stack">
                       <span>{DESTINATION_KINDS[delivery.destination_kind].label}</span>
                       {delivery.manifest_key ? (
-                        <span className="xms-mono text-xms-label text-[14px]" data-manifest>
+                        <span className="xms-mono text-xms-label text-body" data-manifest>
                           {delivery.manifest_key}
                         </span>
                       ) : null}
@@ -358,16 +358,16 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
                         <DeliveryStatusPill status={delivery.status} />
                       </span>
                       {delivery.supersedes_id ? (
-                        <span className="text-xms-label text-[14px]" data-supersedes>
+                        <span className="text-xms-label text-body" data-supersedes>
                           Supersedes {delivery.supersedes_id.slice(0, 8)}
                         </span>
                       ) : null}
                     </span>
                   </td>
-                  <td className={cn(CELL, "text-[14px]")} data-ack>
+                  <td className={cn(CELL, "text-body")} data-ack>
                     {acknowledgementLabel(delivery)}
                   </td>
-                  <td className={cn(CELL, "text-[14px]")}>
+                  <td className={cn(CELL, "text-body")}>
                     <span className="flex flex-col gap-0.5">
                       {delivery.response_status !== null ? (
                         <span className="xms-mono text-xms-label" data-response>
@@ -385,7 +385,7 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
               ))}
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-[14px]">
+                  <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-body">
                     Nothing delivered yet.
                   </td>
                 </tr>
@@ -418,7 +418,7 @@ export function AccountFinanceTab({ accountId }: { accountId: string }) {
         <DestinationForm accountId={accountId} />
       ) : (
         <Panel title="Finance destination" caption="Needs the admin:connectors permission">
-          <p className="text-xms-label text-[14px]">
+          <p className="text-xms-label text-body">
             You can see this account but not where its locked billing exports are delivered.
           </p>
         </Panel>
@@ -427,7 +427,7 @@ export function AccountFinanceTab({ accountId }: { accountId: string }) {
         <DeliveriesPanel accountId={accountId} />
       ) : (
         <Panel title="Deliveries" caption="Needs the time:lock-period permission">
-          <p className="text-xms-label text-[14px]">
+          <p className="text-xms-label text-body">
             The delivery history and Deliver now belong to whoever locks the billing periods.
           </p>
         </Panel>

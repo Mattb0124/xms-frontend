@@ -33,12 +33,12 @@ function KindRow({
         onClick={onSelect}
         data-kind={entry.key}
         className={cn(
-          "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-control px-3 py-2 text-left text-[14px]",
+          "hover:bg-xms-control-hover flex w-full items-center gap-3 rounded-control px-3 py-2 text-left text-body",
           selected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent)]",
         )}
       >
         <span className="text-xms-ink font-medium">{entry.label}</span>
-        {entry.scopes ? <span className="text-xms-label text-[14px]">per ticket type</span> : null}
+        {entry.scopes ? <span className="text-xms-label text-body">per ticket type</span> : null}
         <span className="ml-auto">{data ? <EffectivePill view={data} /> : null}</span>
       </button>
     </li>
@@ -101,7 +101,7 @@ export function AccountConfigTab({ accountId }: { accountId: string }) {
         <CatalogOverrides accountId={accountId} />
       ) : (
         <Panel title="Configuration" caption="Needs the admin:config permission">
-          <p className="text-xms-label text-[14px]">You can see this account but not its configuration overrides.</p>
+          <p className="text-xms-label text-body">You can see this account but not its configuration overrides.</p>
         </Panel>
       )}
       {permitted ? <AccountMcpPanel accountId={accountId} /> : null}

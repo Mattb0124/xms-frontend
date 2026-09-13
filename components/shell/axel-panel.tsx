@@ -36,8 +36,8 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
           half-line above every other heading on the screen. */}
       <header className="border-xms-line flex h-[var(--xms-finder-bar-h)] shrink-0 items-center gap-[10px] border-b px-4">
         <SparkleIcon size={ICON.row} className="text-xms-label" />
-        <span className="text-xms-ink text-[15px] leading-none font-semibold">Axel</span>
-        <span className="xms-mono text-xms-muted text-[14px] leading-none">{context}</span>
+        <span className="text-xms-ink text-lead leading-none font-semibold">Axel</span>
+        <span className="xms-mono text-xms-muted text-body leading-none">{context}</span>
         <button
           type="button"
           aria-label="Close Axel"
@@ -51,7 +51,7 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
           suggestion card reads as a card rather than as part of the panel. */}
       <div className="bg-xms-quiet-bg flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {children ?? (
-          <p className="text-xms-body text-[14px] leading-[1.55]">
+          <p className="text-xms-body text-body leading-[1.55]">
             Suggestions and tool calls appear here while Axel is working on this screen.
           </p>
         )}
@@ -66,9 +66,9 @@ export function AxelPanel({ context, onClose, children }: AxelPanelProps) {
         <textarea
           id="axel-ask"
           placeholder="Ask about this ticket..."
-          className="border-xms-line-strong bg-xms-card text-xms-ink placeholder:text-xms-muted h-16 w-full resize-none rounded-control border p-3 text-[14px] outline-none"
+          className="border-xms-line-strong bg-xms-card text-xms-ink placeholder:text-xms-muted h-16 w-full resize-none rounded-control border p-3 text-body outline-none"
         />
-        <p className="text-xms-muted mt-[9px] text-[14px] leading-[1.5]">
+        <p className="text-xms-muted mt-[9px] text-body leading-[1.5]">
           Nothing applies without a click. Every accept, edit and reject lands in Activity.
         </p>
       </div>

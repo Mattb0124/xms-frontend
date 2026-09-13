@@ -82,11 +82,11 @@ export function CasePreview({
       className="xms-layer-drawer bg-xms-card border-xms-line fixed z-40 flex max-h-[70vh] flex-col overflow-hidden rounded-card border"
     >
       <header className="border-xms-line flex items-center gap-3 border-b px-4 py-[10px]">
-        <h2 className="text-xms-ink text-[15px] leading-[1.3] font-semibold">Case</h2>
+        <h2 className="text-xms-ink text-lead leading-[1.3] font-semibold">Case</h2>
         {/* The one action on the card, so it reads in the action colour. */}
         <Link
           href={`/cases/${ticketKey}`}
-          className="border-xms-accent text-xms-accent hover:bg-xms-control-hover ml-auto inline-flex h-[32px] items-center rounded-control border px-3 text-[14px] font-medium hover:no-underline"
+          className="border-xms-accent text-xms-accent hover:bg-xms-control-hover ml-auto inline-flex h-[32px] items-center rounded-control border px-3 text-body font-medium hover:no-underline"
         >
           Open record
         </Link>
@@ -176,9 +176,9 @@ function Field({
           : "grid grid-cols-[110px_minmax(0,1fr)] items-center gap-3"
       }
     >
-      <span className="text-xms-label text-right text-[14px] leading-[1.3]">{label}</span>
+      <span className="text-xms-label text-right text-body leading-[1.3]">{label}</span>
       <span
-        className={`xms-field border-xms-line text-xms-ink flex min-h-[30px] items-center rounded-control border px-[9px] py-[5px] text-[14px] ${
+        className={`xms-field border-xms-line text-xms-ink flex min-h-[30px] items-center rounded-control border px-[9px] py-[5px] text-body ${
           mono ? "xms-mono" : ""
         } ${wide ? "whitespace-pre-wrap" : "truncate"}`}
       >

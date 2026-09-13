@@ -22,7 +22,7 @@ describe("contract card", () => {
     const { container } = render(<ContractCardView position={aPosition({ status: "watch" })} />);
     const burn = container.querySelector("[data-burn]")!;
     expect(burn).toHaveTextContent("10 of 40 h");
-    expect(burn).toHaveClass("text-[22px]");
+    expect(burn).toHaveClass("text-title");
     expect(screen.getByText("Watch")).toHaveAttribute("data-tone", "warn");
     expect(container).toHaveTextContent("30h remaining, projected");
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");

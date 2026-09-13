@@ -69,7 +69,7 @@ export default function PortalNewRequestPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xms-ink text-[22px] font-semibold">New request</h1>
+      <h1 className="text-xms-ink text-title font-semibold">New request</h1>
       <PortalCard>
         {anyPublished ? (
           <div className="flex flex-col gap-5">
@@ -92,7 +92,7 @@ export default function PortalNewRequestPage() {
           fixedForm()
         )}
         <div className="border-xms-line border-t pt-4">
-          <p className="text-xms-ink mb-2 text-[14px] font-medium">Files</p>
+          <p className="text-xms-ink mb-2 text-body font-medium">Files</p>
           <PortalUploadControl
             onFiles={(list) => setFiles((current) => [...current, ...Array.from(list)])}
             items={
@@ -108,7 +108,7 @@ export default function PortalNewRequestPage() {
             disabled={state.isLoading}
           />
           {files.length > 0 && uploads.items.length === 0 ? (
-            <p className="text-xms-label text-[14px]">Files are checked and added once the request is created.</p>
+            <p className="text-xms-label text-body">Files are checked and added once the request is created.</p>
           ) : null}
         </div>
       </PortalCard>
@@ -128,7 +128,7 @@ function RequestTypeChoice({
 }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="text-xms-ink mb-1 text-[14px] font-medium">What kind of request is this?</legend>
+      <legend className="text-xms-ink mb-1 text-body font-medium">What kind of request is this?</legend>
       {items.map((item) => (
         <label
           key={item.ticket_type}
@@ -146,8 +146,8 @@ function RequestTypeChoice({
             className="mt-1"
           />
           <span>
-            <span className="text-xms-ink block text-[14px] font-medium">{item.name}</span>
-            <span className="text-xms-label block text-[14px]">{item.description}</span>
+            <span className="text-xms-ink block text-body font-medium">{item.name}</span>
+            <span className="text-xms-label block text-body">{item.description}</span>
           </span>
         </label>
       ))}

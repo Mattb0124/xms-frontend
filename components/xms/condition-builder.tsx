@@ -26,7 +26,7 @@ export interface ConditionBuilderProps {
  * glyph of their own.
  */
 const CONTROL =
-  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[var(--xms-header-pill-h)] rounded-control border px-2 text-[14px]";
+  "xms-field border-xms-control-line bg-xms-card text-xms-ink h-[var(--xms-header-pill-h)] rounded-control border px-2 text-body";
 
 function firstOperator(field: ConditionField | undefined): Operator {
   return field ? OPERATORS_BY_KIND[field.kind][0] : "eq";
@@ -152,13 +152,13 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
         {/* Both links sit under the rows, side by side, as the reference
             draws them: neither belongs on the Where line. */}
         <div className="flex items-center gap-5 pt-[2px]">
-          <button type="button" onClick={add} className="text-xms-accent text-[14px] font-medium hover:underline">
+          <button type="button" onClick={add} className="text-xms-accent text-body font-medium hover:underline">
             + Add condition
           </button>
           <button
             type="button"
             onClick={() => onChange([])}
-            className="text-xms-accent text-[14px] font-medium hover:underline"
+            className="text-xms-accent text-body font-medium hover:underline"
           >
             Clear conditions
           </button>

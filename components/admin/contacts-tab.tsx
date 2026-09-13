@@ -67,12 +67,12 @@ export function AccountContactsTab({ accountId }: { accountId: string }) {
         caption="Who the account writes to"
         subtitle="A flag says what a contact is for. Executive sponsors receive the quarterly relationship survey."
         actions={
-          <label className="text-xms-label flex items-center gap-2 text-[14px]">
+          <label className="text-xms-label flex items-center gap-2 text-body">
             Search
             <input
               type="search"
               aria-label="Search contacts"
-              className={cn(INPUT, "h-[28px] w-[200px] text-[14px]")}
+              className={cn(INPUT, "h-[28px] w-[200px] text-body")}
               value={q}
               onChange={(event) => setQ(event.target.value)}
             />
@@ -82,7 +82,7 @@ export function AccountContactsTab({ accountId }: { accountId: string }) {
         <InlineError message={error} />
         {isLoading && !data ? <Skeleton lines={4} /> : null}
         {data && contacts.length === 0 ? (
-          <p className="text-xms-label text-[14px]">
+          <p className="text-xms-label text-body">
             {q.trim() ? "No contact matches that search." : "This account has no contacts yet."}
           </p>
         ) : null}
@@ -91,13 +91,13 @@ export function AccountContactsTab({ accountId }: { accountId: string }) {
             {contacts.map((contact) => (
               <li key={contact.id} className="flex flex-col gap-2 py-3" data-contact={contact.id}>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-xms-ink text-[14px]">{contactLabel(contact)}</span>
+                  <span className="text-xms-ink text-body">{contactLabel(contact)}</span>
                   {contact.portal_user_id ? (
                     <SignalPill tone="complete" label="Portal user" />
                   ) : (
-                    <span className="text-xms-label text-[14px]">No portal user</span>
+                    <span className="text-xms-label text-body">No portal user</span>
                   )}
-                  <span className="text-xms-label ml-auto text-[14px]" data-flags={contact.flags.join(",")}>
+                  <span className="text-xms-label ml-auto text-body" data-flags={contact.flags.join(",")}>
                     {flagsLine(contact.flags)}
                   </span>
                 </div>
@@ -107,7 +107,7 @@ export function AccountContactsTab({ accountId }: { accountId: string }) {
                   className="flex flex-wrap items-center gap-4"
                 >
                   {flags.map((flag) => (
-                    <label key={flag} className="text-xms-body flex items-center gap-2 text-[14px]">
+                    <label key={flag} className="text-xms-body flex items-center gap-2 text-body">
                       <input
                         type="checkbox"
                         checked={contact.flags.includes(flag)}

@@ -90,7 +90,7 @@ describe("MessageRow", () => {
     expect(row.className).not.toContain("xms-card");
     expect(row.className).not.toContain("rounded-card");
     expect(screen.getByText("HL")).toBeInTheDocument();
-    expect(screen.getByText("Helena Lindqvist")).toHaveClass("text-[14px]");
+    expect(screen.getByText("Helena Lindqvist")).toHaveClass("text-body");
   });
 
   it("takes two letters from one name and the ends of two", () => {

@@ -122,12 +122,12 @@ export function RequesterCard({ ticket }: { ticket: TicketView }) {
       {ticket.requester ? (
         <div className="flex flex-col">
           <span className="text-xms-ink font-medium">{ticket.requester.display_name}</span>
-          <span className="xms-mono text-xms-label text-[14px]">{ticket.requester.email}</span>
+          <span className="xms-mono text-xms-label text-body">{ticket.requester.email}</span>
         </div>
       ) : (
         <p className="text-xms-muted">No requester recorded.</p>
       )}
-      <p className="text-xms-label mt-2 text-[14px]">
+      <p className="text-xms-label mt-2 text-body">
         Source {ticket.source}, created by {ticket.created_by_name || "unknown"}.
       </p>
     </RailCard>
@@ -163,7 +163,7 @@ export function WatchCard({ ticketKey, watching = true }: { ticketKey: string; w
         </button>
       }
     >
-      <p className="text-xms-label text-[14px]">
+      <p className="text-xms-label text-body">
         {muted
           ? "You will not be notified about this ticket."
           : "You get replies, notes and state changes in your feed."}

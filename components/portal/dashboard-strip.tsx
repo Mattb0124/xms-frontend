@@ -51,16 +51,16 @@ export function DashboardStrip({ days = 30 }: { days?: number }) {
       actions={
         <Link
           href="/portal/requests"
-          className="text-xms-accent text-[14px] font-medium underline-offset-2 hover:underline"
+          className="text-xms-accent text-body font-medium underline-offset-2 hover:underline"
         >
           See my requests
         </Link>
       }
     >
       {isLoading && !data ? (
-        <p className="text-xms-label text-[14px]">Loading your numbers</p>
+        <p className="text-xms-label text-body">Loading your numbers</p>
       ) : tiles.length === 0 ? (
-        <p className="text-xms-label text-[14px]" role="status">
+        <p className="text-xms-label text-body" role="status">
           Nothing to show yet. Your numbers appear once you have raised a request.
         </p>
       ) : (
@@ -68,15 +68,15 @@ export function DashboardStrip({ days = 30 }: { days?: number }) {
           <dl className="grid grid-cols-2 gap-4 md:grid-cols-3" data-testid="portal-dashboard">
             {tiles.map((tile) => (
               <div key={tile.label}>
-                <dt className="text-xms-label text-[14px]">{tile.label}</dt>
-                <dd className="text-xms-ink text-[24px] font-semibold" aria-label={tile.label}>
+                <dt className="text-xms-label text-body">{tile.label}</dt>
+                <dd className="text-xms-ink text-display font-semibold" aria-label={tile.label}>
                   {tile.value}
                 </dd>
               </div>
             ))}
           </dl>
           {open.data?.unavailable ? (
-            <p role="status" className="text-xms-label mt-3 text-[14px]">
+            <p role="status" className="text-xms-label mt-3 text-body">
               {open.data.unavailable === 1
                 ? "1 more request could not be loaded and is not counted."
                 : `${open.data.unavailable} more requests could not be loaded and are not counted.`}

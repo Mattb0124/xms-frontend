@@ -40,7 +40,7 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
   return (
     <div className="flex flex-col gap-6">
       <section aria-labelledby="home-title" className="flex flex-col gap-3">
-        <h1 id="home-title" className="text-xms-ink text-[24px] font-semibold">
+        <h1 id="home-title" className="text-xms-ink text-title font-semibold">
           What do you need help with?
         </h1>
         <label htmlFor="portal-search" className="sr-only">
@@ -52,10 +52,10 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
           value={term}
           onChange={(event) => setTerm(event.target.value)}
           placeholder="Describe the problem, or paste a request key like CS0001234"
-          className={`${PORTAL_INPUT} h-[48px] text-[16px]`}
+          className={`${PORTAL_INPUT} h-[48px] text-lead`}
           autoComplete="off"
         />
-        <p className="text-xms-label text-[14px]">
+        <p className="text-xms-label text-body">
           Published solutions come first; open a request when you still need help.
         </p>
       </section>
@@ -66,14 +66,14 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
             {articles.data && articles.data.length > 0 ? (
               <ul className="flex flex-col gap-2">
                 {articles.data.map((article) => (
-                  <li key={article.id} className="text-[14px]">
+                  <li key={article.id} className="text-body">
                     <span className="text-xms-ink font-medium">{article.title}</span>
-                    <p className="text-xms-label text-[14px]">{article.summary}</p>
+                    <p className="text-xms-label text-body">{article.summary}</p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p role="status" className="text-xms-label text-[14px]">
+              <p role="status" className="text-xms-label text-body">
                 Knowledge articles will appear here.
               </p>
             )}
@@ -91,7 +91,7 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
       <div className="grid gap-4 md:grid-cols-2">
         <DashboardStrip />
         <PortalCard title="Still need help?">
-          <p className="text-xms-body text-[14px]">
+          <p className="text-xms-body text-body">
             Tell us what is wrong or what you need. You will get a request key by email.
           </p>
           <Link href="/portal/requests/new" className={PORTAL_PRIMARY}>

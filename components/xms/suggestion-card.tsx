@@ -35,11 +35,11 @@ export function SuggestionCard({
   className,
 }: SuggestionCardProps) {
   return (
-    <article className={cn("xms-ai flex flex-col gap-2 p-3 text-[14px]", className)} data-capability={capability}>
+    <article className={cn("xms-ai flex flex-col gap-2 p-3 text-body", className)} data-capability={capability}>
       <header className="flex items-center gap-2">
         <span className="xms-caption text-xms-ai-accent">{capability.replace("_", " ")}</span>
         {typeof confidence === "number" ? (
-          <span className="xms-mono text-xms-label ml-auto text-[14px]">{Math.round(confidence * 100)}%</span>
+          <span className="xms-mono text-xms-label ml-auto text-body">{Math.round(confidence * 100)}%</span>
         ) : null}
       </header>
       <p className="text-xms-ink font-medium">{title}</p>
@@ -48,7 +48,7 @@ export function SuggestionCard({
         <button
           type="button"
           onClick={onAccept}
-          className="bg-xms-accent hover:bg-xms-accent-hover h-[28px] rounded-control px-3 text-[14px] font-medium text-white"
+          className="bg-xms-accent hover:bg-xms-accent-hover h-[28px] rounded-control px-3 text-body font-medium text-white"
         >
           Accept
         </button>
@@ -56,7 +56,7 @@ export function SuggestionCard({
           <button
             type="button"
             onClick={onEdit}
-            className="border-xms-ai-border text-xms-body h-[28px] rounded-control border px-3 text-[14px]"
+            className="border-xms-ai-border text-xms-body h-[28px] rounded-control border px-3 text-body"
           >
             Edit
           </button>
@@ -64,7 +64,7 @@ export function SuggestionCard({
         <button
           type="button"
           onClick={onReject}
-          className="border-xms-ai-border text-xms-body h-[28px] rounded-control border px-3 text-[14px]"
+          className="border-xms-ai-border text-xms-body h-[28px] rounded-control border px-3 text-body"
         >
           Reject
         </button>

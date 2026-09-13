@@ -28,8 +28,8 @@ export function ReportPackView({ packId }: { packId: string }) {
   return (
     <div className="flex flex-col gap-4" data-testid="report-pack">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xms-ink text-[18px] font-semibold">Weekly status report</h1>
-        <span className="xms-mono text-xms-label text-[14px]">
+        <h1 className="text-xms-ink text-lead font-semibold">Weekly status report</h1>
+        <span className="xms-mono text-xms-label text-body">
           {formatPeriod({ start: data.period_start, end: data.period_end })}
         </span>
         <div className="ml-auto flex items-center gap-2">
@@ -43,7 +43,7 @@ export function ReportPackView({ packId }: { packId: string }) {
         <OutcomesPanel measures={data.measures} />
       </div>
       <Panel title="Narrative" caption={latest ? `Version ${latest.version}, ${latest.author_kind}` : "No narrative"}>
-        <p className="text-xms-ink text-[14px] whitespace-pre-wrap">{latest?.text ?? "No narrative was generated."}</p>
+        <p className="text-xms-ink text-body whitespace-pre-wrap">{latest?.text ?? "No narrative was generated."}</p>
       </Panel>
       <NotablePanel notable={data.notable} />
     </div>

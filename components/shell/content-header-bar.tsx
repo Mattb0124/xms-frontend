@@ -129,14 +129,14 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                   >
                     <FunnelIcon size={ICON.bar} />
                     {panel.count > 0 ? (
-                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-pill px-[3px] text-[14px] font-semibold text-white">
+                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-pill px-[3px] text-body font-semibold text-white">
                         {panel.count}
                       </span>
                     ) : null}
                   </button>
                 ) : null}
                 <span className="relative flex shrink-0 items-center gap-[6px] pr-1">
-                  <span className="text-xms-ink text-[15px] font-semibold">{current?.label ?? "XMS"}</span>
+                  <span className="text-xms-ink text-lead font-semibold">{current?.label ?? "XMS"}</span>
                   <ChevronDownIcon size={ICON.control} className="text-xms-muted" />
                   <select
                     aria-label="Screen switcher"
@@ -303,7 +303,7 @@ export function HeaderSearchField({
         placeholder="Search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
+        className="text-xms-ink min-w-0 flex-1 bg-transparent text-body outline-none"
       />
     </form>
   );

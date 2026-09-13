@@ -14,7 +14,7 @@ export function NudgeCard({ title, detail, actionLabel, onAction, origin = "syst
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-card px-4 py-3 text-[14px]",
+        "flex items-center gap-3 rounded-card px-4 py-3 text-body",
         origin === "ai" ? "xms-ai" : "bg-xms-tint border-xms-accent-border border",
         className,
       )}
@@ -22,12 +22,12 @@ export function NudgeCard({ title, detail, actionLabel, onAction, origin = "syst
     >
       <div>
         <p className="text-xms-ink font-medium">{title}</p>
-        <p className="text-xms-label text-[14px]">{detail}</p>
+        <p className="text-xms-label text-body">{detail}</p>
       </div>
       <button
         type="button"
         onClick={onAction}
-        className="bg-xms-accent hover:bg-xms-accent-hover ml-auto h-[28px] rounded-control px-3 text-[14px] font-medium text-white"
+        className="bg-xms-accent hover:bg-xms-accent-hover ml-auto h-[28px] rounded-control px-3 text-body font-medium text-white"
       >
         {actionLabel}
       </button>

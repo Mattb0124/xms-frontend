@@ -32,10 +32,10 @@ export function shortName(name: string): string {
 export function ActorChip({ name, kind = "user", className }: ActorChipProps) {
   const isAi = kind === "ai";
   return (
-    <span className={cn("inline-flex items-center gap-2 text-[14px]", className)} data-kind={kind}>
+    <span className={cn("inline-flex items-center gap-2 text-body", className)} data-kind={kind}>
       <span
         className={cn(
-          "xms-mono flex h-6 w-6 items-center justify-center rounded-pill text-[14px] font-semibold",
+          "xms-mono flex h-6 w-6 items-center justify-center rounded-pill text-body font-semibold",
           isAi ? "bg-xms-ai-bg text-xms-ai-accent border-xms-ai-border border" : "bg-xms-tint text-xms-accent",
         )}
         aria-hidden

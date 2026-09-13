@@ -40,15 +40,15 @@ export function ScoreTile({ label, value, detail, detailBeside, href, onClick, s
       <p className={cn(detailBeside ? "mt-[10px] flex items-baseline gap-[10px]" : "mt-[9px]")}>
         <span
           className={cn(
-            "xms-mono text-xms-ink block text-[26px] font-medium",
+            "xms-mono text-xms-ink block text-display font-medium",
             detailBeside ? "leading-[1.1]" : "leading-[1.15]",
           )}
         >
           {value}
         </span>
-        {detail && detailBeside ? <span className="text-xms-muted text-[14px] leading-none">{detail}</span> : null}
+        {detail && detailBeside ? <span className="text-xms-muted text-body leading-none">{detail}</span> : null}
       </p>
-      {detail && !detailBeside ? <p className="text-xms-muted mt-[4px] text-[14px] leading-[1.4]">{detail}</p> : null}
+      {detail && !detailBeside ? <p className="text-xms-muted mt-[4px] text-body leading-[1.4]">{detail}</p> : null}
     </>
   );
   const classes = cn(

@@ -118,7 +118,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             second coloured mark here competed with the state pill. */}
         <PriorityPill
           priority={ticket.priority}
-          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-pill border px-[14px] py-[9px] text-[14px] leading-none font-medium"
+          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-pill border px-[14px] py-[9px] text-body leading-none font-medium"
         />
         {tight ? (
           // The chip the lists carry, in the record bar: the value says what
@@ -169,7 +169,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         </span>
       </div>
       {more ? (
-        <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-[14px]" role="menu">
+        <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-body" role="menu">
           <Link
             href="/cases"
             role="menuitem"
@@ -266,7 +266,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <details className="xms-card group p-0">
-            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[14px] font-medium">
+            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-body font-medium">
               <ChevronDownIcon
                 size={ICON.control}
                 className="text-xms-ink-faint transition-transform group-open:rotate-0 -rotate-90"

@@ -27,16 +27,16 @@ export interface EmptyBannerProps {
 export function EmptyBanner({ title, detail, action, className }: EmptyBannerProps) {
   return (
     <div role="status" className={cn("xms-card max-w-[620px] p-[28px]", className)}>
-      <p className="text-xms-ink text-[15px] leading-[1.6] font-semibold">{title}</p>
-      {detail ? <p className="text-xms-muted mt-[10px] text-[14px] leading-[1.5]">{detail}</p> : null}
+      <p className="text-xms-ink text-lead leading-[1.6] font-semibold">{title}</p>
+      {detail ? <p className="text-xms-muted mt-[10px] text-body leading-[1.5]">{detail}</p> : null}
       {action ? (
         <p className="mt-[14px]">
           {action.href ? (
-            <Link href={action.href} className="text-xms-accent text-[14px] font-medium">
+            <Link href={action.href} className="text-xms-accent text-body font-medium">
               {action.label}
             </Link>
           ) : (
-            <button type="button" onClick={action.onClick} className="text-xms-accent text-[14px] font-medium">
+            <button type="button" onClick={action.onClick} className="text-xms-accent text-body font-medium">
               {action.label}
             </button>
           )}

@@ -102,7 +102,7 @@ export function RequestForm({
       }}
     >
       <fieldset className={cn("flex flex-col gap-2", type && "hidden")}>
-        <legend className="text-xms-ink mb-1 text-[14px] font-medium">What kind of request is this?</legend>
+        <legend className="text-xms-ink mb-1 text-body font-medium">What kind of request is this?</legend>
         {PORTAL_TYPES.map((option) => (
           <label
             key={option.value}
@@ -118,8 +118,8 @@ export function RequestForm({
               className="mt-1"
             />
             <span>
-              <span className="text-xms-ink block text-[14px] font-medium">{option.label}</span>
-              <span className="text-xms-label block text-[14px]">{option.hint}</span>
+              <span className="text-xms-ink block text-body font-medium">{option.label}</span>
+              <span className="text-xms-label block text-body">{option.hint}</span>
             </span>
           </label>
         ))}
@@ -127,7 +127,7 @@ export function RequestForm({
       </fieldset>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="short_description" className="text-xms-ink text-[14px] font-medium">
+        <label htmlFor="short_description" className="text-xms-ink text-body font-medium">
           Title
         </label>
         <input
@@ -141,14 +141,14 @@ export function RequestForm({
           maxLength={300}
           required
         />
-        <p id="short_description-hint" className="text-xms-label text-[14px]">
+        <p id="short_description-hint" className="text-xms-label text-body">
           One line that says what is wrong or what you need.
         </p>
         <FieldError id="short_description-error" message={errors.short_description} />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="description" className="text-xms-ink text-[14px] font-medium">
+        <label htmlFor="description" className="text-xms-ink text-body font-medium">
           Details
         </label>
         <textarea
@@ -160,14 +160,14 @@ export function RequestForm({
           aria-describedby={errors.description ? "description-error" : "description-hint"}
           className={PORTAL_TEXTAREA}
         />
-        <p id="description-hint" className="text-xms-label text-[14px]">
+        <p id="description-hint" className="text-xms-label text-body">
           What you did, what you expected, what happened instead. Error text helps.
         </p>
         <FieldError id="description-error" message={errors.description} />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="category" className="text-xms-ink text-[14px] font-medium">
+        <label htmlFor="category" className="text-xms-ink text-body font-medium">
           Area <span className="text-xms-label font-normal">(optional)</span>
         </label>
         <input
@@ -204,7 +204,7 @@ export function RequestForm({
         <button type="submit" className={PORTAL_PRIMARY} disabled={submitting}>
           {submitting ? "Sending..." : "Send request"}
         </button>
-        <p className="text-xms-label text-[14px]">You will get an email with the request key and every reply.</p>
+        <p className="text-xms-label text-body">You will get an email with the request key and every reply.</p>
       </div>
     </form>
   );
@@ -226,7 +226,7 @@ function LevelSelect({
   const hint = options.find((option) => option.value === value)?.hint;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-xms-ink text-[14px] font-medium">
+      <label htmlFor={id} className="text-xms-ink text-body font-medium">
         {label}
       </label>
       <select
@@ -244,7 +244,7 @@ function LevelSelect({
           </option>
         ))}
       </select>
-      <p id={`${id}-hint`} className="text-xms-label min-h-[16px] text-[14px]">
+      <p id={`${id}-hint`} className="text-xms-label min-h-[16px] text-body">
         {hint ?? "Leave it if you are not sure; the team will set it."}
       </p>
     </div>

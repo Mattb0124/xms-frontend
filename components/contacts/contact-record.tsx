@@ -75,7 +75,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xms-ink text-[20px] leading-[1.25] font-semibold">
+        <h1 className="text-xms-ink text-title leading-[1.25] font-semibold">
           {contact.display_name || contact.email}
         </h1>
         {contact.status === "blocked" ? (
@@ -84,16 +84,16 @@ export function ContactRecord({ contactId }: { contactId: string }) {
           </span>
         ) : null}
         {contact.portal_user_id ? (
-          <span className="text-xms-label text-[14px]">Signs in to the portal</span>
+          <span className="text-xms-label text-body">Signs in to the portal</span>
         ) : (
-          <span className="text-xms-muted text-[14px]">No portal sign-in</span>
+          <span className="text-xms-muted text-body">No portal sign-in</span>
         )}
       </div>
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <section className="xms-card flex flex-col" aria-label="Contact details">
           <header className="border-xms-line flex min-h-[48px] items-center border-b px-5 py-3">
-            <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">Details</span>
+            <span className="text-xms-ink text-lead leading-[1.3] font-semibold">Details</span>
           </header>
           <div className="px-5 py-2">
             <RecordForm
@@ -112,7 +112,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
         <div className="flex flex-col gap-[14px]">
           <section className="xms-card p-4" aria-label="Account">
             <p className="xms-eyebrow">Account</p>
-            <p className="mt-2 text-[15px]">
+            <p className="mt-2 text-body">
               {account ? (
                 <TextLink href={`/accounts/${contact.account_id}`}>{account.name}</TextLink>
               ) : (
@@ -120,7 +120,7 @@ export function ContactRecord({ contactId }: { contactId: string }) {
               )}
             </p>
             {account?.owner_name ? (
-              <p className="text-xms-label mt-2 text-[14px]">
+              <p className="text-xms-label mt-2 text-body">
                 CSM{" "}
                 {account.owner_id ? (
                   <TextLink href={`/roster/${account.owner_id}`}>{account.owner_name}</TextLink>
@@ -136,17 +136,17 @@ export function ContactRecord({ contactId }: { contactId: string }) {
             {cases?.items?.length ? (
               <ul className="mt-2 flex flex-col gap-2">
                 {cases.items.slice(0, 8).map((row) => (
-                  <li key={row.key} className="flex items-baseline gap-2 text-[14px]">
+                  <li key={row.key} className="flex items-baseline gap-2 text-body">
                     <KeyLink ticketKey={row.key} />
                     <span className="text-xms-body min-w-0 flex-1 truncate">{row.short_description}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xms-label mt-2 text-[14px]">Nothing raised yet.</p>
+              <p className="text-xms-label mt-2 text-body">Nothing raised yet.</p>
             )}
             {cases?.items?.length ? (
-              <p className="mt-3 text-[14px]">
+              <p className="mt-3 text-body">
                 <Link href={`/cases?q=${encodeURIComponent(contact.email)}`} className="xms-link">
                   Every case from this contact
                 </Link>

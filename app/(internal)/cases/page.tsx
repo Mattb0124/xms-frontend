@@ -451,7 +451,7 @@ function CasesScreen() {
       </div>
 
       {isError ? (
-        <div className="border-xms-line bg-xms-card flex items-center gap-3 rounded-card border px-4 py-2 text-[14px]">
+        <div className="border-xms-line bg-xms-card flex items-center gap-3 rounded-card border px-4 py-2 text-body">
           <span className="text-xms-ink">The list could not be refreshed. The last data stays visible.</span>
           <button type="button" onClick={() => refetch()} className="text-xms-accent ml-auto hover:underline">
             Retry
@@ -495,7 +495,7 @@ function CasesScreen() {
                 placeholder="Search by key, description or requester"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
+                className="text-xms-ink min-w-0 flex-1 bg-transparent text-body outline-none"
               />
               <button type="submit" aria-label="Run the search" className="text-xms-muted hover:text-xms-ink shrink-0">
                 <SearchIcon size={ICON.action} />
@@ -521,7 +521,7 @@ function CasesScreen() {
                   onChange={(event) => {
                     if (event.target.value) void changeStateSelected(event.target.value);
                   }}
-                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-control border pr-6 pl-[10px] text-[14px] font-medium"
+                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-control border pr-6 pl-[10px] text-body font-medium"
                 >
                   <option value="">Change state</option>
                   {STATE_OPTIONS.map((state) => (
@@ -540,7 +540,7 @@ function CasesScreen() {
                     event.currentTarget.value = "";
                     if (priority) void setPrioritySelected(priority);
                   }}
-                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-control border pr-6 pl-[10px] text-[14px] font-medium"
+                  className="border-xms-accent-border bg-xms-card text-xms-accent h-[28px] cursor-pointer appearance-none rounded-control border pr-6 pl-[10px] text-body font-medium"
                 >
                   <option value="">Priority</option>
                   <option value="p1">1 - Critical</option>

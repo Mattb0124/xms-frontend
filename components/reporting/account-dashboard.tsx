@@ -64,11 +64,11 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
       <div className="flex flex-wrap items-center gap-3">
         {account ? (
           <>
-            <span className="text-xms-ink text-[18px] font-semibold">{account.name}</span>
-            <span className="xms-mono text-xms-label text-[14px]">{account.key}</span>
+            <span className="text-xms-ink text-lead font-semibold">{account.name}</span>
+            <span className="xms-mono text-xms-label text-body">{account.key}</span>
           </>
         ) : null}
-        <div className="ml-auto flex items-center gap-3 text-[14px]">
+        <div className="ml-auto flex items-center gap-3 text-body">
           <Link href={queueBase} className="xms-link">
             Open the queue
           </Link>
@@ -92,7 +92,7 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
       {asClient ? (
         <p
           role="status"
-          className="border-xms-accent-border bg-xms-tint text-xms-ink rounded-card border px-4 py-2 text-[14px]"
+          className="border-xms-accent-border bg-xms-tint text-xms-ink rounded-card border px-4 py-2 text-body"
         >
           This is what the client sees. Measures the account does not expose are left out.
         </p>
@@ -109,13 +109,13 @@ export function AccountDashboard({ accountId, initialDays = 7 }: { accountId: st
 
       {data ? (
         <>
-          <p className="text-xms-label text-[14px]">{formatPeriod(data.period)}</p>
+          <p className="text-xms-label text-body">{formatPeriod(data.period)}</p>
           {!asClient ? (
             // The same ruling Operations took in pass three: a line written
             // from the measures the tiles read is generated text, so it takes
             // the tint this product gives generated text. On the shell's navy
             // it read as a system banner, which is the one thing it is not.
-            <p className="xms-ai text-xms-body px-5 py-[18px] text-[15px] leading-[1.6]" data-testid="synthesis">
+            <p className="xms-ai text-xms-body px-5 py-[18px] text-body leading-[1.6]" data-testid="synthesis">
               {synthesisLine(data.measures)}
             </p>
           ) : null}
