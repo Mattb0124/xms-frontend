@@ -297,6 +297,28 @@
   /* 32px on the grey strip, 38px in a card toolbar (hand-off section 4). */
   --xms-control-h-lg: 38px;
   --xms-gutter: 20px;
+
+  /* Motion.
+   *
+   * XMS's own layers had none at all: not one transition in this file or in
+   * house.css, while the vendored AIX layer the header comes from carries
+   * twelve, every one of them 0.15s ease. The bar at the top of the app
+   * therefore moved and everything under it snapped. These adopt that tempo
+   * rather than inventing a second one (2026-09-13 design pass).
+   *
+   * Fast is for a state the pointer causes and the eye barely registers:
+   * hover, focus, a selection bar arriving. Base is the default. Slow is for
+   * something entering the screen that was not there before, a drawer or a
+   * menu, where the eye needs to follow it to its resting place.
+   *
+   * Nothing here goes past 200ms. This is software somebody has open all day;
+   * it should feel instant, not cinematic. */
+  --xms-motion-fast: 120ms;
+  --xms-motion: 150ms;
+  --xms-motion-slow: 200ms;
+  /* Out faster than it decelerates in, so a thing arriving settles rather
+   * than overshooting, and a thing leaving is simply gone. */
+  --xms-ease: cubic-bezier(0.2, 0, 0.2, 1);
   /* The AIX shadow fingerprint. Every shadow ends on the same 1px
    * blue-tinted ring; the cast in front of it says which layer the surface
    * stands on. Five layers: the shell off the canvas, the sidebar and the
@@ -446,6 +468,26 @@
   .xms-layer-drawer {
     box-shadow: var(--xms-shadow-drawer);
   }
+  /* The dense list's own rows. The wash under the pointer and the 3px
+   * selection bar both arrive rather than appear: the bar in particular read
+   * as a redraw rather than as the row accepting the click.
+   *
+   * Background and box-shadow only, and never the text. Twenty-five rows
+   * changing ink as the pointer runs down the column is the one place motion
+   * makes a list harder to read rather than easier. */
+  tbody tr {
+    transition:
+      background-color var(--xms-motion-fast) var(--xms-ease),
+      box-shadow var(--xms-motion-fast) var(--xms-ease);
+  }
+
+  /* The checkbox that fades in on hover already changes opacity; give it the
+   * same tempo so it does not pop while the row behind it eases. */
+  .group\/row .opacity-0,
+  .group\/row .opacity-100 {
+    transition: opacity var(--xms-motion-fast) var(--xms-ease);
+  }
+
   .xms-sticky-head th {
     position: sticky;
     top: 0;
@@ -486,6 +528,10 @@
    * The build had a rounded inset pill with an inset box-shadow standing in
    * for the border and the label in plain ink, which is what read wrong. */
   .xms-nav-row {
+    transition:
+      background var(--xms-motion-fast) var(--xms-ease),
+      color var(--xms-motion-fast) var(--xms-ease),
+      box-shadow var(--xms-motion-fast) var(--xms-ease);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -578,6 +624,10 @@
     width: 100%;
     text-align: left;
   }
+  .xms-overlay-row {
+    transition: background var(--xms-motion-fast) var(--xms-ease);
+  }
+
   .xms-overlay-row:hover {
     background: var(--xms-overlay-hover);
   }
@@ -847,6 +897,60 @@
    * on the light ground rather than the dark translucent overlay the old
    * finders used: those were a surface of their own over a dimmed workspace,
    * and this is a list of things you are about to open. */
+  /* Things that arrive.
+   *
+   * Deliberately not put on .xms-card, which would animate every static card
+   * on every page load: a staggered reveal of panels you open two hundred
+   * times a day reads as a marketing site and costs perceived speed. These
+   * are opt-in, and belong only on a surface that was not on the screen a
+   * moment ago because the reader did something.
+   *
+   * The travel is small on purpose. A menu that flies is a menu you wait for;
+   * four pixels is enough for the eye to register that it arrived. */
+  @keyframes xms-enter-pop {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes xms-enter-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes xms-enter-slide {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* A menu or popover hanging off the control that opened it. */
+  .xms-enter-pop {
+    animation: xms-enter-pop var(--xms-motion) var(--xms-ease);
+  }
+  /* A toast, which comes up from the corner it lives in. */
+  .xms-enter-rise {
+    animation: xms-enter-rise var(--xms-motion-slow) var(--xms-ease);
+  }
+  /* A drawer coming in from the right edge. */
+  .xms-enter-slide {
+    animation: xms-enter-slide var(--xms-motion-slow) var(--xms-ease);
+  }
+
   .xms-finder-panel {
     position: absolute;
     top: calc(100% + 6px);
@@ -863,6 +967,12 @@
   .xms-rows > * + * {
     border-top: 1px solid var(--xms-line);
   }
+  /* Background alone. A dense list changing its text colour under the
+   * pointer shimmers down the whole column as the pointer travels. */
+  .xms-rows > * {
+    transition: background var(--xms-motion-fast) var(--xms-ease);
+  }
+
   .xms-rows > *:hover {
     background: var(--xms-row-hover);
   }
@@ -915,7 +1025,20 @@
  * in the component, because this rule is unlayered and would otherwise beat
  * the `border-xms-accent` utility the strip's own controls set. */
 .xms-scope
-  select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):enabled:hover,
+  /* The pointer's own change, on the edge and the recess and nothing else.
+ * Text that moves colour inside a field reads as the value changing. */
+.xms-scope select:enabled,
+.xms-scope input:enabled,
+.xms-scope textarea:enabled,
+.xms-scope .xms-field,
+.xms-scope button:not([role="tab"]) {
+  transition:
+    background-color var(--xms-motion-fast) var(--xms-ease),
+    border-color var(--xms-motion-fast) var(--xms-ease),
+    box-shadow var(--xms-motion-fast) var(--xms-ease);
+}
+
+select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):enabled:hover,
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el]):enabled:hover,
 .xms-scope textarea:not(.bg-transparent):not([data-chat-el]):enabled:hover,
 .xms-scope .xms-field:not([data-active="true"]):hover {
@@ -1196,4 +1319,30 @@
  * above is unlayered and beats every layered utility. */
 .xms-scope [data-chat-el="welcome-title"]:focus-visible {
   outline: none;
+}
+
+/* Reduced motion, XMS's own layer.
+ *
+ * The vendored layers carry their own blocks; this one covers everything
+ * XMS draws. It collapses duration rather than setting `animation: none`,
+ * so a transitionend or animationend listener still fires and nothing that
+ * waits on one is left hanging. The tokens are overridden too, so a rule
+ * built from them is covered without naming it here.
+ *
+ * The reader asked the operating system for this. It is not a preference to
+ * weigh against the design. */
+@media (prefers-reduced-motion: reduce) {
+  .xms-scope {
+    --xms-motion-fast: 0.01ms;
+    --xms-motion: 0.01ms;
+    --xms-motion-slow: 0.01ms;
+  }
+  .xms-scope *,
+  .xms-scope *::before,
+  .xms-scope *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }

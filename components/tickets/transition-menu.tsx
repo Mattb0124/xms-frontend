@@ -154,7 +154,10 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
         />
       </button>
       {open ? (
-        <ul role="menu" className="xms-card absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-body">
+        <ul
+          role="menu"
+          className="xms-card xms-enter-pop absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-body"
+        >
           {(data?.transitions ?? []).map((target) => (
             <li key={target.to} role="none">
               <button

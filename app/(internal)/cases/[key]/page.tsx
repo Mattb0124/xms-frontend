@@ -169,7 +169,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         </span>
       </div>
       {more ? (
-        <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-body" role="menu">
+        <div className="xms-card xms-enter-pop ml-auto flex w-[240px] flex-col p-1 text-body" role="menu">
           <Link
             href="/cases"
             role="menuitem"

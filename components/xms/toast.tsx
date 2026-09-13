@@ -58,7 +58,7 @@ export function Toaster() {
           key={toast.id}
           role="status"
           data-tone={toast.tone}
-          className={cn("xms-card flex gap-3 border-l-4 p-3", TONE[toast.tone])}
+          className={cn("xms-card xms-enter-rise flex gap-3 border-l-4 p-3", TONE[toast.tone])}
         >
           <div className="text-body">
             <p className="text-xms-ink font-medium">{toast.title}</p>
