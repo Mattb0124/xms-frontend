@@ -356,6 +356,14 @@ export const SCREENS: Screen[] = [
     purpose: "Machine identities: scopes, granted accounts, expiry, last used, revoke.",
   },
   {
+    path: "/admin/mcp",
+    screen: "admin.mcp",
+    label: "MCP library",
+    section: "Admin",
+    permission: "admin:config",
+    purpose: "The MCP connections XMS knows about; turned on per client from the account record.",
+  },
+  {
     path: "/admin/config",
     screen: "admin.config",
     label: "Configuration",
