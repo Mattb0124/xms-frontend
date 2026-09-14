@@ -276,8 +276,17 @@ describe("the field treatment", () => {
   // change of edge on 2026-09-12 and nobody moved them. The fill token is
   // still here, but it dresses a surface with no edge of its own to light up
   // (a menu row), and it is neutral now that blue means action.
-  it("draws a field recessed, and keeps a fill for the surfaces that have no edge", () => {
-    expect(scope).toMatch(/--xms-field-inset: inset 0 1px 3px/);
+  // The recess went with the flattening on 2026-09-14 (Docker Desktop as the
+  // reference: it separates every surface with a hairline and casts almost
+  // nothing). A field is now defined by its border, and says it has focus by
+  // turning that border the accent rather than by growing a ring outside it.
+  // The dark ground keeps its light top edge, which is an edge and not a cast.
+  it("draws a field flat with an edge, and keeps a fill for the surfaces that have none", () => {
+    expect(scope).toMatch(/--xms-field-inset: none/);
+    // The last one: an earlier :focus-within rule sets the ground back to the
+    // card, and the accent edge is declared after the flattening block.
+    const focus = scope.slice(scope.lastIndexOf(".xms-scope .xms-field:focus-within"));
+    expect(focus.slice(0, focus.indexOf("}"))).toContain("border-color: var(--xms-accent)");
     expect(scope).toMatch(/--xms-control-hover: #f6f8f9/);
     // The dark ground reverses it: a light top edge, since a shadow on a
     // dark field is invisible.

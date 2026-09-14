@@ -202,7 +202,7 @@
   /* The recess. A field is a well you put something into, so it carries a
    * faint inner shadow at its top edge, the way the reference draws its
    * selects and text boxes. A button is a surface you press and stays flat. */
-  --xms-field-inset: inset 0 1px 3px rgb(15 23 42 / 0.16);
+  --xms-field-inset: none;
   /* A field sits a shade below the card it stands on. White on white with a
    * shadow too faint to see is a rectangle, not a well. */
   --xms-field-bg: #fbfcfc;
@@ -253,7 +253,10 @@
    * only its hue moved. The icon keeps its lightness and saturation exactly
    * and moves the same 23 degrees, so it is the same weight of mark against
    * the label, in the family everything else on the row is in. */
-  --xms-nav-wash: var(--xms-accent-tint-strong);
+  /* Neutral since 2026-09-14. The selected row is a position, not an action,
+   * and blue is reserved for the second. Docker's own selected row is a grey
+   * pill for the same reason. */
+  --xms-nav-wash: #e8eaed;
   --xms-nav-text: #04091d;
   --xms-nav-bar: var(--xms-accent);
   --xms-nav-icon: #3d657f;
@@ -424,18 +427,29 @@
    * grey strip casting onto the content in front of them, a card with a
    * light lift, the Axel drawer floating in from the right, and the sticky
    * table header with a hairline of its own so rows scroll under it. */
-  --xms-ring: 0 0 0 1px rgba(37, 99, 235, 0.04);
-  --xms-shadow-shell: 0 1px 3px rgba(37, 99, 235, 0.08), 0 4px 16px rgba(37, 99, 235, 0.06), var(--xms-ring);
-  --xms-shadow-sidebar: 1px 0 3px rgba(37, 99, 235, 0.08), var(--xms-ring);
+  /* Flat, on Docker Desktop's model (Matt, 2026-09-14: "basically nothing
+   * has depth, right?"). It is right: Docker separates every surface with a
+   * hairline border and casts almost nothing. This product was carrying seven
+   * distinct shadows and a blue-tinted ring on one screen.
+   *
+   * The ring is gone rather than lightened. It was a 1px blue glow standing
+   * in for a border on surfaces that already have one, so it read as a second
+   * edge slightly out of register with the first.
+   *
+   * The drawer keeps a cast, and is the only thing that does: it slides over
+   * content rather than sitting in the layout, so an edge alone does not say
+   * which of the two is in front. Everything else is defined by its border. */
+  --xms-ring: 0 0 0 0 transparent;
+  --xms-shadow-shell: none;
+  --xms-shadow-sidebar: none;
   /* The strip sits directly under the black header, and a 6px cast there
    * lands on white and reads as a band of shadow belonging to the bar above
    * it rather than to the strip (Matt, 2026-09-14: too much shadow on the
    * black header). Halved, and the strip still separates from the content
    * below by its own border and the hairline ring. */
-  --xms-shadow-strip:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 3px rgba(37, 99, 235, 0.05), var(--xms-ring);
-  --xms-shadow-card: 0 1px 3px rgba(37, 99, 235, 0.08), var(--xms-ring);
-  --xms-shadow-drawer: -6px 0 18px rgba(37, 99, 235, 0.1), var(--xms-ring);
+  --xms-shadow-strip: inset 0 1px 0 rgb(255 255 255 / 0.75);
+  --xms-shadow-card: none;
+  --xms-shadow-drawer: -4px 0 12px rgb(16 24 40 / 0.06);
   --xms-shadow-thead: 0 1px 0 var(--xms-line-row);
 
   /* The decorative icon ramp: blue-grey, a step short of the link colour, so
@@ -681,9 +695,25 @@
   .xms-nav-row:hover {
     background: var(--xms-row-hover);
   }
+  /* Selected, as Docker draws it: a light grey rounded pill inset from the
+   * column's edges, and nothing else. It was a blue wash with a 3px accent bar
+   * on the left edge, which is two marks doing one job and spends the accent
+   * on a position rather than on something you can act on (2026-09-14).
+   *
+   * Grey rather than a blue tint on purpose. The row is where you are, not
+   * something to press. */
   .xms-nav-row.is-active {
     background: var(--xms-nav-wash);
-    border-left-color: var(--xms-nav-bar);
+    border-left-color: transparent;
+    border-radius: var(--xms-radius-card);
+    /* Inset from the column's edges, so it reads as a pill against the
+     * sidebar rather than as a band across it. Docker's is inset the same
+     * way; run to the edges it just looks like the row changed colour. The
+     * negative right margin cancels the column's own padding so both sides
+     * are even, since the 3px transparent left border already eats into the
+     * left. */
+    margin-inline: 6px 6px;
+    width: auto;
     /* The fill and the bar say which row is selected, so the text does not
      * have to. It used to go accent and semibold, which made the selected row
      * the only blue text in the column and read as a link rather than as a
@@ -1696,4 +1726,19 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 }
 .xms-scope .aix-header-icon:hover {
   background: rgb(255 255 255 / 0.18);
+}
+
+/* A focused field takes a blue edge, which is how Docker says "you are typing
+ * here": its search field draws a two-pixel accent border and no glow at all.
+ *
+ * Stated as a border colour rather than an outline so it replaces the edge
+ * that is already there instead of drawing a second ring outside it, which is
+ * what the flattening of 2026-09-14 was getting rid of. The focus-visible
+ * outline elsewhere is untouched; this is the resting border of a field that
+ * happens to have focus inside it. */
+.xms-scope select:enabled:focus,
+.xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([data-chat-el]):enabled:focus,
+.xms-scope textarea:not([data-chat-el]):enabled:focus,
+.xms-scope .xms-field:focus-within {
+  border-color: var(--xms-accent);
 }
