@@ -261,7 +261,7 @@ describe("the field treatment", () => {
   // (a menu row), and it is neutral now that blue means action.
   it("draws a field recessed, and keeps a fill for the surfaces that have no edge", () => {
     expect(scope).toMatch(/--xms-field-inset: inset 0 1px 3px/);
-    expect(scope).toMatch(/--xms-control-hover: #f2f4f6/);
+    expect(scope).toMatch(/--xms-control-hover: #f6f8f9/);
     // The dark ground reverses it: a light top edge, since a shadow on a
     // dark field is invisible.
     expect(scope).toMatch(/--xms-field-inset: inset 0 1px 0 rgb\(255 255 255/);
