@@ -118,7 +118,10 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
   const display = props.display;
   // Tighter rows fit more of the list on a screen; the default is the height
   // the renders draw.
-  const cellY = display?.compact ? "py-[7px]" : "py-[13px]";
+  // 8px compact, which puts the row pitch at 40px: Docker's own table measures
+  // exactly 40 between separators (sampled down the left of its data area,
+  // deltas 41, 40, 40, 40, 40, 40, 40), and 7px landed us at 38.
+  const cellY = display?.compact ? "py-[8px]" : "py-[13px]";
   // The row last opened keeps a quiet mark, so a reader coming back from a
   // record finds their place. It is not a selection, so it carries no rail.
   const [active, setActive] = useState<string | null>(null);
@@ -228,7 +231,13 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
                     style={{ width: column.width }}
                     aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : undefined}
                     className={cn(
-                      "text-xms-ink px-[14px] text-left font-bold whitespace-nowrap",
+                      // No colour or weight here: the treatment is .xms-sticky-head th in
+                      // xms-scope.css, which puts a column header in the muted ink at
+                      // 600. These carried text-xms-ink and font-bold, and a utility
+                      // beats a layered rule, so the header stayed near-black and bold
+                      // when that rule was added on 2026-09-14 and the change looked
+                      // like it had worked.
+                      "px-[14px] text-left whitespace-nowrap",
                       display?.compact ? "py-[7px]" : "py-[11px]",
                       column.align === "right" && "text-right",
                     )}

@@ -216,7 +216,7 @@ export function SavedViewsBar({
   return (
     <div className="flex flex-col gap-2" data-testid="saved-views">
       <div className="flex flex-wrap items-center gap-3 text-body">
-        <button type="button" onClick={openForm} className="xms-link">
+        <button type="button" onClick={openForm} className="xms-action-link">
           Save as view
         </button>
         {current ? (

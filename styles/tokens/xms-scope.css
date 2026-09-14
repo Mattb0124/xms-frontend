@@ -216,14 +216,21 @@
    * edge. This is the one place the heavier --sn-divider belongs: it marks a
    * boundary between regions rather than the edge of a thing. */
   --xms-line-region: #ababab;
-  /* Its own value since 2026-09-14, no longer an alias of --xms-chip. The
-   * greys were all reduced that day and the chip went halfway to white; a row
-   * hover following it down would have landed 4.8 per cent off white, which
-   * is a wash you have to look for. This is a third of the way instead, 6.4
-   * per cent, which is the least it can be and still answer the pointer. */
-  --xms-row-hover: #f6f8f9;
-  /* A pointer passing over a cell is not an action either. */
-  --xms-cell-hover: #f4f5f7;
+  /* One grey, a step darker (Matt, 2026-09-14: the table hover should be a
+   * single colour, a bit darker).
+   *
+   * It was not a single colour. The row painted --xms-row-hover and the cell
+   * under the pointer painted --xms-cell-hover on top of it, a different and
+   * darker value, so hovering a row put a visibly darker patch inside it that
+   * tracked the pointer across the columns. The two are now the same value
+   * and --xms-cell-hover aliases this rather than holding its own.
+   *
+   * 10.4 per cent off white, against the 6.4 the row carried and the 4.9 it
+   * would have had if it had followed the chip down. */
+  --xms-row-hover: #f2f3f5;
+  /* The cell does not get a wash of its own: a pointer moving along a row
+   * should not repaint the square under it a second colour. */
+  --xms-cell-hover: var(--xms-row-hover);
   /* The stroke on a selected row. It was #2563eb, a second blue doing the
    * job the accent comment above already claimed. */
   --xms-selected-bar: var(--xms-accent);
@@ -253,10 +260,22 @@
    * only its hue moved. The icon keeps its lightness and saturation exactly
    * and moves the same 23 degrees, so it is the same weight of mark against
    * the label, in the family everything else on the row is in. */
-  /* Neutral since 2026-09-14. The selected row is a position, not an action,
-   * and blue is reserved for the second. Docker's own selected row is a grey
-   * pill for the same reason. */
-  --xms-nav-wash: #e8eaed;
+  /* Blue, not grey. It was made neutral earlier on 2026-09-14 on the
+   * reasoning that a selected row is a position rather than an action, and
+   * on the claim that Docker's own is grey. Sampled off the reference, it is
+   * not: Docker's selected row is #d6e1f8, a light blue, and the value this
+   * palette already derives for the same job (--xms-accent-tint-strong,
+   * #dee7fc) lands within a couple of points of it. The argument was sound
+   * and the fact it rested on was wrong, so it follows the reference.
+   *
+   * Darker again by request the same day, and now its own value rather than
+   * the tint alias: #cfdbf7 is 29.4 per cent off white, against 25.1 for
+   * Docker's own and 20.3 for the tint it was aliasing. It stays a wash and
+   * not a fill; ink on it still reads 14.25:1, so nothing in the row has to
+   * move to stay legible. Held here rather than by darkening
+   * --xms-accent-tint-strong, which the selected table row and the cell wash
+   * also read from and which should not follow the sidebar. */
+  --xms-nav-wash: #cfdbf7;
   --xms-nav-text: #04091d;
   --xms-nav-bar: var(--xms-accent);
   --xms-nav-icon: #3d657f;
@@ -388,6 +407,18 @@
    * of content and the 1px rule. The pills inside it are 32px with 8px gaps. */
   --xms-header-bar-h: 52px;
   --xms-header-pill-h: 32px;
+  /* The sidebar's own ground, a step off the white content beside it (Matt,
+   * 2026-09-14). Docker's column is grey against a white page and the
+   * separation is most of what makes the two read as different surfaces; ours
+   * was the same white as the content and leaned entirely on its right-hand
+   * border to say where it ended.
+   *
+   * #f9f9fa is Docker's own value, sampled off the reference, and it works
+   * here for the same reason: the selected pill has to stay
+   * legible on it: at #e8eaed the pill is a step of 1.13 against this, and
+   * only 1.08 against the next candidate down. The column is quiet; the pill
+   * inside it still has somewhere to go. */
+  --xms-sidebar-bg: #f9f9fa;
   --xms-sidebar-w: 238px;
   --xms-rail-w: 262px;
   --xms-axel-panel-w: 340px;
@@ -712,8 +743,14 @@
      * negative right margin cancels the column's own padding so both sides
      * are even, since the 3px transparent left border already eats into the
      * left. */
-    margin-inline: 6px 6px;
+    /* Docker's pill is 32px tall and inset 13px from the column's left edge
+     * and 16px from its right, with square corners at the top-left (sampled
+     * eight rows down: the fill starts at the same x every row). Ours sat at
+     * 40px tall on a 6px inset, which read tighter to the edge and taller
+     * than the reference. */
+    margin-inline: 12px 14px;
     width: auto;
+    min-height: 32px;
     /* The fill and the bar say which row is selected, so the text does not
      * have to. It used to go accent and semibold, which made the selected row
      * the only blue text in the column and read as a link rather than as a
@@ -1177,9 +1214,23 @@
 .xms-scope select:not([class*="opacity-0"]):not(.bg-transparent),
 .xms-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(.bg-transparent):not([data-chat-el]),
 .xms-scope textarea:not(.bg-transparent):not([data-chat-el]),
-.xms-scope .xms-field {
+.xms-scope .xms-field:not([data-active="true"]) {
   box-shadow: var(--xms-field-inset);
   background-color: var(--xms-card);
+  /* The same edge the search bar wears. The filter dropdowns carry `border`
+   * with no colour beside it, so the border fell back to currentColor, which
+   * on these is --xms-ink: they were drawing a near-black rim while the search
+   * field one row below used --xms-control-line (Matt, 2026-09-14: "make the
+   * black drop downs have the same border color as the search bar").
+   *
+   * Said on the shared recipe rather than in each component, so a field added
+   * later cannot pick up the ink edge by leaving its colour off.
+   *
+   * Scoped off [data-active]. This rule is unlayered and a component's
+   * border-xms-accent utility is layered, so without the exclusion it beat the
+   * accent edge a filter wears once it carries a value, and every chip went
+   * grey whether it was set or not. */
+  border-color: var(--xms-control-line);
 }
 
 /* A pointer resting on a field it could use. Only on one it could use:
@@ -1372,6 +1423,14 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
  * came out heavier than the reference. The markers are the same two the
  * geometry and field recipes below take.
  *
+ * And a fifth, also 2026-09-14: .xms-action-link, a standalone action written
+ * as words ("All open", "Save as view"). It is the .xms-plain case again: a
+ * button impersonating another control, here a link, which says which one is
+ * in force by going to 600 while the rest sit at 500. This rule is specific
+ * enough (five :not() clauses put it at 0,6,1) that no sane selector on the
+ * class alone could outrank it, so the class is exempted here rather than
+ * fought over there.
+ *
  * And a fourth, added 2026-09-14: a button that is a card. This rule weights a
  * button's label, but font-weight inherits, so a button wrapping a whole card
  * dragged everything inside it to 700 as well. A scorecard tile is a button,
@@ -1385,7 +1444,7 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
  * content sat at 400, which is what "too much big bold text" kept coming back
  * to. */
 .xms-scope
-  button:not([role="tab"]):not(.xms-plain):not(.xms-card):not([data-chat-el]):not([class*="aix-"]) {
+  button:not([role="tab"]):not(.xms-plain):not(.xms-card):not(.xms-action-link):not([data-chat-el]):not([class*="aix-"]) {
   font-weight: 600;
 }
 .xms-scope .xms-plain {
@@ -1596,7 +1655,17 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
  * saturated blue it is nothing at all, so the field and the icon buttons had
  * to come up to stay findable. */
 .xms-scope .aix-app-header {
+  /* Docker's bar is not flat. Sampled off the reference screenshot, it runs
+   * left to right from #0c4ac3 to #1d63ed, and is uniform top to bottom: the
+   * value at x=0 is #0c4ac3 and at the right edge #1d63ed, Docker's own brand
+   * blue, with every intermediate reading falling on the line between them.
+   * A flat fill was the reason the bar read as close-but-not-right
+   * (2026-09-14).
+   *
+   * The solid token stays behind it as the fallback and as what anything else
+   * reading --xms-header-bg gets. */
   background: var(--xms-header-bg);
+  background-image: linear-gradient(90deg, #0c4ac3 0%, #1d63ed 100%);
   border-bottom: 1px solid rgb(255 255 255 / 0.14);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
@@ -1604,12 +1673,32 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope .aix-header-glow {
   display: none;
 }
+/* The find field, measured off the reference rather than estimated.
+ *
+ * Docker's field is white at 10 per cent over the bar (0.092, 0.092 and 0.105
+ * sampled at three points across it) and carries no border at all: the edge is
+ * a clean step with no rim either side of it. Ours was stacking two fills, 16
+ * per cent on the wrapper and the vendored 6 per cent on the field inside it,
+ * which came out around 21 and read as a lighter slab than the reference.
+ *
+ * The wrapper is now transparent and the field carries the single fill. */
 .xms-scope .aix-header-find {
+  background: transparent;
+}
+.xms-scope .aix-finder {
+  border-color: transparent;
+  background: rgb(255 255 255 / 0.1);
+}
+.xms-scope .aix-header-find:hover .aix-finder,
+.xms-scope .aix-header-find:focus-within .aix-finder {
   background: rgb(255 255 255 / 0.16);
 }
-.xms-scope .aix-header-find:hover,
-.xms-scope .aix-header-find:focus-within {
-  background: rgb(255 255 255 / 0.24);
+/* Docker fills its Ctrl+K chip rather than outlining it: 22 per cent white,
+ * sampled the same way. */
+.xms-scope .aix-finder-key {
+  border-color: transparent;
+  background: rgb(255 255 255 / 0.22);
+  color: rgb(255 255 255 / 0.85);
 }
 .xms-scope .aix-header-icon {
   background: rgb(255 255 255 / 0.14);
@@ -1638,15 +1727,18 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
  * has nothing to do on a white one. */
 .xms-scope .aix-assistant-cta {
   background: #fff;
-  color: #7c3aed;
   box-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
 }
 .xms-scope .aix-assistant-cta:hover {
   background: rgb(255 255 255 / 0.92);
   box-shadow: 0 2px 6px rgb(16 24 40 / 0.16);
 }
+/* The sparkle takes the accent rather than the violet (Matt, 2026-09-14). The
+ * button now reads as one of the blue family on a blue bar, with the mark
+ * carrying the colour and the word in ink, which is how Docker's own filled
+ * action is built. */
 .xms-scope .aix-assistant-cta svg {
-  color: #7c3aed;
+  color: var(--xms-accent);
 }
 
 /* What the blue bar broke, and had to be fixed with it.
@@ -1772,9 +1864,21 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope .aix-header-icon:hover svg {
   color: #fff;
 }
+/* Measured off Docker's "Sign in", which is the one filled action in its bar:
+ * 75 x 32px, a 4px radius (the corner insets run 3, 1, 1, 0 down from the top
+ * row), pure white, and a black label. Ours was 36px tall on a 6px radius.
+ *
+ * The label goes to the ink, as Docker's is. The violet stays on the sparkle
+ * and nowhere else: the design system reserves violet for AI-origin content
+ * and that is worth keeping, but it does not have to be carried by the word
+ * when the mark beside it already says so. If you would rather the word were
+ * violet too, it is the one declaration below. */
 .xms-scope .aix-assistant-cta {
-  border-radius: var(--xms-radius-card);
+  height: 32px;
+  border-radius: var(--xms-radius-control);
   box-shadow: none;
+  color: var(--xms-ink);
+  font-weight: 600;
 }
 .xms-scope .aix-assistant-cta:hover {
   box-shadow: none;
@@ -1789,4 +1893,67 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope .aix-avatar:hover .aix-avatar-disc {
   border-color: #fff;
   background-color: rgb(255 255 255 / 0.14);
+}
+
+/* The sidebar stands on its own ground rather than the content's.
+ *
+ * The component asks for bg-xms-card, which is white and the same value the
+ * page beside it uses, so the column was defined by its border alone. Said
+ * here rather than changed there because every layer in this shell takes its
+ * surface from this file, and a column that is not a card should not be
+ * spending the card token. */
+.xms-scope .xms-layer-sidebar {
+  background: var(--xms-sidebar-bg);
+  /* Docker has no rule here: its #f9f9fa column meets the white content at a
+   * hard step and the change of ground is the whole separation (sampled at
+   * x=252/253). It was taken off on that basis and put back the same day at
+   * Matt's word, so the column now has both the ground and the line. The
+   * grey is doing most of the work either way; the line is the part that can
+   * come off again cheaply. */
+  border-right: 1px solid var(--xms-line);
+}
+
+/* The 3px gutter every sidebar row reserved on its left. It was there to hold
+ * the accent bar that marked the selected row, and that bar went when the row
+ * became a grey pill; the space it occupied stayed, holding every label 3px in
+ * from where it belonged and stopping the pill sitting square in the column. */
+.xms-scope .xms-nav-row {
+  border-left: 0;
+}
+
+/* A standalone action written as words: "All open", "Save as view".
+ *
+ * Plain text at rest and a wash on hover, with no border at any point (Matt,
+ * 2026-09-14). It was built as a chip first and that was wrong: a bordered
+ * fill made it a button, and these are words you press, not controls.
+ *
+ * The padding is there at rest as well as on hover, so the wash has somewhere
+ * to sit and the words do not shift when the pointer arrives.
+ *
+ * Deliberately its own class and not a change to .xms-link. Of the 95 links on
+ * the Queue, 93 are inside the table: every key, contact, CSM and assignee.
+ * Restyling .xms-link would have washed every one of them on hover and turned
+ * the list into a field of highlights. This is for the handful of actions that
+ * stand on their own in a toolbar.
+ *
+ * The one in force says so with weight alone. It carried a solid accent border
+ * for a few minutes and that was the same mistake in a smaller place. */
+.xms-scope .xms-action-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: var(--xms-radius-control);
+  background: transparent;
+  color: var(--xms-accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+.xms-scope .xms-action-link:hover {
+  background: var(--xms-accent-tint);
+  text-decoration: none;
+}
+.xms-scope .xms-action-link[aria-current="page"],
+.xms-scope .xms-action-link[aria-pressed="true"] {
+  font-weight: 600;
 }

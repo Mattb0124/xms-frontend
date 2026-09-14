@@ -296,7 +296,12 @@ describe("the field treatment", () => {
 
   it("makes a field you can type in white, and the fill mean you cannot", () => {
     // A field at rest is the card colour, whatever kind of field it is.
-    expect(fieldRule(".xms-scope .xms-field {")).toContain("background-color: var(--xms-card)");
+    // The selector carries a :not([data-active]) since 2026-09-14: a field
+    // holding a value keeps the accent edge and the tint, so the resting
+    // treatment is scoped off it.
+    expect(fieldRule('.xms-scope .xms-field:not([data-active="true"]) {')).toContain(
+      "background-color: var(--xms-card)",
+    );
     // The fill is what a field you cannot type in wears, and nothing else.
     expect(disabledRule()).toContain("background-color: var(--xms-field-bg)");
   });

@@ -149,10 +149,14 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
     {
       key: "short_description",
       title: "Short description",
-      wrap: true,
+      // Not wrapped. It was, and a single long description set the height of
+      // every row in the table; the column is the widest one here, so what
+      // truncates is the tail of a long sentence and the record has all of it.
       width: "minmax(320px, 1fr)",
       sortValue: (row) => row.short_description,
-      render: (row) => <span className="text-xms-ink block max-w-[520px] leading-[1.35]">{row.short_description}</span>,
+      render: (row) => (
+        <span className="text-xms-ink block max-w-[520px] truncate leading-[1.35]">{row.short_description}</span>
+      ),
     },
     {
       key: "account",
@@ -310,8 +314,11 @@ export function attentionColumns(options: ColumnOptions): DenseColumn<TicketView
 function Stamp({ iso }: { iso: string }) {
   const { day, time } = stampLines(iso);
   if (!day) return null;
+  // One line. Stacked, this alone made every row two lines tall whatever else
+  // was in it, which is most of what separated this list from the one it is
+  // modelled on (2026-09-14).
   return (
-    <span className="text-xms-label flex flex-col leading-[1.3]">
+    <span className="text-xms-label inline-flex items-baseline gap-[6px] leading-[1.3] whitespace-nowrap">
       <span>{day}</span>
       <span className="text-xms-muted tabular-nums">{time}</span>
     </span>
