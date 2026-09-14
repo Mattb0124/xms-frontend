@@ -395,8 +395,13 @@
   --xms-ring: 0 0 0 1px rgba(37, 99, 235, 0.04);
   --xms-shadow-shell: 0 1px 3px rgba(37, 99, 235, 0.08), 0 4px 16px rgba(37, 99, 235, 0.06), var(--xms-ring);
   --xms-shadow-sidebar: 1px 0 3px rgba(37, 99, 235, 0.08), var(--xms-ring);
+  /* The strip sits directly under the black header, and a 6px cast there
+   * lands on white and reads as a band of shadow belonging to the bar above
+   * it rather than to the strip (Matt, 2026-09-14: too much shadow on the
+   * black header). Halved, and the strip still separates from the content
+   * below by its own border and the hairline ring. */
   --xms-shadow-strip:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 2px 6px rgba(37, 99, 235, 0.08), var(--xms-ring);
+    inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 3px rgba(37, 99, 235, 0.05), var(--xms-ring);
   --xms-shadow-card: 0 1px 3px rgba(37, 99, 235, 0.08), var(--xms-ring);
   --xms-shadow-drawer: -6px 0 18px rgba(37, 99, 235, 0.1), var(--xms-ring);
   --xms-shadow-thead: 0 1px 0 var(--xms-line-row);
@@ -1421,4 +1426,26 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* The assistant button's glow, reined in.
+ *
+ * AIX casts `0 12px 30px -8px` of violet from --aix-glow-violet. That button
+ * is 36px inside a 56px bar, so about ten pixels sit below it and a cast
+ * reaching roughly nineteen spills past the bar onto the white strip: a
+ * violet smear under the header with nothing above it to explain it (Matt,
+ * 2026-09-14). The bar cannot simply clip it, because the bell and the avatar
+ * open menus that hang below it on purpose.
+ *
+ * The token is redefined rather than the rule overridden. The vendored file
+ * spends this glow in two places, the button and its hover, so moving the
+ * value moves both and they cannot drift apart; a rule-level override would
+ * have had to name each one and win a specificity contest with it. It is said
+ * here because aix-tokens.css is vendored from AIXelerator and never
+ * hand-edited.
+ *
+ * 4px down with a 12px blur pulled in by 6px reaches about four pixels below
+ * the button, which is inside the bar with room to spare. */
+.xms-scope {
+  --aix-glow-violet: 0 4px 12px -6px rgb(124 58 237 / 0.55);
 }
