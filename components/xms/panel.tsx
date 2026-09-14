@@ -4,10 +4,16 @@ import { cn } from "@/lib/utils";
 export interface PanelProps {
   title: string;
   /**
-   * The ALL-CAPS eyebrow above the title (Design System section 4). A short
-   * noun phrase, never a sentence: an eyebrow is uppercase mono, and a
-   * hundred characters of it shouts (frontend review finding 14). Anything
-   * that explains the panel belongs in `subtitle`.
+   * The eyebrow above the title (Design System section 4). A short noun
+   * phrase, never a sentence: a hundred characters of it shouts (frontend
+   * review finding 14). Anything that explains the panel belongs in
+   * `subtitle`.
+   *
+   * No longer ALL-CAPS, and no longer mono: it is sentence case at 500 in the
+   * quiet label ink since 2026-09-14. Uppercase has no ascenders or
+   * descenders to break its silhouette, so each eyebrow read as a bar of grey
+   * rather than a label, and it was the default treatment in every corner of
+   * every screen. Write the value in sentence case; nothing uppercases it now.
    */
   caption?: string;
   /**

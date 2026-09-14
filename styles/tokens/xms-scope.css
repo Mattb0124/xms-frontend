@@ -17,6 +17,17 @@
   --xms-body: #56606b;
   --xms-label: #56606b;
   --xms-muted: #56606b;
+  /* The quiet label: the caption above a panel title, and nothing else yet.
+   *
+   * This is a third text value in a palette that deliberately carries two
+   * (2026-09-10: "that system carries two levels, not five"), so it is worth
+   * saying why. The caption is not body text a person reads; it is a label
+   * that says what the thing under it is, and at the muted ink it was the
+   * heaviest small text on the screen. It stays a label colour used by one
+   * class rather than a general third level: anything that is read goes on
+   * --xms-body, which is still the muted value. 4.83:1 on white, so it clears
+   * AA with a margin even though nothing obliges a label to. */
+  --xms-caption-ink: #6b7280;
   --xms-placeholder: #6b7083;
 
   /* Actions and selection, on the ServiceNow link and primary blue. One value
@@ -96,7 +107,7 @@
    * both: a lighter rule under the band was the give-away that it was not the
    * real thing. */
   --xms-bar: #f8fafb;
-  --xms-bar-line: #cccccc;
+  --xms-bar-line: #dddddd;
   /* The soft fill behind a mono count: the Count badge, the Dispatch age
    * badge, the Waiting on me counts, the sidebar's own count pills. */
   /* Neutral. A count badge is not an action, and blue on it competed with
@@ -140,17 +151,28 @@
    * nothing else, but the row rule is the value to watch: a dense list with
    * a near-black divider on every row reads as a cage rather than a table,
    * which is why it is the lightest of the set and not simply black. */
-  --xms-line: #c5c5c5;
+  /* Softened a third toward white on 2026-09-14 (Matt: soft borders). A card
+   * edge and a row rule are there to say where a thing ends, not to draw
+   * attention, and at 1.73:1 on white they were doing the second as well.
+   *
+   * --xms-control-line is deliberately NOT softened with them and stays at
+   * #a0a0a0. It is a form field's boundary rather than a decorative rule, and
+   * WCAG 1.4.11 asks 3:1 of a boundary that identifies a control. At 2.61 it
+   * is already under that, which is worth fixing on its own; taking it to 1.9
+   * with the rest would only make it further under. The field also carries a
+   * recessed inset and its own ground, so the border is not the only thing
+   * identifying it, which is why this is a gap rather than a defect. */
+  --xms-line: #d8d8d8;
   /* The input and card-control edge: the structural line, since a control's
    * border and a column header's rule are the same weight in ServiceNow. */
   --xms-line-strong: #a0a0a0;
   /* The table header underline, one step darker than a row hairline
    * (the hand-off's --xms-line-strong). */
-  --xms-line-head: #a0a0a0;
+  --xms-line-head: #bfbfbf;
   /* The row divider, and the only thing that separates two rows. ServiceNow
    * separates rows by striping instead, so this takes the card edge rather
    * than a value of its own: it should read as the quietest rule drawn. */
-  --xms-line-row: #c5c5c5;
+  --xms-line-row: #d8d8d8;
   /* The control border on the grey strip, dark enough to read against it. */
   --xms-control-line: #a0a0a0;
   /* A control the pointer is over.
@@ -186,14 +208,14 @@
   --xms-field-bg: #fbfcfc;
   /* The quietest drawn line: the dashed Add filter edge and the idle sort
    * glyph on a column header. */
-  --xms-quiet-line: #adadad;
+  --xms-quiet-line: #c8c8c8;
   /* The quietest ground in the product: the prototype hovers a card on it and
    * stands the Axel panel body on it. */
   --xms-quiet-bg: #fafafb;
   /* The edge between two regions of the shell, the Axel panel's own left
    * edge. This is the one place the heavier --sn-divider belongs: it marks a
    * boundary between regions rather than the edge of a thing. */
-  --xms-line-region: #818181;
+  --xms-line-region: #ababab;
   /* Its own value since 2026-09-14, no longer an alias of --xms-chip. The
    * greys were all reduced that day and the chip went halfway to white; a row
    * hover following it down would have landed 4.8 per cent off white, which
@@ -444,6 +466,10 @@
   --xms-body: var(--xms-ink);
   --xms-label: var(--xms-ink);
   --xms-muted: var(--xms-ink);
+  /* The quiet label, dimmed rather than inverted: on a dark ground the way to
+   * make a label recede is to step it down from the ink, not to alias it and
+   * lose the distinction the light scope just drew. */
+  --xms-caption-ink: #9aa7bb;
   --xms-placeholder: #6f7c92;
   --xms-accent: #7ea0ff;
   --xms-accent-hover: #9ab5ff;
@@ -601,11 +627,23 @@
     line-height: 1.35;
   }
 
+  /* The caption above a panel title.
+   *
+   * It was 600, uppercase and tracked at 0.06em in the muted ink, and it was
+   * used as the default label everywhere: four across the tiles on My work,
+   * and PROPERTIES, SERVICE LEVELS, CONTRACT and SIMILAR SOLUTIONS down one
+   * ticket record. Uppercase has no ascenders or descenders to break its
+   * silhouette, so at 600 each one read as a solid bar of grey rather than as
+   * a label, and a shout in every corner of a screen is not a shout at all
+   * (Matt, 2026-09-14: "i hate them and its too dark").
+   *
+   * Now sentence case at 500 in the quiet label ink. The text is authored in
+   * sentence case already and was only being uppercased here, so nothing has
+   * to be rewritten to read correctly. */
   .xms-caption {
-    font: 600 var(--xms-text-xs)/1.35 var(--xms-font);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--xms-muted);
+    font: 500 var(--xms-text-xs)/1.35 var(--xms-font);
+    letter-spacing: 0.01em;
+    color: var(--xms-caption-ink);
     margin-bottom: 3px;
   }
 
@@ -1297,9 +1335,23 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
  * chat's thread pill is set at 600 and its quick starts at 500 by that
  * stylesheet, and this rule was overriding both to 700, so the two controls
  * came out heavier than the reference. The markers are the same two the
- * geometry and field recipes below take. */
-.xms-scope button:not([role="tab"]):not(.xms-plain):not([data-chat-el]):not([class*="aix-"]) {
-  font-weight: 700;
+ * geometry and field recipes below take.
+ *
+ * And a fourth, added 2026-09-14: a button that is a card. This rule weights a
+ * button's label, but font-weight inherits, so a button wrapping a whole card
+ * dragged everything inside it to 700 as well. A scorecard tile is a button,
+ * so its muted sub-line ("across 0 accounts") was rendering bold with no class
+ * asking for it, and so was every other word in the card. A card is a
+ * container rather than a label, so it opts out and the text inside it says
+ * its own weight, the way it does everywhere else.
+ *
+ * 600 rather than 700 since the same day. The point is that an action reads as
+ * one, and 600 does that; 700 was the heaviest text on screens whose actual
+ * content sat at 400, which is what "too much big bold text" kept coming back
+ * to. */
+.xms-scope
+  button:not([role="tab"]):not(.xms-plain):not(.xms-card):not([data-chat-el]):not([class*="aix-"]) {
+  font-weight: 600;
 }
 .xms-scope .xms-plain {
   font-weight: 400;
