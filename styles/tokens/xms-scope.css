@@ -1742,3 +1742,51 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope .xms-field:focus-within {
   border-color: var(--xms-accent);
 }
+
+/* The bar's right-hand controls, flattened with everything else.
+ *
+ * Matt, 2026-09-14: the icons want to be whiter, and the assistant button and
+ * the avatar no longer belong beside the rest.
+ *
+ * The icons were #a1a1aa at 2.17:1 on the accent. That is the fourth value in
+ * this bar tuned against AIX's near-black and left behind when it turned blue,
+ * after the nav pill, the portal's account dot and the find placeholder.
+ * Anything chosen against #0f0f12 is suspect here until it has been measured.
+ * White at 92 per cent reads 4.96 and still sits under the pure white of the
+ * logo and the filled button.
+ *
+ * The assistant button keeps its white fill and its violet, which is the AI
+ * signal and the one thing on this bar allowed to be filled, but it loses the
+ * cast and takes the card radius. A 12px pill with a drop shadow was the last
+ * raised object left after the flattening.
+ *
+ * The avatar stops being a gradient disc with an inset shadow, which was two
+ * of the things that pass removed. It is a ring with the initials on the bar
+ * itself: 5.57:1, flat, and not a second white pill beside the button. A
+ * translucent disc was measured first and tops out at 4.0, which is under. */
+.xms-scope .aix-header-icon,
+.xms-scope .aix-header-icon svg {
+  color: rgb(255 255 255 / 0.92);
+}
+.xms-scope .aix-header-icon:hover,
+.xms-scope .aix-header-icon:hover svg {
+  color: #fff;
+}
+.xms-scope .aix-assistant-cta {
+  border-radius: var(--xms-radius-card);
+  box-shadow: none;
+}
+.xms-scope .aix-assistant-cta:hover {
+  box-shadow: none;
+}
+.xms-scope .aix-avatar-disc {
+  background-image: none;
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  color: #fff;
+  box-shadow: none;
+}
+.xms-scope .aix-avatar:hover .aix-avatar-disc {
+  border-color: #fff;
+  background-color: rgb(255 255 255 / 0.14);
+}
