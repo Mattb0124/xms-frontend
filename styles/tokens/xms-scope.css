@@ -374,6 +374,11 @@
   --xms-radius-pill: 999px;
   --xms-finder-bar-h: 56px;
   /* The dark chrome at the top of the application. */
+  /* The application bar. It was the AIX near-black; it is the accent since
+   * 2026-09-14, with Docker Desktop as the reference. Kept as its own token
+   * rather than aliasing --xms-accent, so the bar can be tuned a step off the
+   * action blue without dragging every link and button with it. */
+  --xms-header-bg: #245ce8;
   --xms-shell-chrome: #1a1a20;
   /* 52px, not the 44px the v2 table quoted: measured off v3 render 01, where
    * the grey band runs y=116 to y=167 under the 56px navy bar, which is 51px
@@ -1540,4 +1545,101 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope h1,
 .xms-scope h2 {
   font-weight: 600;
+}
+
+/* The application bar, Docker Desktop's shape rather than AIX's.
+ *
+ * Matt, 2026-09-14: Docker's UI is the reference, and the blue is the one xt
+ * already uses. It suits this product better than the black bar did. XMS is a
+ * dense operational tool, and Docker is the same kind of thing: light chrome,
+ * a coloured bar, almost no fills under it.
+ *
+ * The bar becomes the accent. That does cut across "blue means you can act",
+ * which is the rule the rest of the surface follows, so the bar resolves it
+ * the way Docker does: on blue, an action inverts. Nothing on this bar is
+ * blue-on-white any more, so the two readings never meet on the same ground.
+ *
+ * The vendored file is not edited; this is said after it.
+ *
+ * The translucent whites below are raised from the 5 per cent AIX spends on
+ * near-black. Five per cent of white on #0f0f12 is a visible step; on a
+ * saturated blue it is nothing at all, so the field and the icon buttons had
+ * to come up to stay findable. */
+.xms-scope .aix-app-header {
+  background: var(--xms-header-bg);
+  border-bottom: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+/* A blue glow on a blue bar is not a glow. */
+.xms-scope .aix-header-glow {
+  display: none;
+}
+.xms-scope .aix-header-find {
+  background: rgb(255 255 255 / 0.16);
+}
+.xms-scope .aix-header-find:hover,
+.xms-scope .aix-header-find:focus-within {
+  background: rgb(255 255 255 / 0.24);
+}
+.xms-scope .aix-header-icon {
+  background: rgb(255 255 255 / 0.14);
+}
+.xms-scope .aix-header-icon:hover {
+  background: rgb(255 255 255 / 0.22);
+}
+
+/* The assistant's call to action, inverted for the blue bar.
+ *
+ * AIX draws it as a violet gradient, which sat on near-black and read as the
+ * one lit thing on the bar. On the accent blue the two hues are neighbours
+ * and it goes muddy: a violet button on a blue bar is not a button that
+ * stands out, it is a bruise.
+ *
+ * Violet still means AI, which is the design system's rule and is not being
+ * given up. It inverts instead, the way every other action on this bar does:
+ * a white fill with the violet carried by the word and the sparkle, at
+ * 5.70:1 on white. The violet is AIX's own #7c3aed rather than
+ * --xms-ai-accent, which is #7c9ae8: that token is tuned to sit on a dark
+ * ground and measures 2.75:1 here, which is not a label. That is
+ * also what Docker does with the one filled action in its own bar, which is
+ * the reference this bar is built from (Matt, 2026-09-14).
+ *
+ * The glow goes with it. It existed to lift a dark button off a dark bar and
+ * has nothing to do on a white one. */
+.xms-scope .aix-assistant-cta {
+  background: #fff;
+  color: #7c3aed;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
+}
+.xms-scope .aix-assistant-cta:hover {
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 2px 6px rgb(16 24 40 / 0.16);
+}
+.xms-scope .aix-assistant-cta svg {
+  color: #7c3aed;
+}
+
+/* What the blue bar broke, and had to be fixed with it.
+ *
+ * Both of these were correct against the near-black bar AIX drew and became
+ * wrong the moment it turned blue (2026-09-14). Measured, not guessed.
+ *
+ * The nav pill's resting colour was #a1a1aa, a grey tuned for near-black. On
+ * the accent it measures 2.17:1 and fails AA for what is navigation, not
+ * decoration. White at 88 per cent over the bar reads 4.67:1 and still sits
+ * clearly below the selected pill, which is solid white at 5.57.
+ *
+ * The portal's account dot is drawn in the account's own accent, and Austral
+ * Mining's is #245CE8: exactly the bar. It measured 1.00:1, which is to say
+ * it was not there. The ring is what makes any account colour separate from
+ * any bar colour, rather than picking a value that happens to work for the
+ * accounts that exist today. */
+.xms-scope .aix-nav-pill {
+  color: rgb(255 255 255 / 0.88);
+}
+.xms-scope .aix-nav-pill:hover {
+  color: #fff;
+}
+.xms-scope [data-testid="portal-account"] > span[aria-hidden] {
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 0.9);
 }
