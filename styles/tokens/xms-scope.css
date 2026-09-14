@@ -1643,3 +1643,57 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope [data-testid="portal-account"] > span[aria-hidden] {
   box-shadow: 0 0 0 2px rgb(255 255 255 / 0.9);
 }
+
+/* The bar's own controls, closer to Docker Desktop (Matt, 2026-09-14).
+ *
+ * Three differences from what AIX drew, all of them things Docker does and
+ * this bar did not.
+ *
+ * The find field is centred. AIX hangs it off the logo at the left; Docker
+ * puts it in the middle of the bar, which is where the eye goes for a search
+ * that searches everything rather than the screen under it. Centred with auto
+ * margins rather than absolute positioning, so it cannot collide with the
+ * logo or the right cluster at a narrow width.
+ *
+ * The placeholder was --xms-placeholder, #6b7083, a grey tuned for a white
+ * field. Inside a translucent field on a saturated blue it measured 1.13:1:
+ * the word "Search tickets, solutions and screens" was not legible at all,
+ * which is the same mistake as the nav pill's grey and was made by the same
+ * move. White at 75 per cent reads as placeholder text without pretending to
+ * be a value.
+ *
+ * The icon buttons lose their chip. Docker's bar carries bare glyphs, and a
+ * rounded box behind every icon made each one read as a control with an edge
+ * rather than as a mark you press. The hover keeps the fill, so the target is
+ * still discoverable by pointing at it. */
+/* Truly centred, not centred between its neighbours.
+ *
+ * margin-inline: auto was tried first and is not the same thing: in a flex row
+ * it splits the free space either side of the item, so the field lands at the
+ * midpoint between the logo and the right cluster. Those are 172px and 190px
+ * here, and it came out 187px left of the bar's actual centre.
+ *
+ * Three equal-weighted columns put it in the middle of the bar whatever sits
+ * either side, and the outer columns give way first at a narrow width instead
+ * of the field colliding with anything.
+ *
+ * Scoped to a row that has a find field, which is the internal bar. The
+ * portal's row carries the account's name and its nav instead and wants the
+ * flex flow it already has. */
+.xms-scope .aix-header-row:has(> .aix-header-find) {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+.xms-scope .aix-header-row:has(> .aix-header-find) > .aix-header-right {
+  justify-self: end;
+}
+.xms-scope .aix-header-find input::placeholder {
+  color: rgb(255 255 255 / 0.75);
+}
+.xms-scope .aix-header-icon {
+  background: transparent;
+}
+.xms-scope .aix-header-icon:hover {
+  background: rgb(255 255 255 / 0.18);
+}
