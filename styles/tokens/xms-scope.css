@@ -565,12 +565,23 @@
     transition: opacity var(--xms-motion-fast) var(--xms-ease);
   }
 
+  /* A column header is a label for the column, not something read on every
+   * pass, so it recedes: the muted ink and 600 rather than the near-black and
+   * the browser's own bold, which neither the component nor this file had
+   * ever set. Twelve of them across the top of every dense list at #000e1d/700
+   * was the loudest row on the screen and the heaviest single contributor to
+   * "too much big bold black text" (Matt, 2026-09-14).
+   *
+   * Layered on purpose, so a column that genuinely needs to shout can still
+   * say so with a utility. */
   .xms-sticky-head th {
     position: sticky;
     top: 0;
     z-index: 1;
     background: var(--xms-card);
     box-shadow: var(--xms-shadow-thead);
+    color: var(--xms-muted);
+    font-weight: 600;
   }
 
   /* 11px uppercase eyebrow: PINNED, PROPERTIES, SERVICE LEVELS ...
@@ -1453,4 +1464,28 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
  * the button, which is inside the bar with room to spare. */
 .xms-scope {
   --aix-glow-violet: 0 4px 12px -6px rgb(124 58 237 / 0.55);
+}
+
+/* Headings honour the weight their call sites ask for.
+ *
+ * aiinnovation-tokens.css sets `h1 { font-weight: 800 }` and
+ * `h2 { font-weight: 700 }` as unlayered element rules. Unlayered beats
+ * layered, and every Tailwind utility is layered, so `font-semibold` on a
+ * heading did nothing at all: h2.font-normal computed 700 too. Every one of
+ * the 23 h1 and h2 elements in this product asks for font-semibold and every
+ * one of them was rendering at 700 or 800, which is what "too much big bold
+ * black text" was (Matt, 2026-09-14). h3 to h6 are already 600 in that file,
+ * which is why only the top two were wrong and the bug was easy to miss.
+ *
+ * Stated here rather than fixed there, because that file is vendored and a
+ * resync would clobber the edit. It is unlayered on purpose: a layered rule
+ * would lose to the very rule it is correcting.
+ *
+ * The cost is that a utility still cannot move an h1 or h2 off 600. That is
+ * the right trade while all 23 call sites want 600, and it is a smaller
+ * surprise than the silent 700 they had before. A heading that genuinely
+ * needs another weight should say so here. */
+.xms-scope h1,
+.xms-scope h2 {
+  font-weight: 600;
 }

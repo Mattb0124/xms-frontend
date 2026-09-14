@@ -200,6 +200,23 @@ describe("xms token contract", () => {
     }
   });
 
+  // The vendored AI Innovation layer sets h1 to 800 and h2 to 700 as unlayered
+  // element rules, which beat every Tailwind utility: font-semibold on an h2
+  // did nothing, and so did font-normal. All 23 h1 and h2 elements in the
+  // product ask for 600 and all 23 were rendering heavier (2026-09-14). The
+  // correction has to be unlayered too, or it loses to the rule it corrects.
+  it("lets a heading be the weight its call site asks for", () => {
+    const at = scope.indexOf(".xms-scope h1,");
+    expect(at, "the heading correction is missing").toBeGreaterThan(-1);
+    expect(scope.slice(at, scope.indexOf("}", at))).toContain("font-weight: 600");
+    // It has to be unlayered, or it loses to the very rule it corrects. The
+    // last @layer in this file closes before it.
+    const lastLayer = scope.lastIndexOf("@layer");
+    expect(at, "the correction must sit after the last @layer block").toBeGreaterThan(lastLayer);
+    // And the vendored rule it is correcting is still there to be corrected.
+    expect(aix.length).toBeGreaterThan(0);
+  });
+
   it("provides a dark inversion for every light token", () => {
     const light = scope.split(".dark .xms-scope")[0];
     const dark = scope.split(".dark .xms-scope")[1] ?? "";
