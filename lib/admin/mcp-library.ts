@@ -79,9 +79,9 @@ export function problemsWith(draft: McpServerDefinition, others: McpServerDefini
   } else if (others.some((server) => server.slug === draft.slug)) {
     problems.slug = "Another connection already uses this name.";
   }
-  if (!draft.name?.trim()) problems.name = "Give it a name people will recognise.";
+  if (!draft.name?.trim()) problems.name = "Give it a name people will recognize.";
   if (draft.transport === "streamable_http" && !/^https:\/\//.test(draft.url ?? "")) {
-    problems.url = "Must be an https address: a tool call carries account data and the token that authorises it.";
+    problems.url = "Must be an https address: a tool call carries account data and the token that authorizes it.";
   }
   if (draft.transport === "stdio" && !draft.command?.trim()) {
     problems.command = "A stdio connection needs a command to run.";

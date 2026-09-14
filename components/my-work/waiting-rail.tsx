@@ -35,9 +35,9 @@ function WaitingRow({ item, permitted }: { item: WaitingItem; permitted: readonl
   const href = waitingHref(item, permitted);
   const body = (
     <>
-      <span className="text-xms-body flex-1 text-[14px] leading-[1.4]">{item.label}</span>
+      <span className="text-xms-body flex-1 text-body leading-[1.4]">{item.label}</span>
       {/* The count is a chip on the right (render 08), not a bold figure. */}
-      <span className="xms-mono bg-xms-chip text-xms-body rounded-[999px] px-[10px] py-[5px] text-[14px] leading-none font-medium">
+      <span className="xms-mono bg-xms-chip text-xms-body rounded-pill px-[10px] py-[5px] text-body leading-none font-medium">
         {item.count}
       </span>
     </>
@@ -88,13 +88,13 @@ export function WaitingRail() {
   // would matter.
   return (
     <section className="xms-card p-4" aria-label="Waiting on me">
-      <h2 className="text-xms-ink mb-[6px] text-[14px] leading-[1.3] font-semibold">Waiting on me</h2>
+      <h2 className="text-xms-ink mb-[6px] text-body leading-[1.3] font-semibold">Waiting on me</h2>
       {isLoading && !data ? (
         <Skeleton lines={3} />
       ) : isError ? (
-        <p className="text-xms-muted text-[14px]">The waiting list could not be loaded.</p>
+        <p className="text-xms-muted text-body">The waiting list could not be loaded.</p>
       ) : rows.length === 0 ? (
-        <p className="text-xms-muted text-[14px]" data-testid="waiting-empty">
+        <p className="text-xms-muted text-body" data-testid="waiting-empty">
           Nothing is waiting on you
         </p>
       ) : (

@@ -49,9 +49,9 @@ export function ReasonDialog({
           await onConfirm(trimmed);
         }}
       >
-        <h2 className="text-xms-ink text-[15px] font-semibold">{title}</h2>
-        {detail ? <p className="text-xms-body text-[14px]">{detail}</p> : null}
-        <label className="flex flex-col gap-1 text-[14px]">
+        <h2 className="text-xms-ink text-lead font-semibold">{title}</h2>
+        {detail ? <p className="text-xms-body text-body">{detail}</p> : null}
+        <label className="flex flex-col gap-1 text-body">
           <span className="text-xms-label">
             {fieldLabel}
             {required ? "" : " (optional)"}

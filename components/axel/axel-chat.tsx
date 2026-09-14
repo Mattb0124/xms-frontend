@@ -23,7 +23,7 @@ export interface AxelChatProps {
  * would ask for them, and each is sent as an ordinary message: nothing here
  * reaches a route the composer could not reach.
  */
-const QUICK_STARTS = ["Summarise this ticket", "Draft a reply to the requester", "Find similar tickets and solutions"];
+const QUICK_STARTS = ["Summarize this ticket", "Draft a reply to the requester", "Find similar tickets and solutions"];
 
 /** One kilobyte, two, then megabytes: the size beside an attachment's name. */
 function fileSize(bytes: number): string {
@@ -154,8 +154,8 @@ export function AxelChat({ ticketId, ticketKey, onClose }: AxelChatProps) {
                   }}
                   className="border-xms-line hover:bg-xms-row-hover w-full border-b px-3 py-[10px] text-left"
                 >
-                  <span className="text-xms-ink block text-[14px] font-semibold">New conversation</span>
-                  <span className="text-xms-muted mt-[2px] block text-[14px]">Start again from nothing</span>
+                  <span className="text-xms-ink block text-body font-semibold">New conversation</span>
+                  <span className="text-xms-muted mt-[2px] block text-body">Start again from nothing</span>
                 </button>
               </li>
               {earlier.map((thread) => (
@@ -167,7 +167,7 @@ export function AxelChat({ ticketId, ticketKey, onClose }: AxelChatProps) {
                       resume(thread.thread_id);
                       setThreadsOpen(false);
                     }}
-                    className="border-xms-line text-xms-ink hover:bg-xms-row-hover w-full truncate border-b px-3 py-[10px] text-left text-[14px] last:border-b-0"
+                    className="border-xms-line text-xms-ink hover:bg-xms-row-hover w-full truncate border-b px-3 py-[10px] text-left text-body last:border-b-0"
                   >
                     {thread.title ?? "Untitled conversation"}
                   </button>
@@ -220,8 +220,8 @@ export function AxelChat({ ticketId, ticketKey, onClose }: AxelChatProps) {
             </div>
             <p data-chat-el="welcome-subtitle">
               {ticketKey
-                ? `Ask me anything about ${ticketKey}. I can summarise the thread, draft a reply, suggest a category and a priority, and find similar tickets and published solutions. Nothing I propose is applied until you accept it.`
-                : "Open a ticket and ask me about it. I can summarise the thread, draft a reply, suggest a category and a priority, and find similar tickets and published solutions."}
+                ? `Ask me anything about ${ticketKey}. I can summarize the thread, draft a reply, suggest a category and a priority, and find similar tickets and published solutions. Nothing I propose is applied until you accept it.`
+                : "Open a ticket and ask me about it. I can summarize the thread, draft a reply, suggest a category and a priority, and find similar tickets and published solutions."}
             </p>
             {ticketId ? (
               <div data-chat-el="quick-starts">
@@ -283,7 +283,7 @@ function TranscriptRow({
     case "notice":
       return (
         <p
-          className="border-xms-note-line bg-xms-note-bg text-xms-note-ink rounded-[var(--xms-radius-card)] border p-3 text-[14px]"
+          className="border-xms-note-line bg-xms-note-bg text-xms-note-ink rounded-card border p-3 text-body"
           data-code={item.code}
         >
           {item.text}

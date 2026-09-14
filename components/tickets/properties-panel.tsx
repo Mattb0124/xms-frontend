@@ -156,7 +156,13 @@ export function PropertiesPanel({ ticket, readOnly }: { ticket: TicketView; read
       // directory cannot be offered the choice, so for them the row is the
       // name and nothing else rather than a select over one bogus option
       // whose label was the uuid.
-      canReadContracts && !readOnly
+      // ...and `contracts` must have arrived before the select is offered. The
+      // value is the contract's id; until the directory is here there is no
+      // option carrying it, so the field fell back to drawing its raw value
+      // and the uuid flashed on every load of every ticket before settling
+      // (2026-09-13). Until then the row is the name, which the position
+      // query above answers without the directory.
+      canReadContracts && !readOnly && contracts
         ? {
             key: "contract_id",
             label: "Contract",

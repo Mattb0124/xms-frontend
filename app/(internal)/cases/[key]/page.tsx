@@ -32,7 +32,7 @@ import { ChevronDownIcon, ICON, MoreIcon } from "@/components/xms/icons";
 import { TabBar } from "@/components/xms/tab-bar";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { clockSnapshot, tighterClock } from "@/lib/tickets/sla";
+import { clockDisplay, clockSnapshot, tighterClock } from "@/lib/tickets/sla";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
 import { useGetTicketQuery, usePatchTicketMutation } from "@/redux/ticketsApi";
 
@@ -75,6 +75,10 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   }
   const readOnly = TERMINAL.has(ticket.state);
   const tight = tighterClock(ticket.sla);
+  // The same signal the chip's own words use. `clock.breached` is the
+  // server's latched flag and is not set on every clock that is past due, so
+  // branching on it put "breached by 61d 05h" inside the neutral chip.
+  const tightBreached = tight ? clockDisplay(tight).tone === "breach" : false;
   const requesterLine = ticket.requester
     ? `Emails the requester (${ticket.requester.email}) and the watchers`
     : "No requester email on this ticket; watchers are notified in app";
@@ -89,10 +93,14 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           on click, through the stacked field's own text-until-clicked shape. */}
       <div className="mb-[14px] flex flex-wrap items-center gap-[10px]">
         <KeyText ticketKey={ticket.key} />
-        <div className="min-w-0 max-w-[520px] flex-1">
+        {/* The subject of the screen, so it is set a step above the body and
+            carries the weight. It was 14px normal, the same as the label of
+            every field beneath it, which left the record with no first thing
+            to read (2026-09-13 design pass). */}
+        <div className="min-w-0 max-w-[640px] flex-1">
           <RecordForm
             layout="stacked"
-            className="[&_label]:sr-only [&>div]:gap-0 [&>div]:border-b-0 [&>div]:py-0 [&_button]:truncate [&_button]:text-[14px] [&_button]:leading-[1.4] [&_button]:font-normal [&_span]:truncate [&_span]:text-[14px] [&_span]:leading-[1.4] [&_span]:font-normal"
+            className="[&_label]:sr-only [&>div]:gap-0 [&>div]:border-b-0 [&>div]:py-0 [&_button]:truncate [&_button]:text-lead [&_button]:leading-[1.3] [&_button]:font-semibold [&_span]:truncate [&_span]:text-lead [&_span]:leading-[1.3] [&_span]:font-semibold"
             fields={[{ key: "short_description", label: "Title", value: ticket.short_description, readOnly }]}
             onCommit={async (_key, value) => {
               await patch({ key: ticket.key, body: { version: ticket.version, short_description: value } }).unwrap();
@@ -110,21 +118,31 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
             second coloured mark here competed with the state pill. */}
         <PriorityPill
           priority={ticket.priority}
-          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-[999px] border px-[14px] py-[9px] text-[14px] leading-none font-medium"
+          className="border-xms-line-strong bg-xms-card text-xms-ink xms-mono rounded-pill border px-[14px] py-[9px] text-body leading-none font-medium"
         />
         {tight ? (
-          // The chip the lists carry, in the record bar: the dot takes the
-          // signal so a breached clock is red here as it is in a row, and
-          // the value says what it is counting ("3h 12m left", render 02)
-          // rather than standing as a bare number beside a blue dot that
-          // never changed.
-          <span className="border-xms-neutral-line bg-xms-neutral-bg text-xms-neutral-ink xms-mono inline-flex items-center gap-2 rounded-[999px] border px-[14px] py-[9px] text-[14px] leading-none font-medium">
+          // The chip the lists carry, in the record bar: the value says what
+          // it is counting ("3h 12m left", render 02) rather than standing as
+          // a bare number beside a blue dot that never changed.
+          //
+          // A breached clock is not a chip like the others. It takes the
+          // overdue trio and a size above the body, so it reads before the
+          // state and the priority rather than beside them; a running clock
+          // keeps the neutral chip and its coloured dot.
+          <span
+            className={
+              tightBreached
+                ? "xms-breach-pill"
+                : "border-xms-neutral-line bg-xms-neutral-bg text-xms-neutral-ink xms-mono inline-flex items-center gap-2 rounded-pill border px-[14px] py-[9px] text-body leading-none font-medium"
+            }
+            data-breached={tightBreached ? "true" : undefined}
+          >
             <SlaValue
               snapshot={clockSnapshot(tight)}
-              dot
+              dot={!tightBreached}
               verbose
               kind={tight.kind === "response" ? "Response" : "Resolution"}
-              className="text-xms-neutral-ink text-[14px]"
+              className={tightBreached ? "text-inherit" : "text-xms-neutral-ink text-body"}
             />
           </span>
         ) : null}
@@ -151,11 +169,11 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
         </span>
       </div>
       {more ? (
-        <div className="xms-card ml-auto flex w-[240px] flex-col p-1 text-[14px]" role="menu">
+        <div className="xms-card xms-enter-pop ml-auto flex w-[240px] flex-col p-1 text-body" role="menu">
           <Link
             href="/cases"
             role="menuitem"
-            className="hover:bg-xms-row-hover text-xms-body rounded-[4px] px-3 py-2 hover:no-underline"
+            className="hover:bg-xms-row-hover text-xms-body rounded-control px-3 py-2 hover:no-underline"
           >
             Back to Cases
           </Link>
@@ -167,7 +185,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
               push({ title: "Link copied", tone: "success" });
               setMore(false);
             }}
-            className="hover:bg-xms-row-hover text-xms-body rounded-[4px] px-3 py-2 text-left"
+            className="hover:bg-xms-row-hover text-xms-body rounded-control px-3 py-2 text-left"
           >
             Copy link to this ticket
           </button>
@@ -248,7 +266,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           <ContractCard accountId={ticket.account_id} contractId={ticket.contract_id} />
           <SolutionsRail ticketKey={ticket.key} readOnly={readOnly} />
           <details className="xms-card group p-0">
-            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[14px] font-medium">
+            <summary className="text-xms-body hover:text-xms-accent flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-body font-medium">
               <ChevronDownIcon
                 size={ICON.control}
                 className="text-xms-ink-faint transition-transform group-open:rotate-0 -rotate-90"

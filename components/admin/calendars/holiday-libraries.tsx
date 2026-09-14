@@ -28,17 +28,17 @@ export function HolidayLibraryList({ rows, loading }: { rows: HolidayCalendar[];
   return (
     <Panel title="Holiday libraries" caption="Shared by account and person calendars">
       {loading ? <Skeleton lines={3} /> : null}
-      {!loading && rows.length === 0 ? <p className="text-xms-label text-[14px]">No library yet.</p> : null}
+      {!loading && rows.length === 0 ? <p className="text-xms-label text-body">No library yet.</p> : null}
       <ul className="divide-xms-line divide-y" aria-label="Holiday libraries">
         {rows.map((library) => (
-          <li key={library.id} className="py-2 text-[14px]" data-library={library.id}>
+          <li key={library.id} className="py-2 text-body" data-library={library.id}>
             <div className="flex flex-wrap items-center gap-3">
               <span className="xms-mono text-xms-accent font-medium">{library.country}</span>
               <span className="text-xms-ink font-medium">{library.name}</span>
-              <span className="text-xms-label text-[14px]">{library.holidays.length} dates</span>
+              <span className="text-xms-label text-body">{library.holidays.length} dates</span>
               <button
                 type="button"
-                className="text-xms-accent ml-auto text-[14px]"
+                className="text-xms-accent ml-auto text-body"
                 aria-expanded={open === library.id}
                 onClick={() => setOpen((current) => (current === library.id ? null : library.id))}
               >
@@ -120,7 +120,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
             onChange={(event) => setName(event.target.value)}
           />
         </FieldRow>
-        <fieldset className="border-xms-line rounded-[4px] border p-3">
+        <fieldset className="border-xms-line rounded-control border p-3">
           <legend className="xms-caption px-1">Dates</legend>
           <div className="flex flex-col gap-2">
             {rows.map((row, index) => (
@@ -147,7 +147,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
                 <button
                   type="button"
                   aria-label={`Remove holiday ${index + 1}`}
-                  className="text-xms-muted hover:text-xms-ink text-[14px] leading-none"
+                  className="text-xms-muted hover:text-xms-ink text-body leading-none"
                   onClick={() =>
                     setRows(rows.length === 1 ? [{ date: "", label: "" }] : rows.filter((_, i) => i !== index))
                   }
@@ -188,7 +188,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
           <button type="submit" className={PRIMARY_BUTTON} disabled={isLoading}>
             Create library
           </button>
-          <span className="text-xms-label text-[14px]">
+          <span className="text-xms-label text-body">
             {valid.length} valid date{valid.length === 1 ? "" : "s"}
           </span>
         </div>

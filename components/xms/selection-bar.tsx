@@ -18,7 +18,7 @@ export function BulkAction({ label, onClick, disabled, icon, title }: BulkAction
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint inline-flex h-[28px] items-center gap-[6px] rounded-[4px] border px-[10px] text-[14px] font-medium disabled:opacity-50"
+      className="border-xms-accent-border bg-xms-card text-xms-accent hover:bg-xms-accent-tint inline-flex h-[28px] items-center gap-[6px] rounded-control border px-[10px] text-body font-medium disabled:opacity-50"
     >
       {icon}
       {label}
@@ -49,7 +49,7 @@ export function SelectionBar({
       role="region"
       aria-label="Selection"
       className={cn(
-        "bg-xms-accent-tint border-xms-accent-border flex items-center gap-2 border-b px-4 py-2 text-[14px]",
+        "bg-xms-accent-tint border-xms-accent-border flex items-center gap-2 border-b px-4 py-2 text-body",
         className,
       )}
     >
@@ -60,7 +60,7 @@ export function SelectionBar({
         type="button"
         aria-label="Clear selection"
         onClick={onDismiss}
-        className="text-xms-muted hover:text-xms-ink ml-2 text-[14px] leading-none"
+        className="text-xms-muted hover:text-xms-ink ml-2 text-body leading-none"
       >
         ×
       </button>

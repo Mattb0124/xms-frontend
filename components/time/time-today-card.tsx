@@ -55,8 +55,8 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
   return (
     <section className={cn("xms-card p-4", className)} aria-label="Time today" aria-busy={isLoading || undefined}>
       <div className="flex items-baseline gap-2">
-        <h2 className="text-xms-ink text-[14px] leading-[1.3] font-semibold">Time today</h2>
-        <span className="xms-mono text-xms-label ml-auto text-[14px] leading-none font-medium" data-testid="time-today">
+        <h2 className="text-xms-ink text-body leading-[1.3] font-semibold">Time today</h2>
+        <span className="xms-mono text-xms-label ml-auto text-body leading-none font-medium" data-testid="time-today">
           {day ? `${decimalHours(day.logged_minutes)} / ${decimalHours(day.expected_minutes)} h` : "…"}
         </span>
       </div>
@@ -66,34 +66,34 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
-        className="bg-xms-line-row mt-3 mb-[14px] h-2 overflow-hidden rounded-[999px]"
+        className="bg-xms-line-row mt-3 mb-[14px] h-2 overflow-hidden rounded-pill"
       >
         <div className="bg-xms-accent h-2" style={{ width: `${percent}%` }} />
       </div>
       {nudge && day ? (
         <div className="xms-note p-[13px]" data-testid="unlogged-nudge">
-          <p className="text-[14px] leading-[1.55]">
+          <p className="text-body leading-[1.55]">
             {`${decimalHours(day.unlogged_minutes)} h is unlogged today, of ${decimalHours(day.expected_minutes)} h expected.`}
           </p>
           <div className="mt-[11px] flex gap-2">
             <button
               type="button"
               onClick={() => router.push("/time")}
-              className="bg-xms-note-action rounded-[var(--xms-radius-control)] px-[13px] py-[9px] text-[14px] font-semibold whitespace-nowrap text-white"
+              className="bg-xms-note-action rounded-control px-[13px] py-[9px] text-body font-semibold whitespace-nowrap text-white"
             >
               Log now
             </button>
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              className="border-xms-line-strong bg-xms-card text-xms-body rounded-[var(--xms-radius-control)] border px-[13px] py-[9px] text-[14px] font-medium whitespace-nowrap"
+              className="border-xms-line-strong bg-xms-card text-xms-body rounded-control border px-[13px] py-[9px] text-body font-medium whitespace-nowrap"
             >
               Not now
             </button>
           </div>
         </div>
       ) : (
-        <p className="text-xms-muted text-[14px] leading-[1.55]">
+        <p className="text-xms-muted text-body leading-[1.55]">
           {day
             ? day.expected_minutes === 0
               ? "Nothing is expected today."

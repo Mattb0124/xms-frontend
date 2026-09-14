@@ -13,15 +13,15 @@ import type { PortalTicket } from "@/redux/portalApi";
 export function RequestList({ items, emptyText }: { items: PortalTicket[]; emptyText: string }) {
   if (items.length === 0) {
     return (
-      <p role="status" className="text-xms-label py-6 text-center text-[14px]">
+      <p role="status" className="text-xms-label py-6 text-center text-body">
         {emptyText}
       </p>
     );
   }
   return (
-    <table className="w-full text-[14px]">
+    <table className="w-full text-body">
       <thead>
-        <tr className="text-xms-label border-xms-line border-b text-left text-[14px] uppercase tracking-wide">
+        <tr className="text-xms-label border-xms-line border-b text-left text-body uppercase tracking-wide">
           <th scope="col" className="py-2 pr-3 font-medium">
             Request
           </th>
@@ -40,8 +40,8 @@ export function RequestList({ items, emptyText }: { items: PortalTicket[]; empty
         {items.map((item) => (
           <tr key={item.id} className="border-xms-line hover:bg-xms-row-hover border-b last:border-b-0">
             <td className="py-3 pr-3">
-              <Link href={`/portal/requests/${item.key}`} className="flex flex-col gap-0.5 rounded-[4px]">
-                <span className="xms-mono text-xms-label text-[14px]">{item.key}</span>
+              <Link href={`/portal/requests/${item.key}`} className="flex flex-col gap-0.5 rounded-control">
+                <span className="xms-mono text-xms-label text-body">{item.key}</span>
                 <span className="text-xms-ink font-medium">{item.short_description}</span>
               </Link>
             </td>

@@ -69,7 +69,7 @@ function TicketLog() {
           void find();
         }}
       >
-        <label className="flex flex-col gap-1 text-[14px]">
+        <label className="flex flex-col gap-1 text-body">
           <span className="text-xms-label">Ticket key</span>
           <input
             aria-label="Ticket key"
@@ -83,12 +83,12 @@ function TicketLog() {
           Find
         </button>
         {resolved ? (
-          <span className="text-xms-ink text-[14px]">
+          <span className="text-xms-ink text-body">
             <KeyText ticketKey={resolved.key} /> {resolved.title}
           </span>
         ) : null}
         {error ? (
-          <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
+          <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
             {error}
           </p>
         ) : null}
@@ -120,7 +120,7 @@ function LogTimeSheet({ onClose }: { onClose: () => void }) {
     <div className="bg-xms-overlay-scrim fixed inset-0 z-40 flex items-start justify-center overflow-auto p-6">
       <div role="dialog" aria-modal="true" aria-label="Log time" className="xms-card w-full max-w-[640px] p-4">
         <div className="mb-3 flex items-center gap-3">
-          <h3 className="text-xms-ink flex-1 text-[15px] font-semibold">Log time</h3>
+          <h3 className="text-xms-ink flex-1 text-lead font-semibold">Log time</h3>
           <button type="button" onClick={onClose} aria-label="Close" className="text-xms-label hover:text-xms-ink">
             <CloseIcon size={ICON.tool} />
           </button>

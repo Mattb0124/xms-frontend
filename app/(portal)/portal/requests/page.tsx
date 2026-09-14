@@ -22,7 +22,7 @@ export default function PortalRequestsPage() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xms-ink text-[22px] font-semibold">My requests</h1>
+        <h1 className="text-xms-ink text-title font-semibold">My requests</h1>
         <div role="group" aria-label="Scope" className="ml-auto flex gap-1">
           {(["open", "all"] as const).map((value) => (
             <button
@@ -41,7 +41,7 @@ export default function PortalRequestsPage() {
           ))}
         </div>
         {canSeeOrg ? (
-          <label className="text-xms-body flex items-center gap-2 text-[14px]">
+          <label className="text-xms-body flex items-center gap-2 text-body">
             <input type="checkbox" checked={orgWide} onChange={(event) => setOrgWide(event.target.checked)} />
             Everyone at {me.data?.account?.name ?? "my organization"}
           </label>
@@ -88,7 +88,7 @@ export default function PortalRequestsPage() {
 function UnavailableNote({ count }: { count: number }) {
   if (count < 1) return null;
   return (
-    <p role="status" className="text-xms-label mt-3 text-[14px]">
+    <p role="status" className="text-xms-label mt-3 text-body">
       {count === 1
         ? "1 request could not be loaded and is not shown. Your support team can see it; ask them, or try again later."
         : `${count} requests could not be loaded and are not shown. Your support team can see them; ask them, or try again later.`}

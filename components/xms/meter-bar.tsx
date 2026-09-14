@@ -40,7 +40,7 @@ export function MeterBar({ percent, pauses = [], breached, met, paused, label, c
         : "var(--xms-accent)";
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      {label ? <span className="text-xms-label text-[14px]">{label}</span> : null}
+      {label ? <span className="text-xms-label text-body">{label}</span> : null}
       <div
         role="progressbar"
         aria-valuenow={Math.round(fill)}
@@ -52,12 +52,9 @@ export function MeterBar({ percent, pauses = [], breached, met, paused, label, c
         // The track is the row hairline grey, which is what the prototype
         // draws behind every meter; on the blue tint a blue fill barely read
         // as a fill at all.
-        className="bg-xms-line-row relative h-2 w-full overflow-hidden rounded-[999px]"
+        className="bg-xms-line-row relative h-2 w-full overflow-hidden rounded-pill"
       >
-        <div
-          className="absolute inset-y-0 left-0 rounded-[999px]"
-          style={{ width: `${fill}%`, background: fillColor }}
-        />
+        <div className="absolute inset-y-0 left-0 rounded-pill" style={{ width: `${fill}%`, background: fillColor }} />
         {pauses.map((segment, index) => (
           <div
             key={index}

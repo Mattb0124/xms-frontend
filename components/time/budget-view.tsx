@@ -80,12 +80,9 @@ export function BurnBar({ percent, tone, markers, label }: BurnBarProps) {
         aria-valuemin={0}
         aria-valuemax={100}
         data-tone={tone}
-        className="bg-xms-tint relative h-2.5 w-full rounded-[999px]"
+        className="bg-xms-tint relative h-2.5 w-full rounded-pill"
       >
-        <div
-          className="absolute inset-y-0 left-0 rounded-[999px]"
-          style={{ width: `${fill}%`, background: FILL[tone] }}
-        />
+        <div className="absolute inset-y-0 left-0 rounded-pill" style={{ width: `${fill}%`, background: FILL[tone] }} />
         {markers
           .filter((marker) => marker.percent <= 100)
           .map((marker) => (
@@ -107,7 +104,7 @@ export function BurnBar({ percent, tone, markers, label }: BurnBarProps) {
             />
           ))}
       </div>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[14px]" aria-label="Thresholds">
+      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-body" aria-label="Thresholds">
         {markers.map((marker) => (
           <li
             key={marker.percent}
@@ -154,17 +151,17 @@ export function ContractBudgetCard({
     >
       <div className="flex flex-col gap-3" data-contract={contract.id} data-tone={tone}>
         {!period || !position ? (
-          <p className="text-xms-label text-[14px]">
+          <p className="text-xms-label text-body">
             No period on this contract yet. Add one on the Contracts tab; until then time logged here is not measured
             against a budget.
           </p>
         ) : (
           <>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="xms-mono text-xms-ink text-[20px] font-semibold" data-consumed>
+              <span className="xms-mono text-xms-ink text-lead font-semibold" data-consumed>
                 {formatHours(position.consumed_minutes)}
               </span>
-              <span className="text-xms-body text-[14px]">
+              <span className="text-xms-body text-body">
                 of <span className="xms-mono">{formatHours(position.available_minutes)}</span> used,{" "}
                 <span className="xms-mono">{formatHours(position.remaining_minutes)}</span> remaining
                 {position.carried_over_minutes > 0 ? (
@@ -174,7 +171,7 @@ export function ContractBudgetCard({
                   </>
                 ) : null}
               </span>
-              <span className="xms-mono text-xms-label ml-auto text-[14px]">
+              <span className="xms-mono text-xms-label ml-auto text-body">
                 {period.starts_on} to {period.ends_on}
                 {period.locked ? ", locked" : ""}
               </span>
@@ -187,21 +184,21 @@ export function ContractBudgetCard({
             />
             {forecast ? (
               <div>
-                <p className="text-xms-ink text-[14px]" data-forecast>
+                <p className="text-xms-ink text-body" data-forecast>
                   {forecastSentence(forecast, position.available_minutes)}
                 </p>
-                <p className="text-xms-label text-[14px]">{forecastBasis(forecast)}</p>
+                <p className="text-xms-label text-body">{forecastBasis(forecast)}</p>
               </div>
             ) : null}
             {unrated ? (
-              <p className="text-[14px] text-[color:var(--state-needs-input-text)]" data-unrated>
+              <p className="text-body text-[color:var(--state-needs-input-text)]" data-unrated>
                 {unrated}
               </p>
             ) : null}
             <div>
               <button
                 type="button"
-                className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-[14px]")}
+                className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-body")}
                 aria-expanded={open}
                 onClick={() => setOpen((value) => !value)}
               >
@@ -234,7 +231,7 @@ export function AccountBudgetView({ accountId }: { accountId: string }) {
   if (!allowed) {
     return (
       <Panel title="Budget" caption="Needs the contracts:view permission">
-        <p className="text-xms-label text-[14px]">You can see this account but not its budget.</p>
+        <p className="text-xms-label text-body">You can see this account but not its budget.</p>
       </Panel>
     );
   }
@@ -251,12 +248,12 @@ export function AccountBudgetView({ accountId }: { accountId: string }) {
       ) : null}
       {data ? (
         <>
-          <p className="text-xms-label text-[14px]">
+          <p className="text-xms-label text-body">
             As of <span className="xms-mono">{data.as_of}</span>, per active contract and its current period.
           </p>
           {data.contracts.length === 0 ? (
             <Panel title="Budget" caption="No contract yet">
-              <p className="text-xms-label text-[14px]">
+              <p className="text-xms-label text-body">
                 No active contract on this account. Add one on the Contracts tab; time can still be logged meanwhile.
               </p>
             </Panel>

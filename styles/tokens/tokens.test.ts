@@ -100,9 +100,15 @@ describe("xms token contract", () => {
   // the top of the app.
   it("uses the ServiceNow palette for the core identity", () => {
     expect(scope).toContain("--xms-navy: #10193a");
-    expect(scope).toContain("--xms-accent: #006fba");
+    // Lightened from the palette's own #006fba on 2026-09-13. The constraint
+    // that decides this value is contrast, not taste: the accent is link text,
+    // so it clears 4.5:1 on white (4.71) and on the canvas (4.54). The next
+    // step lighter, #0d7cc4, measures 4.47 and fails.
+    expect(scope).toContain("--xms-accent: #0b78c0");
     expect(scope).toContain("--xms-ink: #000e1d");
-    expect(scope).toContain("--xms-bg: #fafbfc");
+    // White since 2026-09-13: the product is a white ground with blue kept for
+    // action. The card is read by its border rather than by the ground.
+    expect(scope).toContain("--xms-bg: #ffffff");
   });
 
   // Nothing renders below the body size. Sub-14 sizes were swept out of the
@@ -248,9 +254,14 @@ function disabledRule(): string {
 }
 
 describe("the field treatment", () => {
-  it("draws a field recessed and fills it on hover, in both grounds", () => {
+  // The name said "fills it on hover" until 2026-09-13 and the assertion below
+  // it already checked for an edge: the names went stale when hover became a
+  // change of edge on 2026-09-12 and nobody moved them. The fill token is
+  // still here, but it dresses a surface with no edge of its own to light up
+  // (a menu row), and it is neutral now that blue means action.
+  it("draws a field recessed, and keeps a fill for the surfaces that have no edge", () => {
     expect(scope).toMatch(/--xms-field-inset: inset 0 1px 3px/);
-    expect(scope).toMatch(/--xms-control-hover: #d3dcec/);
+    expect(scope).toMatch(/--xms-control-hover: #f2f4f6/);
     // The dark ground reverses it: a light top edge, since a shadow on a
     // dark field is invisible.
     expect(scope).toMatch(/--xms-field-inset: inset 0 1px 0 rgb\(255 255 255/);
@@ -264,7 +275,7 @@ describe("the field treatment", () => {
     expect(disabledRule()).toContain("background-color: var(--xms-field-bg)");
   });
 
-  it("makes hover a fill and never a change of edge", () => {
+  it("makes hover a change of edge and never a fill", () => {
     // The edge, not the ground (2026-09-12), and never on a control that is
     // already carrying a value: the accent border is the louder fact.
     expect(scope).toMatch(

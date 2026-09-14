@@ -25,9 +25,12 @@
     "Lato", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Color Emoji", sans-serif;
   --font-family-heading: var(--font-family-body);
-  --font-family-mono:
-    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
-    "Liberation Mono", monospace;
+  /* There is one face in this product (Matt, 2026-09-13). This alias stays so
+   * the Tailwind font-mono utility and anything else reaching for it still
+   * resolve, but it resolves to the body family: no route to a second face
+   * is left open, so none can be reintroduced by accident. Where figures need
+   * to line up, the answer is tabular-nums, which .xms-mono now carries. */
+  --font-family-mono: var(--font-family-body);
 
   /* House aliases over the AI Innovation primitives (the "full adopt"). */
   --aix-t1: var(--aiinds-fg);
@@ -99,4 +102,38 @@
   .aix-state-pill[data-state="complete"]    { color: var(--state-complete-text);    background: var(--state-complete-bg);    border-color: var(--state-complete-border); }
   .aix-state-pill[data-state="stale"]       { color: var(--state-stale-text);       background: var(--state-stale-bg);       border-color: var(--state-stale-border); }
   .aix-state-pill[data-state="overdue"]     { color: var(--state-overdue-text);     background: var(--state-overdue-bg);     border-color: var(--state-overdue-border); }
+
+  /* The one loud thing on a record that has breached.
+   *
+   * The record bar used to carry the breach as the same neutral chip as
+   * everything else, with a red dot as the only signal, so a ticket breached
+   * by 61 days looked like one breached by five minutes and sat level with
+   * the state and priority pills beside it (2026-09-13 design pass). Severity
+   * decides size here, not only hue: this is the only element on the record
+   * set above the body size, which is what makes it read first.
+   *
+   * It lives in this layer rather than the scope because it is built from the
+   * overdue trio, and the trios are the house's to own; the scope may not so
+   * much as name one (tokens.test.ts). The geometry vars it reads are defined
+   * in the scope, which is fine: custom properties resolve against the
+   * element at use time, and everything this dresses renders inside
+   * .xms-scope.
+   *
+   * It is deliberately not offered for a clock that is merely running. A
+   * second one of these on a screen would leave neither dominant. */
+  .xms-breach-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--xms-control-h-lg);
+    padding: 0 14px;
+    border: 1px solid var(--state-overdue-border);
+    border-radius: var(--xms-radius-pill);
+    background: var(--state-overdue-bg);
+    color: var(--state-overdue-text);
+    font-family: var(--xms-mono);
+    font-size: var(--xms-text-lg);
+    font-weight: 600;
+    line-height: 1;
+  }
 }

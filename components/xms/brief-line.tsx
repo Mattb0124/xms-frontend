@@ -24,7 +24,7 @@ export function BriefLine({ text, onDismiss, className }: BriefLineProps) {
   return (
     <div className={cn("xms-note flex items-center gap-3 px-[18px] py-4", className)} role="status">
       <SparkleIcon size={ICON.field} className="text-xms-label shrink-0" />
-      <span className="flex-1 text-[14px] leading-[1.55]">{text}</span>
+      <span className="flex-1 text-body leading-[1.55]">{text}</span>
       {/* The render (08) words the control rather than drawing a cross. */}
       <button
         type="button"
@@ -33,7 +33,7 @@ export function BriefLine({ text, onDismiss, className }: BriefLineProps) {
           setHidden(true);
           onDismiss?.();
         }}
-        className="border-xms-note-line bg-xms-card text-xms-body hover:text-xms-ink shrink-0 rounded-[var(--xms-radius-control)] border px-[14px] py-[10px] text-[14px] font-medium"
+        className="border-xms-note-line bg-xms-card text-xms-body hover:text-xms-ink shrink-0 rounded-control border px-[14px] py-[10px] text-body font-medium"
       >
         Dismiss
       </button>

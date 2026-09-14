@@ -58,17 +58,17 @@ export function Toaster() {
           key={toast.id}
           role="status"
           data-tone={toast.tone}
-          className={cn("xms-card flex gap-3 border-l-4 p-3", TONE[toast.tone])}
+          className={cn("xms-card xms-enter-rise flex gap-3 border-l-4 p-3", TONE[toast.tone])}
         >
-          <div className="text-[14px]">
+          <div className="text-body">
             <p className="text-xms-ink font-medium">{toast.title}</p>
-            {toast.detail ? <p className="text-xms-label text-[14px]">{toast.detail}</p> : null}
+            {toast.detail ? <p className="text-xms-label text-body">{toast.detail}</p> : null}
           </div>
           <button
             type="button"
             aria-label="Dismiss"
             onClick={() => api.dismiss(toast.id)}
-            className="text-xms-muted hover:text-xms-ink ml-auto text-[14px] leading-none"
+            className="text-xms-muted hover:text-xms-ink ml-auto text-body leading-none"
           >
             ×
           </button>

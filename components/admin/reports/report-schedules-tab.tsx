@@ -59,9 +59,9 @@ import {
   type RunNowResult,
 } from "@/redux/reportingApi";
 
-const HEAD = "text-xms-ink px-3 py-2 text-left text-[14px] font-semibold whitespace-nowrap";
-const CELL = "text-xms-ink px-3 py-2 align-top text-[14px]";
-const SMALL = "h-[26px] px-2 text-[14px]";
+const HEAD = "text-xms-ink px-3 py-2 text-left text-body font-semibold whitespace-nowrap";
+const CELL = "text-xms-ink px-3 py-2 align-top text-body";
+const SMALL = "h-[26px] px-2 text-body";
 
 export { DeliveryList };
 
@@ -237,7 +237,7 @@ function ScheduleForm({
               value={draft.run_day}
               onChange={(event) => onChange({ ...draft, run_day: event.target.value })}
             />
-            <span className="text-xms-label text-[14px]">
+            <span className="text-xms-label text-body">
               {draft.cadence === "weekly" ? "1 (Monday) to 7 (Sunday)" : "1 to 31, the day of the month"}
             </span>
           </div>
@@ -285,13 +285,13 @@ function ScheduleForm({
               checked={draft.review_required}
               onChange={(event) => onChange({ ...draft, review_required: event.target.checked })}
             />
-            <span className="text-xms-label max-w-[520px] text-[14px]">{reviewRequiredNote(graceHours)}</span>
+            <span className="text-xms-label max-w-[520px] text-body">{reviewRequiredNote(graceHours)}</span>
           </div>
         </FieldRow>
         <div className="flex flex-col gap-2">
-          <span className="text-xms-label text-[14px]">Distribution</span>
+          <span className="text-xms-label text-body">Distribution</span>
           {draft.distribution.length === 0 ? (
-            <p className="text-xms-label text-[14px]">No recipients yet: the pack is built and kept, nobody is told.</p>
+            <p className="text-xms-label text-body">No recipients yet: the pack is built and kept, nobody is told.</p>
           ) : null}
           {draft.distribution.map((recipient, index) => (
             <RecipientRow
@@ -387,7 +387,7 @@ function RunNowPanel({
     >
       {result ? (
         <div className="flex flex-col gap-3" data-testid="run-now-result">
-          <p className="text-xms-ink flex flex-wrap items-center gap-3 text-[14px]">
+          <p className="text-xms-ink flex flex-wrap items-center gap-3 text-body">
             <span className="xms-mono">
               {result.period.start} to {result.period.end}
             </span>
@@ -403,7 +403,7 @@ function RunNowPanel({
             </Link>
           </p>
           {isHeld(result.status) ? (
-            <p className="text-xms-label text-[14px]">
+            <p className="text-xms-label text-body">
               {deadlineLine({ status: result.status, review_due_at: result.review_due_at }) ??
                 "It is waiting on a reviewer; nothing has been sent."}
             </p>
@@ -420,22 +420,22 @@ function RunNowPanel({
             void run();
           }}
         >
-          <label className="flex flex-col gap-1 text-[14px]">
+          <label className="flex flex-col gap-1 text-body">
             <span className="text-xms-label">Period start</span>
             <input
               type="date"
               aria-label="Period start"
-              className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-[14px]")}
+              className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-body")}
               value={start}
               onChange={(event) => setStart(event.target.value)}
             />
           </label>
-          <label className="flex flex-col gap-1 text-[14px]">
+          <label className="flex flex-col gap-1 text-body">
             <span className="text-xms-label">Period end</span>
             <input
               type="date"
               aria-label="Period end"
-              className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-[14px]")}
+              className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-body")}
               value={end}
               onChange={(event) => setEnd(event.target.value)}
             />
@@ -463,7 +463,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
           <Skeleton lines={3} />
         </div>
       ) : null}
-      {isError ? <p className="text-xms-muted p-4 text-[14px]">The runs could not be loaded.</p> : null}
+      {isError ? <p className="text-xms-muted p-4 text-body">The runs could not be loaded.</p> : null}
       {data ? (
         <table className="w-full border-collapse" aria-label="Report runs">
           <thead className="bg-xms-card">
@@ -488,7 +488,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                   <td className={CELL}>
                     <span className="xms-stack">
                       <span>{requestedByLabel(run.requested_by)}</span>
-                      <span className="xms-mono text-xms-label text-[14px]">{formatMoment(run.created_at)}</span>
+                      <span className="xms-mono text-xms-label text-body">{formatMoment(run.created_at)}</span>
                     </span>
                   </td>
                   <td className={CELL}>
@@ -496,7 +496,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
                       <RunStatusPill status={run.status} />
                       <ReviewPill status={run.status} />
                     </span>
-                    {run.error ? <span className="text-xms-label block text-[14px]">{run.error}</span> : null}
+                    {run.error ? <span className="text-xms-label block text-body">{run.error}</span> : null}
                   </td>
                   <td className={CELL}>
                     <div className="flex flex-col gap-1">
@@ -542,7 +542,7 @@ function RunsHistory({ accountId, schedules }: { accountId: string; schedules: R
             })}
             {data.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-xms-label px-4 py-8 text-center text-[14px]">
+                <td colSpan={6} className="text-xms-label px-4 py-8 text-center text-body">
                   No runs yet.
                 </td>
               </tr>
@@ -585,7 +585,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
   if (!allowed) {
     return (
       <Panel title="Report packs" caption="Needs the reports:manage permission">
-        <p className="text-xms-label text-[14px]">You can see this account but not its report schedules.</p>
+        <p className="text-xms-label text-body">You can see this account but not its report schedules.</p>
       </Panel>
     );
   }
@@ -645,9 +645,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
             <Skeleton lines={3} />
           </div>
         ) : null}
-        {schedules.isError ? (
-          <p className="text-xms-muted p-4 text-[14px]">The schedules could not be loaded.</p>
-        ) : null}
+        {schedules.isError ? <p className="text-xms-muted p-4 text-body">The schedules could not be loaded.</p> : null}
         {schedules.data ? (
           <table className="w-full border-collapse" aria-label="Report schedules">
             <thead className="bg-xms-card">
@@ -673,7 +671,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
                     {schedule.distribution.length === 0 ? (
                       <span className="text-xms-muted">Nobody</span>
                     ) : (
-                      <span className="text-[14px]">{schedule.distribution.map(recipientLabel).join(", ")}</span>
+                      <span className="text-body">{schedule.distribution.map(recipientLabel).join(", ")}</span>
                     )}
                   </td>
                   <td className={CELL} data-review={schedule.review_required ? "required" : "off"}>
@@ -725,7 +723,7 @@ export function ReportSchedulesTab({ accountId }: { accountId: string }) {
               ))}
               {schedules.data.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-xms-label px-4 py-8 text-center text-[14px]">
+                  <td colSpan={8} className="text-xms-label px-4 py-8 text-center text-body">
                     No schedule yet. Add one to build and send report packs on a cadence.
                   </td>
                 </tr>

@@ -71,9 +71,9 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
   return (
     <Frame kind={surveyKind(survey)}>
       <PortalCard>
-        <p className="text-xms-label text-[14px]">{subject}</p>
+        <p className="text-xms-label text-body">{subject}</p>
         {done ? (
-          <p role="status" className="text-xms-ink text-[15px]">
+          <p role="status" className="text-xms-ink text-body">
             {quarterly
               ? `Thank you. Your answers, ${Object.entries(done.answers ?? {})
                   .map(([key, value]) => `${keyLabel(key)} ${value}`)
@@ -102,13 +102,13 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
             }}
           />
         ) : (
-          <p role="status" className="text-xms-ink text-[15px]">
+          <p role="status" className="text-xms-ink text-body">
             {statusLine(survey.status)}
           </p>
         )}
         {error ? <PortalNotice tone="error">{error}</PortalNotice> : null}
       </PortalCard>
-      <p className="text-xms-label text-[14px]">
+      <p className="text-xms-label text-body">
         {`This link is for you only and takes one answer.${isAnswerable(survey.status) && expiry ? ` ${expiry}.` : ""}`}
       </p>
     </Frame>
@@ -119,7 +119,7 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
 function Frame({ children, kind }: { children: React.ReactNode; kind?: string }) {
   return (
     <div className="flex flex-col gap-4" data-testid="survey-link" data-kind={kind}>
-      <h1 className="text-xms-ink text-[22px] font-semibold">How did we do?</h1>
+      <h1 className="text-xms-ink text-title font-semibold">How did we do?</h1>
       {children}
     </div>
   );

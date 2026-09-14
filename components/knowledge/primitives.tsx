@@ -44,7 +44,7 @@ export const EFFORT_LABEL: Record<EffortBand, string> = {
 export function GlobalChip({ isGlobal }: { isGlobal: boolean }) {
   if (!isGlobal) return null;
   return (
-    <span className="border-xms-line text-xms-label inline-flex h-[20px] items-center rounded-[999px] border px-2 text-[14px]">
+    <span className="border-xms-line text-xms-label inline-flex h-[20px] items-center rounded-pill border px-2 text-body">
       Global
     </span>
   );

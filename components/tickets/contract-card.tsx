@@ -54,14 +54,14 @@ export function ContractCardView({ position }: { position: ContractPosition }) {
      * the meter's own label, so the card's headline was an identifier.
      */
     <div className="flex flex-col" data-status={position.status}>
-      <p className="xms-mono text-xms-ink text-[22px] leading-[1.2] font-medium" data-burn>
+      <p className="xms-mono text-xms-ink text-title leading-[1.2] font-medium" data-burn>
         {bareHours(position.consumed_minutes)}{" "}
-        <span className="text-xms-label font-sans text-[14px] leading-none font-normal">
+        <span className="text-xms-label font-sans text-body leading-none font-normal">
           of {bareHours(position.available_minutes)} h
         </span>
       </p>
       <MeterBar percent={percent} breached={position.status === "over"} className="mt-[11px] mb-2" />
-      <p className="text-xms-muted text-[14px] leading-[1.5]">
+      <p className="text-xms-muted text-body leading-[1.5]">
         <span className={cn("font-medium", TONE_CLASS[tone])} data-tone={tone}>
           {STATUS_LABEL[position.status]}
         </span>
@@ -80,7 +80,7 @@ export function ContractCard({ accountId, contractId }: { accountId: string; con
   return (
     <RailCard caption="Contract">
       {isLoading ? <Skeleton lines={3} /> : null}
-      {isError ? <p className="text-xms-muted text-[14px]">No contract period covers today.</p> : null}
+      {isError ? <p className="text-xms-muted text-body">No contract period covers today.</p> : null}
       {data ? <ContractCardView position={data} /> : null}
     </RailCard>
   );

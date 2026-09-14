@@ -81,7 +81,7 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
             render 10 does not draw and which pushed every band below it down
             by the height of that line. */}
         {data ? (
-          <span className="text-xms-label text-[14px] whitespace-nowrap">
+          <span className="text-xms-label text-body whitespace-nowrap">
             {formatPeriod(data.period)}
             {isFetching ? " · refreshing" : ""}
           </span>
@@ -105,7 +105,7 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
               product gives generated text, not the navy of the shell. Drawn
               in navy it read as a system banner, which is the one thing it is
               not: 18px by 20px, 15px on a 1.6 line, the prototype's own. */}
-          <p className="xms-ai text-xms-body px-5 py-[18px] text-[15px] leading-[1.6]" data-testid="synthesis">
+          <p className="xms-ai text-xms-body px-5 py-[18px] text-body leading-[1.6]" data-testid="synthesis">
             {synthesisLine(data.measures, data.per_account.length)}
           </p>
           <TileStrip measures={data.measures} links={{ base: "/cases" }} />

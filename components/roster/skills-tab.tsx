@@ -46,7 +46,7 @@ export function LevelControl({
   name: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={`Level for ${name}`} className="inline-flex overflow-hidden rounded-[4px]">
+    <div role="radiogroup" aria-label={`Level for ${name}`} className="inline-flex overflow-hidden rounded-control">
       {SKILL_LEVELS.map((entry) => (
         <button
           key={entry.level}
@@ -57,7 +57,7 @@ export function LevelControl({
           title={entry.label}
           onClick={() => onChange(entry.level)}
           className={cn(
-            "border-xms-line h-[28px] border px-2 text-[14px] first:rounded-l-[4px] last:rounded-r-[4px] disabled:opacity-60",
+            "border-xms-line h-[28px] border px-2 text-body first:rounded-l-control last:rounded-r-control disabled:opacity-60",
             value === entry.level ? "bg-xms-accent border-xms-accent text-white" : "bg-xms-card text-xms-body",
           )}
         >
@@ -75,7 +75,7 @@ function AddSkillForm({ onCreated }: { onCreated: (skill: Skill) => void }) {
   const [error, setError] = useState<string | null>(null);
   return (
     <form
-      className="border-xms-line flex flex-col gap-3 rounded-[4px] border p-3"
+      className="border-xms-line flex flex-col gap-3 rounded-control border p-3"
       aria-label="Add a new skill"
       onSubmit={async (event) => {
         event.preventDefault();
@@ -182,16 +182,16 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
       <Panel title="Skills" caption={canEdit ? "Saved as one set" : "Read only: needs capacity:manage to change"}>
-        {draft.length === 0 ? <p className="text-xms-label text-[14px]">No skills recorded.</p> : null}
+        {draft.length === 0 ? <p className="text-xms-label text-body">No skills recorded.</p> : null}
         <ul className="divide-xms-line divide-y" aria-label="Skills">
           {draft.map((entry) => (
             <li
               key={entry.skill_id}
-              className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
+              className="flex flex-wrap items-center gap-3 py-2 text-body"
               data-skill={entry.code}
             >
               <span className="text-xms-ink min-w-[160px] font-medium">{entry.name}</span>
-              <span className="text-xms-label text-[14px]">{SKILL_KIND_LABEL[entry.kind] ?? entry.kind}</span>
+              <span className="text-xms-label text-body">{SKILL_KIND_LABEL[entry.kind] ?? entry.kind}</span>
               <span className="ml-auto flex items-center gap-2">
                 {canEdit ? (
                   <LevelControl
@@ -213,7 +213,7 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
                   <button
                     type="button"
                     aria-label={`Remove ${entry.name}`}
-                    className="text-xms-muted hover:text-xms-ink text-[14px] leading-none"
+                    className="text-xms-muted hover:text-xms-ink text-body leading-none"
                     onClick={() => setDraft((previous) => previous.filter((row) => row.skill_id !== entry.skill_id))}
                   >
                     ×
@@ -284,7 +284,7 @@ export function SkillsTab({ personId, skills, canEdit }: SkillsTabProps) {
               >
                 Add skill
               </button>
-              <button type="button" className="text-xms-accent text-[14px]" onClick={() => setAdding((v) => !v)}>
+              <button type="button" className="text-xms-accent text-body" onClick={() => setAdding((v) => !v)}>
                 {adding ? "Hide new skill" : "Add a new skill"}
               </button>
             </div>

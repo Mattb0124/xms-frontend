@@ -188,7 +188,7 @@ export function AddServiceNowForm({
           />
         </FieldRow>
         <InlineError message={error} />
-        <p className="text-xms-label text-[14px]">
+        <p className="text-xms-label text-body">
           The instance starts in mode Off with the kill switch armed. Activate a field map, then switch to Ingest only.
         </p>
         <div>

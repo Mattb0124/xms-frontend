@@ -100,7 +100,7 @@ export function AccountsList() {
             <span className="flex items-center gap-[8px]">
               <SignalPill tone={HEALTH_TONE[row.health.band]} label={HEALTH_LABEL[row.health.band]} />
               {row.health.score === null ? null : (
-                <span className="xms-mono text-xms-ink text-[14px] tabular-nums">{row.health.score}</span>
+                <span className="xms-mono text-xms-ink text-body tabular-nums">{row.health.score}</span>
               )}
             </span>
           ) : (
@@ -165,7 +165,7 @@ export function AccountsList() {
         onRowClick={(row) => router.push(`/accounts/${row.id}`)}
         search={
           <form
-            className="xms-field xms-field-typed border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-[4px] border px-[14px]"
+            className="xms-field xms-field-typed border-xms-line bg-xms-card mx-auto flex h-[38px] w-full max-w-[400px] items-center gap-2 rounded-control border px-[14px]"
             onSubmit={(event) => event.preventDefault()}
           >
             <input
@@ -174,7 +174,7 @@ export function AccountsList() {
               placeholder="Search accounts by name or key"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
+              className="text-xms-ink min-w-0 flex-1 bg-transparent text-body outline-none"
             />
             <SearchIcon size={ICON.action} className="text-xms-muted shrink-0" />
           </form>

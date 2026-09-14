@@ -65,7 +65,7 @@ export function ImportDemandPanel() {
       subtitle="The spreadsheet template as CSV, with a header row naming the columns in any order."
     >
       <form
-        className="flex flex-col gap-3 text-[14px]"
+        className="flex flex-col gap-3 text-body"
         aria-label="Import demand"
         onSubmit={(event) => {
           event.preventDefault();
@@ -82,7 +82,7 @@ export function ImportDemandPanel() {
         </p>
         <textarea
           aria-label="CSV content"
-          className={cn(INPUT, "xms-mono h-[140px] resize-y py-2 text-[14px]")}
+          className={cn(INPUT, "xms-mono h-[140px] resize-y py-2 text-body")}
           value={content}
           placeholder={DEMAND_TEMPLATE_EXAMPLE}
           onChange={(event) => {
@@ -108,7 +108,7 @@ export function ImportDemandPanel() {
         <InlineError message={problem} />
         {problems.length > 0 ? (
           <ul
-            className="divide-xms-line divide-y rounded-[4px] border border-[color:var(--state-overdue-border)]"
+            className="divide-xms-line divide-y rounded-control border border-[color:var(--state-overdue-border)]"
             aria-label="Import problems"
           >
             {problems.map((row, index) => (

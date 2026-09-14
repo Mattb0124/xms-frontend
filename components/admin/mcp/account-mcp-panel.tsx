@@ -91,7 +91,7 @@ export function AccountMcpPanel({ accountId }: { accountId: string }) {
       }
     >
       {servers.length === 0 ? (
-        <p className="text-xms-label text-[14px]">
+        <p className="text-xms-label text-body">
           The library has no connections yet. Add one under Admin, MCP library.
         </p>
       ) : (
@@ -111,7 +111,7 @@ export function AccountMcpPanel({ accountId }: { accountId: string }) {
       )}
 
       {retired.length > 0 ? (
-        <p className="text-xms-label mt-3 text-[14px]" data-mcp-retired>
+        <p className="text-xms-label mt-3 text-body" data-mcp-retired>
           This account still names {retired.join(", ")}, which the library no longer defines. It is ignored, and saving
           drops it.
         </p>

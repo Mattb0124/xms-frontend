@@ -46,7 +46,7 @@ export function SurveyQuestion({
     >
       {questions.map((question) => (
         <fieldset key={question.key} className="flex flex-col gap-2" data-question={question.key}>
-          <legend className="text-xms-ink text-[15px] font-medium">{question.text}</legend>
+          <legend className="text-xms-ink text-lead font-medium">{question.text}</legend>
           <div className="grid grid-cols-5 gap-2">
             {SCORES.map((value) => (
               <button
@@ -57,19 +57,19 @@ export function SurveyQuestion({
                 onClick={() => setScores((current) => ({ ...current, [question.key]: value }))}
                 data-score={value}
                 className={cn(
-                  "border-xms-line text-xms-body hover:bg-xms-control-hover flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-[6px] border px-1 py-2 outline-none",
+                  "border-xms-line text-xms-body hover:border-xms-control-line-hover flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-card border px-1 py-2 outline-none",
                   scores[question.key] === value && "border-xms-accent bg-xms-tint text-xms-ink",
                 )}
               >
-                <span className="xms-mono text-[18px] font-semibold">{value}</span>
-                <span className="text-[14px] leading-tight">{scoreLabel(value)}</span>
+                <span className="xms-mono text-lead font-semibold">{value}</span>
+                <span className="text-body leading-tight">{scoreLabel(value)}</span>
               </button>
             ))}
           </div>
         </fieldset>
       ))}
       <div className="flex flex-col gap-1">
-        <label htmlFor={`${id}-comment`} className="text-xms-body text-[14px]">
+        <label htmlFor={`${id}-comment`} className="text-xms-body text-body">
           Comment (optional)
         </label>
         <textarea

@@ -274,10 +274,10 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
                         >
                           <Icon size={ICON.action} className="text-xms-label shrink-0" />
                           {row.code ? (
-                            <span className="xms-mono text-xms-label shrink-0 text-[14px]">{row.code}</span>
+                            <span className="xms-mono text-xms-label shrink-0 text-body">{row.code}</span>
                           ) : null}
-                          <span className="text-xms-ink min-w-0 flex-1 truncate text-[14px]">{row.label}</span>
-                          {row.meta ? <span className="text-xms-muted shrink-0 text-[14px]">{row.meta}</span> : null}
+                          <span className="text-xms-ink min-w-0 flex-1 truncate text-body">{row.label}</span>
+                          {row.meta ? <span className="text-xms-muted shrink-0 text-body">{row.meta}</span> : null}
                         </button>
                         {/* The pin the All overlay used to carry. It is the only
                             way to add a row to the sidebar, so it moved here
@@ -301,7 +301,7 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
             </div>
           ))}
           {rows.length === 0 ? (
-            <p className="text-xms-label px-3 py-4 text-[14px]">
+            <p className="text-xms-label px-3 py-4 text-body">
               {searching ? "Nothing matches." : "Type a ticket key, a word, or a screen name."}
             </p>
           ) : null}

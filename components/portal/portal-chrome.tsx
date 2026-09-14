@@ -91,7 +91,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
     <div className="bg-xms-bg flex min-h-full flex-1 flex-col">
       <a
         href="#portal-main"
-        className="bg-xms-card text-xms-ink sr-only rounded-[6px] px-3 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
+        className="bg-xms-card text-xms-ink sr-only rounded-card px-3 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
       >
         Skip to content
       </a>
@@ -122,7 +122,7 @@ export function PortalChrome({ children }: { children: ReactNode }) {
                 className="h-[8px] w-[8px] shrink-0 rounded-full"
                 style={{ background: accent ?? "var(--xms-accent)" }}
               />
-              <span className="truncate text-[14px] font-medium text-white/90">{accountName}</span>
+              <span className="truncate text-body font-medium text-white/90">{accountName}</span>
             </span>
           ) : null}
           {!isSignIn ? (
@@ -150,12 +150,12 @@ export function PortalChrome({ children }: { children: ReactNode }) {
       <main id="portal-main" className="flex w-full flex-1 flex-col gap-6 px-5 py-8">
         {isSignIn || me.data ? children : status === 401 ? null : <Skeleton lines={5} className="max-w-md" />}
         {!isSignIn && me.isError && status !== 401 ? (
-          <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
+          <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
             The portal could not load your account. Try again in a moment.
           </p>
         ) : null}
       </main>
-      <footer className="border-xms-line text-xms-label w-full border-t px-5 py-4 text-[14px]">
+      <footer className="border-xms-line text-xms-label w-full border-t px-5 py-4 text-body">
         Need help? Open a request or reply to any email from your support team. Every message lands on your request.
       </footer>
     </div>
@@ -207,12 +207,12 @@ function UserMenu({ me }: { me: PortalMe | undefined }) {
       {open ? (
         <div
           role="menu"
-          className="xms-card text-xms-body absolute right-0 z-20 mt-2 w-[220px] rounded-[6px] p-2 text-[14px]"
+          className="xms-card text-xms-body absolute right-0 z-20 mt-2 w-[220px] rounded-card p-2 text-body"
         >
           {/* The name moved in here when the bar took the avatar: an avatar
               alone says who you are only to someone who already knows. */}
-          <p className="text-xms-ink px-2 py-1 text-[14px] font-medium">{name}</p>
-          <p className="text-xms-label px-2 pb-1 text-[14px]">{me?.principal.email}</p>
+          <p className="text-xms-ink px-2 py-1 text-body font-medium">{name}</p>
+          <p className="text-xms-label px-2 pb-1 text-body">{me?.principal.email}</p>
           {CLERK_ENABLED ? <ClerkSignOut onDone={signOut} /> : null}
           <button type="button" role="menuitem" onClick={signOut} className={cn(PORTAL_SECONDARY, "mt-1 w-full")}>
             Sign out

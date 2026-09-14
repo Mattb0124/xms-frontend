@@ -121,13 +121,13 @@ function RolesTab({ user }: { user: UserDetail }) {
         <InlineError message={error} />
       </Panel>
       <Panel title="Permissions catalog" caption="What each key implies">
-        <ul className="divide-y text-[14px]">
+        <ul className="divide-y text-body">
           {(permissions.data ?? []).map((row) => (
             <li key={row.key} className="py-2">
               <span className="xms-mono text-xms-ink">{row.key}</span>
-              <span className="text-xms-label block text-[14px]">{row.label}</span>
+              <span className="text-xms-label block text-body">{row.label}</span>
               {row.implies.length > 0 ? (
-                <span className="text-xms-muted block text-[14px]">Implies {row.implies.join(", ")}</span>
+                <span className="text-xms-muted block text-body">Implies {row.implies.join(", ")}</span>
               ) : null}
             </li>
           ))}
@@ -151,7 +151,7 @@ function AccountsTab({ user }: { user: UserDetail }) {
   if (user.kind === "portal") {
     return (
       <Panel title="Account" caption="Portal users belong to exactly one account">
-        <p className="text-xms-body text-[14px]">Bound to account {user.account_id}.</p>
+        <p className="text-xms-body text-body">Bound to account {user.account_id}.</p>
       </Panel>
     );
   }
@@ -234,9 +234,9 @@ function AdminUserRecordPageBody() {
       {data && tab === "groups" ? (
         <Panel title="Groups" caption="Membership is edited on the group record">
           {data.groups.length === 0 ? (
-            <p className="text-xms-label text-[14px]">Not a member of any group.</p>
+            <p className="text-xms-label text-body">Not a member of any group.</p>
           ) : (
-            <ul className="text-[14px]">
+            <ul className="text-body">
               {data.groups.map((group) => (
                 <li key={group.group_id} className="py-1">
                   <a href={`/admin/groups/${group.group_id}`} className="text-xms-accent">

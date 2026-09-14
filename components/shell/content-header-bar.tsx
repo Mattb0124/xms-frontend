@@ -42,7 +42,7 @@ export interface ContentHeaderBarProps {
 }
 
 const ICON_BUTTON =
-  "text-xms-icon hover:text-xms-accent hover:bg-xms-control-hover flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]";
+  "text-xms-icon hover:text-xms-accent hover:bg-xms-control-hover flex h-8 w-8 shrink-0 items-center justify-center rounded-control";
 
 /**
  * The height of every control standing in the toolbar band, from render 01:
@@ -129,14 +129,14 @@ export function ContentHeaderBar({ current, screens, onToggleSidebar, onSettings
                   >
                     <FunnelIcon size={ICON.bar} />
                     {panel.count > 0 ? (
-                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-[999px] px-[3px] text-[14px] font-semibold text-white">
+                      <span className="bg-xms-accent xms-mono absolute top-[2px] right-[1px] flex h-[14px] min-w-[14px] items-center justify-center rounded-pill px-[3px] text-body font-semibold text-white">
                         {panel.count}
                       </span>
                     ) : null}
                   </button>
                 ) : null}
                 <span className="relative flex shrink-0 items-center gap-[6px] pr-1">
-                  <span className="text-xms-ink text-[15px] font-semibold">{current?.label ?? "XMS"}</span>
+                  <span className="text-xms-ink text-lead font-semibold">{current?.label ?? "XMS"}</span>
                   <ChevronDownIcon size={ICON.control} className="text-xms-muted" />
                   <select
                     aria-label="Screen switcher"
@@ -286,7 +286,7 @@ export function HeaderSearchField({
   return (
     <form
       className={cn(
-        "xms-field xms-field-typed bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-[var(--xms-radius-control)] border px-[11px]",
+        "xms-field xms-field-typed bg-xms-card flex h-[var(--xms-header-pill-h)] w-full items-center gap-2 rounded-control border px-[11px]",
         // A search reads in one ink too: ink until it carries a term, blue
         // once it does, since a term is a filter like any other.
         value ? "border-xms-accent text-xms-accent" : "border-xms-line-strong text-xms-ink",
@@ -303,7 +303,7 @@ export function HeaderSearchField({
         placeholder="Search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="text-xms-ink min-w-0 flex-1 bg-transparent text-[14px] outline-none"
+        className="text-xms-ink min-w-0 flex-1 bg-transparent text-body outline-none"
       />
     </form>
   );

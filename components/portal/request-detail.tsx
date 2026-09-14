@@ -51,7 +51,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
   if (ticket.isError || !ticket.data) {
     const error = apiError(ticket.error);
     return (
-      <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
+      <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
         {error.status === 404 ? "We could not find that request." : describeError(error)}
       </p>
     );
@@ -98,9 +98,9 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <p className="xms-mono text-xms-label text-[14px]">{record.key}</p>
-        <h1 className="text-xms-ink text-[22px] font-semibold">{record.short_description}</h1>
-        <div className="flex flex-wrap items-center gap-3 text-[14px]">
+        <p className="xms-mono text-xms-label text-body">{record.key}</p>
+        <h1 className="text-xms-ink text-title font-semibold">{record.short_description}</h1>
+        <div className="flex flex-wrap items-center gap-3 text-body">
           <ClientStatusPill state={record.state} />
           <span className="text-xms-label">Priority {priorityLabel(record.priority)}</span>
           <span className="text-xms-label">
@@ -112,7 +112,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
 
       {record.description ? (
         <PortalCard title="Details">
-          <p className="text-xms-body text-[14px] whitespace-pre-wrap">{record.description}</p>
+          <p className="text-xms-body text-body whitespace-pre-wrap">{record.description}</p>
         </PortalCard>
       ) : null}
 
@@ -124,15 +124,15 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
           <ol className="flex flex-col gap-3">
             {scope.data.map((row) => (
               <li key={row.id} className="flex flex-col gap-1">
-                <p className="text-xms-ink text-[14px]">
+                <p className="text-xms-ink text-body">
                   {row.event === "approved" ? "Approved as extra work" : "Declined as outside the contract"}
                   {row.allowance_minutes > 0
                     ? `, with ${Math.round((row.allowance_minutes / 60) * 10) / 10} h added to your period`
                     : ""}
                 </p>
-                {row.reason ? <p className="text-xms-body text-[14px]">Raised because: {row.reason}</p> : null}
-                {row.note ? <p className="text-xms-body text-[14px]">{row.note}</p> : null}
-                <p className="text-xms-label text-[14px]">{formatMoment(row.at)}</p>
+                {row.reason ? <p className="text-xms-body text-body">Raised because: {row.reason}</p> : null}
+                {row.note ? <p className="text-xms-body text-body">{row.note}</p> : null}
+                <p className="text-xms-label text-body">{formatMoment(row.at)}</p>
               </li>
             ))}
           </ol>
@@ -164,7 +164,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
           aria-labelledby="confirm-title"
           className="xms-card border-xms-accent-border flex flex-col gap-3 border p-4"
         >
-          <p id="confirm-title" className="text-xms-ink text-[14px] font-medium">
+          <p id="confirm-title" className="text-xms-ink text-body font-medium">
             {confirmCopy(confirming)}
           </p>
           <div className="flex gap-2">

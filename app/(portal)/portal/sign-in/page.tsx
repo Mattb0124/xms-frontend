@@ -27,7 +27,7 @@ export default function PortalSignInPage() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <h1 className="text-xms-ink text-[22px] font-semibold">Sign in</h1>
+      <h1 className="text-xms-ink text-title font-semibold">Sign in</h1>
       {CLERK_ENABLED ? <ClerkSignIn /> : null}
       {AUTH_DEV_MODE ? (
         <PortalCard title="Development sign-in">
@@ -40,7 +40,7 @@ export default function PortalSignInPage() {
               router.replace("/portal");
             }}
           >
-            <label htmlFor="portal-dev-token" className="text-xms-body text-[14px]">
+            <label htmlFor="portal-dev-token" className="text-xms-body text-body">
               Paste a token from <code className="xms-mono">pnpm dev:token --email pat@client.test --org acct-brk</code>{" "}
               run in the backend folder.
             </label>

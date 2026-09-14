@@ -184,7 +184,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
         {props.search ? (
           <div className="min-w-0 max-w-[360px] flex-1">{props.search}</div>
         ) : props.titleHidden ? null : (
-          <span className="text-xms-ink text-[17px] leading-[1.3] font-semibold">{props.title}</span>
+          <span className="text-xms-ink text-lead leading-[1.3] font-semibold">{props.title}</span>
         )}
         {props.actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{props.actions}</div> : null}
       </header>
@@ -200,7 +200,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
         <table
           aria-label={props.title}
           data-plain={display && !display.coloring ? "true" : undefined}
-          className="xms-sticky-head w-full border-collapse text-[14px]"
+          className="xms-sticky-head w-full border-collapse text-body"
         >
           {/* Without a header row the widths have nowhere else to live. */}
           {props.headless ? (

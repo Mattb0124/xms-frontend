@@ -74,10 +74,10 @@ export function SlaPanel({ measures }: { measures: Partial<Measures> }) {
           .map((row) => (
             <div key={row.label} className="flex flex-col gap-1" data-testid={`sla-${row.label.toLowerCase()}`}>
               <div className="flex items-baseline justify-between">
-                <span className="text-xms-label text-[14px]">{row.label}</span>
-                <span className="xms-mono text-xms-ink text-[14px] font-semibold">
+                <span className="text-xms-label text-body">{row.label}</span>
+                <span className="xms-mono text-xms-ink text-body font-semibold">
                   {formatPercent(row.ratio)}
-                  <span className="text-xms-muted ml-2 text-[14px] font-normal">
+                  <span className="text-xms-muted ml-2 text-body font-normal">
                     {row.ratio!.numerator} of {row.ratio!.denominator}
                   </span>
                 </span>
@@ -109,7 +109,7 @@ export function OutcomesPanel({ measures }: { measures: Partial<Measures> }) {
         {hasMttr ? (
           <div>
             <dt className="xms-caption">Mean time to resolve</dt>
-            <dd className="xms-mono text-xms-ink mt-1 text-[24px] font-semibold">
+            <dd className="xms-mono text-xms-ink mt-1 text-display font-semibold">
               {formatHours(measures.mttr_minutes)}
             </dd>
           </div>
@@ -117,7 +117,7 @@ export function OutcomesPanel({ measures }: { measures: Partial<Measures> }) {
         {hasReopen ? (
           <div>
             <dt className="xms-caption">Reopen rate</dt>
-            <dd className="xms-mono text-xms-ink mt-1 text-[24px] font-semibold">
+            <dd className="xms-mono text-xms-ink mt-1 text-display font-semibold">
               {formatPercent(measures.reopen_rate, { fraction: true })}
             </dd>
           </div>
@@ -125,7 +125,7 @@ export function OutcomesPanel({ measures }: { measures: Partial<Measures> }) {
         {hasOldest ? (
           <div>
             <dt className="xms-caption">Oldest open</dt>
-            <dd className="xms-mono text-xms-ink mt-1 text-[24px] font-semibold">{measures.oldest_open_days}d</dd>
+            <dd className="xms-mono text-xms-ink mt-1 text-display font-semibold">{measures.oldest_open_days}d</dd>
           </div>
         ) : null}
       </dl>
@@ -155,11 +155,11 @@ export function BacklogPanel({ measures }: { measures: Partial<Measures> }) {
               title={`${bucket.label}: ${count}`}
             >
               <div
-                className="bg-xms-accent w-full rounded-t-[4px]"
+                className="bg-xms-accent w-full rounded-t-control"
                 style={{ height: `${Math.max(4, Math.round((count / max) * 126))}px` }}
                 data-testid={`backlog-${bucket.key}`}
               />
-              <span className="xms-mono text-xms-muted text-[14px] leading-none">{bucket.label}</span>
+              <span className="xms-mono text-xms-muted text-body leading-none">{bucket.label}</span>
             </div>
           );
         })}
@@ -202,7 +202,7 @@ export function BreakdownPanel({
               ? `${linkBase}${linkBase.includes("?") ? "&" : "?"}${param}=${encodeURIComponent(key)}`
               : undefined;
           return (
-            <li key={key} className="border-xms-line-row flex items-center gap-3 border-t py-[10px] text-[14px]">
+            <li key={key} className="border-xms-line-row flex items-center gap-3 border-t py-[10px] text-body">
               {href ? (
                 <a href={href} className="text-xms-ink min-w-0 flex-1 truncate capitalize hover:underline">
                   {label}
@@ -210,13 +210,10 @@ export function BreakdownPanel({
               ) : (
                 <span className="text-xms-ink min-w-0 flex-1 truncate capitalize">{label}</span>
               )}
-              <span className="bg-xms-line-row h-2 w-[130px] shrink-0 overflow-hidden rounded-[999px]">
-                <span
-                  className="bg-xms-accent block h-2 rounded-[999px]"
-                  style={{ width: `${(count / max) * 100}%` }}
-                />
+              <span className="bg-xms-line-row h-2 w-[130px] shrink-0 overflow-hidden rounded-pill">
+                <span className="bg-xms-accent block h-2 rounded-pill" style={{ width: `${(count / max) * 100}%` }} />
               </span>
-              <span className="xms-mono text-xms-body w-12 shrink-0 text-right text-[14px]">{count}</span>
+              <span className="xms-mono text-xms-body w-12 shrink-0 text-right text-body">{count}</span>
             </li>
           );
         })}
@@ -234,14 +231,14 @@ export function NotablePanel({ notable }: { notable: Notable[] | undefined }) {
   return (
     <Panel title="Notable tickets" caption="P1, P2 and breaches" flush>
       {notable.length === 0 ? (
-        <p className="text-xms-label px-4 py-6 text-center text-[14px]">Nothing notable this period.</p>
+        <p className="text-xms-label px-4 py-6 text-center text-body">Nothing notable this period.</p>
       ) : (
         <ul data-testid="notable-list">
           {notable.map((ticket) => (
             <li
               key={ticket.key}
               className={cn(
-                "border-xms-line flex items-center gap-3 border-b px-4 py-2 text-[14px] last:border-b-0",
+                "border-xms-line flex items-center gap-3 border-b px-4 py-2 text-body last:border-b-0",
                 ticket.breached && "bg-[color:var(--state-overdue-bg)]",
               )}
               data-breached={ticket.breached ? "true" : undefined}
@@ -250,7 +247,7 @@ export function NotablePanel({ notable }: { notable: Notable[] | undefined }) {
               <span className="text-xms-ink flex-1 truncate">{ticket.title}</span>
               <PriorityPill priority={asPriority(ticket.priority)} />
               <StatePill state={ticket.state} />
-              <span className="xms-mono text-xms-label w-10 text-right text-[14px]">{ticket.age_days}d</span>
+              <span className="xms-mono text-xms-label w-10 text-right text-body">{ticket.age_days}d</span>
             </li>
           ))}
         </ul>
@@ -267,7 +264,7 @@ export function ConsumptionPanel({ measures }: { measures: Partial<Measures> }) 
         {measures.consumption_minutes !== undefined ? (
           <div>
             <dt className="xms-caption">Consumed against contract</dt>
-            <dd className="xms-mono text-xms-ink mt-1 text-[24px] font-semibold">
+            <dd className="xms-mono text-xms-ink mt-1 text-display font-semibold">
               {formatHours(measures.consumption_minutes)}
             </dd>
           </div>
@@ -275,7 +272,7 @@ export function ConsumptionPanel({ measures }: { measures: Partial<Measures> }) 
         {measures.time_logged_minutes !== undefined ? (
           <div>
             <dt className="xms-caption">Logged</dt>
-            <dd className="xms-mono text-xms-ink mt-1 text-[24px] font-semibold">
+            <dd className="xms-mono text-xms-ink mt-1 text-display font-semibold">
               {formatHours(measures.time_logged_minutes)}
             </dd>
           </div>

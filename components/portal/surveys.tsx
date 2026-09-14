@@ -57,7 +57,7 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xms-ink text-[22px] font-semibold">Surveys</h1>
+        <h1 className="text-xms-ink text-title font-semibold">Surveys</h1>
       </header>
       {notice ? <PortalNotice tone={notice.tone}>{notice.text}</PortalNotice> : null}
       {data && focusId && !focused ? (
@@ -71,10 +71,10 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
         <PortalNotice tone="error">Your surveys could not be loaded. Try again in a moment.</PortalNotice>
       ) : null}
       <section aria-label="Pending surveys" className="flex flex-col gap-3">
-        <h2 className="text-xms-ink text-[16px] font-semibold">Pending</h2>
+        <h2 className="text-xms-ink text-lead font-semibold">Pending</h2>
         {isLoading && !data ? <Skeleton lines={4} /> : null}
         {data && pending.length === 0 ? (
-          <p role="status" className="text-xms-label py-4 text-[14px]">
+          <p role="status" className="text-xms-label py-4 text-body">
             No surveys pending.
           </p>
         ) : null}
@@ -82,15 +82,13 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
           <PortalCard key={survey.id} title={surveySubject(survey)} className="gap-4">
             <div className="flex flex-col gap-1" data-survey={survey.id} data-kind={surveyKind(survey)}>
               {isQuarterly(survey) ? (
-                <p className="text-xms-body text-[14px]">
+                <p className="text-xms-body text-body">
                   Five short questions about how the service went, and room for anything else you want to tell us.
                 </p>
               ) : null}
-              {survey.short_description ? (
-                <p className="text-xms-body text-[14px]">{survey.short_description}</p>
-              ) : null}
+              {survey.short_description ? <p className="text-xms-body text-body">{survey.short_description}</p> : null}
               {expiryLabel(survey.expires_at) ? (
-                <p className="text-xms-label text-[14px]">{expiryLabel(survey.expires_at)}</p>
+                <p className="text-xms-label text-body">{expiryLabel(survey.expires_at)}</p>
               ) : null}
             </div>
             <SurveyQuestion
@@ -104,17 +102,17 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
         ))}
       </section>
       <section aria-label="Completed surveys" className="flex flex-col gap-3">
-        <h2 className="text-xms-ink text-[16px] font-semibold">Completed</h2>
+        <h2 className="text-xms-ink text-lead font-semibold">Completed</h2>
         <PortalCard>
           {data && answered.length === 0 ? (
-            <p className="text-xms-label py-2 text-[14px]">No completed surveys yet.</p>
+            <p className="text-xms-label py-2 text-body">No completed surveys yet.</p>
           ) : null}
           {answered.length > 0 ? (
             <ul className="divide-xms-line divide-y" aria-label="Completed surveys">
               {answered.map((survey) => (
                 <li
                   key={survey.id}
-                  className="flex flex-wrap items-center gap-3 py-2 text-[14px]"
+                  className="flex flex-wrap items-center gap-3 py-2 text-body"
                   data-survey={survey.id}
                   data-kind={surveyKind(survey)}
                 >
@@ -123,14 +121,14 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
                       {survey.ticket_key}
                     </Link>
                   ) : (
-                    <span className="text-xms-label text-[14px]">{surveySubject(survey)}</span>
+                    <span className="text-xms-label text-body">{surveySubject(survey)}</span>
                   )}
                   <span className="text-xms-body">{survey.short_description}</span>
                   <span className="text-xms-ink ml-auto" data-score={survey.score ?? undefined}>
                     {answerLine(survey)}
                   </span>
                   {survey.answered_at ? (
-                    <span className="xms-mono text-xms-label text-[14px]">{survey.answered_at.slice(0, 10)}</span>
+                    <span className="xms-mono text-xms-label text-body">{survey.answered_at.slice(0, 10)}</span>
                   ) : null}
                 </li>
               ))}

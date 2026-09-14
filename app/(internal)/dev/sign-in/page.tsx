@@ -69,7 +69,7 @@ export default function DevSignInPage() {
   if (!AUTH_DEV_MODE) {
     return (
       <Panel title="Development sign-in" caption="Not available">
-        <p className="text-xms-body text-[14px]">
+        <p className="text-xms-body text-body">
           {CLERK_ENABLED
             ? "Sign in through Clerk."
             : !IS_LOCAL_TARGET
@@ -113,16 +113,16 @@ export default function DevSignInPage() {
       type="button"
       disabled={signingIn !== null}
       onClick={() => void signInAs(user)}
-      className="border-xms-line hover:bg-xms-hover flex w-full items-center justify-between gap-3 rounded-[4px] border px-3 py-2 text-left text-[14px] disabled:opacity-50"
+      className="border-xms-line hover:bg-xms-hover flex w-full items-center justify-between gap-3 rounded-control border px-3 py-2 text-left text-body disabled:opacity-50"
     >
       <span className="flex flex-col">
         <span className="text-xms-ink font-medium">
           {user.display_name}
           {user.account_key ? <span className="text-xms-label"> · {user.account_name}</span> : null}
         </span>
-        <span className="text-xms-label xms-mono text-[12px]">{user.email}</span>
+        <span className="text-xms-label xms-mono text-body">{user.email}</span>
       </span>
-      <span className="text-xms-label text-[12px]">
+      <span className="text-xms-label text-body">
         {signingIn === user.email ? "Signing in" : user.roles.join(", ") || "No role"}
       </span>
     </button>
@@ -139,17 +139,17 @@ export default function DevSignInPage() {
         {users !== null ? (
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <span className="text-xms-label text-[12px] uppercase">Internal desk</span>
+              <span className="text-xms-label text-body uppercase">Internal desk</span>
               {internal.map(row)}
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-xms-label text-[12px] uppercase">Client portal</span>
+              <span className="text-xms-label text-body uppercase">Client portal</span>
               {portal.map(row)}
             </div>
           </div>
         ) : null}
         {loadError ? (
-          <p role="alert" className="text-[14px] text-[color:var(--state-overdue-text)]">
+          <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
             Could not reach the sign-in list ({loadError}). Check the API is running and seeded, or paste a token below.
           </p>
         ) : null}
@@ -168,7 +168,7 @@ export default function DevSignInPage() {
             if (trimmed) applyToken(trimmed);
           }}
         >
-          <label htmlFor="dev-token" className="text-xms-label text-[14px]">
+          <label htmlFor="dev-token" className="text-xms-label text-body">
             Bearer token from <code className="xms-mono">pnpm dev:token --email admin@example.test</code> run in the
             backend folder
           </label>
@@ -177,13 +177,13 @@ export default function DevSignInPage() {
             value={token}
             onChange={(event) => setToken(event.target.value)}
             rows={4}
-            className="border-xms-line bg-xms-card text-xms-ink xms-mono rounded-[4px] border p-2 text-[14px]"
+            className="border-xms-line bg-xms-card text-xms-ink xms-mono rounded-control border p-2 text-body"
             placeholder="eyJhbGciOi..."
           />
           <div className="flex gap-2">
             <button
               type="submit"
-              className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-[4px] px-3 text-[14px] font-medium text-white"
+              className="bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-body font-medium text-white"
             >
               Use token
             </button>
@@ -194,7 +194,7 @@ export default function DevSignInPage() {
                 dispatch(xmsApi.util.resetApiState());
                 setToken("");
               }}
-              className="border-xms-line text-xms-body h-[32px] rounded-[4px] border px-3 text-[14px]"
+              className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-body"
             >
               Sign out
             </button>

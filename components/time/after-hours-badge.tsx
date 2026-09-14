@@ -44,12 +44,12 @@ export function AfterHoursBadge({ entry, rule, className }: AfterHoursBadgeProps
         title={explanation ?? undefined}
       />
       {explanation ? (
-        <span className="text-xms-label text-[14px]" data-handling>
+        <span className="text-xms-label text-body" data-handling>
           {explanation}
         </span>
       ) : null}
       {premium ? (
-        <span className="xms-mono text-xms-ink text-[14px]" data-rate>
+        <span className="xms-mono text-xms-ink text-body" data-rate>
           {formatMultiplier(entry.rate_multiplier)}
         </span>
       ) : null}

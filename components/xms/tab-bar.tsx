@@ -38,7 +38,7 @@ export function TabBar({ tabs, active, onChange, className }: TabBarProps) {
             aria-selected={selected}
             onClick={() => onChange(tab.key)}
             className={cn(
-              "-mb-px flex shrink-0 items-center gap-2 border-b-2 px-[9px] py-[15px] text-[14px] leading-none whitespace-nowrap",
+              "-mb-px flex shrink-0 items-center gap-2 border-b-2 px-[9px] py-[15px] text-body leading-none whitespace-nowrap",
               selected
                 ? "border-xms-accent text-xms-accent-hover font-semibold"
                 : "text-xms-label hover:text-xms-ink border-transparent font-medium",
@@ -46,7 +46,7 @@ export function TabBar({ tabs, active, onChange, className }: TabBarProps) {
           >
             {tab.label}
             {typeof tab.count === "number" ? (
-              <span className="xms-mono text-xms-muted text-[14px]">{tab.count}</span>
+              <span className="xms-mono text-xms-muted text-body">{tab.count}</span>
             ) : null}
           </button>
         );

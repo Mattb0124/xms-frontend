@@ -94,7 +94,7 @@ function FieldControl({
       return (
         <div className="flex flex-col gap-2" aria-describedby={described || undefined}>
           {(field.options ?? []).map((option) => (
-            <label key={option.value} className="text-xms-body flex items-center gap-2 text-[14px]">
+            <label key={option.value} className="text-xms-body flex items-center gap-2 text-body">
               <input
                 type="checkbox"
                 name={field.key}
@@ -221,7 +221,7 @@ export function DynamicRequestForm({
         onSubmit({ type: view.ticket_type as PortalTicketType, answers: body });
       }}
     >
-      {view.description ? <p className="text-xms-label text-[14px]">{view.description}</p> : null}
+      {view.description ? <p className="text-xms-label text-body">{view.description}</p> : null}
       {wholeForm ? <PortalNotice tone="error">{wholeForm}</PortalNotice> : null}
       {tooLarge ? <PortalNotice tone="error">{ANSWERS_TOO_LARGE}</PortalNotice> : null}
 
@@ -231,15 +231,15 @@ export function DynamicRequestForm({
         if (field.kind === "attachment")
           return (
             <div key={field.key} className="flex flex-col gap-1">
-              <p className="text-xms-ink text-[14px] font-medium">{field.label}</p>
-              <p className="text-xms-label text-[14px]">
+              <p className="text-xms-ink text-body font-medium">{field.label}</p>
+              <p className="text-xms-label text-body">
                 {hint ?? "Add the files below. They are checked and attached once the request is created."}
               </p>
             </div>
           );
         return (
           <div key={field.key} className="flex flex-col gap-1">
-            <label htmlFor={id} className="text-xms-ink text-[14px] font-medium">
+            <label htmlFor={id} className="text-xms-ink text-body font-medium">
               {field.label}
               {field.required ? null : <span className="text-xms-label font-normal"> (optional)</span>}
             </label>
@@ -250,7 +250,7 @@ export function DynamicRequestForm({
               onChange={(value) => setAnswers((current) => ({ ...current, [field.key]: value }))}
             />
             {hint ? (
-              <p id={`${id}-hint`} className="text-xms-label text-[14px]">
+              <p id={`${id}-hint`} className="text-xms-label text-body">
                 {hint}
               </p>
             ) : null}
@@ -263,7 +263,7 @@ export function DynamicRequestForm({
         <button type="submit" className={PORTAL_PRIMARY} disabled={submitting}>
           {submitting ? "Sending..." : "Send request"}
         </button>
-        <p className="text-xms-label text-[14px]">You will get an email with the request key and every reply.</p>
+        <p className="text-xms-label text-body">You will get an email with the request key and every reply.</p>
       </div>
     </form>
   );

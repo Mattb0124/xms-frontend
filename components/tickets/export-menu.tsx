@@ -77,14 +77,14 @@ export function ExportMenu({
         <ul
           role="menu"
           aria-label="Export format"
-          className="border-xms-line bg-xms-card absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-[6px] border py-1 shadow-lg"
+          className="border-xms-line bg-xms-card absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-card border py-1 shadow-lg"
         >
           <li role="none">
             <button
               type="button"
               role="menuitem"
               onClick={() => void run("xlsx")}
-              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-[14px]"
+              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-body"
             >
               Excel (.xlsx)
             </button>
@@ -94,7 +94,7 @@ export function ExportMenu({
               type="button"
               role="menuitem"
               onClick={() => void run("csv")}
-              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-[14px]"
+              className="text-xms-ink hover:bg-xms-control-hover block w-full px-3 py-2 text-left text-body"
             >
               CSV
             </button>

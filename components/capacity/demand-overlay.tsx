@@ -72,7 +72,7 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
       caption="Demand"
       subtitle="Weighted pipeline and committed project demand stacked on the allocated hours; the lighter shades are the demand."
     >
-      <div className="flex flex-col gap-3 text-[14px]" data-testid="demand-overlay">
+      <div className="flex flex-col gap-3 text-body" data-testid="demand-overlay">
         {demand.by_subject.length === 0 && demand.total_minutes === 0 ? (
           <p className="text-xms-label">
             No demand entered for {label}.{" "}
@@ -146,7 +146,7 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
             </dl>
             <p
               className={cn(
-                "text-[14px]",
+                "text-body",
                 demand.total_minutes > totals.remaining_minutes
                   ? "text-[color:var(--state-overdue-text)]"
                   : "text-xms-body",
@@ -160,7 +160,7 @@ export function DemandOverlay({ view, month }: DemandOverlayProps) {
               {demand.by_subject.map((row, index) => (
                 <li
                   key={`${row.account_id ?? row.prospect_name}:${index}`}
-                  className="border-xms-line flex items-center gap-2 rounded-[4px] border px-2 py-1"
+                  className="border-xms-line flex items-center gap-2 rounded-control border px-2 py-1"
                   data-subject={demandSubject(row)}
                 >
                   <span className={cn("text-xms-ink font-medium", row.account_key && "xms-mono")}>

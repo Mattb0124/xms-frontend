@@ -24,7 +24,7 @@ export interface TablePagerProps {
 }
 
 const STEP =
-  "text-xms-icon hover:text-xms-accent hover:bg-xms-control-hover flex h-[26px] w-[26px] items-center justify-center rounded-[4px] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[color:var(--xms-icon)]";
+  "text-xms-icon hover:text-xms-accent hover:bg-xms-control-hover flex h-[26px] w-[26px] items-center justify-center rounded-control disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[color:var(--xms-icon)]";
 
 /**
  * The pager, after the one the consultants already use: jump to the start,
@@ -98,10 +98,10 @@ export function TablePager({
             commit();
           }
         }}
-        className="xms-field border-xms-control-line text-xms-ink h-[26px] w-[52px] rounded-[4px] border text-center text-[14px] tabular-nums outline-none"
+        className="xms-field border-xms-control-line text-xms-ink h-[26px] w-[52px] rounded-control border text-center text-body tabular-nums outline-none"
       />
 
-      <span className="text-xms-body px-1 text-[14px] tabular-nums">
+      <span className="text-xms-body px-1 text-body tabular-nums">
         {first} to {last}
         {total === undefined ? "" : ` of ${total.toLocaleString("en-US")}`}
       </span>

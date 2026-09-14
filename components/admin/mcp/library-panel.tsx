@@ -124,20 +124,20 @@ export function McpLibraryPanel() {
         }
       >
         {servers.length === 0 ? (
-          <p className="text-xms-label text-[14px]">No connections yet.</p>
+          <p className="text-xms-label text-body">No connections yet.</p>
         ) : (
           <div data-mcp-library>
             {servers.map((server) => (
               <div key={server.slug} className="border-xms-line flex items-center gap-3 border-b py-3 last:border-b-0">
                 <div className="min-w-0">
-                  <p className="text-xms-ink text-[14px] font-medium">{server.name}</p>
-                  <p className="text-xms-label truncate text-[14px]">
+                  <p className="text-xms-ink text-body font-medium">{server.name}</p>
+                  <p className="text-xms-label truncate text-body">
                     {server.transport === "streamable_http" ? server.url : server.command}
                   </p>
                 </div>
                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                  {server.caller_token ? <span className="text-xms-label text-[14px]">caller token</span> : null}
-                  {server.secret_ref ? <span className="text-xms-label text-[14px]">{server.secret_ref}</span> : null}
+                  {server.caller_token ? <span className="text-xms-label text-body">caller token</span> : null}
+                  {server.secret_ref ? <span className="text-xms-label text-body">{server.secret_ref}</span> : null}
                   <button type="button" className={SECONDARY_BUTTON} onClick={() => open(server)} disabled={busy}>
                     Edit
                   </button>
@@ -243,13 +243,13 @@ export function McpLibraryPanel() {
 
             <SwitchRow
               id="mcp-caller-token"
-              label="Authorise with the caller's own token"
+              label="Authorize with the caller's own token"
               detail="For a connection XMS serves itself"
               checked={Boolean(editing.caller_token)}
               onChange={(next) => setEditing({ ...editing, caller_token: next })}
             />
 
-            <p className="text-xms-label text-[14px]">
+            <p className="text-xms-label text-body">
               Never type a credential here. A configuration body is versioned and shows in the audit trail, so name the
               secret above and leave a placeholder in the header.
             </p>

@@ -43,7 +43,7 @@ describe("AxelChat", () => {
     // rather than saying "Hey , I'm Axel."
     expect(screen.getByRole("heading", { name: "Hi, I'm Axel." })).toBeInTheDocument();
     expect(screen.getByText(/Ask me anything about CS1000008/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Summarise this ticket" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Summarize this ticket" })).toBeInTheDocument();
     expect(screen.getByLabelText("Ask Axel")).toBeEnabled();
   });
 
@@ -51,10 +51,10 @@ describe("AxelChat", () => {
     const sent = stubTurn(['{"content":"Here is the summary."}']);
     renderDesk(<AxelChat ticketId={TICKET_ID} ticketKey="CS1000008" onClose={() => {}} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Summarise this ticket" }));
+    fireEvent.click(screen.getByRole("button", { name: "Summarize this ticket" }));
 
     await waitFor(() => expect(screen.getByText("Here is the summary.")).toBeInTheDocument());
-    expect(sent[0]?.body).toMatchObject({ message: "Summarise this ticket", ticket_id: TICKET_ID });
+    expect(sent[0]?.body).toMatchObject({ message: "Summarize this ticket", ticket_id: TICKET_ID });
   });
 
   it("streams the answer into the transcript and keeps what was asked", async () => {
@@ -97,7 +97,7 @@ describe("AxelChat", () => {
     expect(screen.getByText(/Open a ticket and ask me about it/)).toBeInTheDocument();
     expect(screen.getByLabelText("Ask Axel")).toBeDisabled();
     expect(screen.getByText(/Axel answers against a ticket/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Summarise this ticket" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Summarize this ticket" })).not.toBeInTheDocument();
   });
 
   it("closes on the control and on Escape", () => {

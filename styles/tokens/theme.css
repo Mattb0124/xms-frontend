@@ -31,6 +31,7 @@
   --color-xms-chip: var(--xms-chip);
   --color-xms-control-line: var(--xms-control-line);
   --color-xms-control-hover: var(--xms-control-hover);
+  --color-xms-control-line-hover: var(--xms-control-line-hover);
   --color-xms-field-bg: var(--xms-field-bg);
   --color-xms-quiet-line: var(--xms-quiet-line);
   --color-xms-line-head: var(--xms-line-head);
@@ -75,8 +76,19 @@
   --font-sans: var(--font-family-body);
   --font-mono: var(--font-family-mono);
 
+  /* The type scale as utilities. The tokens existed since AIBL-316 and were
+   * used nowhere, so 1034 call sites wrote text-[14px] by hand and the
+   * product had one size everywhere. Named for the job rather than the
+   * number: text-body is the 14px floor Matt asked for and stays the
+   * default, and nothing is set below it. Hierarchy is built upward. */
+  --text-body: var(--xms-text-md);
+  --text-lead: var(--xms-text-lg);
+  --text-title: var(--xms-text-xl);
+  --text-display: var(--xms-text-2xl);
+
   --radius-control: var(--xms-radius-control);
   --radius-card: var(--xms-radius-card);
+  --radius-pill: var(--xms-radius-pill);
   --shadow-card: var(--xms-shadow-card);
 }
 
