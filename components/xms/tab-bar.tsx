@@ -40,7 +40,7 @@ export function TabBar({ tabs, active, onChange, className }: TabBarProps) {
             className={cn(
               "-mb-px flex shrink-0 items-center gap-2 border-b-2 px-[9px] py-[15px] text-body leading-none whitespace-nowrap",
               selected
-                ? "border-xms-accent text-xms-accent-hover font-semibold"
+                ? "border-xms-accent text-xms-accent font-semibold"
                 : "text-xms-label hover:text-xms-ink border-transparent font-medium",
             )}
           >

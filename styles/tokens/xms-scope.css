@@ -253,7 +253,15 @@
   --xms-sla-warn: #b45309;
   --xms-sla-paused: #9aa3b2;
 
-  /* v3 state ramp: ticket state pills only */
+  /* v3 state ramp: ticket state pills only.
+   *
+   * in-progress keeps the deeper --xms-accent-hover rather than following the
+   * other rest-state blues down to the resting accent on 2026-09-13, for two
+   * reasons: the resting accent measures 4.39:1 on the pill's own tint and
+   * fails AA, and every other pill in this ramp is a deep foreground on a
+   * light tint of its own (#9a5b06 on #fef6e7, #0e7490 on #ecfafe), so the
+   * deeper blue is what makes it a member of this set rather than an
+   * exception to it. */
   --xms-state-new-fg: #334155;               --xms-state-new-bg: #f1f5f9;               --xms-state-new-br: #d7dee8;
   --xms-state-in-progress-fg: var(--xms-accent-hover); --xms-state-in-progress-bg: var(--xms-accent-tint); --xms-state-in-progress-br: var(--xms-accent-border);
   --xms-state-awaiting-client-fg: #9a5b06;   --xms-state-awaiting-client-bg: #fef6e7;   --xms-state-awaiting-client-br: #f4ddb4;
@@ -621,7 +629,11 @@
     padding: 3px 7px;
   }
   .is-active .xms-nav-badge {
-    color: var(--xms-accent-hover);
+    /* The resting accent, not the hover one. This carried #005f9e, which is
+     * the colour a link goes when the pointer is on it, so the count on the
+     * selected row was the darkest blue on the screen while sitting still
+     * (Matt, 2026-09-13). 4.71:1 on the card. */
+    color: var(--xms-accent);
     background: var(--xms-card);
     border-color: var(--xms-accent-border);
   }
@@ -1282,11 +1294,13 @@ select:not([class*="opacity-0"]):not(.bg-transparent):not([data-active="true"]):
 .xms-scope button[role="tab"] {
   border-radius: 0;
 }
-/* A ticked box takes the same deeper blue the selected row and a link
- * carry, rather than the browser's own brighter default. */
+/* A ticked box takes the product's blue rather than the browser's own
+ * brighter default. It took the hover blue until 2026-09-13, on a comment
+ * that said it matched "the selected row and a link": both of those carry the
+ * resting accent, so it now actually does. */
 .xms-scope input[type="checkbox"],
 .xms-scope input[type="radio"] {
-  accent-color: var(--xms-accent-hover);
+  accent-color: var(--xms-accent);
 }
 
 .xms-scope ::placeholder {
