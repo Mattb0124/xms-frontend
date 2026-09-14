@@ -99,12 +99,19 @@
   --xms-bar-line: #c2cdd9;
   /* The soft fill behind a mono count: the Count badge, the Dispatch age
    * badge, the Waiting on me counts, the sidebar's own count pills. */
-  --xms-chip: #f5fafd;
+  /* Neutral. A count badge is not an action, and blue on it competed with
+   * the blue that is one. */
+  --xms-chip: #f2f4f6;
   /* The page canvas, lightened from #f4f5f7 with the band (AIBL-314). It sits
    * close to the card now, so a card is read by its border rather than by the
    * ground falling away behind it. If that reads too flat, this is the one
    * value to put back. */
-  --xms-bg: #fafbfc;
+  /* White (Matt, 2026-09-13: "primarily a white background with blue
+   * action"). It was #fafbfc, a blue-grey that put a faint wash behind every
+   * screen. The card no longer sits on a ground that falls away behind it, so
+   * it is read by its border alone, which the sharper line ramp of the same
+   * day makes possible. */
+  --xms-bg: #ffffff;
   --xms-card: #ffffff;
   --xms-tint: var(--xms-accent-tint);
   /* Lines. These were the three ServiceNow values (2026-09-10, AIBL-317):
@@ -148,15 +155,24 @@
    *
    * The fill token stays: it is still the hover on the quiet buttons and the
    * catalog rows, which are surfaces you press rather than wells you type in. */
-  --xms-control-hover: #d3dcec;
-  --xms-control-line-hover: #6d7b8c;
+  /* The hover fill, now only for a surface with no edge of its own to
+   * highlight: a menu row, a catalog row. Everything that has a border uses
+   * the border instead (Matt, 2026-09-13: highlight the border, not a fill).
+   * Lightened with the rest, since on a borderless row the wash is the only
+   * affordance and it should whisper. */
+  --xms-control-hover: #f2f4f6;
+  /* A pointed-at edge is a step, not a jump. Resting measures 2.63:1 on
+   * white and this 3.10; it was #6d7b8c at 4.32, which nearly doubled the
+   * edge and read as the control having changed rather than been pointed at
+   * (Matt, 2026-09-13: the hover is too heavy). */
+  --xms-control-line-hover: #8494a6;
   /* The recess. A field is a well you put something into, so it carries a
    * faint inner shadow at its top edge, the way the reference draws its
    * selects and text boxes. A button is a surface you press and stays flat. */
   --xms-field-inset: inset 0 1px 3px rgb(15 23 42 / 0.16);
   /* A field sits a shade below the card it stands on. White on white with a
    * shadow too faint to see is a rectangle, not a well. */
-  --xms-field-bg: #f4f7fc;
+  --xms-field-bg: #f7f8fa;
   /* The quietest drawn line: the dashed Add filter edge and the idle sort
    * glyph on a column header. */
   --xms-quiet-line: #a3aebc;
@@ -168,7 +184,8 @@
    * boundary between regions rather than the edge of a thing. */
   --xms-line-region: #7a828c;
   --xms-row-hover: var(--xms-chip);
-  --xms-cell-hover: var(--xms-accent-tint);
+  /* A pointer passing over a cell is not an action either. */
+  --xms-cell-hover: #eef0f3;
   /* The stroke on a selected row. It was #2563eb, a second blue doing the
    * job the accent comment above already claimed. */
   --xms-selected-bar: var(--xms-accent);

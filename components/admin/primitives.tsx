@@ -19,7 +19,7 @@ import { useMe } from "@/redux/me";
 export const PRIMARY_BUTTON =
   "bg-xms-accent hover:bg-xms-accent-hover h-[32px] rounded-control px-3 text-body font-medium text-white hover:text-white hover:no-underline disabled:opacity-50";
 export const SECONDARY_BUTTON =
-  "border-xms-line text-xms-body hover:text-xms-ink hover:bg-xms-control-hover hover:no-underline h-[32px] rounded-control border px-3 text-body disabled:opacity-50";
+  "border-xms-line text-xms-body hover:text-xms-ink hover:border-xms-control-line-hover hover:no-underline h-[32px] rounded-control border px-3 text-body disabled:opacity-50";
 export const DANGER_BUTTON =
   "border-[color:var(--state-overdue-border)] text-[color:var(--state-overdue-text)] h-[32px] rounded-control border px-3 text-body disabled:opacity-50";
 /**

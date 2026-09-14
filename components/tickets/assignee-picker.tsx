@@ -161,7 +161,7 @@ export function AssigneePicker({
               setQuery("");
               setWanted(true);
             }}
-            className="border-xms-line text-xms-body hover:bg-xms-control-hover h-[34px] shrink-0 rounded-control border px-2 text-body"
+            className="border-xms-line text-xms-body hover:border-xms-control-line-hover h-[34px] shrink-0 rounded-control border px-2 text-body"
           >
             Assign to me
           </button>

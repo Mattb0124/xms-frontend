@@ -86,7 +86,7 @@ export function CasePreview({
         {/* The one action on the card, so it reads in the action colour. */}
         <Link
           href={`/cases/${ticketKey}`}
-          className="border-xms-accent text-xms-accent hover:bg-xms-control-hover ml-auto inline-flex h-[32px] items-center rounded-control border px-3 text-body font-medium hover:no-underline"
+          className="border-xms-accent text-xms-accent hover:border-xms-control-line-hover ml-auto inline-flex h-[32px] items-center rounded-control border px-3 text-body font-medium hover:no-underline"
         >
           Open record
         </Link>
