@@ -104,7 +104,7 @@ describe("xms token contract", () => {
     // that decides this value is contrast, not taste: the accent is link text,
     // so it clears 4.5:1 on white (4.71) and on the canvas (4.54). The next
     // step lighter, #0d7cc4, measures 4.47 and fails.
-    expect(scope).toContain("--xms-accent: #0b78c0");
+    expect(scope).toContain("--xms-accent: #245ce8");
     expect(scope).toContain("--xms-ink: #000e1d");
     // White since 2026-09-13: the product is a white ground with blue kept for
     // action. The card is read by its border rather than by the ground.
