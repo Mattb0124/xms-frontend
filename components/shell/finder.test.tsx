@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Finder } from "@/components/shell/finder";
 import { visibleScreens } from "@/lib/routes";
@@ -90,6 +90,34 @@ describe("Finder", () => {
     expect(screen.getByText("CS1000008")).toBeInTheDocument();
     expect(screen.getByText("Slow report rendering")).toBeInTheDocument();
     expect(screen.getByText("just now")).toBeInTheDocument();
+  });
+
+  // Screens used to be one flat list with the section written down the right
+  // of every row. They are drawn as the sidebar's tree now: the section is the
+  // parent, the screens sit under it, and the sections come in the order the
+  // registry declares them.
+  it("lists screens as a tree under their section, in the registry's order", () => {
+    finder();
+    fireEvent.focus(screen.getByLabelText("Search"));
+    expect(screen.getByText("Screens")).toBeInTheDocument();
+    const cases = screen.getByRole("group", { name: "Cases" });
+    expect(within(cases).getByText("Change calendar")).toBeInTheDocument();
+    const reports = screen.getByRole("group", { name: "Reports" });
+    expect(within(reports).getByText("Operations")).toBeInTheDocument();
+    const order = screen.getAllByRole("group").map((group) => group.getAttribute("aria-label"));
+    expect(order.indexOf("Home")).toBeLessThan(order.indexOf("Cases"));
+    expect(order.indexOf("Cases")).toBeLessThan(order.indexOf("Reports"));
+    // The section is the parent now, not a note on every row: once per group.
+    expect(within(reports).getAllByText("Reports")).toHaveLength(1);
+  });
+
+  it("narrows the tree to the matching screens, still under their section", () => {
+    finder();
+    const box = screen.getByLabelText("Search");
+    fireEvent.focus(box);
+    fireEvent.change(box, { target: { value: "operations" } });
+    expect(screen.getAllByRole("group")).toHaveLength(1);
+    expect(within(screen.getByRole("group", { name: "Reports" })).getByText("Operations")).toBeInTheDocument();
   });
 
   it("finds screens by name and opens the one chosen", () => {
