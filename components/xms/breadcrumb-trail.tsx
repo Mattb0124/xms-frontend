@@ -38,7 +38,7 @@ export function BreadcrumbTrail({ segments, onRemove, onSaveView, saved, classNa
               onClick={() => onRemove?.(segment.key)}
               aria-label={`Remove ${segment.label}`}
               aria-current={index === segments.length - 1 ? "page" : undefined}
-              className={cn("xms-link", index === segments.length - 1 && "font-medium")}
+              className={cn("xms-action-link", index === segments.length - 1 && "font-medium")}
             >
               {segment.label}
             </button>
@@ -47,12 +47,7 @@ export function BreadcrumbTrail({ segments, onRemove, onSaveView, saved, classNa
       </nav>
       <span className="ml-auto flex items-center gap-3">
         {onSaveView ? (
-          <button
-            type="button"
-            onClick={onSaveView}
-            aria-pressed={Boolean(saved)}
-            className="text-xms-accent font-medium hover:underline"
-          >
+          <button type="button" onClick={onSaveView} aria-pressed={Boolean(saved)} className="xms-action-link">
             {saved ? "Saved" : "Save as view"}
           </button>
         ) : null}

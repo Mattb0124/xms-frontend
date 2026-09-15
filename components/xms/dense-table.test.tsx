@@ -206,7 +206,10 @@ describe("DenseTable display switches", () => {
 
   it("tightens every cell, header included, on compact rows", () => {
     const { container } = draw({ ...DISPLAY, compact: true });
-    expect(container.querySelector("tbody td:nth-child(2)")).toHaveClass("py-[7px]");
+    // 8px on a cell puts the row pitch at 40px, which is Docker's own (its
+    // table measures 40 between separators; 7px landed at 38). The header
+    // keeps 7px: it is a label strip rather than a row of content.
+    expect(container.querySelector("tbody td:nth-child(2)")).toHaveClass("py-[8px]");
     expect(container.querySelector("thead th")).toHaveClass("py-[7px]");
   });
 

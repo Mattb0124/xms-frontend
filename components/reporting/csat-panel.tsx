@@ -110,7 +110,7 @@ export function QuarterlyPanel({ quarterly }: { quarterly: CsatQuarterly }) {
           ) : null}
         </ol>
         <div>
-          <h3 className="text-xms-label mb-2 text-body font-semibold tracking-wide uppercase">Trend</h3>
+          <h3 className="xms-caption mb-2">Trend</h3>
           <ol className="flex flex-col gap-2" aria-label="Quarterly trend">
             {trend.map((row) => (
               <li

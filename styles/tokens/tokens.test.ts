@@ -104,7 +104,7 @@ describe("xms token contract", () => {
     // that decides this value is contrast, not taste: the accent is link text,
     // so it clears 4.5:1 on white (4.71) and on the canvas (4.54). The next
     // step lighter, #0d7cc4, measures 4.47 and fails.
-    expect(scope).toContain("--xms-accent: #0b78c0");
+    expect(scope).toContain("--xms-accent: #245ce8");
     expect(scope).toContain("--xms-ink: #000e1d");
     // White since 2026-09-13: the product is a white ground with blue kept for
     // action. The card is read by its border rather than by the ground.
@@ -200,6 +200,23 @@ describe("xms token contract", () => {
     }
   });
 
+  // The vendored AI Innovation layer sets h1 to 800 and h2 to 700 as unlayered
+  // element rules, which beat every Tailwind utility: font-semibold on an h2
+  // did nothing, and so did font-normal. All 23 h1 and h2 elements in the
+  // product ask for 600 and all 23 were rendering heavier (2026-09-14). The
+  // correction has to be unlayered too, or it loses to the rule it corrects.
+  it("lets a heading be the weight its call site asks for", () => {
+    const at = scope.indexOf(".xms-scope h1,");
+    expect(at, "the heading correction is missing").toBeGreaterThan(-1);
+    expect(scope.slice(at, scope.indexOf("}", at))).toContain("font-weight: 600");
+    // It has to be unlayered, or it loses to the very rule it corrects. The
+    // last @layer in this file closes before it.
+    const lastLayer = scope.lastIndexOf("@layer");
+    expect(at, "the correction must sit after the last @layer block").toBeGreaterThan(lastLayer);
+    // And the vendored rule it is correcting is still there to be corrected.
+    expect(aix.length).toBeGreaterThan(0);
+  });
+
   it("provides a dark inversion for every light token", () => {
     const light = scope.split(".dark .xms-scope")[0];
     const dark = scope.split(".dark .xms-scope")[1] ?? "";
@@ -259,9 +276,18 @@ describe("the field treatment", () => {
   // change of edge on 2026-09-12 and nobody moved them. The fill token is
   // still here, but it dresses a surface with no edge of its own to light up
   // (a menu row), and it is neutral now that blue means action.
-  it("draws a field recessed, and keeps a fill for the surfaces that have no edge", () => {
-    expect(scope).toMatch(/--xms-field-inset: inset 0 1px 3px/);
-    expect(scope).toMatch(/--xms-control-hover: #f2f4f6/);
+  // The recess went with the flattening on 2026-09-14 (Docker Desktop as the
+  // reference: it separates every surface with a hairline and casts almost
+  // nothing). A field is now defined by its border, and says it has focus by
+  // turning that border the accent rather than by growing a ring outside it.
+  // The dark ground keeps its light top edge, which is an edge and not a cast.
+  it("draws a field flat with an edge, and keeps a fill for the surfaces that have none", () => {
+    expect(scope).toMatch(/--xms-field-inset: none/);
+    // The last one: an earlier :focus-within rule sets the ground back to the
+    // card, and the accent edge is declared after the flattening block.
+    const focus = scope.slice(scope.lastIndexOf(".xms-scope .xms-field:focus-within"));
+    expect(focus.slice(0, focus.indexOf("}"))).toContain("border-color: var(--xms-accent)");
+    expect(scope).toMatch(/--xms-control-hover: #f6f8f9/);
     // The dark ground reverses it: a light top edge, since a shadow on a
     // dark field is invisible.
     expect(scope).toMatch(/--xms-field-inset: inset 0 1px 0 rgb\(255 255 255/);
@@ -270,7 +296,12 @@ describe("the field treatment", () => {
 
   it("makes a field you can type in white, and the fill mean you cannot", () => {
     // A field at rest is the card colour, whatever kind of field it is.
-    expect(fieldRule(".xms-scope .xms-field {")).toContain("background-color: var(--xms-card)");
+    // The selector carries a :not([data-active]) since 2026-09-14: a field
+    // holding a value keeps the accent edge and the tint, so the resting
+    // treatment is scoped off it.
+    expect(fieldRule('.xms-scope .xms-field:not([data-active="true"]) {')).toContain(
+      "background-color: var(--xms-card)",
+    );
     // The fill is what a field you cannot type in wears, and nothing else.
     expect(disabledRule()).toContain("background-color: var(--xms-field-bg)");
   });

@@ -26,7 +26,11 @@ export interface DisplayOptions {
 
 export const DISPLAY_DEFAULTS: DisplayOptions = {
   wrap: false,
-  compact: false,
+  // Dense by default since 2026-09-14 (Docker Desktop as the reference: its
+  // lists run about 40px a row against the 63 this one was drawing). It stays
+  // a preference, so anyone who wants the room back has it in Personalize
+  // columns; only the default moved.
+  compact: true,
   activeRow: true,
   coloring: true,
 };

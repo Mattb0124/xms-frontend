@@ -65,7 +65,7 @@ export default function AdminPage() {
       </header>
       {sections.map((section) => (
         <div key={section}>
-          <h2 className="text-xms-label bg-xms-quiet-bg border-xms-line-row border-b px-5 py-[9px] text-body font-semibold tracking-[0.06em] uppercase">
+          <h2 className="text-xms-muted bg-xms-quiet-bg border-xms-line-row border-b px-5 py-[9px] text-body font-semibold tracking-[0.06em]">
             {section}
           </h2>
           <ul>

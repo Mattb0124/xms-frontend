@@ -139,11 +139,11 @@ export default function DevSignInPage() {
         {users !== null ? (
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <span className="text-xms-label text-body uppercase">Internal desk</span>
+              <span className="xms-caption">Internal desk</span>
               {internal.map(row)}
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-xms-label text-body uppercase">Client portal</span>
+              <span className="xms-caption">Client portal</span>
               {portal.map(row)}
             </div>
           </div>
