@@ -21,7 +21,7 @@ export function RequestList({ items, emptyText }: { items: PortalTicket[]; empty
   return (
     <table className="w-full text-body">
       <thead>
-        <tr className="text-xms-label border-xms-line border-b text-left text-body uppercase tracking-wide">
+        <tr className="text-xms-muted border-xms-line border-b text-left text-body font-semibold">
           <th scope="col" className="py-2 pr-3 font-medium">
             Request
           </th>

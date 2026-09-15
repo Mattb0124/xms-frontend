@@ -100,7 +100,7 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
             </ul>
           ) : null}
           <div>
-            <p className="text-xms-label mb-1 text-body uppercase tracking-wide">Matching articles</p>
+            <p className="xms-caption mb-1">Matching articles</p>
             {data.articles.length === 0 ? (
               <p className="text-xms-muted text-body">
                 No documented solution yet. Resolving this ticket will create the first one.
@@ -140,7 +140,7 @@ export function SolutionsRail({ ticketKey, readOnly }: { ticketKey: string; read
           </div>
           {data.similar_tickets.length > 0 ? (
             <div>
-              <p className="text-xms-label mb-1 text-body uppercase tracking-wide">Similar resolved tickets</p>
+              <p className="xms-caption mb-1">Similar resolved tickets</p>
               <ul className="flex flex-col gap-1" aria-label="Similar resolved tickets">
                 {data.similar_tickets.map((row) => (
                   <li key={row.id} className="flex flex-col text-body">
