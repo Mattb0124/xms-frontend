@@ -88,7 +88,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   const relatedTabs = RELATED_TABS.map((tab) => (tab.key === "slas" ? { ...tab, count: clocks.length } : tab));
 
   return (
-    <div className="flex flex-col gap-4" data-ticket={ticket.key}>
+    <div className="flex flex-col gap-6" data-ticket={ticket.key}>
       {/* The record bar: "Case" and the key on the left, the actions on the
           right, as ServiceNow's form header reads. The title is a row of the
           form below (Short description), where ServiceNow keeps it. */}
@@ -167,6 +167,9 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           tab opens on the watch list and the work notes list, which is what
           the participants card is here. */}
       <section className="xms-card flex min-w-0 flex-col" aria-label="Notes">
+        {/* Each card names itself above its tabs, so the three parts of the
+            record read as three parts and not as one long page of tabs. */}
+        <p className="xms-caption px-4 pt-3">Notes</p>
         <TabBar tabs={NOTES_TABS} active={notesTab} onChange={setNotesTab} />
         <div className="flex flex-col gap-4 p-[18px]">
           {notesTab === "notes" ? (
@@ -209,6 +212,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           ServiceNow orders them. Each tab mounts its own surface, so a list
           that is never opened is never read. */}
       <section className="xms-card flex min-w-0 flex-col" aria-label="Related lists">
+        <p className="xms-caption px-4 pt-3">Related lists</p>
         <TabBar tabs={relatedTabs} active={relatedTab} onChange={setRelatedTab} />
         <div className="p-[18px]">
           {relatedTab === "slas" ? (

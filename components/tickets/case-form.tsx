@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
 import { GroupPicker } from "@/components/tickets/group-picker";
 import { RecordForm, RecordRow, type RecordField, type RecordLabels } from "@/components/xms/record-form";
@@ -60,17 +60,33 @@ export function createdLabel(iso: string): string {
 const LABELS: RecordLabels = "end";
 
 /**
+ * A named group of rows inside the form. ServiceNow's form runs its fields in
+ * one list per column; here each column is a few groups with an eyebrow and a
+ * hairline under it, so a reader sees where classification ends and the
+ * customer begins without counting rows (Matt's direction 2026-09-15: clear
+ * separation between the sections, and within a section).
+ */
+export function FormGroup({ caption, children }: { caption: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3" data-group={caption.toLowerCase()}>
+      <p className="xms-caption border-xms-line-row border-b pb-[6px]">{caption}</p>
+      {children}
+    </div>
+  );
+}
+
+/**
  * The case form, laid out the ServiceNow way (Matt's direction 2026-09-15):
  * two columns of label-left rows, then the short description and the
  * description full width. Every editable row commits on change or blur and
  * rolls back with a toast on a refusal, as the Properties rail did.
  *
  * Left, in ServiceNow's order: Number, Channel, Ticket type, Category (its
- * Service type), Configuration item (its Primary component), Account,
+ * Service type), Configuration item (its Primary component), then Account,
  * Requester (its Contact), Contract. Right: State, Assignment group,
- * Assigned to, Impact, Urgency, Priority, Created, Created by, Total time,
- * Billable time, External reference (its Opsramp incident id), Out of scope
- * (its Budget control exception).
+ * Assigned to, then Impact, Urgency, Priority, then Created, Created by,
+ * Total time, Billable time, External reference (its Opsramp incident id),
+ * Out of scope (its Budget control exception).
  *
  * The state is a value here and the state menu in the record bar is the way
  * to change it, because a transition is not a field edit: it carries a
@@ -107,7 +123,7 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
     { skip: readOnly },
   );
 
-  const left = useMemo<RecordField[]>(() => {
+  const classification = useMemo<RecordField[]>(() => {
     const items = configurationItems ?? [];
     const current = ticket.configuration_item_id;
     // The item in force stays choosable even when the register no longer
@@ -146,6 +162,11 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
             kind: "select",
             options: configurationOptions,
           },
+    ];
+  }, [ticket, readOnly, configurationItems]);
+
+  const customer = useMemo<RecordField[]>(
+    () => [
       {
         key: "account",
         label: "Account",
@@ -177,15 +198,16 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
             })),
           }
         : { key: "contract_id", label: "Contract", value: contractName, readOnly: true },
-    ];
-  }, [ticket, account, contracts, contractName, canReadContracts, readOnly, configurationItems]);
+    ],
+    [ticket, account, contracts, contractName, canReadContracts, readOnly],
+  );
 
   const state = useMemo<RecordField[]>(
     () => [{ key: "state", label: "State", value: ticket.state_label, readOnly: true }],
     [ticket.state_label],
   );
 
-  const right = useMemo<RecordField[]>(
+  const priority = useMemo<RecordField[]>(
     () => [
       {
         key: "impact",
@@ -208,10 +230,16 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
         label: "Priority",
         value: ticket.priority,
         kind: "select",
-        options: PRIORITIES.map((priority) => ({ value: priority, label: priority.toUpperCase() })),
+        options: PRIORITIES.map((level) => ({ value: level, label: level.toUpperCase() })),
         hint: ticket.priority_overridden ? "Overridden by hand" : "Derived from the matrix",
         readOnly: readOnly || !canOverride,
       },
+    ],
+    [ticket, readOnly, canOverride],
+  );
+
+  const record = useMemo<RecordField[]>(
+    () => [
       { key: "created_at", label: "Created", value: createdLabel(ticket.created_at), readOnly: true, mono: true },
       { key: "created_by", label: "Created by", value: ticket.created_by_name, readOnly: true },
       {
@@ -242,10 +270,10 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
         readOnly: true,
       },
     ],
-    [ticket, readOnly, canOverride, time],
+    [ticket, time],
   );
 
-  const wide = useMemo<RecordField[]>(
+  const description = useMemo<RecordField[]>(
     () => [
       { key: "short_description", label: "Short description", value: ticket.short_description, readOnly },
       { key: "description", label: "Description", value: ticket.description ?? "", kind: "textarea", readOnly },
@@ -295,49 +323,77 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
     });
   };
 
+  const form = { labels: LABELS, boxed: true, columns: 1 as const, onCommit: commit, onRollback: rollback };
+
   return (
-    <section className="xms-card flex flex-col gap-3 p-4" aria-label="Details">
-      <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
-        <RecordForm columns={1} labels={LABELS} boxed fields={left} onCommit={commit} onRollback={rollback} />
-        <div className="flex flex-col gap-3">
-          <RecordForm columns={1} labels={LABELS} boxed fields={state} onCommit={commit} onRollback={rollback} />
-          {/* Reassignment (TM-08): a ticket moves to a group or to a person,
-              and both are one row for one concept. They are drawn in place,
-              as ServiceNow draws its Assignment group and Assigned to, rather
-              than behind the text-at-rest reveal the rail needed. The group
-              picker resolves the directory itself, and the assignee picker
-              asks for nothing until it is focused. */}
-          <RecordRow label="Assignment group" htmlFor="ticket-group" labels={LABELS} field="group">
-            <GroupPicker
-              id="ticket-group"
-              aria-label="Group"
-              value={ticket.group_id}
-              disabled={readOnly}
-              onChange={(groupId) =>
-                patch({ key: ticket.key, body: { version: ticket.version, group_id: groupId } })
-                  .unwrap()
-                  .catch((error) => push({ title: "Not saved", detail: describeGroupError(error), tone: "error" }))
-              }
-            />
-          </RecordRow>
-          <RecordRow label="Assigned to" htmlFor="ticket-assignee" labels={LABELS} field="assignee">
-            <AssigneePicker
-              id="ticket-assignee"
-              value={ticket.assignee_id}
-              valueLabel={ticket.assignee_name}
-              disabled={readOnly}
-              currentUserId={me.principal?.userId}
-              onChange={(user) =>
-                patch({ key: ticket.key, body: { version: ticket.version, assignee_id: user?.id ?? null } })
-                  .unwrap()
-                  .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
-              }
-            />
-          </RecordRow>
-          <RecordForm columns={1} labels={LABELS} boxed fields={right} onCommit={commit} onRollback={rollback} />
+    <section className="xms-card flex flex-col" aria-label="Details">
+      <header className="border-xms-line border-b px-4 py-[10px]">
+        <p className="xms-caption">Details</p>
+      </header>
+      {/* Top-aligned on purpose: the columns hold different numbers of rows,
+          and a stretched grid spread the shorter column's rows out to fill
+          the taller one's height, so the two sides fell out of step. */}
+      <div className="grid grid-cols-1 items-start gap-x-8 gap-y-6 p-4 md:grid-cols-2">
+        <div className="flex flex-col gap-6">
+          <FormGroup caption="Classification">
+            <RecordForm {...form} fields={classification} />
+          </FormGroup>
+          <FormGroup caption="Customer">
+            <RecordForm {...form} fields={customer} />
+          </FormGroup>
+        </div>
+        <div className="flex flex-col gap-6">
+          <FormGroup caption="Assignment">
+            <RecordForm {...form} fields={state} />
+            {/* Reassignment (TM-08): a ticket moves to a group or to a person,
+                and both are one row for one concept. They are drawn in place,
+                as ServiceNow draws its Assignment group and Assigned to, rather
+                than behind the text-at-rest reveal the rail needed. The group
+                picker resolves the directory itself, and the assignee picker
+                asks for nothing until it is focused. */}
+            <RecordRow label="Assignment group" htmlFor="ticket-group" labels={LABELS} field="group">
+              <GroupPicker
+                id="ticket-group"
+                aria-label="Group"
+                value={ticket.group_id}
+                disabled={readOnly}
+                onChange={(groupId) =>
+                  patch({ key: ticket.key, body: { version: ticket.version, group_id: groupId } })
+                    .unwrap()
+                    .catch((error) => push({ title: "Not saved", detail: describeGroupError(error), tone: "error" }))
+                }
+              />
+            </RecordRow>
+            <RecordRow label="Assigned to" htmlFor="ticket-assignee" labels={LABELS} field="assignee">
+              <AssigneePicker
+                id="ticket-assignee"
+                value={ticket.assignee_id}
+                valueLabel={ticket.assignee_name}
+                disabled={readOnly}
+                currentUserId={me.principal?.userId}
+                onChange={(user) =>
+                  patch({ key: ticket.key, body: { version: ticket.version, assignee_id: user?.id ?? null } })
+                    .unwrap()
+                    .catch((error) =>
+                      push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }),
+                    )
+                }
+              />
+            </RecordRow>
+          </FormGroup>
+          <FormGroup caption="Priority">
+            <RecordForm {...form} fields={priority} />
+          </FormGroup>
+          <FormGroup caption="Record">
+            <RecordForm {...form} fields={record} />
+          </FormGroup>
         </div>
       </div>
-      <RecordForm columns={1} labels={LABELS} boxed fields={wide} onCommit={commit} onRollback={rollback} />
+      <div className="border-xms-line border-t p-4">
+        <FormGroup caption="Description">
+          <RecordForm {...form} fields={description} />
+        </FormGroup>
+      </div>
     </section>
   );
 }
