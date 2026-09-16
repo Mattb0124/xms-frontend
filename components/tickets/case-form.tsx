@@ -328,7 +328,7 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
   return (
     <section className="xms-card flex flex-col" aria-label="Details">
       <header className="border-xms-line border-b px-4 py-[10px]">
-        <p className="xms-caption">Details</p>
+        <p className="text-xms-ink text-body font-semibold">Details</p>
       </header>
       {/* Top-aligned on purpose: the columns hold different numbers of rows,
           and a stretched grid spread the shorter column's rows out to fill

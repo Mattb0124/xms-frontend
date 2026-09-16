@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MeterBar } from "@/components/xms/meter-bar";
-import {
-  clockDisplay,
-  clockTime,
-  formatMinutes,
-  localRemainingMinutes,
-  type ClockView,
-  type TicketSla,
-} from "@/lib/tickets/sla";
+import { clockDisplay, formatMinutes, localRemainingMinutes, type ClockView, type TicketSla } from "@/lib/tickets/sla";
 import { cn } from "@/lib/utils";
 
 export type SlaStage = "In progress" | "Paused" | "Breached" | "Met";
@@ -71,6 +64,16 @@ export function slaRows(
       metAt: metAt?.[clock.kind] ?? null,
     };
   });
+}
+
+/**
+ * The due instant with its date: a clock sixty days past due is not told by
+ * a wall time alone, and the record bar already says how far past it is.
+ */
+export function dueLabel(iso: string): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  return at.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
 const percentLabel = (percent: number): string => `${percent.toLocaleString(undefined, { maximumFractionDigits: 0 })}%`;
@@ -137,7 +140,7 @@ export function SlaTable({
                   <span className="text-xms-label"> · {pausedReason.toLowerCase()}</span>
                 ) : null}
                 {row.stage === "Met" && row.metAt ? (
-                  <span className="text-xms-label"> · {clockTime(row.metAt)}</span>
+                  <span className="text-xms-label"> · {dueLabel(row.metAt)}</span>
                 ) : null}
               </td>
               <td className={cn(CELL, "xms-mono")}>{formatMinutes(row.elapsedMinutes)}</td>
@@ -157,7 +160,7 @@ export function SlaTable({
               <td className={cn(CELL, "xms-mono")}>{row.met ? "" : formatMinutes(row.leftMinutes)}</td>
               <td className={cn(CELL, "xms-mono")}>{formatMinutes(row.pausedMinutes)}</td>
               <td className={CELL}>{row.breached ? "Yes" : "No"}</td>
-              <td className={cn(CELL, "xms-mono")}>{clockTime(row.dueAt)}</td>
+              <td className={cn(CELL, "xms-mono")}>{dueLabel(row.dueAt)}</td>
             </tr>
           ))}
         </tbody>

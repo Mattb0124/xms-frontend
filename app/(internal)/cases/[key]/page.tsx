@@ -169,7 +169,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
       <section className="xms-card flex min-w-0 flex-col" aria-label="Notes">
         {/* Each card names itself above its tabs, so the three parts of the
             record read as three parts and not as one long page of tabs. */}
-        <p className="xms-caption px-4 pt-3">Notes</p>
+        <p className="text-xms-ink px-4 pt-3 text-body font-semibold">Notes</p>
         <TabBar tabs={NOTES_TABS} active={notesTab} onChange={setNotesTab} />
         <div className="flex flex-col gap-4 p-[18px]">
           {notesTab === "notes" ? (
@@ -212,7 +212,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
           ServiceNow orders them. Each tab mounts its own surface, so a list
           that is never opened is never read. */}
       <section className="xms-card flex min-w-0 flex-col" aria-label="Related lists">
-        <p className="xms-caption px-4 pt-3">Related lists</p>
+        <p className="text-xms-ink px-4 pt-3 text-body font-semibold">Related lists</p>
         <TabBar tabs={relatedTabs} active={relatedTab} onChange={setRelatedTab} />
         <div className="p-[18px]">
           {relatedTab === "slas" ? (
