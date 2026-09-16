@@ -52,7 +52,11 @@ export function createdLabel(iso: string): string {
   return at.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
-/** The ServiceNow case form's labels: a column of their own, right-aligned against the controls. */
+/**
+ * The ServiceNow case form's labels: a column of their own, right-aligned
+ * against the controls. Read-only values sit in the grey field box, so every
+ * row is one control tall and the two columns stay in step.
+ */
 const LABELS: RecordLabels = "end";
 
 /**
@@ -294,9 +298,9 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
   return (
     <section className="xms-card flex flex-col gap-3 p-4" aria-label="Details">
       <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
-        <RecordForm columns={1} labels={LABELS} fields={left} onCommit={commit} onRollback={rollback} />
+        <RecordForm columns={1} labels={LABELS} boxed fields={left} onCommit={commit} onRollback={rollback} />
         <div className="flex flex-col gap-3">
-          <RecordForm columns={1} labels={LABELS} fields={state} onCommit={commit} onRollback={rollback} />
+          <RecordForm columns={1} labels={LABELS} boxed fields={state} onCommit={commit} onRollback={rollback} />
           {/* Reassignment (TM-08): a ticket moves to a group or to a person,
               and both are one row for one concept. They are drawn in place,
               as ServiceNow draws its Assignment group and Assigned to, rather
@@ -330,10 +334,10 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
               }
             />
           </RecordRow>
-          <RecordForm columns={1} labels={LABELS} fields={right} onCommit={commit} onRollback={rollback} />
+          <RecordForm columns={1} labels={LABELS} boxed fields={right} onCommit={commit} onRollback={rollback} />
         </div>
       </div>
-      <RecordForm columns={1} labels={LABELS} fields={wide} onCommit={commit} onRollback={rollback} />
+      <RecordForm columns={1} labels={LABELS} boxed fields={wide} onCommit={commit} onRollback={rollback} />
     </section>
   );
 }

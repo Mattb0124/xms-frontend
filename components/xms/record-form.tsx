@@ -56,6 +56,15 @@ export interface RecordFormProps {
    * lands on the value.
    */
   labels?: "start" | "end";
+  /**
+   * Draw a read-only value in a field-shaped box on the grey fill, the way
+   * ServiceNow draws a read-only field, and put a hint beside its control
+   * rather than under it. Every row is then one control tall, so the two
+   * columns of the case form stay in step; without it a read-only row is
+   * bare text between bordered controls and the form reads as a list. The
+   * value is still text with a tooltip, never a disabled input.
+   */
+  boxed?: boolean;
   className?: string;
 }
 
@@ -70,6 +79,10 @@ const ROW = "grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-1";
 const ROW_END = "grid grid-cols-[150px_minmax(0,1fr)] gap-x-3 gap-y-1";
 const rowClass = (labels?: RecordLabels) => (labels === "end" ? ROW_END : ROW);
 const rowLabelClass = (labels?: RecordLabels) => cn("text-xms-label text-body", labels === "end" && "text-right");
+
+/** The read-only field box: the control's own height and edge, on the grey fill. */
+const READONLY_BOX =
+  "border-xms-line bg-xms-row-hover text-xms-ink block min-w-0 flex-1 rounded-control border px-2 text-body";
 
 /**
  * A label-left row whose control is not a `RecordField`: the group and
@@ -190,6 +203,7 @@ function Field({
   onRollback,
   layout = "rows",
   labels,
+  boxed,
   bare,
 }: {
   field: RecordField;
@@ -197,6 +211,7 @@ function Field({
   onRollback?: RecordFormProps["onRollback"];
   layout?: "rows" | "stacked";
   labels?: RecordLabels;
+  boxed?: boolean;
   /** Render the value alone: the row wrapper and the label belong to a paired row. */
   bare?: boolean;
 }) {
@@ -275,6 +290,33 @@ function Field({
         <div className={STACK_ROW} data-field={field.key}>
           <span className={STACK_LABEL}>{field.label}</span>
           {field.inlineHint ? <span className="flex items-baseline gap-[6px]">{value}</span> : value}
+        </div>
+      );
+    }
+    if (boxed) {
+      // A long prose value (a read-only description) keeps its lines inside
+      // the box; anything else is one line, clipped with the tooltip to read.
+      const prose = field.kind === "textarea";
+      return (
+        <div className={cn(rowClass(labels), "items-center")} data-field={field.key}>
+          <span className={rowLabelClass(labels)}>{field.label}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span
+              data-readonly-value
+              title={text || undefined}
+              className={cn(
+                READONLY_BOX,
+                prose
+                  ? "min-h-[34px] py-[6px] leading-[1.4] break-words whitespace-pre-wrap"
+                  : "h-[34px] truncate leading-[32px]",
+                field.mono && "xms-mono",
+                !text && "text-xms-muted",
+              )}
+            >
+              {text || "Not set"}
+            </span>
+            {field.hint ? <span className="text-xms-label shrink-0 text-body">{field.hint}</span> : null}
+          </span>
         </div>
       );
     }
@@ -390,10 +432,17 @@ function Field({
       <label htmlFor={id} className={rowLabelClass(labels)}>
         {field.label}
       </label>
-      <span className="flex min-w-0 flex-col gap-[2px]">
-        {control}
-        {hintNode}
-      </span>
+      {boxed ? (
+        <span className="flex min-w-0 items-center gap-2">
+          {control}
+          {field.hint ? <span className="text-xms-label shrink-0 text-body">{field.hint}</span> : null}
+        </span>
+      ) : (
+        <span className="flex min-w-0 flex-col gap-[2px]">
+          {control}
+          {hintNode}
+        </span>
+      )}
     </div>
   );
 }
@@ -406,6 +455,7 @@ export function RecordForm({
   columns = 2,
   layout = "rows",
   labels,
+  boxed,
   className,
 }: RecordFormProps) {
   if (layout === "stacked") {
@@ -435,7 +485,14 @@ export function RecordForm({
       className={cn("grid gap-x-8 gap-y-3", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1", className)}
     >
       {fields.map((field) => (
-        <Field key={field.key} field={field} onCommit={onCommit} onRollback={onRollback} labels={labels} />
+        <Field
+          key={field.key}
+          field={field}
+          onCommit={onCommit}
+          onRollback={onRollback}
+          labels={labels}
+          boxed={boxed}
+        />
       ))}
     </div>
   );
