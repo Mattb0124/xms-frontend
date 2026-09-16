@@ -150,7 +150,10 @@ const CONTRACT_SURFACES: { file: string; permission?: string; mountedIn?: string
   // they hold their own contracts:view gate and never the screen's weaker one.
   { file: "components/admin/contracts/renewal-chip.tsx", permission: "contracts:view" },
   { file: "components/admin/finance/finance-tab.tsx", permission: "contracts:view" },
-  { file: "components/tickets/properties-panel.tsx", permission: "contracts:view" },
+  // The case form (the Properties rail until 2026-09-15, AIBL-390) offers the
+  // contract choice only to a reader holding contracts:view; everyone else
+  // sees the name the position route gives.
+  { file: "components/tickets/case-form.tsx", permission: "contracts:view" },
   { file: "components/tickets/time-tab.tsx", permission: "contracts:view" },
   { file: "app/(internal)/cases/new/page.tsx", permission: "contracts:view" },
 ];
