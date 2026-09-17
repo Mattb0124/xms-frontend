@@ -34,6 +34,8 @@ function openRecord(): RecordedCall[] {
     "GET /v1/catalogs": () => json(CATALOGS),
     "GET /v1/tickets/CS1000199/comments": () => json([]),
     "GET /v1/tickets/CS1000199/transitions": () => json({ state: "in_progress", allowed: [] }),
+    "GET /v1/tickets/CS1000199/time": () => json({ entries: [], total_minutes: 0 }),
+    "GET /v1/tickets/CS1000199/participants": () => json({ participants: [], invitations: [] }),
     "GET /v1/users": () => json([]),
     "GET /v1/roster/people": () => json([]),
   });
@@ -54,7 +56,7 @@ describe("the ticket record's call budget", () => {
 
   it("asks for the catalogs once, and only once the account is known", async () => {
     const calls = openRecord();
-    await screen.findByRole("region", { name: "Properties" });
+    await screen.findByRole("region", { name: "Details" });
     await waitFor(() => expect(pathsOf(calls, "/v1/catalogs").length).toBeGreaterThan(0));
     const catalogs = pathsOf(calls, "/v1/catalogs");
     expect(catalogs).toHaveLength(1);
@@ -62,18 +64,43 @@ describe("the ticket record's call budget", () => {
     expect(catalogs[0].search).toContain(ACCOUNT_ID);
   });
 
-  it("leaves the user directory and the roster alone until the assignee picker is opened", async () => {
+  it("leaves the user directory and the roster alone until the assignee picker is focused", async () => {
     const calls = openRecord();
-    // The row is text at rest, so the picker is not even in the tree until it
-    // is clicked, which is a stronger version of the same budget.
-    const row = await screen.findByRole("button", { name: "Assignee" });
+    // The picker stands in place on the form now, as ServiceNow draws
+    // Assigned to, and it still asks for nothing until it is focused.
+    const picker = await screen.findByRole("combobox", { name: "Assignee" });
     await waitFor(() => expect(pathsOf(calls, "/v1/accounts")).toHaveLength(1));
     expect(pathsOf(calls, "/v1/users")).toHaveLength(0);
     expect(pathsOf(calls, "/v1/roster/people")).toHaveLength(0);
 
-    fireEvent.click(row);
-    const picker = await screen.findByRole("combobox", { name: "Assignee" });
     fireEvent.focus(picker);
     await waitFor(() => expect(pathsOf(calls, "/v1/users")).toHaveLength(1));
+  });
+});
+
+/**
+ * Matt's direction 2026-09-15: the record reads the way the ServiceNow case
+ * form reads. The form, then the Notes card, then the Related lists card with
+ * the SLAs open first.
+ */
+describe("the ticket record's layout", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("stacks the form, the notes and the related lists, with the SLAs open first", async () => {
+    openRecord();
+    const details = await screen.findByRole("region", { name: "Details" });
+    const notes = screen.getByRole("region", { name: "Notes" });
+    const related = screen.getByRole("region", { name: "Related lists" });
+    // Document order is the order on the page.
+    expect(details.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(notes.compareDocumentPosition(related) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /^SLAs/ })).toHaveAttribute("aria-selected", "true");
+    // The fixture ticket carries no clock, so the tab says so; a ticket with
+    // clocks draws the table (sla-table.test.tsx).
+    expect(
+      screen.queryByRole("table", { name: "Service levels" }) ?? screen.getByText("No SLA on this ticket."),
+    ).toBeInTheDocument();
+    // The record bar carries Follow where ServiceNow puts it.
+    expect(screen.getByRole("button", { name: /^(Follow|Unfollow)$/ })).toBeInTheDocument();
   });
 });

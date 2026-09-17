@@ -81,7 +81,16 @@ app/(internal)/         the desk inside the Shell: / My work (scorecards, brief 
                         saver's; the per-browser star stays the fallback while /v1/views answers 404 or 501), condition
                         trail, Count card in the prototype's column order and
                         opening on SLA, selection bar, cursor paging, rows per page), /tickets/new (record form
-                        with the priority preview), /tickets/[key] (record bar, transition menu (TM-18: a window refusal
+                        with the priority preview), /tickets/[key] (laid out the ServiceNow way from 2026-09-15 (AIBL-390, superseding the v3 render for this
+                        page): the record bar with Case, the key, Follow, the state menu, the SLA chip and More; the
+                        two-column right-labelled form (components/tickets/case-form.tsx: Number, Channel, Ticket type,
+                        Category, Configuration item, Account, Requester, Contract on the left; State, Assignment group,
+                        Assigned to, Impact, Urgency, Priority, Created, Created by, Total time, Billable time, External
+                        reference, Out of scope on the right; Short description and Description full width); the Notes
+                        card (Notes with the participants and the conversation, Closure information with the
+                        resolution); the Related lists card (SLAs as a table over the server's clocks in
+                        components/tickets/sla-table.tsx, Time entries, Attachments, Related cases, Emails, Activity,
+                        Solutions, Contract, Scope, Sync). What each part does is unchanged: transition menu (TM-18: a window refusal
                         opens the change window sheet rather than only a toast, naming the freeze and its reason or the
                         tickets already holding the configuration item, and taking the reason that carries the move;
                         change_freeze and change_conflict are acknowledgements any worker may make, outside_change_window

@@ -49,8 +49,26 @@ export interface RecordFormProps {
    * the shape the render shows and the built panel had lost.
    */
   layout?: "rows" | "stacked";
+  /**
+   * Where the label sits in the "rows" layout. "end" is the ServiceNow case
+   * form's shape: a 150px label column, right-aligned, so the labels line up
+   * against their controls down the middle of each column and a reader's eye
+   * lands on the value.
+   */
+  labels?: "start" | "end";
+  /**
+   * Draw a read-only value in a field-shaped box on the grey fill, the way
+   * ServiceNow draws a read-only field, and put a hint beside its control
+   * rather than under it. Every row is then one control tall, so the two
+   * columns of the case form stay in step; without it a read-only row is
+   * bare text between bordered controls and the form reads as a list. The
+   * value is still text with a tooltip, never a disabled input.
+   */
+  boxed?: boolean;
   className?: string;
 }
+
+export type RecordLabels = "start" | "end";
 
 const CONTROL =
   "border-xms-line bg-xms-card text-xms-ink h-[34px] w-full rounded-control border px-2 text-body outline-none disabled:opacity-60";
@@ -58,6 +76,47 @@ const CONTROL =
 // Label 104px, value takes the rest and may shrink below its content, which is
 // what lets a long value wrap instead of being clipped (review finding 9).
 const ROW = "grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-1";
+const ROW_END = "grid grid-cols-[150px_minmax(0,1fr)] gap-x-3 gap-y-1";
+const rowClass = (labels?: RecordLabels) => (labels === "end" ? ROW_END : ROW);
+const rowLabelClass = (labels?: RecordLabels) => cn("text-xms-label text-body", labels === "end" && "text-right");
+
+/** The read-only field box: the control's own height and edge, on the grey fill. */
+const READONLY_BOX =
+  "border-xms-line bg-xms-row-hover text-xms-ink block min-w-0 flex-1 rounded-control border px-2 text-body";
+
+/**
+ * A label-left row whose control is not a `RecordField`: the group and
+ * assignee pickers on the case form. The same grid the form's own rows use,
+ * so a picker lines up with the fields around it.
+ */
+export function RecordRow({
+  label,
+  htmlFor,
+  labels,
+  field,
+  children,
+}: {
+  label: string;
+  /** The control's id, so the label reaches it; without one the label is plain text. */
+  htmlFor?: string;
+  labels?: RecordLabels;
+  /** The `data-field` marker the form's own rows carry. */
+  field?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn(rowClass(labels), "items-center")} data-field={field}>
+      {htmlFor ? (
+        <label htmlFor={htmlFor} className={rowLabelClass(labels)}>
+          {label}
+        </label>
+      ) : (
+        <span className={rowLabelClass(labels)}>{label}</span>
+      )}
+      <span className="flex min-w-0 flex-col gap-[2px]">{children}</span>
+    </div>
+  );
+}
 
 /**
  * One row of the v3 record's Properties list, measured off the prototype's own
@@ -143,12 +202,16 @@ function Field({
   onCommit,
   onRollback,
   layout = "rows",
+  labels,
+  boxed,
   bare,
 }: {
   field: RecordField;
   onCommit: RecordFormProps["onCommit"];
   onRollback?: RecordFormProps["onRollback"];
   layout?: "rows" | "stacked";
+  labels?: RecordLabels;
+  boxed?: boolean;
   /** Render the value alone: the row wrapper and the label belong to a paired row. */
   bare?: boolean;
 }) {
@@ -230,9 +293,36 @@ function Field({
         </div>
       );
     }
+    if (boxed) {
+      // A long prose value (a read-only description) keeps its lines inside
+      // the box; anything else is one line, clipped with the tooltip to read.
+      const prose = field.kind === "textarea";
+      return (
+        <div className={cn(rowClass(labels), "items-center")} data-field={field.key}>
+          <span className={rowLabelClass(labels)}>{field.label}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span
+              data-readonly-value
+              title={text || undefined}
+              className={cn(
+                READONLY_BOX,
+                prose
+                  ? "min-h-[34px] py-[6px] leading-[1.4] break-words whitespace-pre-wrap"
+                  : "h-[34px] truncate leading-[32px]",
+                field.mono && "xms-mono",
+                !text && "text-xms-muted",
+              )}
+            >
+              {text || "Not set"}
+            </span>
+            {field.hint ? <span className="text-xms-label shrink-0 text-body">{field.hint}</span> : null}
+          </span>
+        </div>
+      );
+    }
     return (
-      <div className={cn(ROW, "items-baseline")} data-field={field.key}>
-        <span className="text-xms-label text-body">{field.label}</span>
+      <div className={cn(rowClass(labels), "items-baseline")} data-field={field.key}>
+        <span className={rowLabelClass(labels)}>{field.label}</span>
         <span className="flex flex-col gap-[2px]">{value}</span>
       </div>
     );
@@ -338,20 +428,36 @@ function Field({
     );
   }
   return (
-    <div className={cn(ROW, "items-center")} data-field={field.key}>
-      <label htmlFor={id} className="text-xms-label text-body">
+    <div className={cn(rowClass(labels), "items-center")} data-field={field.key}>
+      <label htmlFor={id} className={rowLabelClass(labels)}>
         {field.label}
       </label>
-      <span className="flex min-w-0 flex-col gap-[2px]">
-        {control}
-        {hintNode}
-      </span>
+      {boxed ? (
+        <span className="flex min-w-0 items-center gap-2">
+          {control}
+          {field.hint ? <span className="text-xms-label shrink-0 text-body">{field.hint}</span> : null}
+        </span>
+      ) : (
+        <span className="flex min-w-0 flex-col gap-[2px]">
+          {control}
+          {hintNode}
+        </span>
+      )}
     </div>
   );
 }
 
 /** Label-left record form; each field commits on blur and rolls back on rejection. */
-export function RecordForm({ fields, onCommit, onRollback, columns = 2, layout = "rows", className }: RecordFormProps) {
+export function RecordForm({
+  fields,
+  onCommit,
+  onRollback,
+  columns = 2,
+  layout = "rows",
+  labels,
+  boxed,
+  className,
+}: RecordFormProps) {
   if (layout === "stacked") {
     return (
       <div className={cn("flex flex-col", className)}>
@@ -379,7 +485,14 @@ export function RecordForm({ fields, onCommit, onRollback, columns = 2, layout =
       className={cn("grid gap-x-8 gap-y-3", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1", className)}
     >
       {fields.map((field) => (
-        <Field key={field.key} field={field} onCommit={onCommit} onRollback={onRollback} />
+        <Field
+          key={field.key}
+          field={field}
+          onCommit={onCommit}
+          onRollback={onRollback}
+          labels={labels}
+          boxed={boxed}
+        />
       ))}
     </div>
   );

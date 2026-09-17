@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { MeterBar } from "@/components/xms/meter-bar";
 import { RailCard } from "@/components/xms/rail-card";
 import { useToast } from "@/components/xms/toast";
@@ -13,7 +14,7 @@ import {
   type ClockView,
   type TicketSla,
 } from "@/lib/tickets/sla";
-import { useWatchTicketMutation, type TicketView } from "@/redux/ticketsApi";
+import { useWatchTicketMutation } from "@/redux/ticketsApi";
 
 function Meter({
   clock,
@@ -70,8 +71,7 @@ function Meter({
 }
 
 /**
- * Service levels with live countdown (30 s tick), requester card, watch
- * toggle. Each meter names its target, elapsed and remaining time, and the
+ * Service levels with live countdown (30 s tick). Each meter names its target, elapsed and remaining time, and the
  * grey pause segment carries its reason, which is the ticket's own paused
  * state (Wireframes section 3.2, review finding 21).
  */
@@ -116,25 +116,11 @@ export function ServiceLevels({
   );
 }
 
-export function RequesterCard({ ticket }: { ticket: TicketView }) {
-  return (
-    <RailCard caption="Requester">
-      {ticket.requester ? (
-        <div className="flex flex-col">
-          <span className="text-xms-ink font-medium">{ticket.requester.display_name}</span>
-          <span className="xms-mono text-xms-label text-body">{ticket.requester.email}</span>
-        </div>
-      ) : (
-        <p className="text-xms-muted">No requester recorded.</p>
-      )}
-      <p className="text-xms-label mt-2 text-body">
-        Source {ticket.source}, created by {ticket.created_by_name || "unknown"}.
-      </p>
-    </RailCard>
-  );
-}
-
-export function WatchCard({ ticketKey, watching = true }: { ticketKey: string; watching?: boolean }) {
+/**
+ * The watch toggle as a record-bar action, where ServiceNow puts Follow. It
+ * was a rail card; the record has no rail now.
+ */
+export function FollowButton({ ticketKey, watching = true }: { ticketKey: string; watching?: boolean }) {
   const [watch, { isLoading }] = useWatchTicketMutation();
   const [muted, setMuted] = useState(!watching);
   // The record is the truth for the initial state; re-sync when it changes.
@@ -145,29 +131,20 @@ export function WatchCard({ ticketKey, watching = true }: { ticketKey: string; w
   }
   const { push } = useToast();
   return (
-    <RailCard
-      caption="Watching"
-      action={
-        <button
-          type="button"
-          disabled={isLoading}
-          onClick={() =>
-            watch({ key: ticketKey, muted: !muted })
-              .unwrap()
-              .then((result) => setMuted(result.muted))
-              .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
-          }
-          className="xms-link"
-        >
-          {muted ? "Watch" : "Unwatch"}
-        </button>
+    <button
+      type="button"
+      disabled={isLoading}
+      aria-pressed={!muted}
+      title={muted ? "Get replies, notes and state changes in your feed" : "Stop being notified about this ticket"}
+      onClick={() =>
+        watch({ key: ticketKey, muted: !muted })
+          .unwrap()
+          .then((result) => setMuted(result.muted))
+          .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
       }
+      className={SECONDARY_BUTTON}
     >
-      <p className="text-xms-label text-body">
-        {muted
-          ? "You will not be notified about this ticket."
-          : "You get replies, notes and state changes in your feed."}
-      </p>
-    </RailCard>
+      {muted ? "Follow" : "Unfollow"}
+    </button>
   );
 }

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ICON, ClockIcon, InboxIcon, PinIcon, SearchIcon, screenIcon } from "@/components/xms/icons";
-import { navigableHref, type Screen } from "@/lib/routes";
+import { navigableHref, SECTIONS, type Screen } from "@/lib/routes";
 import { useSearchSolutionsQuery } from "@/redux/knowledgeApi";
 import { useListTicketsQuery } from "@/redux/ticketsApi";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,30 @@ interface Row {
   meta?: string;
   icon: "screen" | "ticket" | "solution" | "recent";
   screen?: Screen;
+  /** A screen's section: the parent it is drawn under in the tree. */
+  section?: string;
   href: string;
+}
+
+interface SectionRows {
+  section: string;
+  rows: Row[];
+}
+
+/**
+ * The screen rows under the section each one belongs to, in the order the
+ * rows arrive. The same shape as the sidebar's `sidebarTree`: a section is a
+ * place screens live, not a screen of its own.
+ */
+function bySection(rows: readonly Row[]): SectionRows[] {
+  const groups: SectionRows[] = [];
+  for (const row of rows) {
+    const section = row.section ?? "Other";
+    const found = groups.find((group) => group.section === section);
+    if (found) found.rows.push(row);
+    else groups.push({ section, rows: [row] });
+  }
+  return groups;
 }
 
 function relative(iso: string, now = Date.now()): string {
@@ -130,8 +153,16 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
       });
     }
     const lower = term.toLowerCase();
-    for (const screen of screens) {
-      if (term && !screen.label.toLowerCase().includes(lower)) continue;
+    // Screens come out section by section, in the order the registry declares
+    // the sections, so the panel draws them as the tree the sidebar draws
+    // rather than one flat list with the section written down the right. The
+    // keyboard walks `rows` in this same order, so the highlight follows the
+    // tree top to bottom.
+    const matching = screens
+      .map((screen, at) => ({ screen, at }))
+      .filter(({ screen }) => !term || screen.label.toLowerCase().includes(lower))
+      .sort((a, b) => SECTIONS.indexOf(a.screen.section) - SECTIONS.indexOf(b.screen.section) || a.at - b.at);
+    for (const { screen } of matching) {
       const href = navigableHref(screen, screens);
       // A screen with a dynamic segment has no address of its own, so it is
       // never offered as one (frontend review finding 1).
@@ -139,8 +170,8 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
       out.push({
         id: `screen:${screen.path}`,
         group: "Screens",
+        section: screen.section,
         label: screen.label,
-        meta: screen.section,
         icon: "screen",
         screen,
         href,
@@ -201,6 +232,57 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
     return order.map((group) => ({ group, rows: byGroup.get(group)! }));
   }, [rows]);
 
+  const renderRow = (row: Row, nested: boolean) => {
+    const position = rows.indexOf(row);
+    const Icon =
+      row.icon === "screen" && row.screen
+        ? screenIcon(row.screen.screen)
+        : row.icon === "solution"
+          ? InboxIcon
+          : row.icon === "recent"
+            ? ClockIcon
+            : InboxIcon;
+    return (
+      <li key={row.id} role="option" aria-selected={position === index}>
+        <div
+          className={cn(
+            "flex items-center gap-[10px] py-[7px] pr-3",
+            // A row under a section parent sits one step further in, the way
+            // the sidebar's rows sit under theirs.
+            nested ? "pl-9" : "pl-3",
+            position === index ? "bg-xms-tint" : "",
+          )}
+        >
+          <button
+            type="button"
+            onMouseEnter={() => setIndex(position)}
+            onClick={() => go(row)}
+            className="xms-plain flex min-w-0 flex-1 items-center gap-[10px] text-left"
+          >
+            <Icon size={ICON.action} className="text-xms-label shrink-0" />
+            {row.code ? <span className="xms-mono text-xms-label shrink-0 text-body">{row.code}</span> : null}
+            <span className="text-xms-ink min-w-0 flex-1 truncate text-body">{row.label}</span>
+            {row.meta ? <span className="text-xms-muted shrink-0 text-body">{row.meta}</span> : null}
+          </button>
+          {/* The pin the All overlay used to carry. It is the only
+              way to add a row to the sidebar, so it moved here
+              rather than being dropped with the overlay. */}
+          {row.screen ? (
+            <button
+              type="button"
+              aria-label={pinned.has(row.screen.path) ? `Unpin ${row.label}` : `Pin ${row.label}`}
+              aria-pressed={pinned.has(row.screen.path)}
+              onClick={() => onTogglePin(row.screen!.path)}
+              className="text-xms-label hover:text-xms-ink shrink-0"
+            >
+              <PinIcon size={ICON.glyph} filled={pinned.has(row.screen.path)} />
+            </button>
+          ) : null}
+        </div>
+      </li>
+    );
+  };
+
   return (
     <div ref={box} className="relative">
       <div className="aix-finder">
@@ -247,57 +329,20 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
           {grouped.map(({ group, rows: groupRows }) => (
             <div key={group}>
               <p className="xms-caption text-xms-label px-3 pt-3 pb-1">{group}</p>
-              <ul>
-                {groupRows.map((row) => {
-                  const position = rows.indexOf(row);
-                  const Icon =
-                    row.icon === "screen" && row.screen
-                      ? screenIcon(row.screen.screen)
-                      : row.icon === "solution"
-                        ? InboxIcon
-                        : row.icon === "recent"
-                          ? ClockIcon
-                          : InboxIcon;
-                  return (
-                    <li key={row.id} role="option" aria-selected={position === index}>
-                      <div
-                        className={cn(
-                          "flex items-center gap-[10px] px-3 py-[7px]",
-                          position === index ? "bg-xms-tint" : "",
-                        )}
-                      >
-                        <button
-                          type="button"
-                          onMouseEnter={() => setIndex(position)}
-                          onClick={() => go(row)}
-                          className="xms-plain flex min-w-0 flex-1 items-center gap-[10px] text-left"
-                        >
-                          <Icon size={ICON.action} className="text-xms-label shrink-0" />
-                          {row.code ? (
-                            <span className="xms-mono text-xms-label shrink-0 text-body">{row.code}</span>
-                          ) : null}
-                          <span className="text-xms-ink min-w-0 flex-1 truncate text-body">{row.label}</span>
-                          {row.meta ? <span className="text-xms-muted shrink-0 text-body">{row.meta}</span> : null}
-                        </button>
-                        {/* The pin the All overlay used to carry. It is the only
-                            way to add a row to the sidebar, so it moved here
-                            rather than being dropped with the overlay. */}
-                        {row.screen ? (
-                          <button
-                            type="button"
-                            aria-label={pinned.has(row.screen.path) ? `Unpin ${row.label}` : `Pin ${row.label}`}
-                            aria-pressed={pinned.has(row.screen.path)}
-                            onClick={() => onTogglePin(row.screen!.path)}
-                            className="text-xms-label hover:text-xms-ink shrink-0"
-                          >
-                            <PinIcon size={ICON.glyph} filled={pinned.has(row.screen.path)} />
-                          </button>
-                        ) : null}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              {group === "Screens" ? (
+                // The tree: a section is the parent and its screens sit under
+                // it. A group rather than a disclosure, because a finder is
+                // for finding, and a closed branch is a screen that cannot be
+                // found.
+                bySection(groupRows).map(({ section, rows: sectionRows }) => (
+                  <div key={section} role="group" aria-label={section}>
+                    <p className="text-xms-ink pt-[6px] pb-[2px] pr-3 pl-6 text-body font-medium">{section}</p>
+                    <ul>{sectionRows.map((row) => renderRow(row, true))}</ul>
+                  </div>
+                ))
+              ) : (
+                <ul>{groupRows.map((row) => renderRow(row, false))}</ul>
+              )}
             </div>
           ))}
           {rows.length === 0 ? (
