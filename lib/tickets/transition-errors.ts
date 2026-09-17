@@ -6,6 +6,7 @@ import {
   changeWindowTitle,
   type ChangeWindowRefusal,
 } from "@/lib/tickets/change-window";
+import { elapsedWindowCopy } from "@/lib/tickets/reopen-window";
 
 /** The typed 409 bodies of POST /tickets/:key/transitions (Ticket Management technical 3.3). */
 export interface TransitionError extends ApiError {
@@ -20,6 +21,10 @@ export interface TransitionError extends ApiError {
   version?: number;
   /** The window rules' own refusal (TM-10, TM-18), where this was one. */
   changeWindow?: ChangeWindowRefusal;
+  days?: number;
+  deadline?: string;
+  startedOn?: string;
+  source?: string;
 }
 
 export const MISSING_ITEM_COPY: Record<string, string> = {
@@ -58,6 +63,10 @@ export function transitionError(error: unknown): TransitionError {
       parsed.minResolutionNotesChars = data.min_resolution_notes_chars;
     }
     if (Array.isArray(data.exemption_reasons)) parsed.exemptionReasons = data.exemption_reasons.map(String);
+    if (typeof data.days === "number") parsed.days = data.days;
+    if (typeof data.deadline === "string") parsed.deadline = data.deadline;
+    if (typeof data.started_on === "string") parsed.startedOn = data.started_on;
+    if (typeof data.source === "string") parsed.source = data.source;
   }
   const window = changeWindowRefusal(error);
   if (window) parsed.changeWindow = window;
@@ -96,6 +105,13 @@ export function describeTransitionError(error: TransitionError): ToastCopy {
       return {
         title: "Read only",
         detail: "Closed and cancelled tickets cannot be edited.",
+        tone: "error",
+        reload: true,
+      };
+    case "reopen_window_elapsed":
+      return {
+        title: "Window closed",
+        detail: elapsedWindowCopy({ days: error.days ?? 0, deadline: error.deadline ?? null }),
         tone: "error",
         reload: true,
       };

@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { formatDateTime, isTerminal, priorityLabel } from "@/lib/portal/client-language";
+import { elapsedWindowCopy } from "@/lib/tickets/reopen-window";
+import { describeTransitionError, transitionError } from "@/lib/tickets/transition-errors";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
   useAddPortalCommentMutation,
@@ -85,6 +87,11 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
           tone: "error",
         });
         void ticket.refetch();
+      } else if (parsed.code === "reopen_window_elapsed") {
+        const copy = describeTransitionError(transitionError(error));
+        push({ title: copy.title, detail: copy.detail, tone: copy.tone });
+        void ticket.refetch();
+        void transitions.refetch();
       } else {
         push({ title: "Not done", detail: describeError(parsed), tone: "error" });
       }
@@ -94,6 +101,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
   };
 
   const actions = transitions.data?.transitions ?? [];
+  const reopenWindow = transitions.data?.reopen_window ?? null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -137,6 +145,10 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
             ))}
           </ol>
         </PortalCard>
+      ) : null}
+
+      {reopenWindow && !reopenWindow.allowed ? (
+        <p className="text-xms-body text-body">{elapsedWindowCopy(reopenWindow)}</p>
       ) : null}
 
       {actions.length > 0 ? (

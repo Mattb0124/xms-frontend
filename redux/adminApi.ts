@@ -51,6 +51,8 @@ export interface AccountSettings {
   container_time_entries: number | null;
   container_elapsed_days: number | null;
   container_effort_minutes: number | null;
+  /** Working days after resolve during which a matched ticket may reopen; 0 never. */
+  reopen_window_business_days?: number;
   version: number;
 }
 
