@@ -1,0 +1,50 @@
+################################################################################
+# Local development.
+#
+# Usable on its own: bring this up and the front end runs against whatever is
+# already listening on the host's port 3000. Nothing else is required, because
+# this service has no database, no Vault and no secrets — it only needs three
+# addresses.
+#
+# The backend lives in ../xms-backend. Start it there first:
+#
+#     cd ../xms-backend && docker compose up -d      # serves on localhost:3000
+#     cd ../xms-frontend && docker compose up --build
+#
+# and open http://localhost:3001. The front end is published on 3001 so it
+# does not collide with the backend's 3000; inside the container it still
+# listens on 3000, exactly as it does in the cluster.
+#
+# ../xms-worker and ../xms-mcp publish 3002 and 8000 with their own compose
+# files, and the addresses below point at those. You do not need them: stop
+# one and its card on /platform turns "unreachable" with the connection error
+# printed on it, while the rest of the page renders exactly as before. That is
+# the per-upstream error tolerance, and it is worth seeing once.
+################################################################################
+
+services:
+  xms-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: local
+      PORT: "3000"
+      SERVICE_NAME: xms-frontend
+      AWS_REGION: us-east-1
+
+      # host.docker.internal is the host from inside the container, so this
+      # reaches the backend's published port. In the cluster these three are
+      # set by the chart to xms-*.xms.svc.cluster.local and are not reachable
+      # from anywhere else.
+      BACKEND_URL: http://host.docker.internal:3000
+      WORKER_URL: http://host.docker.internal:3002
+      MCP_URL: http://host.docker.internal:8000
+
+      UPSTREAM_TIMEOUT_MS: "8000"
+    ports:
+      - "3001:3000"
+    extra_hosts:
+      # Linux does not provide host.docker.internal by default; Docker Desktop
+      # does. Declaring it makes the same file work on both.
+      - "host.docker.internal:host-gateway"
