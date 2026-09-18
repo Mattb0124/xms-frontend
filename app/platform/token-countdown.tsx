@@ -23,11 +23,9 @@ import { useEffect, useState } from 'react';
 export function TokenCountdown({
   issuedAt,
   expiresAt,
-  ttlSeconds,
 }: {
   issuedAt: string;
   expiresAt: string;
-  ttlSeconds: number;
 }) {
   const [now, setNow] = useState<number | null>(null);
 
@@ -56,7 +54,7 @@ export function TokenCountdown({
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
 
-  const total = Number.isNaN(issued) ? ttlSeconds * 1_000 : expiry - issued;
+  const total = Number.isNaN(issued) ? 0 : expiry - issued;
   const fraction = total > 0 ? Math.max(0, Math.min(1, remainingMs / total)) : 0;
 
   const state =
