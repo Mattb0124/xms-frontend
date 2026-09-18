@@ -158,8 +158,8 @@ export async function collectPlatformSnapshot(): Promise<PlatformSnapshot> {
   const selfReport: ServiceReport = {
     name: cfg.serviceName,
     role:
-      'Backend-for-frontend. The only service with a public gateway; every ' +
-      'card below it was fetched by this process, not by the browser.',
+      'The website you are reading. The only service the internet can reach, ' +
+      'and the one that fetched everything below on your behalf.',
     upstreamUrl: null,
     reachable: true,
     durationMs: 0,

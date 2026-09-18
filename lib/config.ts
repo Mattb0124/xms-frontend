@@ -87,17 +87,17 @@ export function config(): AppConfig {
       backend: {
         name: 'xms-backend',
         url: base('BACKEND_URL'),
-        role: 'Owns the items table. Aurora over an IAM token, secrets from Vault.',
+        role: 'The application interface. Owns the data the page shows.',
       },
       worker: {
         name: 'xms-worker',
         url: base('WORKER_URL'),
-        role: 'Background processing. Same Vault and Aurora contract, no public surface.',
+        role: 'Scheduled work. Runs on a timer, answers to no one outside.',
       },
       mcp: {
         name: 'xms-mcp',
         url: base('MCP_URL'),
-        role: 'Model Context Protocol server. Reads the backend schema; never writes.',
+        role: 'Tooling endpoint for developers. Reads data it does not own, and cannot change it.',
       },
     },
     kubernetes: {
