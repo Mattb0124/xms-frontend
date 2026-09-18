@@ -43,7 +43,10 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 
 RUN chown -R node:node /app
-USER node
+# Numeric, not a name. Kubernetes cannot verify that a named user is non-root
+# from image metadata alone, so with runAsNonRoot set the kubelet refuses to
+# start the container with CreateContainerConfigError. (node is uid 1000.)
+USER 1000:1000
 
 EXPOSE 3000
 CMD ["node", "server.js"]
