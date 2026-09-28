@@ -3,12 +3,12 @@ import { getBearerToken } from "@/lib/auth/token";
 import { rememberRequestId } from "@/lib/telemetry/request-id";
 
 /**
- * Same origin. The browser calls `/v1` on this host, and `app/v1/[...path]`
- * forwards it to BACKEND_URL on the server. An empty base keeps every
- * existing path (`/v1/...`) relative, so no API address is baked into the
- * bundle.
+ * Same origin. In the browser every `/v1` call goes to this host, and
+ * `app/v1/[...path]` forwards it to BACKEND_URL on the server. The upstream
+ * address is never read here. On the server this is empty: nothing in a
+ * Server Component should dial the API through this client.
  */
-export const API_BASE_URL = "";
+export const API_BASE_URL = typeof window === "undefined" ? "" : window.location.origin;
 
 export interface Principal {
   kind: "internal" | "portal" | "api_client" | "harness";
