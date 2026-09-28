@@ -81,7 +81,7 @@ describe("uploadAttachment", () => {
     expect(result.scan_state).toBe("clean");
     expect(calls[0]).toMatchObject({
       method: "POST",
-      url: "/v1/tickets/CS0001001/attachments/presign",
+      url: `${window.location.origin}/v1/tickets/CS0001001/attachments/presign`,
       body: { file_name: "notes.txt", content_type: "text/plain", size_bytes: 5 },
     });
     expect(calls[1]).toMatchObject({ method: "PUT", url: "http://api.test/v1/storage/upload?key=k&signature=s" });
@@ -89,7 +89,7 @@ describe("uploadAttachment", () => {
     expect(calls[1].body).toBe(file);
     expect(calls[2]).toMatchObject({
       method: "POST",
-      url: "/v1/tickets/CS0001001/attachments/att-1/confirm",
+      url: `${window.location.origin}/v1/tickets/CS0001001/attachments/att-1/confirm`,
       body: { visibility: "public" },
     });
     expect(stages.map((stage) => stage.stage)).toEqual(["presigning", "uploading", "uploading", "scanning", "clean"]);
@@ -112,7 +112,7 @@ describe("uploadAttachment", () => {
       portal: true,
     });
     expect(result.scan_state).toBe("quarantined");
-    expect(calls[0].url).toBe("/v1/portal/tickets/CS0001001/attachments/presign");
+    expect(calls[0].url).toBe(`${window.location.origin}/v1/portal/tickets/CS0001001/attachments/presign`);
     const form = calls[1].body as FormData;
     expect(form.get("key")).toBe("k");
     expect(form.get("policy")).toBe("p");
