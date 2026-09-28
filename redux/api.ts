@@ -2,8 +2,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getBearerToken } from "@/lib/auth/token";
 import { rememberRequestId } from "@/lib/telemetry/request-id";
 
-/** Build-time base URL for the XMS API (never a secret; see .env.example). */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
+/**
+ * Same origin. The browser calls `/v1` on this host, and `app/v1/[...path]`
+ * forwards it to BACKEND_URL on the server. An empty base keeps every
+ * existing path (`/v1/...`) relative, so no API address is baked into the
+ * bundle.
+ */
+export const API_BASE_URL = "";
 
 export interface Principal {
   kind: "internal" | "portal" | "api_client" | "harness";

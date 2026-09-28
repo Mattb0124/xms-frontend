@@ -1,0 +1,45 @@
+################################################################################
+# xms-frontend — dev.
+#
+# Only what makes this service different. The service account name and the
+# gateway wiring are computed by the chart from the platform contract and are
+# not repeated here.
+################################################################################
+
+service:
+  enabled: true
+  port: 3000
+  targetPort: 3000
+
+# This service holds no secrets. It has no Vault mount, no Vault role and no
+# database credential — it needs three URLs, which are plain values below.
+# Switching this on would be the first sign that the pattern has drifted.
+vault:
+  enabled: false
+
+gateways:
+  # The only service on this platform with a public gateway. Everything the
+  # browser sees, it sees through here.
+  public:
+    enabled: true
+    hostnames:
+      - xms-frontend.dev.xms.aix.thehackettgroup.com
+  # Also reachable over the VPN, for operators looking at /platform without
+  # going out to the internet.
+  internal:
+    enabled: true
+    hostnames:
+      - xms-frontend.dev.xms.int
+
+env:
+  # The internal services, by cluster DNS. Runtime values, not build args and
+  # not NEXT_PUBLIC_* — the browser must never learn these, and changing one
+  # is a Helm value rather than a rebuild.
+  BACKEND_URL: http://xms-backend.xms.svc.cluster.local:3000
+  WORKER_URL: http://xms-worker.xms.svc.cluster.local:3000
+  MCP_URL: http://xms-mcp.xms.svc.cluster.local:8000
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6

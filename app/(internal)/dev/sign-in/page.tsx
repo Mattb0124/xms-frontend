@@ -36,8 +36,6 @@ interface DevUser {
   roles: string[];
 }
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
-
 export default function DevSignInPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -51,7 +49,7 @@ export default function DevSignInPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const response = await fetch(`${API}/v1/dev/users`);
+        const response = await fetch("/v1/dev/users");
         if (!response.ok) throw new Error(`the API answered ${response.status}`);
         const body = (await response.json()) as DevUser[];
         if (!cancelled) setUsers(body);
@@ -90,7 +88,7 @@ export default function DevSignInPage() {
     setSigningIn(user.email);
     setLoadError(null);
     try {
-      const response = await fetch(`${API}/v1/dev/sign-in`, {
+      const response = await fetch("/v1/dev/sign-in", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: user.email }),

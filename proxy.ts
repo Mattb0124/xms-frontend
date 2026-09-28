@@ -26,7 +26,6 @@ export function proxy(request: NextRequest): NextResponse {
   const nonce = newNonce();
   const csp = contentSecurityPolicy({
     nonce,
-    apiOrigin: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001",
     allowEval: process.env.NODE_ENV !== "production",
   });
 

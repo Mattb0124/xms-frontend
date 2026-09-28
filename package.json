@@ -18,13 +18,15 @@
     "generate:api-types": "openapi-typescript ${XMS_OPENAPI_PATH:-../backend/openapi.json} -o src/api-types/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-sts": "^3.1141.0",
     "@clerk/nextjs": "^7.9.1",
     "@reduxjs/toolkit": "^2.12.0",
     "next": "16.3.4",
     "next-themes": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-redux": "^9.3.0"
+    "react-redux": "^9.3.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

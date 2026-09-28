@@ -44,7 +44,7 @@ describe("the CSP nonce", () => {
 
 describe("the policy", () => {
   it("allows the nonce and strict-dynamic, and no longer allows inline script", () => {
-    const csp = contentSecurityPolicy({ nonce: "abc123", apiOrigin: "https://api.example.test", allowEval: false });
+    const csp = contentSecurityPolicy({ nonce: "abc123", allowEval: false });
     const scriptSrc = directive(csp, "script-src");
     expect(scriptSrc).toContain("'nonce-abc123'");
     expect(scriptSrc).toContain("'strict-dynamic'");
@@ -56,7 +56,7 @@ describe("the policy", () => {
   });
 
   it("keeps unsafe-inline in style-src, and no nonce there, so it is not ignored", () => {
-    const csp = contentSecurityPolicy({ nonce: "abc123", apiOrigin: "https://api.example.test", allowEval: false });
+    const csp = contentSecurityPolicy({ nonce: "abc123", allowEval: false });
     const styleSrc = directive(csp, "style-src");
     expect(styleSrc).toBe("style-src 'self' 'unsafe-inline'");
     // A nonce in style-src makes 'unsafe-inline' ignored, which would block
@@ -65,19 +65,23 @@ describe("the policy", () => {
   });
 
   it("allows eval only where the caller asks for it", () => {
-    const options = { nonce: "abc123", apiOrigin: "https://api.example.test" };
+    const options = { nonce: "abc123" };
     expect(contentSecurityPolicy({ ...options, allowEval: true })).toContain("'unsafe-eval'");
     expect(contentSecurityPolicy({ ...options, allowEval: false })).not.toContain("'unsafe-eval'");
   });
 
   it("keeps the rest of the policy the review asked for", () => {
-    const csp = contentSecurityPolicy({ nonce: "abc123", apiOrigin: "https://api.example.test", allowEval: false });
+    const csp = contentSecurityPolicy({ nonce: "abc123", allowEval: false });
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("form-action 'self'");
     expect(csp).toContain("frame-ancestors 'none'");
-    expect(directive(csp, "connect-src")).toContain("https://api.example.test");
+    const connectSrc = directive(csp, "connect-src");
+    expect(connectSrc).toContain("'self'");
+    expect(connectSrc).toContain("https://*.clerk.com");
+    expect(connectSrc).not.toContain("svc.cluster.local");
+    expect(connectSrc).not.toContain("localhost");
   });
 });
 

@@ -1,0 +1,32 @@
+################################################################################
+# xms-frontend delivery.
+#
+# The stages live in the platform repository so that the registry, the deploy
+# role, the cluster and the chart are described once for every XMS service.
+################################################################################
+
+trigger:
+  branches:
+    include:
+      - dev
+
+pr: none
+
+resources:
+  repositories:
+    - repository: platform
+      type: git
+      name: XMS/AwsAccountXms
+      ref: refs/heads/main
+
+extends:
+  template: delivery/pipelines/build-deploy.yml@platform
+  parameters:
+    service: xms-frontend
+    ecrRepository: xms/frontend
+    servicePort: 3000
+    # This service has a public gateway, so the rollout is not finished until
+    # the internet can actually reach it. The in-cluster /health check the
+    # template always runs proves the pod; this proves the ALB, the listener,
+    # the HTTPRoute and DNS.
+    smokeUrl: https://xms-frontend.dev.xms.aix.thehackettgroup.com/

@@ -33,7 +33,7 @@ describe("fetchDownload", () => {
     expect(file.fileName).toBe("events.csv");
     expect(file.rowCount).toBe(1);
     expect(file.blob.size).toBe(8);
-    expect(calls[0].url).toBe("http://localhost:3001/v1/audit/export");
+    expect(calls[0].url).toBe("/v1/audit/export");
     expect(calls[0].init.method).toBe("POST");
     expect((calls[0].init.headers as Record<string, string>).authorization).toBe("Bearer tok-1");
     expect(calls[0].init.body).toBe('{"conditions":[]}');

@@ -1,0 +1,27 @@
+################################################################################
+# Local image, against the API already running on the host.
+#
+# The published port is 3000, the same port `pnpm dev` uses. Inside the
+# container the process also listens on 3000, which is the cluster port.
+# BACKEND_URL points at the host's 3001, where the API listens in local
+# development. In the cluster the chart sets the cluster-DNS name instead.
+################################################################################
+
+services:
+  xms-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: local
+      PORT: "3000"
+      SERVICE_NAME: xms-frontend
+      AWS_REGION: us-east-1
+      BACKEND_URL: http://host.docker.internal:3001
+      WORKER_URL: http://host.docker.internal:3002
+      MCP_URL: http://host.docker.internal:8000
+      UPSTREAM_TIMEOUT_MS: "8000"
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

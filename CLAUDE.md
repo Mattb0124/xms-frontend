@@ -865,7 +865,7 @@ styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)
 ```
 
-Environment: `NEXT_PUBLIC_API_BASE_URL` (API origin, also in the CSP), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (enables Clerk),
+Environment: `BACKEND_URL` (server-only upstream, never `NEXT_PUBLIC_`), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (enables Clerk),
 `NEXT_PUBLIC_DEPLOY_TARGET` (`local` | `dev` | `demo` | `production`; unset reads as `local` in a development build and
 `production` in a built one) and `NEXT_PUBLIC_AUTH_DEV_MODE=true` (dev token paste; local target only, and the build
 fails when it is on for any other). See `.env.example`.

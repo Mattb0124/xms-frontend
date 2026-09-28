@@ -6,11 +6,11 @@ The Next.js and React application for XMS. It serves two hosts from one codebase
 
 ```
 pnpm install
-cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_DEPLOY_TARGET=local, NEXT_PUBLIC_AUTH_DEV_MODE=true for the token paste sign-in
+cp .env.example .env.local   # BACKEND_URL, NEXT_PUBLIC_DEPLOY_TARGET=local, NEXT_PUBLIC_AUTH_DEV_MODE=true for the token paste sign-in
 pnpm dev                     # http://localhost:3000 (desk) and /portal (client portal)
 ```
 
-Sign in with a development token from the backend (`pnpm dev:token --email admin@example.test` there) at `/dev/sign-in`, or with Clerk when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set.
+Sign in with a development token from the backend (`pnpm dev:token --email admin@example.test` there) at `/dev/sign-in`, or with Clerk when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set. The browser talks only to this origin. `BACKEND_URL` is read on the server and forwarded from `/v1`; it is not a `NEXT_PUBLIC_` value.
 
 ### Deploy target
 

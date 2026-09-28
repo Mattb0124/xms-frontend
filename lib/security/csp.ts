@@ -38,13 +38,11 @@ export function newNonce(): string {
 
 export interface CspOptions {
   nonce: string;
-  /** The API origin the browser may call; also in `connect-src`. */
-  apiOrigin: string;
   /** React's development call stacks need `'unsafe-eval'`; production never gets it. */
   allowEval: boolean;
 }
 
-export function contentSecurityPolicy({ nonce, apiOrigin, allowEval }: CspOptions): string {
+export function contentSecurityPolicy({ nonce, allowEval }: CspOptions): string {
   const scriptSrc = [
     "'self'",
     `'nonce-${nonce}'`,
@@ -58,7 +56,7 @@ export function contentSecurityPolicy({ nonce, apiOrigin, allowEval }: CspOption
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://img.clerk.com",
     "font-src 'self' data:",
-    `connect-src 'self' ${apiOrigin} ${CLERK_ORIGINS} wss://*.clerk.accounts.dev`,
+    `connect-src 'self' ${CLERK_ORIGINS} wss://*.clerk.accounts.dev`,
     `frame-src ${CLERK_ORIGINS}`,
     "worker-src 'self' blob:",
     "object-src 'none'",
