@@ -133,4 +133,25 @@ describe("AccountSettingsTab", () => {
     // The reload discards the draft, so the row shows the server value again.
     expect(screen.getByLabelText(/Portal enabled/)).not.toBeChecked();
   });
+
+  it("saves email branding as one PUT with the rest of the settings", async () => {
+    let version = 1;
+    stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts"]),
+      "GET /v1/admin/accounts/acc-1/settings": () =>
+        json({ ...settings(version), email_branding: version === 2 ? { accent: "#1b4f72" } : {} }),
+      "PUT /v1/admin/accounts/acc-1/settings": (raw) => {
+        const body = JSON.parse(String(raw)) as { version: number; email_branding?: { accent?: string } };
+        expect(body).toEqual({ version: 1, email_branding: { accent: "#1b4f72" } });
+        version = 2;
+        return json({ ...settings(2), email_branding: { accent: "#1b4f72" } });
+      },
+    });
+    renderTab();
+    const accent = await screen.findByLabelText(/^Accent$/);
+    fireEvent.change(accent, { target: { value: "#1b4f72" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
+    await waitFor(() => expect(screen.getByText("version 2")).toBeInTheDocument());
+    expect(screen.getByLabelText(/^Accent$/)).toHaveValue("#1b4f72");
+  });
 });
