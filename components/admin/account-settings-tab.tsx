@@ -285,6 +285,24 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
         </div>
       </Panel>
 
+      <Panel title="Reopen window" caption="After a ticket is resolved or closed">
+        <FieldRow label="Working days" htmlFor="reopen_window_business_days">
+          <input
+            id="reopen_window_business_days"
+            type="number"
+            min={0}
+            max={365}
+            value={current.reopen_window_business_days ?? 5}
+            onChange={(event) => set("reopen_window_business_days", Number(event.target.value))}
+            className={INPUT}
+          />
+        </FieldRow>
+        <p className="text-muted mt-1 text-xs">
+          How long a matched reply can reopen the ticket, counted on the account calendar. Zero never reopens, including
+          the resolve day.
+        </p>
+      </Panel>
+
       <Panel
         title="Container cases"
         caption="When a ticket has quietly become a project, raise it for a scope decision (TM-27)"

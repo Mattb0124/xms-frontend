@@ -3,6 +3,7 @@ import type { TicketType } from "@/components/xms/type-bar";
 import { paramsToQuery, type TicketListParams } from "@/lib/tickets/queue-views";
 import type { SavedViewDefinition } from "@/lib/tickets/saved-views";
 import type { TicketSla } from "@/lib/tickets/sla";
+import type { ReopenWindowView } from "@/lib/tickets/reopen-window";
 import type { Level, PauseReason } from "@/lib/tickets/vocab";
 import { xmsApi } from "@/redux/api";
 
@@ -214,6 +215,7 @@ export interface AllowedTransition {
 export interface TransitionsResponse {
   from: string;
   transitions: AllowedTransition[];
+  reopen_window?: ReopenWindowView | null;
 }
 
 export interface Message {

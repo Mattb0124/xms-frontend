@@ -27,6 +27,7 @@ function settings(version: number) {
     attachment_max_bytes: 26214400,
     usage_analytics_portal: true,
     store_search_terms: false,
+    reopen_window_business_days: 5,
     version,
   };
 }
@@ -153,5 +154,23 @@ describe("AccountSettingsTab", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
     await waitFor(() => expect(screen.getByText("version 2")).toBeInTheDocument());
     expect(screen.getByLabelText(/^Accent$/)).toHaveValue("#1b4f72");
+  });
+
+  it("round-trips the reopen window in working days", async () => {
+    const calls: { key: string; body?: string }[] = [];
+    stubFetch({
+      "GET /v1/admin/me": me(["admin:accounts"]),
+      "GET /v1/admin/accounts/acc-1/settings": () => json(settings(1)),
+      "PUT /v1/admin/accounts/acc-1/settings": (raw) => {
+        calls.push({ key: "PUT", body: String(raw) });
+        return json({ ...settings(2), reopen_window_business_days: 0 });
+      },
+    });
+    renderTab();
+    const days = await screen.findByLabelText(/Working days/);
+    expect(days).toHaveValue(5);
+    fireEvent.change(days, { target: { value: "0" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
+    await waitFor(() => expect(calls[0]?.body).toContain('"reopen_window_business_days":0'));
   });
 });
