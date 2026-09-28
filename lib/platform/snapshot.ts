@@ -12,7 +12,7 @@ import { AwsIdentity, PlatformIdentity, PlatformSnapshot, ServiceReport } from "
  * describes itself, so the four cards on /platform are comparable. Second,
  * fan out to the other three over cluster DNS and collect what they say.
  *
- * This file is shared by `app/api/platform/route.ts`, which serialises the
+ * This file is shared by `app/api/platform/route.ts`, which serializes the
  * snapshot as JSON, and by `app/platform/page.tsx`, which renders it. The
  * page calls this function directly rather than making an HTTP request to its
  * own API route: a server talking to itself over the loopback interface to
