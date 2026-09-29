@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 /**
- * Liveness and readiness, as the chart's probes expect at /health.
+ * Liveness (/healthz) and readiness (/readyz, which re-exports this), as the
+ * chart's probes expect.
  *
  * This deliberately does NOT check the upstreams. This service is useful
  * while they are down, /platform is at its most useful precisely then, so
