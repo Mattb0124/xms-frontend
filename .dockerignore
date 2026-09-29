@@ -4,7 +4,11 @@ node_modules
 .gitignore
 .env
 .env.*
+coverage
 *.md
 deploy
 docker-compose.yml
 azure-pipelines.yml
+e2e
+playwright-report
+test-results

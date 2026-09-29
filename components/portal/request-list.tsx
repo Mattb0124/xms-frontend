@@ -1,0 +1,60 @@
+"use client";
+
+import Link from "next/link";
+import { ClientStatusPill } from "@/components/portal/primitives";
+import { priorityLabel, relativeTime } from "@/lib/portal/client-language";
+import type { PortalTicket } from "@/redux/portalApi";
+
+/**
+ * A simple request list: key in mono, title, client status on the ramp,
+ * priority as a word, updated as relative time. Rows are links so the
+ * keyboard reaches every request.
+ */
+export function RequestList({ items, emptyText }: { items: PortalTicket[]; emptyText: string }) {
+  if (items.length === 0) {
+    return (
+      <p role="status" className="text-xms-label py-6 text-center text-body">
+        {emptyText}
+      </p>
+    );
+  }
+  return (
+    <table className="w-full text-body">
+      <thead>
+        <tr className="text-xms-muted border-xms-line border-b text-left text-body font-semibold">
+          <th scope="col" className="py-2 pr-3 font-medium">
+            Request
+          </th>
+          <th scope="col" className="py-2 pr-3 font-medium">
+            Status
+          </th>
+          <th scope="col" className="py-2 pr-3 font-medium">
+            Priority
+          </th>
+          <th scope="col" className="py-2 font-medium">
+            Updated
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((item) => (
+          <tr key={item.id} className="border-xms-line hover:bg-xms-row-hover border-b last:border-b-0">
+            <td className="py-3 pr-3">
+              <Link href={`/portal/requests/${item.key}`} className="flex flex-col gap-0.5 rounded-control">
+                <span className="xms-mono text-xms-label text-body">{item.key}</span>
+                <span className="text-xms-ink font-medium">{item.short_description}</span>
+              </Link>
+            </td>
+            <td className="py-3 pr-3">
+              <ClientStatusPill state={item.state} />
+            </td>
+            <td className="text-xms-body py-3 pr-3">{priorityLabel(item.priority)}</td>
+            <td className="text-xms-label py-3">
+              <time dateTime={item.updated_at}>{relativeTime(item.updated_at)}</time>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}

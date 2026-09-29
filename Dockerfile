@@ -5,29 +5,26 @@
 ################################################################################
 FROM node:24-alpine AS build
 
+RUN corepack enable && corepack prepare pnpm@10.5.2 --activate
+
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm install --no-audit --no-fund
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-COPY tsconfig.json next.config.ts ./
-COPY app ./app
-COPY lib ./lib
+COPY . .
 
-# `output: "standalone"` in next.config.ts makes this emit .next/standalone —
-# a server plus only the node_modules it actually reached. There is no
-# `npm prune` step because that tracing has already happened.
+# output: "standalone" in next.config.ts emits .next/standalone, a server plus
+# only the node_modules it actually reached.
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN pnpm build
 
 ################################################################################
 # Runtime
 ################################################################################
 FROM node:24-alpine AS runtime
 
-# No RDS trust bundle here, unlike the other XMS services. This one has no
-# database and no database credential, so there is nothing for it to verify a
-# database certificate for.
+# No RDS trust bundle. This service has no database and no database credential.
 
 WORKDIR /app
 
@@ -36,16 +33,13 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 
-# The standalone server, then the static asset tree it does not inline.
-# There is no public/ directory: the only static file is app/icon.svg, which
-# the App Router emits into the build itself.
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
 
 RUN chown -R node:node /app
-# Numeric, not a name. Kubernetes cannot verify that a named user is non-root
-# from image metadata alone, so with runAsNonRoot set the kubelet refuses to
-# start the container with CreateContainerConfigError. (node is uid 1000.)
+# Numeric, not a name. With runAsNonRoot the kubelet refuses a named user it
+# cannot verify from image metadata alone. node is uid 1000.
 USER 1000:1000
 
 EXPOSE 3000

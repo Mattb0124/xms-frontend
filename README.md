@@ -1,241 +1,75 @@
-# xms-frontend
+# frontend (`xms-web`)
 
-The XMS user interface, and the only service on this platform that the
-internet can reach. Everything else — `xms-backend`, `xms-worker`, `xms-mcp` —
-sits behind it on the cluster network with no public gateway at all.
+The Next.js and React application for XMS. It serves two hosts from one codebase: the internal desk at `xms.<domain>` (route group `app/(internal)`) and the client portal at `portal.<domain>` (route group `app/(portal)`). The rules, the built layout and the environment are in `CLAUDE.md`; the specification lives in the sibling spec repository (`01-architecture/USER-EXPERIENCE.md`, `DESIGN-SYSTEM.md`, `WIREFRAMES.md` and section 6 of every `02-modules/*/TECHNICAL-SPEC.md`).
 
-That arrangement is called a **backend-for-frontend**, or BFF, and this
-repository is the reference for it. If you are about to write another service
-on XMS, or another front end, read `lib/backend.ts` and
-`app/api/platform/route.ts` first; between them they contain the whole idea.
-
----
-
-## Why the browser only ever talks to this service
-
-A conventional single-page app ships JavaScript that calls the API directly
-from the user's machine. Doing that on this platform would mean three things
-we do not want.
-
-**Every internal service would need a public address.** The backend, the
-worker and the MCP server would each need an ALB, a hostname, a certificate
-and a WAF rule, and each would become a thing an attacker can reach and
-fingerprint. Instead they are `ClusterIP` Services. Their addresses —
-`xms-backend.xms.svc.cluster.local` and friends — resolve only inside the
-cluster. A browser cannot connect to them from any network, including the
-VPN, because the name means nothing to any resolver but the cluster's.
-
-**Every internal service would need CORS.** Cross-origin rules are a
-distributed configuration problem: one list of allowed origins per service,
-kept in step by hand, each one a preflight round trip on the user's latency
-budget and a place to get it subtly wrong. Here every request the browser
-makes is same-origin, to this service, so there is no CORS configuration
-anywhere in this estate.
-
-**The browser would need a token.** If the page calls the API, the page holds
-a credential. It lives in memory or in storage, it is visible in devtools, it
-leaks into logs and error trackers, and it is valid from anywhere in the
-world. With a BFF the session lives in an HTTP-only cookie on this origin and
-nothing else; this service exchanges it for whatever the upstreams need, on
-the server, where the exchange cannot be observed or replayed.
-
-The property that falls out of all three: **nothing about the internal
-services reaches the browser bundle**. Not an address, not a port, not a
-token. The three upstream URLs are read from `BACKEND_URL`, `WORKER_URL` and
-`MCP_URL` at request time, inside modules marked `import 'server-only'`. They
-are not build arguments and they are emphatically not `NEXT_PUBLIC_*`, which
-would inline them into the JavaScript at build time. Import any of that code
-from a Client Component and the build fails rather than shipping it.
-
-This service also holds **no secrets**: no Vault mount, no Vault role, no
-database, no database credential. Its entire configuration is three URLs. The
-proof page says so, and says it by reading its own process environment rather
-than by asserting it.
-
----
-
-## The shape of the code
+## Run it locally
 
 ```
-lib/config.ts       the three upstream addresses, read per request, no defaults
-lib/backend.ts      the ONLY code that knows how to reach an internal service
-lib/platform.ts     this service's own identity, and the fan-out to the others
-lib/validate.ts     boundary validation, shared by the route and the action
-lib/types.ts        the wire shapes, transcribed from the backend
-
-app/api/items       GET and POST, proxied to xms-backend
-app/api/platform    the aggregate identity document
-app/healthz, readyz the chart's probe targets
-app/page.tsx        the items page
-app/platform        the proof page, and its one Client Component
+pnpm install
+cp .env.example .env.local   # BACKEND_URL, NEXT_PUBLIC_DEPLOY_TARGET=local, NEXT_PUBLIC_AUTH_DEV_MODE=true for the token paste sign-in
+pnpm dev                     # http://localhost:3000 (desk) and /portal (client portal)
 ```
 
-`lib/backend.ts` is the narrow waist. One function issues every outbound
-request, which means the timeout, the error shape and — when we add it — the
-session check exist exactly once. There is a long comment in that file marking
-precisely where authentication goes and what it should and should not
-forward. It is the first question everyone asks, so it is answered there
-rather than in a ticket.
+Sign in with a development token from the backend (`pnpm dev:token --email admin@example.test` there) at `/dev/sign-in`, or with Clerk when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set. The browser talks only to this origin. `BACKEND_URL` is read on the server and forwarded from `/v1`; it is not a `NEXT_PUBLIC_` value.
 
-**Errors are loud.** A non-2xx from an upstream throws an `UpstreamError`
-carrying the service, the URL, the status and the body. Nothing returns an
-empty array on failure, because an empty array renders as a page that looks
-fine. There is exactly one exception in the whole codebase, in
-`lib/platform.ts`: the proof page tolerates a failure *per upstream*, so that
-one dead service cannot blank a diagnostic tool at the moment you need it.
-The failure is still printed, in full, on that service's card. Nowhere else
-is allowed to do this, and the comment next to the `catch` says so.
+### Deploy target
 
----
+`NEXT_PUBLIC_DEPLOY_TARGET` names where a build is going: `local`, `dev`, `demo` or `production`. Every pipeline sets it. Unset means `local` in a development build and `production` in a built one, so a pipeline that forgets it closes the door rather than opening it.
 
-## Running it locally
+The developer conveniences exist only on `local`: the dev sign-in at `/dev/sign-in`, the token check at `/dev/tokens`, and the pasted bearer kept in browser storage. `NEXT_PUBLIC_AUTH_DEV_MODE=true` on any other target fails the build, because a token in `localStorage` is readable by any script on the origin and belongs on a developer's own machine alone (security review finding 27).
 
-You need the backend up. It lives in `../xms-backend` and serves on port 3000:
+Quality gates, all of which must be green before a push:
 
-```bash
-cd ../xms-backend && docker compose up -d
+```
+pnpm check      # eslint, tsc --noEmit, prettier --check, the next.config check (no ignored errors), Vitest
+pnpm format     # writes what the check reads
+pnpm test:e2e   # Playwright golden paths against a running API with the seed (E2E_API_TOKEN)
 ```
 
-Then, in this repository:
+## What is built (2026-09-08)
 
-```bash
-docker compose up --build        # http://localhost:3001
-```
+- The desk shell (finder bar, pinned sidebar, content header with filter chips, command palette, notifications) and the composition components in `components/xms`.
+- My work: the scorecards, the brief line, Time today, and the "Waiting on me" rail over `GET /v1/me/waiting` with one row per thing that still needs a decision or an entry, its count and the address the API named for it, checked against this application's route registry (same-site, a screen the registry declares, and one this viewer may open) so the account-specific rows land where the server meant them; the item's key answers where the link is not an address this desk serves, and only a key the registry has never heard of follows the server's link alone. "Nothing is waiting on you" when there is none, and the whole rail hidden while the route is not deployed.
+- Tickets: Queue with system views, chips, Count cards, cursor paging and export; new ticket with the priority preview; the record with transitions, close discipline, conversation, activity, time, links, resolution, email, attachments and the rails; dispatch; quarantine.
+- Saved views (`/v1/views`, tickets:view): the server's views sit in the Queue's own view list beside the system ones, personal or shared with everyone on the account. Selecting one writes its conditions into the URL rather than sending its id to the list route, so the chips stay removable, the trail still reads as criteria and a pasted link is still the list; the view id only names which view is showing and leaves the address the moment a criterion changes. "Save as view" files the current chips under one account, which is what the API requires, taking the account chip where there is one and asking otherwise. Rename, resharing and delete are offered to the owner alone, as the API enforces. A condition the chip grammar cannot express is named rather than dropped, and so is a view that names no state, which the Queue has to narrow to open tickets. The per-browser star stays the fallback while the route is not deployed.
+- Out-of-scope work: the ticket record's Scope card with the flag, its reason, who raised it and when, and the decision with its note, its allowance in hours and who decided; Flag out of scope (a reason is required) and Withdraw flag under `tickets:work`; Approve with an optional allowance in whole minutes and an optional note, and Decline with a note, under `tickets:approve-scope`, both hidden from the person who raised the flag because approval is the account's commercial answer, not the flagger's own; every refusal in words. The Queue filters on the flag: a "Flagged out of scope" system view, and a chip on the server's closed vocabulary (not flagged, flagged, approved, declined) written into the URL beside the other chips, so a pasted link reproduces the list and the export says what the list said. The waiting rail's out-of-scope row opens the tickets it counted rather than the whole queue.
+- Groups (TM-08): the Queue's two group dimensions, "My groups" over `my_groups=true` and one assignment group over `group_id`. Neither is a comma list on the API, so both are single-value chips that compose with any view, and both are expressible in a saved view, the group queue as the server's own `is_mine` on group_id, so a shared "my groups" view means the reader's groups and never the saver's. On the record the group is its own picker beside the assignee, so reassignment is to a group or to a person, with a retired group off the list, kept only while it is the value in force, and `group_retired` in words. A saved view can be shared with one group now that there is a picker to name it with, and a move away from that share clears the reference. The account's Configuration tab carries the routing defaults, which group takes which type and category, read under `tickets:view` and written under `admin:config` as one whole set so a rule cannot be half-saved.
+- Groups catalog (`/cases/groups`, TM-10, `tickets:view`): the projects and change windows a ticket tree belongs to, with the kind, the account, the schedule, the freeze count and the status; create and edit under `tickets:work`, with the change window's two ends and every freeze refused here in the API's own rules, and `invalid_schedule` carrying the server's problems into the sentence. The kind and the account do not move on an existing record.
+- Change calendar (`/cases/change-calendar`, TM-18, `tickets:view`): the change windows over a month with their freezes and the changes planned inside them, the next window with the days to it, and whether the account is inside a window right now, frozen, or outside every one, answered by the route that reads the same rules the transition gate uses rather than recomputed here. On the record the window refusals now have somewhere to go: `change_freeze` and `change_conflict` are the warnings any worker acknowledges with a reason, and `outside_change_window` and `change_window_required` are overrides offered to a holder of `tickets:override-change-window` alone, the reason travelling as `change_window_reason` onto the audit either way.
+- Knowledge: Solutions list and record, section editor, visibility, history, feedback, generalization with the findings sheet.
+- Time: My timesheet and the Time tab, with the optional start time on Log time, the after-hours badge (class, the contract's handling, the multiplier), the amount and the frozen rate per entry, the Over budget pill and the overage_blocked refusal in words; contract card from the contract position.
+- Non-ticket time (TB-12): "Log time without a ticket" on the timesheet takes the account and then the bucket, and runs the same Log time form over the account's own activity and class catalogs, opening on the bucket's own billable class and saying whether that class consumes the contract, which is the whole of the burn rule. The buckets carry the shared taxonomy (governance, QBR preparation, account management, escalation handling, custom), a retired one is off the picker, and `bucket_retired` is worded. The entries land on the timesheet named by their bucket, or as non-ticket time where the API sent no label. The account record's Contracts tab lists the buckets with their key, taxonomy, class and status, and renaming, reclassing or retiring one is `contracts:manage` while the list itself is `time:log`, so the panel holds its own read gate.
+- Budget: the account record's Budget tab and the account dashboard's Budget tab (`/accounts/[id]?tab=budget`, the target of the threshold notifications, reachable with contracts:view and no admin:accounts; the tab is not offered without it) with one card per active contract: consumed against available, the burn bar that turns amber at the first fired threshold and red once over, threshold ticks with the fired ones marked and the next named, the forecast sentence, the unrated note, and the drill-through of entries by person, activity and billable class over the period (Export waits for an export route).
+- Billing periods: the account record's Billing tab with one period per calendar month, its state (Open, Submitted, Approved, Locked, Exported), who submitted, approved and locked it by name (System for the automatic lock), the summary the server kept (hours, amount, by class, unrated hours) and the checksum prefix; New period from a month picker (time:lock-period); Submit and Reopen (contracts:manage), Approve and Lock (time:lock-period) with invalid_transition and stale_version in words; CSV and Excel finance files for a locked period fetched with the session token, and the export records with rows, checksum and delivery state.
+- Capacity: the Capacity view (`/capacity`) with the month, role, group and account in the URL, one row per person with available, allocated, actual and remaining hours and the status pill (Available, Near capacity, Over, No calendar), totals including the remaining total, the allocation cells per account editable inline under capacity:manage and saved as one PUT with versions (stale_version reloads), and the demand overlay beneath (allocated, weighted pipeline and project demand stacked against the available hours, with the subjects); Planned versus actual (`/capacity/variance`) by month, account and person with the variance in hours and percent, largest first, and the variance total (Export waits for a route); the Skills matrix (`/capacity/skills`) as a heat map of people against skills by level with a role filter, and as an account lens with each required technology marked Covered, Single point of failure or Gap and the qualified people; Demand (`/capacity/demand`) over a month range with pipeline and project lines, weighted hours and totals, Add demand and the CSV import with the refusals in words (capacity:manage); the account records carry "Single point of failure" and "Gap" chips from the account lens; PTO on the person record for the person themselves or a capacity manager; the assignee picker shows each roster candidate's remaining hours this month with a warning marker when near or over capacity.
+- Reporting: Operations and Account dashboards with "View as client", the comp-time panel per person on the account dashboard, report packs, audit search, security and usage dashboards, exports; the account dashboard's Satisfaction tab (`/accounts/[id]?tab=satisfaction`) with the average score, the distribution as five bars, the low-score count, the surveys sent and answered, and the responses with score, ticket, comment, respondent and date over a date range, and beside it the quarterly relationship block (the latest period, the mean per question and the four-period trend) drawn only when the API answers with one.
+- Audit search (`/admin/audit`, audit:read): the condition builder over the three streams, the results, the record drawer with old and new values, the "Show this request" pivot, Load more and Export CSV. The audit stream carries the operator half as well, so a change to a user, a role, a group or a configuration catalog arrives with no account: those rows read as Portfolio in the Account column and carry an Operator chip taken from the scope the server sent, never inferred from the missing account. Those rows can now be asked for: the condition editor offers "is Portfolio-wide" and "is any account" on the account, and "is empty" and "is not empty" on the other nullable columns, sending the API's `is_null` and `is_not_null` with no value and no value box to fill in. The pair is offered on nullable columns alone, because a null test on a column the view always writes is a mistake rather than a filter. Beneath the results, the saved queries: every one this reader can see (their own plus every shared one) with how many conditions it carries, who saved it and whether it is shared. Run fills the same results table, named by the query it came from, and Load more then pages through that query's own run route; Load into builder puts the conditions back in the editor without running anything. Saving takes a name and a description, and the Share switch is offered only with `audit:export`, which `audit:read` does not imply, since a shared query is how audit rows are put in front of other people. Renaming and deleting are the owner's alone. A query that is gone reads as deleted or unshared and never as forbidden, because the API answers the same 404 to a query that was removed and to somebody else's private one.
+- Security dashboard (`/admin/security`, audit:read): sign-in failures, denials, isolation probes, admin changes, exports and downloads, abuse by kind, the clients the rate limiter turned away, what is paused right now (each paused subscription and tripped instance by name, with its account and the reason), the files the scanner held back and the queues with work nobody claimed back (each with the connector instance its payload names), each a tile and a panel under the window selector. A figure the API did not answer is left out rather than printed as a zero, and the two figures that read the present rather than the window say so. Every row opens the record behind it, for a reader who holds the permission: rate-limited clients the API clients screen, a tripped instance its own connector page, a dead-letter queue that instance's Dead letters tab, and a paused webhook subscription the account it belongs to, this desk serving no screen for a subscription the client registers itself through the API. The dead-letter tile counts every account while the rows below it are the ones granted to you, and the panel says so. The integrity panel beside them reads the present: the digest chain per stream with its last digested day, row count, hash head and what the last verification said, the archive in cold storage, the events you can see per stream with their span, and the retention policy. A stream that has never been verified reads as never verified rather than as a passing one, a mismatch leads the whole panel, and the retention months are printed as the declared policy they are, with the API's own word that the job which would enforce them is not built, so a promise is never shown as a measurement.
+- Usage dashboard (`/admin/usage`, analytics:read): the roll-up tiles and count lists, then the core-loop funnel as a step strip (opened, first reply, time logged, solution linked, resolved, closed) with each count, a bar against the largest step and the server's drop-off in words; a negative drop-off is worded with its reason rather than clamped, because a step is counted on its own and not as a subset of the one before, so a ticket resolved under a time exemption reaches Resolved without ever reaching Time logged. Under it the same loop one account at a time, each account name opening its dashboard, and the adoption table by role with the action, the people and times in the window, and the first-use date that reaches past it on purpose; a row for an actor holding no role reads as "No role assigned" rather than being dropped. Then the per-account strip of the same window as a Count card sorted on tickets created, busiest first, with tickets closed, the time logged in hours, portal sign-ins, API client calls and active users. The funnel, the adoption table and the strip are each drawn only where the API answers them.
+- Report schedules: the account record's Report packs tab (reports:manage) listing each schedule with its cadence, day and time, next run, whether its runs are held for review and enabled flag; add or edit one (name, cadence, run day with the weekly 1 to 7 rule, run time, period, distribution rows of internal user, portal user or contact, review before sending, enabled) saved with the version, with run_day_weekly and stale_version in words; Run now with an optional period showing the delivery outcome per recipient, or, for a schedule that holds its runs, the deadline and a link to the review; the runs history with period, status, the review state as a pill on the signal trios, delivery outcomes, the pack download and a Review link on every held run.
+- Review before send: `/reports/runs/[id]` (reports:manage, fails closed) for one held run, read before anything reaches a client. The run's status and its deadline (a passed one says the grace period expired and that nothing was sent), the pack as the two renditions present it (the narrative, the service level tiles, the backlog and notable tables, the consumption line, and the deck's own "No activity this period" line for a section that carries nothing), a link to open each rendition through the presigned URL the API minted, and the decisions. The narrative is editable, one box per section of the renditions, with the source of the words said above it (from the template, from Axel, or rewritten by a reviewer) and "AI is off for this account" where Axel is not enabled: "Regenerate with my edits" saves the words and rebuilds both files from the same frozen numbers, minting fresh links. "Approve and send" waits for a saved edit to exist and "Send without changes" is for a reviewer who accepts the narrative as written; both deliver, and the API rebuilds an edit nobody regenerated before it sends, so the words in the panel are the words that ship. Cancel needs a reason and sends nothing. The numbers stay read only, because they were frozen when the run rendered. Every refusal in words: not_under_review names the status the run now has, run_without_schedule says the run was generated by hand and has nobody to send to, run_without_pack says there is nothing to send, duplicate_section says nothing was saved, and an empty reason is refused before the API is asked. The reviewer notification and the deadline reminder both open this screen.
+- Report packs: `/reports/packs/[id]` with the frozen numbers, the notable list and the narrative, and both renditions: the deck as a link and the PDF minted on request, since each PDF link costs a `data.export.produced` event on the API and is not worth spending on every view of the screen.
+- Engagements: the commercial envelope a contract is filed under, on the account record's Contracts tab (contracts:view to read, contracts:manage to write) with the name, the owner, the renewal date, the notice period and the date it means deciding by, the status (Active, Expiring, Ended) and which of the 90, 60 and 30 day alerts and the notice-period alert have fired; add and edit with the version, the status sent only when a person changed it by hand so a moved renewal date still decides it otherwise; an engagement picker on the contract rules editor; and a renewal chip on the account dashboard header for each expiring engagement, red once the notice period has been entered.
+- Contacts: the account record's Contacts tab (`admin:accounts`) with every person the account writes to, their address, whether they hold a portal user, and the flags they carry, set one checkbox at a time and sent as the whole set with the row's version; `executive_sponsor` is the flag the quarterly relationship survey addresses, alongside `billing_contact` and `csat_recipient`, and a flag a newer API adds is still shown and still offered rather than quietly dropped.
+- Admin: accounts (settings, contacts and their flags, intake aliases, AI section, calendars, engagements, contracts with the rules editor (the engagement it is filed under, after-hours handling, overage, rollover, thresholds, client notification, forecast window, required technology codes) and rate card versions per contract and as the account default,
+  billing periods, connectors, configuration overrides per catalog with the effective source and version history, or "Nothing active" when nothing resolves), users, roles, groups, configuration (operator defaults, read only), holiday libraries, connectors (health, maps, runs, dead letters, the outbound queue), migration console (batches with dry runs and who ran them by name, records and the source payload, log, reconciliation with explanations, named signers and explainers, and four-eyes sign-off with the server's blocker in words).
+- API clients: `/admin/api-clients` (admin:api-clients, which admin:users implies) with the name, expiry, key prefix, scopes as chips, how many accounts the client may read, the rate limit it carries, last used and the status; New client over the server's scope catalog with its descriptions and the accounts granted to you, with an optional expiry and the rate limit opening on the API's own default of 600 requests a minute; the key in a copy box once, with the warning that it will not be shown again and no way to recover it; Revoke behind a confirm with already_revoked in words. Webhook subscriptions are registered by the client itself through the API with its key.
+- ServiceNow sync, the outbound half: the instance record's Outbound tab (`/admin/connectors/[id]?tab=outbound`) with every XMS change on its way to the client, its event, ticket key, status, attempts, next attempt, last error and the conflict outcome (which fields the push kept, which it dropped and under which policy) opening on the row, a status filter that lives in the URL, and Retry on a failed or dead-lettered row; the mode switch offers bidirectional and says what the promotion still needs, or why the API refused it; the health overview carries the outbound backlog beside the ingest figures on every row now that the route answers it, printing a blank rather than a zero for a count an older API did not send; and the ticket's Sync card shows the last push, what is still waiting to send, the last send error and a note when the last push kept or dropped fields.
+- Finance connector: the account record's Finance tab with the destination (admin:connectors): an HTTPS endpoint or an object store prefix, the format, whether it is enabled, the signing key in force and the new secret shown once when saving mints one, with the endpoint refusals in words; and the deliveries (time:lock-period) with the period, destination kind, the status (Pending, Delivered, Acknowledged, Failed, Superseded), the acknowledgement reference and time, the response status, the error and the supersedes marker, plus Deliver now over the locked or exported periods with period_not_locked and no_destination in words.
+- Request forms (CP-03): the account record's Configuration tab carries one form per ticket type, authored as a draft and frozen when it is published. A field has a kind over the server's twelve, a label, a key, whether it is required, the options of a choice, where its answer goes (only a ticket column that kind may write, or a custom key that follows the field key when it is renamed) and a condition on an answer to a field asked earlier. The whole definition saves as one body, so a field is never half-saved and a refused definition changed nothing, and every rule the server enforces runs here first so a problem reads beside the field rather than arriving as a 400. Publishing is behind a confirmation that says what it means: the version freezes, a request already being filled in keeps the version it started on, and the next change is a new draft. All six routes answer to `admin:config`, which the account record's own `admin:accounts` does not imply, so the panel holds its own gate and asks nothing without it.
+  On the portal, a published form is what the client fills in: the fields rendered by kind, the conditional ones asked only once their condition holds, the required ones refused before the API is asked, and the answers posted as `{ type, answers }`. A field a condition hid is not sent, because the server refuses an answer to a question it did not ask. Every `invalid_submission` problem is worded beside the field it names, and `form_answers_required`, which means the form changed while the page was open, is said about the whole form. Where the account has published nothing, the fixed form stays exactly as it was, which is also what happens while the forms route is not deployed.
+- Portal: search-first home, requests list, new request, request detail with the public thread, files and closure confirmation, dashboard strip; its own light chrome; Surveys (`/portal/surveys`) with the pending surveys of both kinds as cards, each asking the questions its own row carries (the one five-point question on ticket close, the five keyed ones of the quarterly relationship survey with the quarter named) plus an optional comment, the completed ones with what was answered, and "No surveys pending."; the survey email link (`/portal/surveys/[id]#token=`) answers without a session or the chrome, reading the survey behind its one-time token first, so it opens on the questions the server says that survey asks, names the ticket where there is one, says "This link is not valid." for an id or a token that does not resolve (the API answers the same 404 to both), and shows an answered or expired survey as its status with no form under it.
+- AI: the `redux/aiApi.ts` slice, the SSE parser and the `useAxelTurn` hook. The Axel panel and the AI admin screens are held (foundation first).
 
-The front end is published on 3001 so it does not collide with the backend's
-3000; inside the container it listens on 3000, exactly as it does in the
-cluster. `docker-compose.yml` points `BACKEND_URL` at
-`host.docker.internal:3000` and is usable on its own — this service has
-nothing to stand up alongside it.
+## Tests
 
-Without Docker:
+Vitest discovers every `*.test.ts(x)`; there is no allowlist. **A test file never imports another test file:** Vitest registers a module's suites the moment it is imported, so a builder taken out of another test file re-ran that file's suites inside the importer and the reported total counted the same assertions many times over. Shared builders live in `test-kit/*`, which declares no suite at all, and `test-kit/shared-fixtures.test.ts` fails the gate when either half of that rule is broken.
 
-```bash
-cp .env.example .env
-npm install
-npm run dev                      # http://localhost:3000, so stop the backend
-                                 # or change PORT
-```
+## Conventions
 
-`../xms-worker` and `../xms-mcp` have their own compose files and publish
-3002 and 8000; the defaults here point at them, so bring them up if you want
-all four cards populated. You do not have to. Leave one down — or stop it
-mid-session — and its card on `/platform` comes back **unreachable** with the
-connection error printed on it while everything else renders normally. That
-is the per-upstream error tolerance doing its job, and it is worth seeing
-once.
-
----
-
-## Reading the proof page
-
-`/platform` is the deliverable. It renders one card per service, and every
-value on it was read live, at the moment you loaded the page, by the service
-it describes — not copied out of a config file, because configuration is the
-thing being verified.
-
-**Kubernetes** — pod, namespace, node and service account, from the downward
-API. Empty means the process is not in a pod, which outside the cluster is the
-right answer.
-
-**AWS identity** — the ARN, account and user id that `sts:GetCallerIdentity`
-returned just now, plus how the credentials were obtained. `IRSA` means the
-pod exchanged its projected service-account token for a role through the
-cluster's OIDC provider. Anything else on a cluster pod is a finding.
-
-**Vault** — the mount, the role, and for each path the number of keys and
-their **names**. Never a value: `/platform/identity` does not return one, so
-one cannot reach this page.
-
-**Database** — the auth method, highlighted. `aws-iam-token` is what you want
-to see: a signed credential minted for that connection, not a password.
-Alongside it the host, SSL mode, schema, the current database user and the
-server version, read from the Postgres catalogue.
-
-**IAM token** — issued-at, expires-at, and a live countdown. The countdown is
-the only client-side thing on the page and it exists to make one point
-unmissable: the credential is minutes old and will be gone in minutes more.
-It is not a secret anyone could have copied.
-
-**TLS** — whether the session is encrypted and with what, from `pg_stat_ssl`.
-That is the *server's* account of the connection, not the client's claim
-about it.
-
-**No-password proof** — a checklist, because the negative is the hard part.
-`databasePasswordEnvPresent` should be false, `vaultKeysMatchingPassword`
-should be empty and `rdsIamGranted` should be true. One entry deserves
-explanation: `roleHasPasswordSet: null` means *the role cannot read
-`pg_authid`*, which only a superuser can. **That is expected and is not a
-failure.** "Cannot see a password" is a weaker claim than "there is no
-password", so it is reported as null rather than quietly upgraded to the
-stronger one. The `rds_iam` membership check above it is what actually settles
-whether password authentication is possible at all.
-
-Running locally you will see the backend's card *fail* several of these: it
-uses a password against a local Postgres, because there is no IAM outside
-AWS. The page is telling the truth, and the fact that it looks different in
-the cluster is the proof.
-
-At the top, a short trail spells out how the page was assembled: one browser
-request to this origin, then three concurrent server-side calls over cluster
-DNS, with the actual upstream URLs listed. The same document is available as JSON at `/api/platform`.
-
----
-
-## How it deploys
-
-`azure-pipelines.yml` extends `delivery/pipelines/build-deploy.yml` from the
-`AwsAccountXms` platform repository, which owns the registry, the deploy role,
-the cluster and the chart for every XMS service. This repository supplies only
-what makes it different: the service name, `xms/frontend` as the ECR
-repository, port 3000, and a `smokeUrl` — because this service has a public
-gateway, so a rollout is not finished until the internet can actually reach
-it.
-
-`deploy/values-dev.yaml` is the other half. It sets `vault.enabled: false`,
-turns on **both** gateways (public
-`xms-frontend.dev.xms.aix.thehackettgroup.com`, internal
-`xms-frontend.dev.xms.int`) and supplies the three cluster-DNS upstream URLs
-as plain environment values. If you ever find yourself switching
-`vault.enabled` on here, stop: this service is not supposed to hold anything
-worth protecting, and needing Vault would mean the pattern has drifted.
-
-The image is a two-stage build on `node:24-alpine` using Next's
-`output: "standalone"`, so the runtime stage carries a traced server and
-nothing else. It runs as the non-root `node` user and exposes 3000. Unlike the
-other XMS services there is no RDS trust bundle in the image — there is no
-database to verify a certificate for.
-
-`/healthz` and `/readyz` report only that this process is serving. They deliberately do not
-check the upstreams: this service is at its most useful when they are down,
-and making its readiness depend on theirs would pull it out of the load
-balancer exactly when an operator needs `/platform`.
-
----
-
-## Adding authentication later
-
-Read the header comment in `lib/backend.ts`. Two edits, both in that file: a
-session check before the fetch, and forwarded identity headers on it. The
-upstreams read those headers instead of parsing a token, and they may trust
-them because nothing but this service can reach them — pin that with a
-NetworkPolicy so the trust is enforced rather than assumed.
-
-What must not happen: putting the session token itself in those headers, or
-handing the browser a token so it can call an upstream directly. Both
-re-export the blast radius the BFF exists to contain.
-
----
-
-## Notes on the dependency list
-
-Four runtime dependencies: `next`, `react`, `react-dom`, and
-`@aws-sdk/client-sts` for the live identity call on the proof page. No UI
-framework, no CSS framework, no icon set, no font package. The styling is one
-stylesheet, `app/globals.css`, built on CSS variables so that dark mode is a
-palette swap rather than a second set of rules.
-
-TypeScript is pinned to `~6.0.3`. TypeScript 7.0 ships only the `tsc`
-executable and drops the programmatic compiler API that Next's (and Nest's)
-tooling calls into, so every service in this estate stays on 6 until that is
-resolved.
+- Tokens only (`styles/tokens`), no raw hex; the wireframes are the UI source of truth.
+- No developer conveniences off the local deploy target: the dev sign-in, the `/dev` pages and the token in browser storage need `NEXT_PUBLIC_DEPLOY_TARGET=local`.
+- No authorisation decisions in the browser: `lib/routes.ts` gates navigation on the permissions the API returned, and every screen fails closed.
+- The Content Security Policy carries a per-request nonce from `proxy.ts` (built in `lib/security/csp.ts`), so `script-src` is `'self' 'nonce-<n>' 'strict-dynamic'` with no `'unsafe-inline'`. Nothing else may send a CSP; `style-src` keeps `'unsafe-inline'` because `next/font` and next-themes write inline styles that carry no nonce.
+- Telemetry carries identifiers and structured facts, never ticket, email or article text.
+- No em-dashes in copy; "generalization" is spelled with a z.

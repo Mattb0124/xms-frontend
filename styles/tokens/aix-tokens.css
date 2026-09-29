@@ -1,0 +1,703 @@
+/* AIX token layer, vendored from AIXelerator `web-ui/app/globals.css`.
+ *
+ * WHY THIS FILE EXISTS
+ * --------------------
+ * `house.css` was seeded from the same source on 2026-09-07 and then became
+ * XMS's own: it carries the aliases this product had a use for and has drifted
+ * on purpose since. This file is the other half, and it is VENDORED: it holds
+ * the `--aix-*` palette entries, shadows and glows AIX defines that XMS did not
+ * take, and the `.aibl-chat-min` chat skin, both copied rather than restated so
+ * that a surface built to look like AIX is dressed by AIX's own CSS instead of
+ * by a second set of numbers that has to be kept in step by hand.
+ *
+ * Treat it like `aiinnovation-tokens.css`: NEVER hand-edit it. Re-copy it from
+ * the AIX source when it moves, and put any XMS-specific override in
+ * `xms-scope.css`, which loads after it.
+ *
+ * It resolves cleanly here because both products stand on the same vendored
+ * `--aiinds-*` primitives, so every alias below already has a value in XMS.
+ *
+ * Adopted 2026-09-11 for the Axel surface (AIBL-321).
+ *
+ * TWO THINGS CHANGED ON THE WAY ACROSS, AND ONLY TWO
+ * --------------------------------------------------
+ * 1. EVERY LENGTH IS IN PX, NOT REM. AIX renders on a 16px root; this product
+ *    renders on a 14px one (see the finder bar's avatar note). Copied verbatim,
+ *    every rem here came out 12.5% small: the greeting landed at 26.25px rather
+ *    than 30, the send button at 31.5 rather than 36, the composer's text at 14
+ *    rather than 16. The numbers below are what AIX actually paints, so do the
+ *    same arithmetic on anything added later rather than pasting a rem.
+ * 2. The sub-14px type is not taken: this product has a 14px floor that
+ *    `styles/tokens/tokens.test.ts` enforces, so `xms-scope.css` lifts those
+ *    steps after this file has set them.
+ */
+
+:root {
+  /* AIX's body face. It binds `var(--font-inter)` from next/font; this product
+   * self-hosts the same family off /fonts (styles/tokens/fonts.css), so the
+   * family is named directly and nothing new is fetched. The rest of the stack
+   * is AIX's, "Noto Color Emoji" last so the text faces claim digits first. */
+  --aix-font-body:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji",
+    sans-serif;
+
+  /* --- The alias entries house.css did not take ------------------------- */
+
+  /* The page ground. AIX's own note: deliberately not --aiinds-bg-subtle,
+   * which is the hover/sidebar surface. */
+  --aix-bg: #f8fafc;
+  --aix-surface-raised: var(--aiinds-surface);
+
+  --aix-blue-deeper: var(--aiinds-accent-active);
+  --aix-blue-light: var(--aiinds-info-soft);
+
+  --aix-amber-surface: var(--aiinds-warning-soft);
+  --aix-green-tint: var(--aiinds-success-soft);
+  --aix-violet: var(--aiinds-ai-text);
+  --aix-violet-light: var(--aiinds-ai-soft);
+  --aix-violet-tint: var(--aiinds-ai-soft);
+  --aix-teal: #0891b2;
+  --aix-teal-light: #cffafe;
+
+  /* Shadows: the AI Innovation signature soft micro-shadows. */
+  --aix-shadow-sm: var(--shadow-card);
+  --aix-shadow-md: var(--shadow-card-hover);
+  --aix-shadow-lg: var(--shadow-card-hover);
+  --aix-shadow-xl: var(--shadow-card-elevated);
+
+  /* --- The v3 workspace additions --------------------------------------- */
+
+  /* Palette gaps. `--aix-purple` is the violet gradient partner and is not in
+   * the installer's tokens.css, which is why AIX writes it as a literal. */
+  --aix-cyan: var(--axel-cyan);
+  --aix-purple: #a855f7;
+  --aix-navy: var(--hero-navy-900);
+
+  /* Gradients: theme-invariant brand recipes. */
+  --gradient-cta: linear-gradient(90deg, var(--color-primary), var(--axel-cyan));
+  --gradient-cta-diagonal: linear-gradient(135deg, var(--color-primary), var(--axel-cyan));
+  --gradient-premium: linear-gradient(90deg, var(--color-primary), var(--color-ai-hover), var(--aix-purple));
+  --gradient-attention: linear-gradient(90deg, #f59e0b, #f97316);
+
+  /* The assistant's own sweep, and deliberately not `--gradient-premium`:
+   * that one opens on the brand blue, and AIX moved the assistant OFF the
+   * blue-into-purple sweep for the stated reason that it should read as one
+   * colour rather than borrow the nav's blue. It is
+   * `from-electric-violet-600 to-aix-purple` in the reference's own class.
+   * Sampled off Matt's crop on 2026-09-11 to settle it: rgb(125,59,237) at
+   * the left edge and rgb(166,84,246) at the right, which is these two. */
+  --aix-gradient-assistant: linear-gradient(90deg, var(--color-ai-hover), var(--aix-purple));
+
+  /* Shadows and glows. */
+  --aix-shadow-card-rest: 0 1px 2px rgba(17, 17, 17, 0.04);
+  --aix-shadow-rail: 0 2px 6px rgba(17, 17, 17, 0.05), 0 16px 40px -22px rgba(22, 38, 90, 0.3);
+  --aix-shadow-lift: 0 16px 36px -18px rgba(17, 17, 17, 0.35);
+  --aix-glow-blue: 0 6px 16px -6px rgba(36, 92, 232, 0.7);
+  --aix-glow-blue-hover: 0 8px 20px -6px rgba(36, 92, 232, 0.9);
+  --aix-glow-violet: 0 12px 30px -8px rgba(124, 58, 237, 0.8);
+  --aix-glow-amber: 0 6px 16px -6px rgba(245, 158, 11, 0.7);
+  --aix-glow-emerald: 0 8px 18px -8px rgba(16, 185, 129, 0.55);
+}
+
+/* ----------------------------------------------------------------------------
+ * The shell header (.aix-app-header and its controls)
+ * ----------------------------------------------------------------------------
+ * AIX's black app bar, from the inline style on its <header>: a flat #0F0F12,
+ * a hairline of white at 6%, and a one-pixel inset highlight over a soft drop
+ * so the bar reads as a surface rather than as a painted strip.
+ *
+ * The icon buttons, the unread badge and the avatar are the same bar's, taken
+ * from NotificationsBell (variant="dark") and user-menu.tsx.
+ * ------------------------------------------------------------------------- */
+
+.aix-app-header {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 50;
+  height: 56px;
+  overflow-x: hidden;
+  background: #0f0f12;
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 1px 3px rgb(0 0 0 / 0.2);
+}
+
+/* The row inside the bar. Every length here is px for the reason at the top
+ * of this file, and it matters twice over on a header: Tailwind's spacing
+ * scale is rem-based too, so `px-4` and `gap-2` were rendering 14 and 7 where
+ * the reference sets 16 and 8, and the whole bar sat a little tight. */
+.aix-header-row {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 8px;
+  padding: 0 12px;
+}
+@media (min-width: 1024px) {
+  .aix-header-row {
+    gap: 16px;
+    padding: 0 20px;
+  }
+}
+
+/* The blue wash behind the centre of the bar, from the reference's own
+ * navbar: 600 by 80 at the top edge, at 40% strength. */
+.aix-header-glow {
+  pointer-events: none;
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100%;
+  opacity: 0.4;
+  background: radial-gradient(600px 80px at 50% 0%, rgb(36 92 232 / 0.18), transparent 70%);
+}
+
+/* The nav row and its pills. */
+.aix-header-nav {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  margin-left: 28px;
+}
+.aix-nav-pill {
+  position: relative;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a1a1aa;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+@media (min-width: 1024px) {
+  .aix-nav-pill {
+    padding: 0 16px;
+  }
+}
+.aix-nav-pill:hover {
+  background: rgb(255 255 255 / 0.04);
+  color: #fff;
+}
+.aix-nav-pill[aria-pressed="true"] {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+/* The slot the finder sits in. It shrinks, which the nav row it replaced did
+ * not have to: those were four fixed pills and this is a 420px control that
+ * has to give way on a narrow window rather than push the bar wider than the
+ * screen. */
+.aix-header-find {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  align-items: center;
+  margin-left: 28px;
+}
+
+/* The finder: the one way into the product, sitting where the four
+ * ServiceNow finders used to (AIBL-329). It is the widest thing on the bar on
+ * purpose, because it is the thing being offered. */
+.aix-finder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 420px;
+  max-width: 42vw;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.06);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.aix-finder:hover {
+  background: rgb(255 255 255 / 0.09);
+}
+.aix-finder:focus-within {
+  background: rgb(255 255 255 / 0.12);
+  border-color: rgb(255 255 255 / 0.28);
+}
+/* The shortcut, said on the control rather than left to be discovered. */
+.aix-finder-key {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 4px;
+  color: rgb(255 255 255 / 0.55);
+  font-family: var(--xms-font);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* The standing controls at the right. The reference sets 6px; at Matt's
+ * direction this is wider, so the bell, the assistant and the avatar read as
+ * three separate things rather than as one cluster. */
+.aix-header-right {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+/* A standing icon control on the bar: 36px square on an 8px radius, quiet
+ * until a pointer is on it. */
+.aix-header-icon {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a1a1aa;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.aix-header-icon:hover {
+  background: rgb(255 255 255 / 0.05);
+  color: #fff;
+}
+
+/* The unread count, ringed in the bar's own colour so it reads as sitting on
+ * the icon rather than beside it. Blue, not red: it is a count of things to
+ * look at, not an alarm. */
+.aix-header-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  height: 16px;
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #245ce8;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #0f0f12;
+}
+
+/* The avatar, and the ring it grows on hover. */
+.aix-avatar {
+  position: relative;
+  flex-shrink: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  transition: box-shadow 0.2s ease;
+}
+.aix-avatar:hover {
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 0.2);
+}
+.aix-avatar-disc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background-image: linear-gradient(to bottom right, #3b82f6, #7c3aed);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.06),
+    0 0 0 1px rgb(255 255 255 / 0.1);
+}
+
+/* ----------------------------------------------------------------------------
+ * The assistant's call to action (.aix-assistant-cta)
+ * ----------------------------------------------------------------------------
+ * The header button, from AIX's own AXEL_CTA_CLASS. AIX writes it as a string
+ * of Tailwind utilities over palette entries (`electric-violet-600`) that only
+ * its own config has; written here as CSS it spends the shared tokens instead,
+ * so the sweep is `--aix-gradient-assistant` (#7c3aed into #a855f7) and the
+ * cast is `--aix-glow-violet`, and both stay in step with AIX by name.
+ *
+ * The sheen is a pseudo-element rather than the extra <span> AIX carries, so
+ * the button holds its icon and its word and nothing else.
+ * ------------------------------------------------------------------------- */
+
+.aix-assistant-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 36px;
+  /* Matt, 2026-09-11: rounder than the reference's `rounded-lg`, and then
+   * brought back in again after the first pass went too wide. There is no
+   * minimum width any more: the button is as wide as its sparkle and its word
+   * need, which is the narrowest it can honestly be. These are set by eye
+   * against the reference rather than read off it, so they are the numbers to
+   * move if it still is not right. */
+  padding: 0 18px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background-image: var(--aix-gradient-assistant);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.2),
+    var(--aix-glow-violet);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+@media (min-width: 1024px) {
+  .aix-assistant-cta {
+    padding: 0 20px;
+  }
+}
+.aix-assistant-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translateX(-100%);
+  background-image: linear-gradient(to right, transparent, rgb(255 255 255 / 0.25), transparent);
+}
+@media (hover: hover) {
+  .aix-assistant-cta:hover {
+    transform: scale(1.03);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.3),
+      var(--aix-glow-violet);
+  }
+  .aix-assistant-cta:hover::after {
+    transform: translateX(100%);
+    transition: transform 0.7s ease;
+  }
+}
+/* Pressed reads as pressed: while the assistant is up the button is the way
+ * back out, so it drops its lift rather than staying raised over an open
+ * surface. */
+.aix-assistant-cta[aria-pressed="true"] {
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .aix-assistant-cta,
+  .aix-assistant-cta::after {
+    transition: none;
+  }
+  .aix-assistant-cta:hover {
+    transform: none;
+  }
+  .aix-assistant-cta:hover::after {
+    transform: translateX(-100%);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Minimal chat chrome (.aibl-chat-min)
+ * ----------------------------------------------------------------------------
+ * The ChatGPT-style skin AIX wears on the house chat surface. Opt in per mount
+ * with the class. It re-dresses the surface through the `data-chat-el` hooks:
+ * no avatars, ink text at 16px/400, user turns as gray pills, work traces as
+ * quiet gray capsules, and the input as the white rounded pill.
+ *
+ * Selectors stay on the data hooks so internal refactors do not break them,
+ * which is also why the XMS surface carries the same hooks: the markup below
+ * is the contract, not the component tree above it.
+ * ------------------------------------------------------------------------- */
+
+.aibl-chat-min [data-chat-el="assistant-avatar"],
+.aibl-chat-min [data-chat-el="user-avatar"] {
+  display: none;
+}
+
+/* The conversation header: white, one border line, the thread picker on the
+ * left and the window controls on the right. */
+.aibl-chat-min [data-chat-el="info-bar"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #fff;
+  border-bottom: 1px solid var(--aiinds-border, #e2e8f0);
+}
+
+/* Pair `.aibl-chat-home` with `.aibl-chat-min` where the surface lists its
+ * conversations somewhere else and the picker would be a second history
+ * control. */
+.aibl-chat-home [data-chat-el="info-bar"] {
+  display: none;
+}
+
+/* The thread picker's trigger. */
+.aibl-chat-min [data-chat-el="thread-picker"] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 260px;
+  height: 28px;
+  padding: 0 10px 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--aiinds-fg);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+  transition: all 0.15s ease;
+}
+.aibl-chat-min [data-chat-el="thread-picker"]:hover,
+.aibl-chat-min [data-chat-el="thread-picker"][aria-expanded="true"] {
+  transform: translateY(-1px);
+  border-color: #64748b;
+  box-shadow: 0 4px 10px rgb(15 23 42 / 0.1);
+}
+.aibl-chat-min [data-chat-el="thread-picker"] svg {
+  flex-shrink: 0;
+  color: #64748b;
+  transition: transform 0.15s ease;
+}
+.aibl-chat-min [data-chat-el="thread-picker"][aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+/* The window controls (debug, expand, close) that moved into the bar with it. */
+.aibl-chat-min [data-chat-el="window-control"] {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.aibl-chat-min [data-chat-el="window-control"]:hover {
+  background: #f1f5f9;
+  color: var(--aiinds-fg);
+}
+
+/* The empty state: centered typography in the empty space, no card chrome.
+ * The only card on screen is the chat input below it. */
+.aibl-chat-min [data-chat-el="welcome-title"] {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--aiinds-fg);
+}
+.aibl-chat-min [data-chat-el="welcome-subtitle"] {
+  max-width: 576px;
+  margin-top: 12px;
+  color: #64748b;
+  line-height: 1.625;
+}
+.aibl-chat-min [data-chat-el="quick-starts"] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+.aibl-chat-min [data-chat-el="quick-start"] {
+  padding: 6px 14px;
+  border: 1px solid #94a3b8;
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--aiinds-fg);
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+  transition: all 0.15s ease;
+}
+.aibl-chat-min [data-chat-el="quick-start"]:hover {
+  transform: translateY(-1px);
+  border-color: #475569;
+  background: #f8fafc;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.14);
+}
+
+/* The input area, tightened toward the page bottom. */
+.aibl-chat-min [data-chat-el="input-area"] {
+  padding-bottom: 16px;
+}
+
+/* Composer: the rounded white pill instead of the boxed card. */
+.aibl-chat-min [data-chat-el="composer"] {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid var(--aiinds-border, #e2e8f0);
+  border-radius: 24px;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 8px 24px rgb(15 23 42 / 0.06);
+}
+.aibl-chat-min [data-chat-el="composer"]:focus-within {
+  border-color: #cbd5e1;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.05),
+    0 10px 28px rgb(15 23 42 / 0.09);
+}
+.aibl-chat-min [data-chat-el="composer"] textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 200px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--aiinds-fg);
+  resize: none;
+}
+.aibl-chat-min [data-chat-el="composer"] textarea:focus-visible {
+  outline: none;
+}
+
+/* Attach and send: the two 36px slots either side of the field. */
+.aibl-chat-min [data-chat-el="composer-attach"],
+.aibl-chat-min [data-chat-el="composer-send"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 2px;
+  border: 0;
+  border-radius: 9999px;
+}
+.aibl-chat-min [data-chat-el="composer-attach"] {
+  background: transparent;
+  color: var(--aiinds-fg);
+}
+.aibl-chat-min [data-chat-el="composer-send"] {
+  background: #0f172a;
+  color: #fff;
+  transition: opacity 0.15s ease;
+}
+.aibl-chat-min [data-chat-el="composer-send"]:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.aibl-chat-min [data-chat-el="composer-send"]:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  opacity: 1;
+}
+
+/* The disclaimer under the composer. */
+.aibl-chat-min [data-chat-el="composer-note"] {
+  margin-top: 8px;
+  text-align: center;
+  color: #64748b;
+}
+
+.aibl-chat-min [data-chat-el="user-bubble"] {
+  background: #f1f5f9; /* slate-100: the light pill on the white chat ground */
+  border: 0;
+  box-shadow: none;
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--aiinds-fg);
+}
+.aibl-chat-min [data-chat-el="assistant-body"] {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--aiinds-fg);
+}
+
+/* Tool/reasoning capsule: quiet gray block instead of a bordered card. */
+.aibl-chat-min [data-chat-el="work-trace"] {
+  background: transparent;
+  border: 0;
+  color: #64748b;
+}
+
+/* The conversation ground is WHITE in light (per Matt); dark follows the page
+ * surface so welcome copy stays readable.
+ *
+ * The face is AIX's, not the host product's. A chat carried over whole reads
+ * as the thing it was carried from, and the greeting is the tell: set in the
+ * desk's Lato it is a different sentence from the one in the reference. */
+.aibl-chat-min {
+  background: #fff;
+  font-family: var(--aix-font-body);
+}
+
+/* The reference's own type steps. They run below this product's 14px floor,
+ * which is why they are HERE and not in xms-scope.css: the floor is XMS's rule
+ * about XMS's own surfaces, and this is a vendored one. tokens.test.ts records
+ * the exemption so it reads as a decision rather than as a leak. */
+.aibl-chat-min [data-chat-el="thread-picker"] {
+  font-size: 11.5px;
+}
+.aibl-chat-min [data-chat-el="quick-start"] {
+  font-size: 12px;
+}
+.aibl-chat-min [data-chat-el="welcome-subtitle"] {
+  font-size: 14px;
+}
+.aibl-chat-min [data-chat-el="composer-note"] {
+  font-size: 10.5px;
+}
+.aibl-chat-min [data-chat-el="work-trace"] {
+  font-size: 12px;
+}
+
+.dark .aibl-chat-min,
+[data-theme="dark"] .aibl-chat-min {
+  background: var(--aiinds-surface);
+}
+.dark .aibl-chat-min [data-chat-el="info-bar"],
+[data-theme="dark"] .aibl-chat-min [data-chat-el="info-bar"],
+.dark .aibl-chat-min [data-chat-el="composer"],
+[data-theme="dark"] .aibl-chat-min [data-chat-el="composer"],
+.dark .aibl-chat-min [data-chat-el="thread-picker"],
+[data-theme="dark"] .aibl-chat-min [data-chat-el="thread-picker"],
+.dark .aibl-chat-min [data-chat-el="quick-start"],
+[data-theme="dark"] .aibl-chat-min [data-chat-el="quick-start"] {
+  background: var(--aiinds-surface);
+  border-color: var(--aiinds-border);
+  color: var(--aiinds-fg);
+}
+.dark .aibl-chat-min [data-chat-el="user-bubble"],
+[data-theme="dark"] .aibl-chat-min [data-chat-el="user-bubble"] {
+  background: var(--aiinds-bg-subtle);
+  color: var(--aiinds-fg);
+}
+.dark .aibl-chat-min [data-chat-el="composer-send"],
+[data-theme="dark"] .aibl-chat-min [data-chat-el="composer-send"] {
+  background: var(--aiinds-fg);
+  color: var(--aiinds-surface);
+}

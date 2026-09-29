@@ -1,0 +1,321 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { useState } from "react";
+import { describe, expect, it, vi } from "vitest";
+import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
+import { KeyLink } from "@/components/xms/key-link";
+import { SlaValue } from "@/components/xms/sla-value";
+
+interface Row {
+  key: string;
+  title: string;
+  updated: number;
+  dueAt: string;
+}
+
+const ROWS: Row[] = [
+  { key: "CS0001204", title: "HFM consolidation fails", updated: 3, dueAt: "2026-09-07T12:00:00Z" },
+  { key: "CS0001199", title: "Azure Files mount", updated: 1, dueAt: "2026-09-08T12:00:00Z" },
+  { key: "CS0001210", title: "User cannot sign in", updated: 2, dueAt: "2026-09-06T12:00:00Z" },
+];
+
+const COLUMNS: DenseColumn<Row>[] = [
+  { key: "key", title: "Number", sortValue: (r) => r.key, render: (r) => <KeyLink ticketKey={r.key} /> },
+  { key: "title", title: "Short description", sortValue: (r) => r.title },
+  { key: "updated", title: "Updated", sortValue: (r) => r.updated },
+  {
+    key: "sla",
+    title: "SLA",
+    render: (r) => <SlaValue snapshot={{ dueAt: r.dueAt }} now={new Date("2026-09-07T10:00:00Z")} tickMs={0} />,
+  },
+];
+
+function Harness() {
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  return (
+    <DenseTable
+      title="Queue"
+      columns={COLUMNS}
+      rows={ROWS}
+      rowKey={(r) => r.key}
+      selectable
+      selected={selected}
+      onSelectionChange={setSelected}
+      banner={selected.size > 0 ? <div data-testid="banner">{selected.size} selected</div> : null}
+    />
+  );
+}
+
+function bodyKeys(): string[] {
+  return screen
+    .getAllByRole("row")
+    .slice(1)
+    .map((row) => row.getAttribute("data-row-key") ?? "");
+}
+
+describe("DenseTable", () => {
+  it("draws key links and mono SLA values, and no row count", () => {
+    render(<Harness />);
+    // The card header carried the row count beside the title. Both the badge
+    // and the word "Count" that labelled it are gone: the reviewer reads the
+    // number off the sidebar, not off three places at once.
+    expect(screen.queryByText("42")).not.toBeInTheDocument();
+    const link = screen.getByRole("link", { name: "CS0001204" });
+    expect(link).toHaveAttribute("href", "/cases/CS0001204");
+    expect(link).toHaveClass("xms-link");
+    expect(screen.getByText("2h 00m")).toHaveAttribute("data-tone", "ok");
+    expect(screen.getByText("-22h 00m")).toHaveAttribute("data-tone", "breach");
+  });
+
+  it("sorts locally on a header click and toggles direction", () => {
+    render(<Harness />);
+    const header = screen.getByRole("button", { name: /Updated/ });
+    fireEvent.click(header);
+    expect(bodyKeys()).toEqual(["CS0001199", "CS0001210", "CS0001204"]);
+    expect(screen.getByRole("columnheader", { name: /Updated/ })).toHaveAttribute("aria-sort", "ascending");
+    fireEvent.click(header);
+    expect(bodyKeys()).toEqual(["CS0001204", "CS0001210", "CS0001199"]);
+  });
+
+  it("selects all rows, shows the banner and clears on a second click", () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByLabelText("Select all rows"));
+    expect(screen.getByTestId("banner")).toHaveTextContent("3 selected");
+    const rows = screen.getAllByRole("row").slice(1);
+    rows.forEach((row) => expect(row).toHaveAttribute("data-selected", "true"));
+    fireEvent.click(screen.getByLabelText("Select all rows"));
+    expect(screen.queryByTestId("banner")).not.toBeInTheDocument();
+  });
+
+  it("toggles a single row without triggering the row click", () => {
+    const onRowClick = vi.fn();
+    const onSelectionChange = vi.fn();
+    render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        selected={new Set()}
+        onSelectionChange={onSelectionChange}
+        onRowClick={onRowClick}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Select CS0001199"));
+    expect(onSelectionChange).toHaveBeenCalledWith(new Set(["CS0001199"]));
+    expect(onRowClick).not.toHaveBeenCalled();
+    const row = screen.getByRole("row", { name: /Azure Files mount/ });
+    fireEvent.click(within(row).getByText("Azure Files mount"));
+    expect(onRowClick).toHaveBeenCalledWith(ROWS[1]);
+  });
+
+  /**
+   * Review finding 19: table rows were not focusable (tabindex null, no
+   * role), so a row could only be opened through its key link. Design System
+   * section 6: "list rows focusable and openable with Enter".
+   */
+  it("makes an openable row a tab stop that opens on Enter and on Space", () => {
+    const onRowClick = vi.fn();
+    render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        selected={new Set()}
+        onSelectionChange={() => {}}
+        onRowClick={onRowClick}
+      />,
+    );
+    const row = screen.getByRole("row", { name: /Azure Files mount/ });
+    expect(row).toHaveAttribute("tabindex", "0");
+    row.focus();
+    expect(document.activeElement).toBe(row);
+    fireEvent.keyDown(row, { key: "Enter" });
+    expect(onRowClick).toHaveBeenCalledWith(ROWS[1]);
+    fireEvent.keyDown(row, { key: " " });
+    expect(onRowClick).toHaveBeenCalledTimes(2);
+    // Other keys pass through, and a key pressed inside a control is its own.
+    fireEvent.keyDown(row, { key: "a" });
+    fireEvent.keyDown(within(row).getByLabelText("Select CS0001199"), { key: "Enter" });
+    expect(onRowClick).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves a row that opens nothing out of the tab order", () => {
+    render(<DenseTable title="Queue" columns={COLUMNS} rows={ROWS} rowKey={(r) => r.key} />);
+    expect(screen.getByRole("row", { name: /Azure Files mount/ })).not.toHaveAttribute("tabindex");
+  });
+
+  it("shows the empty state when there are no rows", () => {
+    render(
+      <DenseTable title="Queue" columns={COLUMNS} rows={[]} rowKey={(r) => r.key} emptyState="Nothing in Breached" />,
+    );
+    expect(screen.getByText("Nothing in Breached")).toBeInTheDocument();
+  });
+
+  it("lets a link inside a row open what it names, not the row's own record", () => {
+    const onRowClick = vi.fn();
+    render(
+      <DenseTable
+        title="Cases"
+        columns={[
+          { key: "key", title: "Key", render: (row: { key: string }) => <span>{row.key}</span> },
+          {
+            key: "contact",
+            title: "Contact",
+            render: () => <a href="https://example.test/contacts/abc">Sam Owner</a>,
+          },
+        ]}
+        rows={[{ key: "CS0000001" }]}
+        rowKey={(row: { key: string }) => row.key}
+        onRowClick={onRowClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Sam Owner" }));
+    expect(onRowClick).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("CS0000001"));
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("DenseTable display switches", () => {
+  const DISPLAY = { wrap: false, compact: false, activeRow: true, coloring: true };
+
+  function draw(display: typeof DISPLAY) {
+    return render(
+      <DenseTable title="Queue" columns={COLUMNS} rows={ROWS} rowKey={(r) => r.key} display={display} selectable />,
+    );
+  }
+
+  it("keeps cells on one line until the reader asks them to wrap", () => {
+    const { container, rerender } = draw(DISPLAY);
+    expect(container.querySelector("tbody td:nth-child(2)")).toHaveClass("whitespace-nowrap");
+    rerender(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={{ ...DISPLAY, wrap: true }}
+        selectable
+      />,
+    );
+    expect(container.querySelector("tbody td:nth-child(2)")).not.toHaveClass("whitespace-nowrap");
+  });
+
+  it("tightens every cell, header included, on compact rows", () => {
+    const { container } = draw({ ...DISPLAY, compact: true });
+    // 8px on a cell puts the row pitch at 40px, which is Docker's own (its
+    // table measures 40 between separators; 7px landed at 38). The header
+    // keeps 7px: it is a label strip rather than a row of content.
+    expect(container.querySelector("tbody td:nth-child(2)")).toHaveClass("py-[8px]");
+    expect(container.querySelector("thead th")).toHaveClass("py-[7px]");
+  });
+
+  it("marks the row last opened, and stops when the reader turns it off", () => {
+    const onRowClick = vi.fn();
+    const { container, rerender } = render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={DISPLAY}
+        onRowClick={onRowClick}
+      />,
+    );
+    fireEvent.click(screen.getByText("HFM consolidation fails"));
+    expect(container.querySelector('[data-row-key="CS0001204"]')).toHaveClass("bg-xms-row-hover");
+    rerender(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={{ ...DISPLAY, activeRow: false }}
+        onRowClick={onRowClick}
+      />,
+    );
+    expect(container.querySelector('[data-row-key="CS0001204"]')).not.toHaveClass("bg-xms-row-hover");
+  });
+
+  it("asks the table for plain cells only where coloring is off", () => {
+    const { container, rerender } = draw(DISPLAY);
+    expect(container.querySelector("table")).not.toHaveAttribute("data-plain");
+    rerender(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        display={{ ...DISPLAY, coloring: false }}
+        selectable
+      />,
+    );
+    expect(container.querySelector("table")).toHaveAttribute("data-plain", "true");
+  });
+});
+
+describe("the preview mark", () => {
+  function drawn() {
+    return render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        onRowPreview={() => {}}
+      />,
+    );
+  }
+
+  it("stands beside the box at the head of the row, not at the far end of it", () => {
+    const { container } = drawn();
+    const cells = Array.from(container.querySelectorAll('[data-row-key="CS0001204"] td'));
+    expect(cells[0].querySelector('input[type="checkbox"]')).not.toBeNull();
+    expect(cells[1].querySelector('button[aria-label="Preview CS0001204"]')).not.toBeNull();
+  });
+
+  it("keeps the header aligned over it", () => {
+    const { container } = drawn();
+    const headers = Array.from(container.querySelectorAll("thead th"));
+    expect(headers).toHaveLength(COLUMNS.length + 2);
+    expect(headers[1]).toHaveAttribute("aria-label", "Preview");
+  });
+
+  it("opens the row it stands on without opening the row's own record", () => {
+    const onRowClick = vi.fn();
+    const onRowPreview = vi.fn();
+    render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(r) => r.key}
+        selectable
+        onRowClick={onRowClick}
+        onRowPreview={onRowPreview}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Preview CS0001204"));
+    expect(onRowPreview).toHaveBeenCalledTimes(1);
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it("spans the empty state across the marks as well as the columns", () => {
+    const { container } = render(
+      <DenseTable
+        title="Queue"
+        columns={COLUMNS}
+        rows={[]}
+        rowKey={(r: { key: string }) => r.key}
+        selectable
+        onRowPreview={() => {}}
+        emptyState="Nothing here"
+      />,
+    );
+    expect(container.querySelector("tbody td")).toHaveAttribute("colspan", String(COLUMNS.length + 2));
+  });
+});

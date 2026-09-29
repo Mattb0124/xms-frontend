@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { collectPlatformSnapshot } from '@/lib/platform';
-import { toPublicSnapshot } from '@/lib/public-view';
+import { NextResponse } from "next/server";
+import { collectPlatformSnapshot } from "@/lib/platform/snapshot";
+import { toPublicSnapshot } from "@/lib/platform/public-view";
 
 /**
  * The machine-readable version of /platform.
@@ -24,11 +24,11 @@ import { toPublicSnapshot } from '@/lib/public-view';
  * it returns a 500 rather than a partial document pretending to be whole.
  */
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<NextResponse> {
   const snapshot = toPublicSnapshot(await collectPlatformSnapshot());
   return NextResponse.json(snapshot, {
-    headers: { 'cache-control': 'no-store' },
+    headers: { "cache-control": "no-store" },
   });
 }

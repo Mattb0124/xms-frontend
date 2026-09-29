@@ -1,47 +1,56 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 /**
- * `standalone` is the only line here that matters operationally: it makes the
- * build emit a self-contained server with just the node_modules it actually
- * uses, which is what the runtime stage of the Dockerfile copies.
+ * XMS frontend configuration.
  *
- * There is deliberately no `env` block. Every address this service dials is
- * read from the environment at request time, inside server-only code, so that
- * a change of upstream is a Helm value and never a rebuild — and so that no
- * internal hostname is ever baked into a browser bundle.
+ * Deliberately absent, and checked by scripts/check-next-config.mjs in the
+ * pipeline gate: typescript.ignoreBuildErrors and eslint.ignoreDuringBuilds.
+ * The build fails on either class of error (Packmind standard, ADR-09).
  */
-const nextConfig: NextConfig = {
-  output: 'standalone',
-  reactStrictMode: true,
-  poweredByHeader: false,
 
-  /**
-   * Security headers belong to the application, not to the load balancer.
-   *
-   * They were briefly set on the HTTPRoute instead, which works on the
-   * internal gateway and silently does not on the public one: the AWS Load
-   * Balancer Controller implements only the RequestRedirect filter, and a
-   * ResponseHeaderModifier invalidates the entire Gateway — so the HTTPS
-   * listener is never created and the site answers on port 80 alone.
-   *
-   * Setting them here means they travel with the response regardless of what
-   * is in front of it, and they are testable locally with curl.
-   */
+const isProduction = process.env.NODE_ENV === "production";
+
+/**
+ * The Content-Security-Policy is not in this file (security review finding
+ * 25). It carries a per-request nonce now, so it is built in
+ * `lib/security/csp.ts` and sent by `proxy.ts`, the only place that can
+ * mint one. Nothing here may send a CSP as well: two policies on one
+ * response are enforced as the intersection of both, and a static one would
+ * block every nonce'd script the other allows.
+ */
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "X-Frame-Options", value: "DENY" },
+];
+
+/**
+ * HSTS, production only (security review findings 10 and 25). Without it a
+ * first visit or a cleartext downgrade on a hostile network is a plain HTTP
+ * request, which is how a survey link's one-time token could be handed over.
+ * One year with subdomains; `preload` is deliberately left off until the
+ * apex and every subdomain are known to be HTTPS-only, since preloading is
+ * hard to undo. Confirm the ALB or CloudFront in xms-infra does not strip it.
+ * It is not sent in development, where localhost is served over HTTP and the
+ * header would pin the browser to HTTPS for a year.
+ */
+if (isProduction) {
+  securityHeaders.push({ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" });
+}
+
+const nextConfig: NextConfig = {
+  output: "standalone",
+  poweredByHeader: false,
+  reactStrictMode: true,
+  // The development indicator is a fixed circle in the bottom left corner,
+  // which is exactly where the sidebar's "Browse all screens" footer sits: it
+  // covered the control and nothing could scroll out from under it. No part of
+  // the product reads it, so it is off.
+  devIndicators: false,
+  images: { unoptimized: true },
   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'geolocation=(), camera=(), microphone=()' },
-          // The public ALB terminates TLS and redirects 80 to 443, so telling
-          // browsers to skip the redirect next time is safe.
-          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-        ],
-      },
-    ];
+    return [{ source: "/(.*)", headers: securityHeaders }];
   },
 };
 

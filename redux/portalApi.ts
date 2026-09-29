@@ -1,0 +1,350 @@
+import type { PortalFormView } from "@/lib/portal/forms";
+import { xmsApi } from "@/redux/api";
+
+/**
+ * Client portal endpoints (Client Portal technical spec section 4, the
+ * /v1/portal mirror). The portal view model deliberately carries no
+ * assignee, SLA, contract or work note; nothing here may widen it.
+ */
+export type PortalTicketType = "incident" | "service_request";
+export type PortalLevel = "high" | "medium" | "low";
+
+/** A decision the client is shown; append-only on the server. */
+export interface PortalScopeDecision {
+  id: string;
+  event: "approved" | "declined";
+  reason: string;
+  note: string | null;
+  allowance_minutes: number;
+  at: string;
+}
+
+export interface PortalTicket {
+  id: string;
+  key: string;
+  type: PortalTicketType | "change" | "problem" | "project_task";
+  state: string;
+  state_label: string;
+  short_description: string;
+  description: string | null;
+  category: string | null;
+  priority: "p1" | "p2" | "p3" | "p4";
+  requester: { display_name: string } | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  closed_at: string | null;
+  version: number;
+}
+
+export interface PortalMe {
+  principal: {
+    kind: "portal";
+    userId: string;
+    email: string;
+    displayName: string;
+    permissions: string[];
+  };
+  account: { id: string; key: string; name: string; branding: Record<string, unknown> } | null;
+}
+
+export interface PortalTimelineItem {
+  kind: "comment" | "attachment" | "state_change";
+  item_id: string;
+  actor_name: string | null;
+  body: string | null;
+  file_name: string | null;
+  from_state: string | null;
+  to_state: string | null;
+  created_at: string;
+}
+
+export interface PortalTransition {
+  to: string;
+  label: string;
+  requires: string[];
+  reopen: boolean;
+}
+
+export interface PortalListParams {
+  scope?: "open" | "all" | "mine";
+  q?: string;
+}
+
+export interface CreatePortalTicketBody {
+  type: PortalTicketType;
+  /** The fixed shape, still posted where the account has published no form. */
+  short_description?: string;
+  description?: string;
+  category?: string;
+  impact?: PortalLevel;
+  urgency?: PortalLevel;
+  /**
+   * The answers to a published form's fields, keyed by field key (CP-03).
+   * Required once the account publishes a form for this type: the API answers
+   * form_answers_required to the flat shape rather than dropping a question.
+   */
+  answers?: Record<string, unknown>;
+}
+
+export interface PortalComment {
+  id: string;
+  body: string;
+  author_name: string;
+  source: string;
+  created_at: string;
+}
+
+/**
+ * CSAT (Client Portal functional 5.7, CP-07): one five-point question with
+ * an optional comment on ticket close, and the five keyed questions of the
+ * quarterly relationship survey. A survey is pending while sent or
+ * reminded; the answers are null until it is answered.
+ *
+ * The row carries the questions of its own kind, so the portal renders
+ * either survey from what the server sent rather than from a second
+ * vocabulary of its own.
+ */
+export type SurveyStatus = "sent" | "reminded" | "answered" | "expired";
+
+export type SurveyKind = "ticket_close" | "quarterly";
+
+/** A question as the API words it: the answer document's key and the text to show. */
+export interface SurveyQuestionSpec {
+  key: string;
+  text: string;
+}
+
+export interface Survey {
+  id: string;
+  /** Absent on an API older than the quarterly survey; such a row reads as a ticket-close one. */
+  kind?: SurveyKind;
+  /** `2026-Q2` on a quarterly survey, null on a ticket-close one. */
+  period?: string | null;
+  ticket_id: string | null;
+  ticket_key: string | null;
+  short_description: string | null;
+  status: SurveyStatus;
+  sent_at: string;
+  expires_at: string | null;
+  answered_at: string | null;
+  /** The ticket-close score; null on a quarterly survey, whose five live in `answers`. */
+  score: number | null;
+  /** The questions of this survey's kind, in the order the server asks them. */
+  questions?: SurveyQuestionSpec[];
+  /** What was answered, keyed as the questions are; null while the survey is pending. */
+  answers?: Record<string, number> | null;
+}
+
+export interface SurveyList {
+  pending: Survey[];
+  answered: Survey[];
+}
+
+/**
+ * One body for both kinds, as the API's AnswerDto takes it: `score` answers
+ * a ticket-close survey, `scores` the five keyed questions of a quarterly
+ * one. The survey's own kind decides which the server requires, so the
+ * wrong shape is refused rather than believed.
+ */
+export interface AnswerSurveyBody {
+  score?: number;
+  scores?: Record<string, number>;
+  comment?: string;
+}
+
+export interface SurveyAnswer {
+  survey_id: string;
+  kind?: SurveyKind;
+  period?: string | null;
+  answers?: Record<string, number>;
+  /** The one score, or the mean of the five on a quarterly survey; the server computes it. */
+  score: number;
+  answered_at: string;
+}
+
+/**
+ * The read behind the email link (`POST /v1/csat/:id/describe`): what the
+ * survey asks and where it stands, behind the same one-time token the
+ * answer route takes. It carries the survey and nothing about the account
+ * or the contact, so a token holder learns only what the email they were
+ * sent already told them, and an unknown id answers exactly as a token that
+ * does not match does.
+ */
+export interface SurveyDescription {
+  id: string;
+  kind: SurveyKind;
+  /** `2026-Q2` on a quarterly survey, null on a ticket-close one. */
+  period: string | null;
+  ticket_key: string | null;
+  /** `suppressed` never reaches a link, but the column can hold it. */
+  status: SurveyStatus | "suppressed";
+  expires_at: string | null;
+  questions: SurveyQuestionSpec[];
+}
+
+/** Placeholder until the knowledge base ships: the screens are wired, the list is empty. */
+export interface PortalArticle {
+  id: string;
+  title: string;
+  summary: string;
+}
+
+/**
+ * The list envelope. `unavailable` is the number of the client's requests the
+ * API could read but could not build a view for; it is optional because the
+ * API only started counting them after one unreadable row was found to empty
+ * a whole client's list (frontend review finding 2). The client renders the
+ * rows it was given and words the rest; it never turns a partial answer into
+ * "you have no requests".
+ */
+export interface PortalTicketPage {
+  items: PortalTicket[];
+  next_cursor: string | null;
+  unavailable?: number;
+}
+
+function listQuery(params: PortalListParams): string {
+  const search = new URLSearchParams();
+  if (params.scope) search.set("scope", params.scope);
+  if (params.q) search.set("q", params.q);
+  const query = search.toString();
+  return `/v1/portal/tickets${query ? `?${query}` : ""}`;
+}
+
+export const portalApi = xmsApi.injectEndpoints({
+  endpoints: (build) => ({
+    portalMe: build.query<PortalMe, void>({
+      query: () => "/v1/portal/me",
+      providesTags: ["PortalMe"],
+    }),
+    portalTickets: build.query<PortalTicketPage, PortalListParams>({
+      query: (params) => listQuery(params),
+      transformResponse: (response: Partial<PortalTicketPage> | null): PortalTicketPage => ({
+        items: Array.isArray(response?.items) ? response.items : [],
+        next_cursor: response?.next_cursor ?? null,
+        ...(typeof response?.unavailable === "number" && response.unavailable > 0
+          ? { unavailable: response.unavailable }
+          : {}),
+      }),
+      providesTags: (result) => [
+        "PortalTickets",
+        ...(result?.items.map((item) => ({ type: "PortalTicket" as const, id: item.key })) ?? []),
+      ],
+    }),
+    /**
+     * What was decided about this request's scope (TM-11), and nothing that
+     * was not: the API answers with the decided rows only, so a client never
+     * sees an argument still in progress.
+     */
+    portalScopeRecord: build.query<PortalScopeDecision[], string>({
+      query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}/scope`,
+      providesTags: (_r, _e, key) => [{ type: "PortalTicket", id: key }],
+    }),
+    portalTicket: build.query<PortalTicket, string>({
+      query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}`,
+      providesTags: (_result, _error, key) => [{ type: "PortalTicket", id: key }],
+    }),
+    portalTimeline: build.query<PortalTimelineItem[], string>({
+      query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}/timeline`,
+      providesTags: (_result, _error, key) => [{ type: "PortalTimeline", id: key }],
+    }),
+    portalTransitions: build.query<{ from: string; transitions: PortalTransition[] }, string>({
+      query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}/transitions`,
+      providesTags: (_result, _error, key) => [{ type: "PortalTicket", id: key }],
+    }),
+    createPortalTicket: build.mutation<PortalTicket, CreatePortalTicketBody>({
+      query: (body) => ({ url: "/v1/portal/tickets", method: "POST", body }),
+      invalidatesTags: ["PortalTickets"],
+    }),
+    addPortalComment: build.mutation<PortalComment, { key: string; body: string }>({
+      query: ({ key, body }) => ({
+        url: `/v1/portal/tickets/${encodeURIComponent(key)}/comments`,
+        method: "POST",
+        body: { body },
+      }),
+      invalidatesTags: (_result, _error, { key }) => [
+        { type: "PortalTimeline", id: key },
+        { type: "PortalTicket", id: key },
+      ],
+    }),
+    portalTransition: build.mutation<PortalTicket, { key: string; version: number; to: string }>({
+      query: ({ key, version, to }) => ({
+        url: `/v1/portal/tickets/${encodeURIComponent(key)}/transitions`,
+        method: "POST",
+        body: { version, to },
+      }),
+      invalidatesTags: (_result, _error, { key }) => [
+        { type: "PortalTicket", id: key },
+        { type: "PortalTimeline", id: key },
+        "PortalTickets",
+      ],
+    }),
+    /** GET /v1/portal/knowledge?q= lands with the knowledge base; until then the list is empty. */
+    searchArticles: build.query<PortalArticle[], string>({
+      queryFn: async () => ({ data: [] }),
+    }),
+    /**
+     * The request types this account offers and the form behind each (CP-03).
+     * A type the account has authored no form for still answers, with the
+     * fixed default definition, so the portal keeps working either way.
+     */
+    portalForms: build.query<{ items: PortalFormView[] }, void>({
+      query: () => "/v1/portal/forms",
+      providesTags: ["PortalForms"],
+    }),
+    portalForm: build.query<PortalFormView, string>({
+      query: (type) => `/v1/portal/forms/${encodeURIComponent(type)}`,
+      providesTags: (_result, _error, type) => [{ type: "PortalForms" as const, id: type }],
+    }),
+    portalSurveys: build.query<SurveyList, void>({
+      query: () => "/v1/portal/surveys",
+      providesTags: ["PortalSurveys"],
+    }),
+    /** Answers as the signed-in portal user. A refusal (already_answered, survey_closed) means the list is behind. */
+    answerPortalSurvey: build.mutation<SurveyAnswer, { id: string; body: AnswerSurveyBody }>({
+      query: ({ id, body }) => ({ url: `/v1/portal/surveys/${encodeURIComponent(id)}/answer`, method: "POST", body }),
+      invalidatesTags: ["PortalSurveys"],
+    }),
+    /**
+     * Reads the survey behind the email link without a session. It is a POST
+     * because the token travels in the body rather than the address, where it
+     * would land in history, proxy logs and any forwarded copy of the email
+     * (security review finding 9); it is a query because it reads.
+     */
+    describeSurveyLink: build.query<SurveyDescription, { id: string; token: string }>({
+      query: ({ id, token }) => ({
+        url: `/v1/csat/${encodeURIComponent(id)}/describe`,
+        method: "POST",
+        body: { token },
+      }),
+    }),
+    /** Answers from the email link without a session: the one-time token is the credential. */
+    answerSurveyLink: build.mutation<SurveyAnswer, { id: string; token: string; body: AnswerSurveyBody }>({
+      query: ({ id, token, body }) => ({
+        url: `/v1/csat/${encodeURIComponent(id)}/answer`,
+        method: "POST",
+        body: { token, ...body },
+      }),
+    }),
+  }),
+});
+
+export const {
+  usePortalScopeRecordQuery,
+  usePortalMeQuery,
+  usePortalTicketsQuery,
+  usePortalTicketQuery,
+  usePortalTimelineQuery,
+  usePortalTransitionsQuery,
+  usePortalFormsQuery,
+  usePortalFormQuery,
+  useCreatePortalTicketMutation,
+  useAddPortalCommentMutation,
+  usePortalTransitionMutation,
+  useSearchArticlesQuery,
+  usePortalSurveysQuery,
+  useAnswerPortalSurveyMutation,
+  useDescribeSurveyLinkQuery,
+  useAnswerSurveyLinkMutation,
+} = portalApi;

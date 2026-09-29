@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 /**
- * The only Client Component in this application.
+ * The clock on the proof page.
  *
- * Everything else on the proof page is finished HTML from the server. This
- * one ticks, because a timestamp that says "expires at 15:42:07Z" is easy to
+ * Everything else on that page is finished HTML from the server. This one
+ * ticks, because a timestamp that says "expires at 15:42:07Z" is easy to
  * read past, and a number counting down in front of you is not. The point it
  * makes is that the database credential is minted per connection and dies in
- * minutes — it is not a password sitting in a secret store.
+ * minutes, it is not a password sitting in a secret store.
  *
  * It receives two ISO strings and nothing else. No URL, no service name, no
  * configuration: this is the boundary where server-only data stops, and it
@@ -18,21 +18,18 @@ import { useEffect, useState } from 'react';
  * The first render deliberately shows nothing but a placeholder. The server
  * and the browser have different clocks, and rendering "13m 58s" on one and
  * "13m 51s" on the other is a hydration mismatch. The real value appears on
- * the first effect, a few milliseconds later.
+ * the first timer tick, a few milliseconds later.
  */
-export function TokenCountdown({
-  issuedAt,
-  expiresAt,
-}: {
-  issuedAt: string;
-  expiresAt: string;
-}) {
+export function TokenCountdown({ issuedAt, expiresAt }: { issuedAt: string; expiresAt: string }) {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
-    setNow(Date.now());
+    const kick = setTimeout(() => setNow(Date.now()), 0);
     const id = setInterval(() => setNow(Date.now()), 1_000);
-    return () => clearInterval(id);
+    return () => {
+      clearTimeout(kick);
+      clearInterval(id);
+    };
   }, []);
 
   const expiry = new Date(expiresAt).getTime();
@@ -57,20 +54,17 @@ export function TokenCountdown({
   const total = Number.isNaN(issued) ? 0 : expiry - issued;
   const fraction = total > 0 ? Math.max(0, Math.min(1, remainingMs / total)) : 0;
 
-  const state =
-    remainingMs <= 0 ? 'is-expired' : remaining < 120 ? 'is-soon' : '';
+  const state = remainingMs <= 0 ? "is-expired" : remaining < 120 ? "is-soon" : "";
 
   return (
     <div>
-      <span className="countdown-label">
-        {remainingMs <= 0 ? 'Expired' : 'Expires in'}
-      </span>
+      <span className="countdown-label">{remainingMs <= 0 ? "Expired" : "Expires in"}</span>
       <div className={`countdown ${state}`} suppressHydrationWarning>
         {remainingMs <= 0 ? (
           <span>00m 00s</span>
         ) : (
           <span>
-            {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
+            {String(minutes).padStart(2, "0")}m {String(seconds).padStart(2, "0")}s
           </span>
         )}
       </div>

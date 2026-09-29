@@ -1,53 +1,36 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import './globals.css';
+import type { ReactNode } from "react";
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { Providers } from "@/components/providers";
+import { NONCE_HEADER } from "@/lib/security/csp";
+import "./globals.css";
+
+// Two typefaces and no third one (Wireframes v2 section 4): Inter for the UI,
+// IBM Plex Mono for keys, SLA values, counts, tool calls and caption labels.
+// Both are declared in styles/tokens/fonts.css over files in public/fonts
+// rather than fetched by next/font at build time, which failed silently for
+// Inter and left every screen in the platform sans (reviewer finding 6).
 
 export const metadata: Metadata = {
-  title: 'XMS',
-  description:
-    'The XMS backend-for-frontend: the only public surface, and the proof page behind it.',
+  // The tab reads the product name in full. XMS is the short form the
+  // interface uses; a browser tab is where a person meets the name first.
+  title: "X Managed Services",
+  description: "X Managed Services: cases, SLAs, contracts and knowledge for the DMS practice.",
 };
 
 /**
- * No font package, no UI framework, no icon set. The dependency list is part
- * of the reference: a front end that fronts three services needs a router, a
- * renderer and an AWS client, and this one has exactly that.
+ * The nonce is minted per request by `proxy.ts` and read back here, so
+ * the one inline script this tree writes (next-themes, before the first
+ * paint) carries it. The framework's own scripts take it from the request
+ * header without being told, and so does `@clerk/nextjs`, which reads
+ * `x-nonce` itself.
  */
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   return (
-    <html lang="en">
-      <body>
-        <header className="site-header">
-          <div className="shell header-inner">
-            <Link href="/" className="brand">
-              <span className="brand-mark" aria-hidden="true" />
-              <span className="brand-text">
-                <strong>XMS</strong>
-                <span className="brand-sub">backend-for-frontend</span>
-              </span>
-            </Link>
-            <nav className="nav" aria-label="Primary">
-              <Link href="/">Items</Link>
-              <Link href="/platform">Platform proof</Link>
-            </nav>
-          </div>
-        </header>
-
-        <main className="shell page">{children}</main>
-
-        <footer className="site-footer">
-          <div className="shell">
-            <p>
-              xms-frontend · the only service on this platform with a public
-              gateway. Everything it shows was fetched server-side over
-              Kubernetes cluster DNS.
-            </p>
-          </div>
-        </footer>
+    <html lang="en" suppressHydrationWarning className="xms-scope h-full overflow-hidden antialiased">
+      <body className="flex h-full min-h-0 flex-col overflow-hidden">
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );
