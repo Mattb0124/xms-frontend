@@ -65,7 +65,7 @@ lib/types.ts        the wire shapes, transcribed from the backend
 
 app/api/items       GET and POST, proxied to xms-backend
 app/api/platform    the aggregate identity document
-app/health          the chart's probe target
+app/healthz, readyz the chart's probe targets
 app/page.tsx        the items page
 app/platform        the proof page, and its one Client Component
 ```
@@ -206,7 +206,7 @@ nothing else. It runs as the non-root `node` user and exposes 3000. Unlike the
 other XMS services there is no RDS trust bundle in the image — there is no
 database to verify a certificate for.
 
-`/health` reports only that this process is serving. It deliberately does not
+`/healthz` and `/readyz` report only that this process is serving. They deliberately do not
 check the upstreams: this service is at its most useful when they are down,
 and making its readiness depend on theirs would pull it out of the load
 balancer exactly when an operator needs `/platform`.
