@@ -14,6 +14,23 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+# NEXT_PUBLIC_* values are inlined into the browser bundle by `next build`, so
+# they are build arguments, not runtime environment. The delivery pipeline
+# passes both from the platform (clerkFrontend: true in azure-pipelines.yml):
+# the Clerk publishable key of the environment's instance, from Vault, and the
+# deploy target. Neither has a default. The deploy target is always required,
+# because unset is read as production; the key is required everywhere but a
+# developer's own machine, where a build without Clerk is the dev sign-in.
+ARG NEXT_PUBLIC_DEPLOY_TARGET
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+RUN : "${NEXT_PUBLIC_DEPLOY_TARGET:?build argument NEXT_PUBLIC_DEPLOY_TARGET is required}" \
+ && if [ "$NEXT_PUBLIC_DEPLOY_TARGET" != "local" ] && [ -z "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}" ]; then \
+      echo "build argument NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is required for the $NEXT_PUBLIC_DEPLOY_TARGET deploy target" >&2; \
+      exit 1; \
+    fi
+ENV NEXT_PUBLIC_DEPLOY_TARGET=$NEXT_PUBLIC_DEPLOY_TARGET \
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
 # output: "standalone" in next.config.ts emits .next/standalone, a server plus
 # only the node_modules it actually reached.
 ENV NEXT_TELEMETRY_DISABLED=1

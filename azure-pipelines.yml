@@ -28,3 +28,7 @@ extends:
     service: xms-frontend
     ecrRepository: xms/frontend
     servicePort: 3000
+    # Bake the environment's Clerk publishable key and deploy target into the
+    # image. The platform picks both from the branch: dev and demo use the
+    # Clerk development instance, main the production one.
+    clerkFrontend: true
