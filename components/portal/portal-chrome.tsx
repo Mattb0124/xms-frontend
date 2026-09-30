@@ -1,15 +1,17 @@
 "use client";
 
+import { useAuth, useClerk } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ClerkSignOut } from "@/components/portal/clerk-sign-out";
-import { PORTAL_SECONDARY } from "@/components/portal/primitives";
+import { PORTAL_SECONDARY, PortalNotice } from "@/components/portal/primitives";
 import { Skeleton } from "@/components/xms/skeleton";
 import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
 import { setDevToken } from "@/lib/auth/token";
 import { isSurveyLink, isSurveyPath } from "@/lib/portal/csat";
+import { returnToPortalSignIn } from "@/lib/portal/sign-in-gate";
 import { useSurveyLink } from "@/lib/portal/survey-token";
 import { cn } from "@/lib/utils";
 import { xmsApi } from "@/redux/api";
@@ -19,7 +21,9 @@ import { usePortalMeQuery, type PortalMe } from "@/redux/portalApi";
 /**
  * The portal chrome (User Experience section 4, Client Portal functional
  * 5.8): the account's name and accent, the nav, a user menu and a short
- * footer. A 401 from /portal/me sends the visitor to the sign-in page.
+ * footer. A 401 from /portal/me sends an anonymous visitor to the sign-in
+ * page. A Clerk session the API refused stays here, with the reason, so the
+ * sign-in component is not mounted again.
  *
  * The bar wears the same chrome as the internal one as of 2026-09-12, at
  * Matt's request. It looked like a different product: a 60px band of flat
@@ -56,6 +60,18 @@ function accentOf(me: PortalMe | undefined): string | undefined {
 }
 
 export function PortalChrome({ children }: { children: ReactNode }) {
+  if (!CLERK_ENABLED) {
+    return <PortalChromeView clerkSignedIn={false}>{children}</PortalChromeView>;
+  }
+  return <ClerkAwareChrome>{children}</ClerkAwareChrome>;
+}
+
+function ClerkAwareChrome({ children }: { children: ReactNode }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  return <PortalChromeView clerkSignedIn={Boolean(isLoaded && isSignedIn)}>{children}</PortalChromeView>;
+}
+
+function PortalChromeView({ children, clerkSignedIn }: { children: ReactNode; clerkSignedIn: boolean }) {
   const pathname = usePathname();
   const search = useSearchParams();
   const router = useRouter();
@@ -71,8 +87,8 @@ export function PortalChrome({ children }: { children: ReactNode }) {
   const status = me.error && typeof me.error === "object" && "status" in me.error ? me.error.status : undefined;
 
   useEffect(() => {
-    if (!isSignIn && !bare && status === 401) router.replace("/portal/sign-in");
-  }, [isSignIn, bare, status, router]);
+    if (!isSignIn && !bare && returnToPortalSignIn(status, clerkSignedIn)) router.replace("/portal/sign-in");
+  }, [isSignIn, bare, status, clerkSignedIn, router]);
 
   const accent = accentOf(me.data);
   const accountName = me.data?.account?.name;
@@ -148,7 +164,15 @@ export function PortalChrome({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main id="portal-main" className="flex w-full flex-1 flex-col gap-6 px-5 py-8">
-        {isSignIn || me.data ? children : status === 401 ? null : <Skeleton lines={5} className="max-w-md" />}
+        {isSignIn || me.data ? (
+          children
+        ) : status === 401 ? (
+          clerkSignedIn ? (
+            <SessionRefused />
+          ) : null
+        ) : (
+          <Skeleton lines={5} className="max-w-md" />
+        )}
         {!isSignIn && me.isError && status !== 401 ? (
           <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
             The portal could not load your account. Try again in a moment.
@@ -159,6 +183,23 @@ export function PortalChrome({ children }: { children: ReactNode }) {
         Need help? Open a request or reply to any email from your support team. Every message lands on your request.
       </footer>
     </div>
+  );
+}
+
+function SessionRefused() {
+  const clerk = useClerk();
+  return (
+    <PortalNotice tone="error">
+      <p>This sign-in is not a portal account. Ask an administrator for an invite, or open the desk.</p>
+      <div className="mt-3 flex gap-2">
+        <Link href="/" className={PORTAL_SECONDARY}>
+          Open the desk
+        </Link>
+        <button type="button" className={PORTAL_SECONDARY} onClick={() => void clerk.signOut()}>
+          Sign out
+        </button>
+      </div>
+    </PortalNotice>
   );
 }
 
