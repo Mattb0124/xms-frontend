@@ -1,4 +1,5 @@
 import type { PortalFormView } from "@/lib/portal/forms";
+import type { ReopenWindowView } from "@/lib/tickets/reopen-window";
 import { xmsApi } from "@/redux/api";
 
 /**
@@ -64,6 +65,12 @@ export interface PortalTransition {
   label: string;
   requires: string[];
   reopen: boolean;
+}
+
+export interface PortalTransitionsResponse {
+  from: string;
+  transitions: PortalTransition[];
+  reopen_window?: ReopenWindowView | null;
 }
 
 export interface PortalListParams {
@@ -249,7 +256,7 @@ export const portalApi = xmsApi.injectEndpoints({
       query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}/timeline`,
       providesTags: (_result, _error, key) => [{ type: "PortalTimeline", id: key }],
     }),
-    portalTransitions: build.query<{ from: string; transitions: PortalTransition[] }, string>({
+    portalTransitions: build.query<PortalTransitionsResponse, string>({
       query: (key) => `/v1/portal/tickets/${encodeURIComponent(key)}/transitions`,
       providesTags: (_result, _error, key) => [{ type: "PortalTicket", id: key }],
     }),

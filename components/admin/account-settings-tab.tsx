@@ -9,6 +9,7 @@ import { useTrack } from "@/lib/telemetry/provider";
 import {
   useGetAccountSettingsQuery,
   useUpdateAccountSettingsMutation,
+  type EmailBranding,
   type SettingsPatch,
   type SyncMode,
 } from "@/redux/adminApi";
@@ -44,6 +45,12 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
   const current = { ...data, ...(draft ?? {}) };
   const set = <K extends keyof SettingsPatch>(key: K, value: SettingsPatch[K]) =>
     setDraft((previous) => ({ ...(previous ?? { version: data.version }), version: data.version, [key]: value }));
+  const setBranding = (key: keyof EmailBranding, value: string) => {
+    const next: EmailBranding = { ...(current.email_branding ?? {}) };
+    if (value === "") delete next[key];
+    else next[key] = value;
+    set("email_branding", next);
+  };
   const dirty = draft !== null && Object.keys(draft).length > 1;
 
   const save = async () => {
@@ -147,7 +154,7 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
         </div>
       </Panel>
 
-      <Panel title="Email" caption="Inbound aliases and sender identity">
+      <Panel title="Email" caption="Inbound aliases, sender identity and client mail chrome">
         <FieldRow label="Outbound identity" htmlFor="outbound_identity">
           <input
             id="outbound_identity"
@@ -157,6 +164,52 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
             className={INPUT}
           />
         </FieldRow>
+        <div className="mt-3">
+          <FieldRow label="Accent" htmlFor="email_accent">
+            <input
+              id="email_accent"
+              type="text"
+              placeholder="#10193a"
+              value={current.email_branding?.accent ?? ""}
+              onChange={(event) => setBranding("accent", event.target.value)}
+              className={INPUT}
+            />
+          </FieldRow>
+        </div>
+        <div className="mt-3">
+          <FieldRow label="Logo URL" htmlFor="email_logo">
+            <input
+              id="email_logo"
+              type="url"
+              placeholder="https://"
+              value={current.email_branding?.logo_url ?? ""}
+              onChange={(event) => setBranding("logo_url", event.target.value)}
+              className={INPUT}
+            />
+          </FieldRow>
+        </div>
+        <div className="mt-3">
+          <FieldRow label="Sender display name" htmlFor="email_sender">
+            <input
+              id="email_sender"
+              type="text"
+              value={current.email_branding?.sender_display_name ?? ""}
+              onChange={(event) => setBranding("sender_display_name", event.target.value)}
+              className={INPUT}
+            />
+          </FieldRow>
+        </div>
+        <div className="mt-3">
+          <FieldRow label="Footer line" htmlFor="email_footer">
+            <input
+              id="email_footer"
+              type="text"
+              value={current.email_branding?.footer_text ?? ""}
+              onChange={(event) => setBranding("footer_text", event.target.value)}
+              className={INPUT}
+            />
+          </FieldRow>
+        </div>
         <div className="mt-3">
           <p className="text-xms-label mb-1 text-body">Inbound aliases</p>
           <div className="flex flex-wrap items-center gap-2">
@@ -230,6 +283,24 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
             />
           </FieldRow>
         </div>
+      </Panel>
+
+      <Panel title="Reopen window" caption="After a ticket is resolved or closed">
+        <FieldRow label="Working days" htmlFor="reopen_window_business_days">
+          <input
+            id="reopen_window_business_days"
+            type="number"
+            min={0}
+            max={365}
+            value={current.reopen_window_business_days ?? 5}
+            onChange={(event) => set("reopen_window_business_days", Number(event.target.value))}
+            className={INPUT}
+          />
+        </FieldRow>
+        <p className="text-muted mt-1 text-xs">
+          How long a matched reply can reopen the ticket, counted on the account calendar. Zero never reopens, including
+          the resolve day.
+        </p>
       </Panel>
 
       <Panel

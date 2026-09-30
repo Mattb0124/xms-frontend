@@ -20,7 +20,7 @@ function routes(
     "GET /v1/portal/me": () => json(aPortalMe()),
     "GET /v1/portal/tickets/CS0001001": () => json(ticket),
     "GET /v1/portal/tickets/CS0001001/timeline": () => json(aTimeline()),
-    "GET /v1/portal/tickets/CS0001001/transitions": () => json({ from: ticket.state, transitions }),
+    "GET /v1/portal/tickets/CS0001001/transitions": () => json({ from: ticket.state, transitions, reopen_window: null }),
   };
 }
 
@@ -110,5 +110,28 @@ describe("portal request detail", () => {
     stubFetch(routes(aPortalTicket({ state: "closed", state_label: "Closed" }), []));
     renderPortal(<RequestDetail requestKey="CS0001001" />);
     await waitFor(() => expect(screen.getByText(/This request is closed/)).toBeInTheDocument());
+  });
+
+  it("hides Reopen once the window has elapsed and names the deadline", async () => {
+    stubFetch({
+      ...routes(aPortalTicket({ state: "closed", state_label: "Closed" }), []),
+      "GET /v1/portal/tickets/CS0001001/transitions": () =>
+        json({
+          from: "closed",
+          transitions: [],
+          reopen_window: {
+            days: 5,
+            source: "account",
+            started_on: "2026-09-14",
+            deadline: "2026-09-21",
+            allowed: false,
+          },
+        }),
+    });
+    renderPortal(<RequestDetail requestKey="CS0001001" />);
+    await waitFor(() =>
+      expect(screen.getByText("The 5 working-day reopen window ended on 2026-09-21.")).toBeInTheDocument(),
+    );
+    expect(screen.queryByRole("button", { name: "Reopen" })).not.toBeInTheDocument();
   });
 });

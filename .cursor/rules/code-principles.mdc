@@ -1,0 +1,62 @@
+---
+description: SOLID, DRY, YAGNI and KISS for XMS Web. Always on. Say what you extracted and why.
+alwaysApply: true
+---
+
+# Coding principles
+
+These are the team standard for new and edited code. Follow them. In the change summary, name anything you extracted and the single reason it moved. Do not stop to ask when the choice is already decided here. Stop only when two real options would change a public contract, a permission, or what the user sees, and then name both and which one you took.
+
+## SOLID
+
+### Single responsibility
+
+- A file, class, or function has one reason to change. If that reason needs "and" or "or", split it before writing.
+- UI, business rules, and data access stay in separate units. A component renders. A function in `lib/` decides. An RTK Query endpoint talks to the API.
+- YES: `validateEmail`, `saveUser`, `formatCurrency`
+- NO: `validateAndSave`, `fetchAndRenderUser`
+
+### Open/closed
+
+- A small, low-risk change may edit the existing unit.
+- Do not change a public prop, route, or API contract to satisfy one new caller. Extend or compose.
+- Core logic that several callers already depend on gets a new unit instead of a quiet rewrite.
+
+### Liskov substitution
+
+- Do not override a method so that it throws or does nothing. That breaks the contract the parent set.
+- An `instanceof` check that treats one subtype differently means the hierarchy is wrong. Say so in the summary. Do not invent a class hierarchy up front to satisfy this rule.
+
+### Interface segregation
+
+- Split an interface only when an implementor leaves a method empty or throws "not implemented". Extract the methods that implementor actually needs. Do not split in advance.
+
+### Dependency inversion
+
+- At a boundary (a screen, a hook that loads data, a module in `lib/` that encodes a rule), dependencies come in as arguments, props, or the existing RTK Query hook. Do not `new` a client inside the unit.
+- Stateless helpers may be imported directly.
+- A business rule depends on the values it is given, not on which concrete client fetched them.
+
+## DRY
+
+- A business rule lives in exactly one place. A change to that rule that has to touch several files is a violation.
+- Three copies of the same logic are extracted, even without a strong business meaning. Two copies may stay when extraction would make the code harder to read.
+- A constant, limit, or magic number with business meaning is defined once.
+  YES: `MAX_LOGIN_ATTEMPTS = 5` in one module.
+  NO: the literal `5` in three files.
+- Similar file shape or naming is not repetition. Do not extract a framework for it.
+- Do not copy-paste between files. Extract first, and name the extraction in the summary.
+
+## YAGNI
+
+- Do not add a feature, parameter, flag, or layer for a requirement that is not in the current change.
+- An abstraction needs two concrete callers in this change. One caller is not enough. If you cannot name both, do not add the layer.
+- Do not add an optional parameter or a config flag unless a caller in this change passes a non-default value.
+- "This will be useful later" is the signal to delete it. Mention the cut in the summary.
+
+## KISS
+
+- Prefer the version a developer who does not know the file can follow in one reading.
+- Do not apply a pattern unless you can name the problem it solves, in the summary, as "this solves [problem]".
+- A comment that explains what the code does means the code is too clever. Rewrite it. A comment that explains why a non-obvious constraint exists may stay.
+- If a single operation only makes sense after tracing through several layers, flatten it.
