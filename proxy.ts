@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
+import { CLERK_FRONTEND_API, contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
 
 /**
  * The nonce proxy (security review finding 25).
@@ -27,6 +27,7 @@ export function proxy(request: NextRequest): NextResponse {
   const csp = contentSecurityPolicy({
     nonce,
     allowEval: process.env.NODE_ENV !== "production",
+    clerkFrontendApi: CLERK_FRONTEND_API,
   });
 
   const headers = new Headers(request.headers);
