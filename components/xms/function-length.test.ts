@@ -13,7 +13,6 @@ import { describe, expect, it } from "vitest";
 const LIMIT = 200;
 
 const ALLOWED = new Map<string, number>([
-  ["app/(internal)/cases/[key]/page.tsx:TicketRecord", 202],
   ["components/admin/account-settings-tab.tsx:AccountSettingsTab", 323],
   ["components/admin/api-clients/api-clients-view.tsx:ApiClientsView", 253],
   ["components/admin/billing/billing-periods-tab.tsx:BillingPeriodsTab", 237],
@@ -27,10 +26,6 @@ const ALLOWED = new Map<string, number>([
   ["components/capacity/capacity-grid.tsx:CapacityGrid", 220],
   ["components/roster/details-tab.tsx:DetailsTab", 213],
   ["components/shell/finder.tsx:Finder", 261],
-  ["components/tickets/case-form.tsx:CaseForm", 305],
-  ["components/tickets/saved-views.tsx:SavedViewsBar", 320],
-  ["components/tickets/ticket-groups.tsx:TicketGroupsCatalog", 200],
-  ["components/tickets/transition-menu.tsx:TransitionMenu", 259],
   ["components/time/budget-entries.tsx:BudgetEntriesList", 201],
   ["components/xms/dense-table.tsx:DenseTable", 278],
   ["components/xms/record-form.tsx:Field", 249],
