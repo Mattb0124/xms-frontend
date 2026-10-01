@@ -67,37 +67,33 @@ export function useUploads(ticketKey: string | undefined, options: UseUploadsOpt
   const update = (id: string, patch: Partial<UploadItem>) =>
     setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
 
-  const add = useCallback(
-    async (files: FileList | File[]) => {
-      if (!ticketKey) return;
-      for (const file of Array.from(files)) {
-        const id = `u${(counter.current += 1)}`;
-        setItems((current) => [...current, { id, name: file.name, size: file.size, stage: "presigning", percent: 0 }]);
-        try {
-          const attachment = await uploadAttachment(ticketKey, file, {
-            portal: options.portal,
-            visibility: options.visibility?.(),
-            onProgress: (progress) => update(id, { stage: progress.stage, percent: progress.percent }),
-          });
-          update(id, {
-            attachment,
-            stage:
-              attachment.scan_state === "clean"
-                ? "clean"
-                : attachment.scan_state === "quarantined"
-                  ? "quarantined"
-                  : "scanning",
-          });
-          options.onDone?.(attachment);
-        } catch (error) {
-          const refusal = error instanceof UploadRefusal ? error : new UploadRefusal("error");
-          update(id, { stage: "failed", error: describeRefusal(refusal) });
-        }
+  const add = async (files: FileList | File[]) => {
+    if (!ticketKey) return;
+    for (const file of Array.from(files)) {
+      const id = `u${(counter.current += 1)}`;
+      setItems((current) => [...current, { id, name: file.name, size: file.size, stage: "presigning", percent: 0 }]);
+      try {
+        const attachment = await uploadAttachment(ticketKey, file, {
+          portal: options.portal,
+          visibility: options.visibility?.(),
+          onProgress: (progress) => update(id, { stage: progress.stage, percent: progress.percent }),
+        });
+        update(id, {
+          attachment,
+          stage:
+            attachment.scan_state === "clean"
+              ? "clean"
+              : attachment.scan_state === "quarantined"
+                ? "quarantined"
+                : "scanning",
+        });
+        options.onDone?.(attachment);
+      } catch (error) {
+        const refusal = error instanceof UploadRefusal ? error : new UploadRefusal("error");
+        update(id, { stage: "failed", error: describeRefusal(refusal) });
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ticketKey, options.portal],
-  );
+    }
+  };
 
   const remove = (id: string) => setItems((current) => current.filter((item) => item.id !== id));
   const clear = () => setItems([]);
