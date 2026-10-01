@@ -101,8 +101,6 @@ describe("a reopen-window audit row", () => {
         />
       </ul>,
     );
-    expect(
-      screen.getByText("reply inside reopen window (5 working days, deadline 2026-09-21)."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("reply inside reopen window (5 working days, deadline 2026-09-21).")).toBeInTheDocument();
   });
 });

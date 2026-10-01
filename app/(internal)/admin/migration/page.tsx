@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { TabBar } from "@/components/xms/tab-bar";
 import { filterFromSearch, filterToSearch } from "@/lib/migration/filters";
 import { BATCH_STATUSES, OBJECT_KINDS } from "@/lib/migration/vocab";
+import { WORKER_REFRESH_MS } from "@/lib/refresh";
 import { useListBatchesQuery, type BatchFilter } from "@/redux/migrationApi";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
@@ -28,7 +29,7 @@ function MigrationScreen() {
   const search = useSearchParams();
   const searchString = search.toString();
   const filter = useMemo(() => filterFromSearch(new URLSearchParams(searchString)), [searchString]);
-  const batches = useListBatchesQuery(filter, { pollingInterval: 30_000, refetchOnFocus: true });
+  const batches = useListBatchesQuery(filter, { pollingInterval: WORKER_REFRESH_MS, refetchOnFocus: true });
   const accounts = useListGrantedAccountsQuery();
   const [tab, setTab] = useState("batches");
   const names = useMemo(

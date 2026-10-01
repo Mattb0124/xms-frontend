@@ -43,9 +43,7 @@ describe("transition error toasts", () => {
 
   it("names the deadline when the reopen window has elapsed", () => {
     const copy = describeTransitionError(
-      transitionError(
-        rtk(409, { code: "reopen_window_elapsed", days: 5, source: "account", deadline: "2026-09-21" }),
-      ),
+      transitionError(rtk(409, { code: "reopen_window_elapsed", days: 5, source: "account", deadline: "2026-09-21" })),
     );
     expect(copy).toMatchObject({
       title: "Window closed",

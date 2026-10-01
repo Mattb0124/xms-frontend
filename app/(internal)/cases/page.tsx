@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { parseConditions } from "@/lib/conditions";
 import { STARS_KEY, useToggleInList } from "@/lib/persisted-set";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { CONDITIONS_PARAM, conditionsParam, queueConditionFields } from "@/lib/tickets/queue-conditions";
 import { chipsFromSearch, viewByKey, viewToParams } from "@/lib/tickets/queue-views";
 import { applyDefinition, savedViewSearch } from "@/lib/tickets/saved-views";
@@ -66,7 +67,7 @@ function CasesScreen() {
       }),
     [view, parsed, cursor, conditionsSent],
   );
-  const { data, isLoading, isError, refetch } = useListTicketsQuery(params, { pollingInterval: 60_000 });
+  const { data, isLoading, isError, refetch } = useListTicketsQuery(params, { pollingInterval: LIVE_REFRESH_MS });
   // The export carries the view, the chips and the conditions, never the page
   // cursor or size.
   const exportParams = useMemo(

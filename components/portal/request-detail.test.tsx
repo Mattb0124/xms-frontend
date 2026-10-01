@@ -20,7 +20,8 @@ function routes(
     "GET /v1/portal/me": () => json(aPortalMe()),
     "GET /v1/portal/tickets/CS0001001": () => json(ticket),
     "GET /v1/portal/tickets/CS0001001/timeline": () => json(aTimeline()),
-    "GET /v1/portal/tickets/CS0001001/transitions": () => json({ from: ticket.state, transitions, reopen_window: null }),
+    "GET /v1/portal/tickets/CS0001001/transitions": () =>
+      json({ from: ticket.state, transitions, reopen_window: null }),
   };
 }
 

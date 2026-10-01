@@ -18,6 +18,7 @@ import { HeaderFilters } from "@/components/shell/content-header-bar";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Skeleton } from "@/components/xms/skeleton";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { ticketTypeLabel } from "@/lib/tickets/vocab";
 import { useOperationsDashboardQuery, type AccountStrip } from "@/redux/reportingApi";
 
@@ -67,7 +68,7 @@ export function OperationsDashboard({ initialDays = 7 }: { initialDays?: number 
   const [days, setDays] = useState(initialDays);
   const { data, isLoading, isError, refetch, isFetching } = useOperationsDashboardQuery(
     { days },
-    { pollingInterval: 60_000 },
+    { pollingInterval: LIVE_REFRESH_MS },
   );
 
   return (

@@ -10,6 +10,7 @@ import { Panel } from "@/components/xms/panel";
 import { StatePill } from "@/components/xms/state-pill";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
 import {
@@ -154,7 +155,7 @@ function QuarantineScreen() {
   const [showDecided, setShowDecided] = useState(false);
   const { data, isLoading } = useListQuarantineQuery(
     { state: showDecided ? "decided" : "open" },
-    { pollingInterval: 60_000 },
+    { pollingInterval: LIVE_REFRESH_MS },
   );
   const [decide, { isLoading: deciding }] = useDecideQuarantineMutation();
   const [selectedId, setSelectedId] = useState<string | null>(null);

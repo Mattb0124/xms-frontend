@@ -30,6 +30,7 @@ import { SlaValue } from "@/components/xms/sla-value";
 import { ICON, MoreIcon } from "@/components/xms/icons";
 import { TabBar } from "@/components/xms/tab-bar";
 import { useToast } from "@/components/xms/toast";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { clockDisplay, clockSnapshot, tighterClock, type ClockView } from "@/lib/tickets/sla";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
 import { useGetTicketQuery } from "@/redux/ticketsApi";
@@ -51,7 +52,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
     isLoading,
     isError,
     fulfilledTimeStamp,
-  } = useGetTicketQuery(ticketKey, { refetchOnFocus: true, pollingInterval: 60_000 });
+  } = useGetTicketQuery(ticketKey, { refetchOnFocus: true, pollingInterval: LIVE_REFRESH_MS });
   const { push } = useToast();
   const [notesTab, setNotesTab] = useState("notes");
   const [relatedTab, setRelatedTab] = useState("slas");
