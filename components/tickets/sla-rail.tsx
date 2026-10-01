@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { MeterBar } from "@/components/xms/meter-bar";
 import { RailCard } from "@/components/xms/rail-card";
+import { SLA_TICK_MS } from "@/components/xms/sla-value";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import {
@@ -90,7 +91,7 @@ export function ServiceLevels({
   const [now, setNow] = useState(() => new Date());
   const base = fetchedAt ?? now;
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    const id = window.setInterval(() => setNow(new Date()), SLA_TICK_MS);
     return () => window.clearInterval(id);
   }, []);
   const clocks = [sla.response, sla.resolution].filter((clock): clock is ClockView => Boolean(clock));
