@@ -20,7 +20,6 @@ const ALLOWED = new Map<string, number>([
   ["components/admin/calendars/calendar-editor.tsx:CalendarEditor", 242],
   ["components/admin/contracts/account-contracts-tab.tsx:ContractRulesEditor", 241],
   ["components/admin/forms/ticket-forms-panel.tsx:FieldEditor", 229],
-  ["components/admin/webhooks/webhooks-tab.tsx:AccountWebhooksTab", 253],
   ["components/capacity/capacity-grid.tsx:CapacityGrid", 220],
   ["components/roster/details-tab.tsx:DetailsTab", 213],
   ["components/shell/finder.tsx:Finder", 261],
