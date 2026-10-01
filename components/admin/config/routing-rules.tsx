@@ -7,6 +7,7 @@ import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { useRowKeys } from "@/lib/admin/use-row-keys";
 import { toRoutingRuleInputs, validateRoutingRules, type RoutingRuleDraft } from "@/lib/tickets/groups";
 import { ticketTypeLabel } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
@@ -42,8 +43,13 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
   const [problems, setProblems] = useState<string[]>([]);
 
   const rules = draft ?? (data ?? []).map(toDraft);
+  const ruleKeys = useRowKeys(rules.length);
   const edit = (index: number, change: Partial<RoutingRuleDraft>) =>
     setDraft(rules.map((rule, order) => (order === index ? { ...rule, ...change } : rule)));
+  const remove = (index: number) => {
+    ruleKeys.drop(index);
+    setDraft(rules.filter((_, order) => order !== index));
+  };
 
   const save = async () => {
     const found = validateRoutingRules(rules);
@@ -73,7 +79,7 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
         </thead>
         <tbody>
           {rules.map((rule, index) => (
-            <tr key={`${rule.ticketType}:${rule.category}:${index}`} className="border-xms-line border-b" data-rule>
+            <tr key={ruleKeys.keys[index]} className="border-xms-line border-b" data-rule>
               <td className="px-3 py-1.5">
                 <select
                   aria-label={`Type of rule ${index + 1}`}
@@ -113,7 +119,7 @@ function RoutingRulesEditor({ accountId, canWrite }: { accountId: string; canWri
                 <td className="px-3 py-1.5 text-right">
                   <button
                     type="button"
-                    onClick={() => setDraft(rules.filter((_, order) => order !== index))}
+                    onClick={() => remove(index)}
                     className="text-xms-accent text-body hover:underline"
                   >
                     Remove

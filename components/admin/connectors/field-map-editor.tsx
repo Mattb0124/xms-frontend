@@ -2,6 +2,7 @@
 
 import { PairsEditor } from "@/components/admin/connectors/pairs-editor";
 import { INPUT, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { useRowKeys } from "@/lib/admin/use-row-keys";
 import {
   DIRECTIONS,
   SYSTEMS_OF_RECORD,
@@ -117,9 +118,13 @@ function TransformParams({
 export function FieldMapEditor({ entries, dictionary, readOnly, onChange }: FieldMapEditorProps) {
   const missing = unmappedRequired(entries);
   const known = dictionary?.map((field) => field.name) ?? [];
+  const rowKeys = useRowKeys(entries.length);
   const update = (index: number, patch: Partial<FieldMapEntry>) =>
     onChange(entries.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
-  const remove = (index: number) => onChange(entries.filter((_, i) => i !== index));
+  const remove = (index: number) => {
+    rowKeys.drop(index);
+    onChange(entries.filter((_, i) => i !== index));
+  };
   const add = () => onChange([...entries, { external: "", xms: missing[0] ?? "short_description", direction: "in" }]);
 
   return (
@@ -143,9 +148,9 @@ export function FieldMapEditor({ entries, dictionary, readOnly, onChange }: Fiel
           </thead>
           <tbody>
             {entries.map((entry, index) => (
-              <tr key={index} className="border-xms-line border-b align-top" data-entry={index}>
+              <tr key={rowKeys.keys[index]} className="border-xms-line border-b align-top" data-entry={index}>
                 <td className="px-2 py-2">
-                  {known.length > 0 ? (
+                  {dictionary && dictionary.length > 0 ? (
                     <select
                       aria-label={`External field ${index + 1}`}
                       className={SMALL}
@@ -157,7 +162,7 @@ export function FieldMapEditor({ entries, dictionary, readOnly, onChange }: Fiel
                       {entry.external && !known.includes(entry.external) ? (
                         <option value={entry.external}>{entry.external} (not in dictionary)</option>
                       ) : null}
-                      {dictionary!.map((field) => (
+                      {dictionary.map((field) => (
                         <option key={field.name} value={field.name}>
                           {field.name}
                           {field.mandatory ? " *" : ""}

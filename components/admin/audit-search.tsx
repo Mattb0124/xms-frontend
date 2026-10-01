@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { SavedQueriesPanel } from "@/components/admin/saved-queries";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { useRowKeys } from "@/lib/admin/use-row-keys";
 import { downloadFile } from "@/lib/exports/download";
 import { describeSavedQueryError } from "@/lib/reporting/saved-queries";
 import { useTrack } from "@/lib/telemetry/provider";
@@ -31,11 +32,9 @@ import {
 
 type FieldKind = "text" | "select" | "datetime";
 
-interface AuditFieldSpec {
+interface FieldSpecBase {
   key: AuditField;
   label: string;
-  kind: FieldKind;
-  options?: Array<{ value: string; label: string }>;
   /**
    * The two null tests, worded for this field. Only a column of
    * `rpt.events_v` that can be null carries them; the API refuses the pair on
@@ -44,6 +43,10 @@ interface AuditFieldSpec {
    */
   nulls?: { is_null: string; is_not_null: string };
 }
+
+type AuditFieldSpec =
+  | (FieldSpecBase & { kind: "select"; options: Array<{ value: string; label: string }> })
+  | (FieldSpecBase & { kind: Exclude<FieldKind, "select"> });
 
 /** The default wording where a nullable field needs no better one. */
 const NULL_LABELS = { is_null: "is empty", is_not_null: "is not empty" };
@@ -191,10 +194,52 @@ function localMoment(iso: string): string {
 
 const CONTROL = "border-xms-line-strong bg-xms-card text-xms-ink h-[32px] rounded-control border px-2 text-body";
 
+export interface ConditionValueProps {
+  spec: AuditFieldSpec;
+  row: AuditRow;
+  onChange: (value: string) => void;
+}
+
+/** The value a condition compares with: none for a null test, the field's own list for a select, else typed text. */
+function ConditionValue({ spec, row, onChange }: ConditionValueProps) {
+  if (isNullTest(row.op)) return null;
+  if (spec.kind === "select" && row.op !== "in") {
+    return (
+      <StripSelect
+        ariaLabel="Value"
+        value={row.value}
+        display={spec.options.find((option) => option.value === row.value)?.label ?? "Choose"}
+        onChange={onChange}
+      >
+        <option value="">Choose</option>
+        {spec.options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </StripSelect>
+    );
+  }
+  return (
+    <input
+      aria-label="Value"
+      type={spec.kind === "datetime" ? "datetime-local" : "text"}
+      placeholder={row.op === "in" ? "a, b, c" : undefined}
+      value={row.value}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(CONTROL, "min-w-[200px]")}
+    />
+  );
+}
+
 function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange: (rows: AuditRow[]) => void }) {
+  const rowKeys = useRowKeys(rows.length);
   const update = (index: number, patch: Partial<AuditRow>) =>
     onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
-  const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
+  const remove = (index: number) => {
+    rowKeys.drop(index);
+    onChange(rows.filter((_, i) => i !== index));
+  };
   const add = () => onChange([...rows, { field: "event_type", op: "contains", value: "" }]);
   return (
     <div className="flex flex-col gap-2" role="group" aria-label="Conditions">
@@ -202,7 +247,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
         const spec = AUDIT_FIELDS.find((field) => field.key === row.field) ?? AUDIT_FIELDS[0];
         const operators = operatorsFor(spec);
         return (
-          <div key={index} className="flex items-center gap-2" data-condition-row>
+          <div key={rowKeys.keys[index]} className="flex items-center gap-2" data-condition-row>
             <span className="xms-mono text-xms-muted w-8 text-body">{index === 0 ? "" : "AND"}</span>
             {/* The Cases list's builder settled this in pass two: a bare select
                 takes the platform's height, padding and chevron, so a row of
@@ -235,30 +280,7 @@ function AuditConditionBuilder({ rows, onChange }: { rows: AuditRow[]; onChange:
                 </option>
               ))}
             </StripSelect>
-            {isNullTest(row.op) ? null : spec.kind === "select" && row.op !== "in" ? (
-              <StripSelect
-                ariaLabel="Value"
-                value={row.value}
-                display={spec.options!.find((option) => option.value === row.value)?.label ?? "Choose"}
-                onChange={(value) => update(index, { value })}
-              >
-                <option value="">Choose</option>
-                {spec.options!.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </StripSelect>
-            ) : (
-              <input
-                aria-label="Value"
-                type={spec.kind === "datetime" ? "datetime-local" : "text"}
-                placeholder={row.op === "in" ? "a, b, c" : undefined}
-                value={row.value}
-                onChange={(event) => update(index, { value: event.target.value })}
-                className={cn(CONTROL, "min-w-[200px]")}
-              />
-            )}
+            <ConditionValue spec={spec} row={row} onChange={(value) => update(index, { value })} />
             <button
               type="button"
               aria-label="Remove condition"
@@ -325,6 +347,13 @@ export function accountLabel(event: AuditEvent): string {
   return event.account_id ? event.account_id.slice(0, 8) : "Portfolio";
 }
 
+/** A null account reads as Portfolio here, as it does in the results' Account column. */
+function envelopeValue(key: string, value: unknown): string {
+  if (key === "account_id" && value === null) return "Portfolio";
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
+
 function outcomeClass(outcome: string | null): string {
   if (outcome === "denied" || outcome === "failed") return "text-[color:var(--state-overdue-text)] font-semibold";
   if (outcome === "success") return "text-[color:var(--state-complete-text)]";
@@ -342,6 +371,8 @@ function RecordDrawer({
 }) {
   const { attrs, ...envelope } = event;
   const changes = attrs && typeof attrs === "object" && ("old" in attrs || "new" in attrs) ? attrs : null;
+  const scope = scopeOf(event);
+  const requestId = event.request_id;
   return (
     <aside
       role="dialog"
@@ -350,15 +381,15 @@ function RecordDrawer({
     >
       <header className="flex items-center gap-3">
         <StreamChip stream={event.stream} />
-        {scopeOf(event) ? <ScopeChip scope={scopeOf(event)!} /> : null}
+        {scope ? <ScopeChip scope={scope} /> : null}
         <span className="xms-mono text-xms-ink text-body font-semibold">{event.event_type}</span>
         <button type="button" onClick={onClose} className="text-xms-muted hover:text-xms-ink ml-auto text-body">
           Close
         </button>
       </header>
       <p className="xms-mono text-xms-label text-body">{event.occurred_at}</p>
-      {event.request_id ? (
-        <button type="button" onClick={() => onPivot(event.request_id!)} className={cn(SECONDARY_BUTTON, "self-start")}>
+      {requestId ? (
+        <button type="button" onClick={() => onPivot(requestId)} className={cn(SECONDARY_BUTTON, "self-start")}>
           Show this request
         </button>
       ) : null}
@@ -368,13 +399,7 @@ function RecordDrawer({
           {Object.entries(envelope).map(([key, value]) => (
             <div key={key} className="contents">
               <dt className="text-xms-label">{key}</dt>
-              <dd className="xms-mono text-xms-ink break-all">
-                {key === "account_id" && value === null
-                  ? "Portfolio"
-                  : value === null || value === undefined
-                    ? ""
-                    : String(value)}
-              </dd>
+              <dd className="xms-mono text-xms-ink break-all">{envelopeValue(key, value)}</dd>
             </div>
           ))}
         </dl>

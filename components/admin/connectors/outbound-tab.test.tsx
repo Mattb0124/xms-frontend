@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminConnectorRecordPage from "@/app/(internal)/admin/connectors/[id]/page";
 import { OutboundTab, statusFromSearch } from "@/components/admin/connectors/outbound-tab";
