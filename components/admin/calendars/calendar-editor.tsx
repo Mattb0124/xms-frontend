@@ -8,14 +8,17 @@ import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { useToast } from "@/components/xms/toast";
 import { useMutationErrors } from "@/lib/admin/use-mutation-errors";
+import { calendarBody, calendarPatch, draftFromCalendar, type CalendarDraft } from "@/lib/calendars/draft";
 import { describeCalendarError, calendarError } from "@/lib/calendars/errors";
 import {
+  draftGrid,
   formatDuration,
   gridToHours,
   hoursToGrid,
   standardGrid,
   weeklyMinutes,
-  type WeekGrid,
+  type DraftWeekGrid,
+  type GridConversion,
 } from "@/lib/calendars/hours";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
@@ -24,8 +27,273 @@ import {
   usePatchCalendarMutation,
   type BusinessCalendar,
   type CalendarHours,
-  type PatchCalendarBody,
+  type HolidayCalendar,
 } from "@/redux/calendarsApi";
+
+export interface CalendarFieldsProps {
+  calendar?: BusinessCalendar;
+  draft: CalendarDraft;
+  onChange: (patch: Partial<CalendarDraft>) => void;
+  libraries: HolidayCalendar[];
+  busy: boolean;
+}
+
+/** The Calendar panel: name, zone, holiday library, a new calendar's effective date, and the account default. */
+function CalendarFields({ calendar, draft, onChange, libraries, busy }: CalendarFieldsProps) {
+  const retired = calendar?.status === "retired";
+  return (
+    <Panel
+      title="Calendar"
+      caption={
+        calendar
+          ? `version ${calendar.version}, effective from ${calendar.effective_from}`
+          : "Working hours in a named zone"
+      }
+      actions={
+        calendar ? (
+          <>
+            {calendar.is_default ? <SignalPill tone="ready" label="Default" /> : null}
+            {retired ? <SignalPill tone="blocked" label="Retired" /> : <SignalPill tone="complete" label="Active" />}
+          </>
+        ) : null
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <FieldRow label="Name" htmlFor="calendar-name">
+          <input
+            id="calendar-name"
+            required
+            maxLength={80}
+            className={INPUT}
+            value={draft.name}
+            disabled={busy || retired}
+            onChange={(event) => onChange({ name: event.target.value })}
+          />
+        </FieldRow>
+        <FieldRow label="Time zone" htmlFor="calendar-tz">
+          <TimeZoneField
+            id="calendar-tz"
+            value={draft.time_zone}
+            onChange={(value) => onChange({ time_zone: value })}
+            required
+            disabled={busy || retired}
+          />
+        </FieldRow>
+        <FieldRow label="Holiday library" htmlFor="calendar-holidays">
+          <select
+            id="calendar-holidays"
+            className={INPUT}
+            value={draft.holiday_calendar_id}
+            disabled={busy || retired}
+            onChange={(event) => onChange({ holiday_calendar_id: event.target.value })}
+          >
+            <option value="">No holidays</option>
+            {libraries.map((row) => (
+              <option key={row.id} value={row.id}>
+                {row.country} {row.name}
+              </option>
+            ))}
+          </select>
+        </FieldRow>
+        {!calendar ? (
+          <FieldRow label="Effective from" htmlFor="calendar-effective">
+            <input
+              id="calendar-effective"
+              type="date"
+              className={INPUT}
+              value={draft.effective_from}
+              disabled={busy}
+              onChange={(event) => onChange({ effective_from: event.target.value })}
+            />
+          </FieldRow>
+        ) : null}
+        <SwitchRow
+          id="calendar-default"
+          label="Account default"
+          detail={calendar?.is_default ? "Already the default" : "SLA clocks on this account start on the default"}
+          checked={draft.make_default}
+          disabled={busy || retired || calendar?.is_default}
+          onChange={(value) => onChange({ make_default: value })}
+        />
+      </div>
+    </Panel>
+  );
+}
+
+export interface WorkingHoursPanelProps {
+  grid: DraftWeekGrid;
+  onChange: (next: DraftWeekGrid) => void;
+  /** The grid as minutes, which the caption totals. */
+  hours: CalendarHours[];
+  /** In the server's words, from the local check or from its refusal. */
+  problems: string[];
+  disabled: boolean;
+}
+
+function WorkingHoursPanel({ grid, onChange, hours, problems, disabled }: WorkingHoursPanelProps) {
+  return (
+    <Panel
+      title="Working hours"
+      caption={`${formatDuration(weeklyMinutes(hours))} per week across ${hours.length} interval${hours.length === 1 ? "" : "s"}`}
+    >
+      <HoursGrid value={grid} onChange={onChange} disabled={disabled} />
+      {problems.length > 0 ? (
+        <ul
+          role="alert"
+          className="mt-3 list-disc pl-5 text-body text-[color:var(--state-overdue-text)]"
+          data-testid="hour-problems"
+        >
+          {problems.map((problem) => (
+            <li key={problem}>{problem}</li>
+          ))}
+        </ul>
+      ) : null}
+    </Panel>
+  );
+}
+
+export interface CalendarActionsProps {
+  calendar?: BusinessCalendar;
+  busy: boolean;
+  error: string | null;
+  onRetire: (calendar: BusinessCalendar) => Promise<void>;
+}
+
+function CalendarActions({ calendar, busy, error, onRetire }: CalendarActionsProps) {
+  const retired = calendar?.status === "retired";
+  return (
+    <div className="flex items-center gap-2">
+      {!retired ? (
+        <button type="submit" className={PRIMARY_BUTTON} disabled={busy}>
+          {calendar ? "Save calendar" : "Create calendar"}
+        </button>
+      ) : null}
+      {calendar && !retired ? (
+        <ConfirmButton label="Retire" danger disabled={busy} onConfirm={() => onRetire(calendar)} />
+      ) : null}
+      {retired ? <span className="text-xms-label text-body">A retired calendar cannot be edited.</span> : null}
+      <InlineError message={error} />
+    </div>
+  );
+}
+
+export interface HolidaysPanelProps {
+  calendar?: BusinessCalendar;
+  libraries: HolidayCalendar[];
+  /** The library chosen on the form, saved or not. */
+  holidayId: string;
+}
+
+/** The chosen library's dates, falling back to the saved calendar's own while that library is not in the list. */
+function HolidaysPanel({ calendar, libraries, holidayId }: HolidaysPanelProps) {
+  const library = libraries.find((row) => row.id === holidayId);
+  const holidays =
+    library?.holidays ?? (calendar && calendar.holiday_calendar_id === holidayId ? calendar.holidays : []);
+  return (
+    <Panel
+      title="Holidays"
+      caption={library ? `${library.country} ${library.name}` : "From the chosen library, read only"}
+    >
+      {holidays.length === 0 ? <p className="text-xms-label text-body">No holidays on this calendar.</p> : null}
+      <ul className="divide-xms-line max-h-[420px] divide-y overflow-auto text-body" aria-label="Holiday dates">
+        {holidays.map((holiday) => (
+          <li key={holiday.date} className="flex items-center gap-3 py-1.5">
+            <span className="xms-mono text-xms-accent">{holiday.date}</span>
+            <span className="text-xms-ink">{holiday.label}</span>
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+/** The fields and the week grid, read again from the calendar whenever its version moves. */
+function useCalendarDraft(calendar?: BusinessCalendar) {
+  const [draft, setDraft] = useState(() => draftFromCalendar(calendar));
+  const [grid, setGrid] = useState<DraftWeekGrid>(() =>
+    draftGrid(calendar ? hoursToGrid(calendar.hours) : standardGrid()),
+  );
+  const [seenVersion, setSeenVersion] = useState(calendar?.version);
+  if (calendar && seenVersion !== calendar.version) {
+    setSeenVersion(calendar.version);
+    setDraft(draftFromCalendar(calendar));
+    setGrid(draftGrid(hoursToGrid(calendar.hours)));
+  }
+  const set = (patch: Partial<CalendarDraft>) => setDraft((previous) => ({ ...previous, ...patch }));
+  return { draft, set, grid, setGrid };
+}
+
+/** Save, create and retire, with the hour problems and the refusal each can come back with. */
+function useCalendarSave({ accountId, calendar, refetch, onCreated }: CalendarEditorProps) {
+  const [create, { isLoading: creating }] = useCreateCalendarMutation();
+  const [patch, { isLoading: patching }] = usePatchCalendarMutation();
+  const onError = useMutationErrors(refetch);
+  const { push } = useToast();
+  const track = useTrack("calendar.save");
+  const [problems, setProblems] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const saveChanges = async (existing: BusinessCalendar, draft: CalendarDraft, hours: CalendarHours[]) => {
+    const body = calendarPatch(existing, draft, hours);
+    if (Object.keys(body).length === 1) {
+      push({ title: "Nothing to save", tone: "info" });
+      return;
+    }
+    await patch({ id: existing.id, body }).unwrap();
+    track({
+      calendar_id: existing.id,
+      account_id: accountId,
+      fields: Object.keys(body).length - 1,
+      created: false,
+    });
+    push({ title: "Calendar saved", tone: "success" });
+  };
+
+  const createCalendar = async (draft: CalendarDraft, hours: CalendarHours[]) => {
+    const created = await create({ accountId, body: calendarBody(draft, hours) }).unwrap();
+    track({ calendar_id: created.id, account_id: accountId, intervals: hours.length, created: true });
+    push({
+      title: "Calendar created",
+      detail: created.is_default ? "It is the account default." : undefined,
+      tone: "success",
+    });
+    onCreated?.(created);
+  };
+
+  const submit = async (draft: CalendarDraft, conversion: GridConversion) => {
+    setError(null);
+    setProblems([]);
+    if (conversion.problems.length > 0) {
+      setProblems(conversion.problems);
+      return;
+    }
+    try {
+      if (calendar) await saveChanges(calendar, draft, conversion.hours);
+      else await createCalendar(draft, conversion.hours);
+    } catch (caught) {
+      const parsed = calendarError(caught);
+      if (parsed.code === "invalid_hours" && parsed.problems) setProblems(parsed.problems);
+      if (parsed.code === "stale_version") onError(caught);
+      else setError(describeCalendarError(parsed));
+    }
+  };
+
+  const retire = async (existing: BusinessCalendar) => {
+    try {
+      await patch({ id: existing.id, body: { version: existing.version, status: "retired" } }).unwrap();
+      track({ calendar_id: existing.id, account_id: accountId, retired: true });
+      push({
+        title: "Calendar retired",
+        detail: existing.is_default ? "The account has no default until another is chosen." : undefined,
+        tone: "info",
+      });
+    } catch (caught) {
+      onError(caught);
+    }
+  };
+
+  return { submit, retire, busy: creating || patching, problems, error };
+}
 
 export interface CalendarEditorProps {
   accountId: string;
@@ -33,32 +301,6 @@ export interface CalendarEditorProps {
   calendar?: BusinessCalendar;
   refetch?: () => unknown;
   onCreated?: (calendar: BusinessCalendar) => void;
-}
-
-function sameHours(a: CalendarHours[], b: CalendarHours[]): boolean {
-  const key = (rows: CalendarHours[]) =>
-    rows
-      .map((row) => `${row.weekday}:${row.start_minute}-${row.end_minute}`)
-      .sort()
-      .join(",");
-  return key(a) === key(b);
-}
-
-/** The PATCH body: only what changed against the loaded calendar, plus the version. */
-export function calendarPatch(
-  calendar: BusinessCalendar,
-  draft: { name: string; time_zone: string; holiday_calendar_id: string; make_default: boolean },
-  hours: CalendarHours[],
-): PatchCalendarBody {
-  const body: PatchCalendarBody = { version: calendar.version };
-  if (draft.name.trim() !== calendar.name && draft.name.trim() !== "") body.name = draft.name.trim();
-  if (draft.time_zone.trim() !== calendar.time_zone && draft.time_zone.trim() !== "")
-    body.time_zone = draft.time_zone.trim();
-  if ((draft.holiday_calendar_id || null) !== calendar.holiday_calendar_id)
-    body.holiday_calendar_id = draft.holiday_calendar_id || null;
-  if (!sameHours(hours, calendar.hours)) body.hours = hours;
-  if (draft.make_default && !calendar.is_default) body.make_default = true;
-  return body;
 }
 
 /**
@@ -69,92 +311,10 @@ export function calendarPatch(
  */
 export function CalendarEditor({ accountId, calendar, refetch, onCreated }: CalendarEditorProps) {
   const libraries = useListHolidayCalendarsQuery();
-  const [create, { isLoading: creating }] = useCreateCalendarMutation();
-  const [patch, { isLoading: patching }] = usePatchCalendarMutation();
-  const onError = useMutationErrors(refetch);
-  const { push } = useToast();
-  const track = useTrack("calendar.save");
-  const [name, setName] = useState(calendar?.name ?? "");
-  const [timeZone, setTimeZone] = useState(calendar?.time_zone ?? "UTC");
-  const [holidayId, setHolidayId] = useState(calendar?.holiday_calendar_id ?? "");
-  const [effectiveFrom, setEffectiveFrom] = useState("");
-  const [makeDefault, setMakeDefault] = useState(calendar?.is_default ?? false);
-  const [grid, setGrid] = useState<WeekGrid>(() => (calendar ? hoursToGrid(calendar.hours) : standardGrid()));
-  const [seenVersion, setSeenVersion] = useState(calendar?.version);
-  if (calendar && seenVersion !== calendar.version) {
-    setSeenVersion(calendar.version);
-    setName(calendar.name);
-    setTimeZone(calendar.time_zone);
-    setHolidayId(calendar.holiday_calendar_id ?? "");
-    setMakeDefault(calendar.is_default);
-    setGrid(hoursToGrid(calendar.hours));
-  }
-  const [problems, setProblems] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const retired = calendar?.status === "retired";
-  const busy = creating || patching;
-
+  const { draft, set, grid, setGrid } = useCalendarDraft(calendar);
+  const save = useCalendarSave({ accountId, calendar, refetch, onCreated });
   const conversion = useMemo(() => gridToHours(grid), [grid]);
-  const library = useMemo(
-    () => (libraries.data ?? []).find((row) => row.id === holidayId),
-    [libraries.data, holidayId],
-  );
-  const holidays =
-    library?.holidays ?? (calendar && calendar.holiday_calendar_id === holidayId ? calendar.holidays : []);
-
-  const submit = async () => {
-    setError(null);
-    setProblems([]);
-    if (conversion.problems.length > 0) {
-      setProblems(conversion.problems);
-      return;
-    }
-    try {
-      if (calendar) {
-        const body = calendarPatch(
-          calendar,
-          { name, time_zone: timeZone, holiday_calendar_id: holidayId, make_default: makeDefault },
-          conversion.hours,
-        );
-        if (Object.keys(body).length === 1) {
-          push({ title: "Nothing to save", tone: "info" });
-          return;
-        }
-        await patch({ id: calendar.id, body }).unwrap();
-        track({
-          calendar_id: calendar.id,
-          account_id: accountId,
-          fields: Object.keys(body).length - 1,
-          created: false,
-        });
-        push({ title: "Calendar saved", tone: "success" });
-      } else {
-        const created = await create({
-          accountId,
-          body: {
-            name: name.trim(),
-            time_zone: timeZone.trim(),
-            holiday_calendar_id: holidayId || undefined,
-            effective_from: effectiveFrom || undefined,
-            hours: conversion.hours,
-            make_default: makeDefault || undefined,
-          },
-        }).unwrap();
-        track({ calendar_id: created.id, account_id: accountId, intervals: conversion.hours.length, created: true });
-        push({
-          title: "Calendar created",
-          detail: created.is_default ? "It is the account default." : undefined,
-          tone: "success",
-        });
-        onCreated?.(created);
-      }
-    } catch (caught) {
-      const parsed = calendarError(caught);
-      if (parsed.code === "invalid_hours" && parsed.problems) setProblems(parsed.problems);
-      if (parsed.code === "stale_version") onError(caught);
-      else setError(describeCalendarError(parsed));
-    }
-  };
+  const retired = calendar?.status === "retired";
 
   return (
     <form
@@ -162,150 +322,27 @@ export function CalendarEditor({ accountId, calendar, refetch, onCreated }: Cale
       aria-label={calendar ? "Edit calendar" : "New calendar"}
       onSubmit={(event) => {
         event.preventDefault();
-        void submit();
+        void save.submit(draft, conversion);
       }}
     >
       <div className="flex flex-col gap-4">
-        <Panel
-          title="Calendar"
-          caption={
-            calendar
-              ? `version ${calendar.version}, effective from ${calendar.effective_from}`
-              : "Working hours in a named zone"
-          }
-          actions={
-            calendar ? (
-              <>
-                {calendar.is_default ? <SignalPill tone="ready" label="Default" /> : null}
-                {retired ? (
-                  <SignalPill tone="blocked" label="Retired" />
-                ) : (
-                  <SignalPill tone="complete" label="Active" />
-                )}
-              </>
-            ) : null
-          }
-        >
-          <div className="flex flex-col gap-3">
-            <FieldRow label="Name" htmlFor="calendar-name">
-              <input
-                id="calendar-name"
-                required
-                maxLength={80}
-                className={INPUT}
-                value={name}
-                disabled={busy || retired}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FieldRow>
-            <FieldRow label="Time zone" htmlFor="calendar-tz">
-              <TimeZoneField
-                id="calendar-tz"
-                value={timeZone}
-                onChange={setTimeZone}
-                required
-                disabled={busy || retired}
-              />
-            </FieldRow>
-            <FieldRow label="Holiday library" htmlFor="calendar-holidays">
-              <select
-                id="calendar-holidays"
-                className={INPUT}
-                value={holidayId}
-                disabled={busy || retired}
-                onChange={(event) => setHolidayId(event.target.value)}
-              >
-                <option value="">No holidays</option>
-                {(libraries.data ?? []).map((row) => (
-                  <option key={row.id} value={row.id}>
-                    {row.country} {row.name}
-                  </option>
-                ))}
-              </select>
-            </FieldRow>
-            {!calendar ? (
-              <FieldRow label="Effective from" htmlFor="calendar-effective">
-                <input
-                  id="calendar-effective"
-                  type="date"
-                  className={INPUT}
-                  value={effectiveFrom}
-                  disabled={busy}
-                  onChange={(event) => setEffectiveFrom(event.target.value)}
-                />
-              </FieldRow>
-            ) : null}
-            <SwitchRow
-              id="calendar-default"
-              label="Account default"
-              detail={calendar?.is_default ? "Already the default" : "SLA clocks on this account start on the default"}
-              checked={makeDefault}
-              disabled={busy || retired || calendar?.is_default}
-              onChange={setMakeDefault}
-            />
-          </div>
-        </Panel>
-        <Panel
-          title="Working hours"
-          caption={`${formatDuration(weeklyMinutes(conversion.hours))} per week across ${conversion.hours.length} interval${conversion.hours.length === 1 ? "" : "s"}`}
-        >
-          <HoursGrid value={grid} onChange={setGrid} disabled={busy || retired} />
-          {problems.length > 0 ? (
-            <ul
-              role="alert"
-              className="mt-3 list-disc pl-5 text-body text-[color:var(--state-overdue-text)]"
-              data-testid="hour-problems"
-            >
-              {problems.map((problem) => (
-                <li key={problem}>{problem}</li>
-              ))}
-            </ul>
-          ) : null}
-        </Panel>
-        <div className="flex items-center gap-2">
-          {!retired ? (
-            <button type="submit" className={PRIMARY_BUTTON} disabled={busy}>
-              {calendar ? "Save calendar" : "Create calendar"}
-            </button>
-          ) : null}
-          {calendar && !retired ? (
-            <ConfirmButton
-              label="Retire"
-              danger
-              disabled={busy}
-              onConfirm={async () => {
-                try {
-                  await patch({ id: calendar.id, body: { version: calendar.version, status: "retired" } }).unwrap();
-                  track({ calendar_id: calendar.id, account_id: accountId, retired: true });
-                  push({
-                    title: "Calendar retired",
-                    detail: calendar.is_default ? "The account has no default until another is chosen." : undefined,
-                    tone: "info",
-                  });
-                } catch (caught) {
-                  onError(caught);
-                }
-              }}
-            />
-          ) : null}
-          {retired ? <span className="text-xms-label text-body">A retired calendar cannot be edited.</span> : null}
-          <InlineError message={error} />
-        </div>
+        <CalendarFields
+          calendar={calendar}
+          draft={draft}
+          onChange={set}
+          libraries={libraries.data ?? []}
+          busy={save.busy}
+        />
+        <WorkingHoursPanel
+          grid={grid}
+          onChange={setGrid}
+          hours={conversion.hours}
+          problems={save.problems}
+          disabled={save.busy || retired}
+        />
+        <CalendarActions calendar={calendar} busy={save.busy} error={save.error} onRetire={save.retire} />
       </div>
-      <Panel
-        title="Holidays"
-        caption={library ? `${library.country} ${library.name}` : "From the chosen library, read only"}
-      >
-        {holidays.length === 0 ? <p className="text-xms-label text-body">No holidays on this calendar.</p> : null}
-        <ul className="divide-xms-line max-h-[420px] divide-y overflow-auto text-body" aria-label="Holiday dates">
-          {holidays.map((holiday) => (
-            <li key={holiday.date} className="flex items-center gap-3 py-1.5">
-              <span className="xms-mono text-xms-accent">{holiday.date}</span>
-              <span className="text-xms-ink">{holiday.label}</span>
-            </li>
-          ))}
-        </ul>
-      </Panel>
+      <HolidaysPanel calendar={calendar} libraries={libraries.data ?? []} holidayId={draft.holiday_calendar_id} />
     </form>
   );
 }

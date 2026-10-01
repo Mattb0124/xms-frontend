@@ -9,6 +9,7 @@ import { useTrack } from "@/lib/telemetry/provider";
 import {
   useGetAccountSettingsQuery,
   useUpdateAccountSettingsMutation,
+  type AccountSettings,
   type EmailBranding,
   type SettingsPatch,
   type SyncMode,
@@ -16,7 +17,325 @@ import {
 import { useMe } from "@/redux/me";
 
 const AI_CAPABILITIES = ["categorize", "prioritize", "duplicates", "summarize", "similar_solutions"] as const;
+
 const AI_MODES = ["off", "suggest", "auto"] as const;
+
+export interface SettingsSectionProps {
+  /** The saved settings with the unsaved draft laid over them. */
+  current: AccountSettings;
+  /** Writes one setting into the draft, which is saved as a whole. */
+  set: <K extends keyof SettingsPatch>(key: K, value: SettingsPatch[K]) => void;
+}
+
+function SwitchesPanel({ current, set }: SettingsSectionProps) {
+  return (
+    <Panel title="Switches" caption="Behaviour per account">
+      <SwitchRow
+        id="portal_enabled"
+        label="Portal enabled"
+        checked={current.portal_enabled}
+        onChange={(v) => set("portal_enabled", v)}
+      />
+      <SwitchRow
+        id="consumption_visible"
+        label="Consumption visible in the portal"
+        checked={current.consumption_visible}
+        onChange={(v) => set("consumption_visible", v)}
+      />
+      <SwitchRow
+        id="csat_enabled"
+        label="CSAT surveys"
+        checked={current.csat_enabled}
+        onChange={(v) => set("csat_enabled", v)}
+      />
+      <SwitchRow
+        id="usage_analytics_portal"
+        label="Usage analytics for portal users"
+        detail="Per DPA"
+        checked={current.usage_analytics_portal}
+        onChange={(v) => set("usage_analytics_portal", v)}
+      />
+      <SwitchRow
+        id="store_search_terms"
+        label="Store search terms"
+        detail="Hashed only when off"
+        checked={current.store_search_terms}
+        onChange={(v) => set("store_search_terms", v)}
+      />
+      <div className="mt-3">
+        <FieldRow label="Sync mode" htmlFor="sync_mode">
+          <select
+            id="sync_mode"
+            value={current.sync_mode}
+            onChange={(event) => set("sync_mode", event.target.value as SyncMode)}
+            className={INPUT}
+          >
+            <option value="off">Off</option>
+            <option value="ingest_only">Ingest only</option>
+            <option value="bidirectional">Bidirectional</option>
+          </select>
+        </FieldRow>
+      </div>
+    </Panel>
+  );
+}
+
+export interface AxelPanelProps extends SettingsSectionProps {
+  /** Without it the AI switch and opt-ins are read only; the API refuses them too. */
+  canConfigureAi: boolean;
+}
+
+function AxelPanel({ current, set, canConfigureAi }: AxelPanelProps) {
+  return (
+    <Panel
+      title="Axel"
+      caption={canConfigureAi ? "AI switch and opt-ins" : "Needs the ai:configure permission to change"}
+    >
+      <div aria-disabled={!canConfigureAi} data-testid="ai-section" className={canConfigureAi ? "" : "opacity-60"}>
+        <SwitchRow
+          id="ai_enabled"
+          label="AI enabled for this account"
+          detail={current.ai_region_ok ? "Region check passed" : "Region check failed"}
+          checked={current.ai_enabled}
+          disabled={!canConfigureAi}
+          onChange={(v) => set("ai_enabled", v)}
+        />
+        <div className="mt-3 flex flex-col gap-2">
+          {AI_CAPABILITIES.map((capability) => (
+            <FieldRow key={capability} label={capability.replace("_", " ")} htmlFor={`ai_${capability}`}>
+              <select
+                id={`ai_${capability}`}
+                value={current.ai_opt_ins?.[capability] ?? "off"}
+                disabled={!canConfigureAi || !current.ai_enabled}
+                onChange={(event) =>
+                  set("ai_opt_ins", { ...(current.ai_opt_ins ?? {}), [capability]: event.target.value })
+                }
+                className={INPUT}
+              >
+                {AI_MODES.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {mode}
+                  </option>
+                ))}
+              </select>
+            </FieldRow>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+export interface InboundAliasesProps {
+  aliases: string[];
+  onChange: (next: string[]) => void;
+}
+
+function InboundAliases({ aliases, onChange }: InboundAliasesProps) {
+  const [aliasDraft, setAliasDraft] = useState("");
+  return (
+    <div className="mt-3">
+      <p className="text-xms-label mb-1 text-body">Inbound aliases</p>
+      <div className="flex flex-wrap items-center gap-2">
+        {aliases.map((alias) => (
+          <span
+            key={alias}
+            className="border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-pill border pr-1 pl-[10px] text-body"
+          >
+            <span className="xms-mono">{alias}</span>
+            <button
+              type="button"
+              aria-label={`Remove alias ${alias}`}
+              onClick={() => onChange(aliases.filter((item) => item !== alias))}
+              className="text-xms-muted hover:text-xms-ink ml-1 flex h-5 w-5 items-center justify-center rounded-pill"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <form
+          className="flex items-center gap-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const next = aliasDraft.trim().toLowerCase();
+            if (!next || aliases.includes(next)) return;
+            onChange([...aliases, next]);
+            setAliasDraft("");
+          }}
+        >
+          <input
+            aria-label="New alias"
+            type="email"
+            value={aliasDraft}
+            onChange={(event) => setAliasDraft(event.target.value)}
+            placeholder="support@client.example"
+            className={`${INPUT} h-[28px] w-[240px]`}
+          />
+          <button type="submit" className={`${SECONDARY_BUTTON} h-[28px]`}>
+            Add
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EmailPanel({ current, set }: SettingsSectionProps) {
+  const setBranding = (key: keyof EmailBranding, value: string) => {
+    const next: EmailBranding = { ...(current.email_branding ?? {}) };
+    if (value === "") delete next[key];
+    else next[key] = value;
+    set("email_branding", next);
+  };
+
+  return (
+    <Panel title="Email" caption="Inbound aliases, sender identity and client mail chrome">
+      <FieldRow label="Outbound identity" htmlFor="outbound_identity">
+        <input
+          id="outbound_identity"
+          type="text"
+          value={current.outbound_identity ?? ""}
+          onChange={(event) => set("outbound_identity", event.target.value || null)}
+          className={INPUT}
+        />
+      </FieldRow>
+      <div className="mt-3">
+        <FieldRow label="Accent" htmlFor="email_accent">
+          <input
+            id="email_accent"
+            type="text"
+            placeholder="#10193a"
+            value={current.email_branding?.accent ?? ""}
+            onChange={(event) => setBranding("accent", event.target.value)}
+            className={INPUT}
+          />
+        </FieldRow>
+      </div>
+      <div className="mt-3">
+        <FieldRow label="Logo URL" htmlFor="email_logo">
+          <input
+            id="email_logo"
+            type="url"
+            placeholder="https://"
+            value={current.email_branding?.logo_url ?? ""}
+            onChange={(event) => setBranding("logo_url", event.target.value)}
+            className={INPUT}
+          />
+        </FieldRow>
+      </div>
+      <div className="mt-3">
+        <FieldRow label="Sender display name" htmlFor="email_sender">
+          <input
+            id="email_sender"
+            type="text"
+            value={current.email_branding?.sender_display_name ?? ""}
+            onChange={(event) => setBranding("sender_display_name", event.target.value)}
+            className={INPUT}
+          />
+        </FieldRow>
+      </div>
+      <div className="mt-3">
+        <FieldRow label="Footer line" htmlFor="email_footer">
+          <input
+            id="email_footer"
+            type="text"
+            value={current.email_branding?.footer_text ?? ""}
+            onChange={(event) => setBranding("footer_text", event.target.value)}
+            className={INPUT}
+          />
+        </FieldRow>
+      </div>
+      <InboundAliases aliases={current.inbound_aliases ?? []} onChange={(next) => set("inbound_aliases", next)} />
+    </Panel>
+  );
+}
+
+function LimitsPanel({ current, set }: SettingsSectionProps) {
+  return (
+    <Panel title="Limits" caption="Retention and attachments">
+      <FieldRow label="Retention days" htmlFor="retention_days">
+        <input
+          id="retention_days"
+          type="number"
+          min={30}
+          value={current.retention_days}
+          onChange={(event) => set("retention_days", Number(event.target.value))}
+          className={INPUT}
+        />
+      </FieldRow>
+      <div className="mt-3">
+        <FieldRow label="Attachment max bytes" htmlFor="attachment_max_bytes">
+          <input
+            id="attachment_max_bytes"
+            type="number"
+            min={1024}
+            value={Number(current.attachment_max_bytes)}
+            onChange={(event) => set("attachment_max_bytes", Number(event.target.value))}
+            className={INPUT}
+          />
+        </FieldRow>
+      </div>
+    </Panel>
+  );
+}
+
+function ReopenWindowPanel({ current, set }: SettingsSectionProps) {
+  return (
+    <Panel title="Reopen window" caption="After a ticket is resolved or closed">
+      <FieldRow label="Working days" htmlFor="reopen_window_business_days">
+        <input
+          id="reopen_window_business_days"
+          type="number"
+          min={0}
+          max={365}
+          value={current.reopen_window_business_days ?? 5}
+          onChange={(event) => set("reopen_window_business_days", Number(event.target.value))}
+          className={INPUT}
+        />
+      </FieldRow>
+      <p className="text-muted mt-1 text-xs">
+        How long a matched reply can reopen the ticket, counted on the account calendar. Zero never reopens, including
+        the resolve day.
+      </p>
+    </Panel>
+  );
+}
+
+function ContainerCasesPanel({ current, set }: SettingsSectionProps) {
+  return (
+    <Panel
+      title="Container cases"
+      caption="When a ticket has quietly become a project, raise it for a scope decision (TM-27)"
+    >
+      <p className="text-muted mb-3 text-sm">
+        A ticket crossing any threshold set here is flagged out of scope with the reason, and the account owner is told.
+        A person still makes the decision. Leave a threshold empty to switch it off.
+      </p>
+      {(
+        [
+          ["container_time_entries", "Time entries", "entries logged against one ticket"],
+          ["container_elapsed_days", "Days open", "days since the ticket was raised"],
+          ["container_effort_minutes", "Effort (minutes)", "minutes logged against one ticket"],
+        ] as const
+      ).map(([key, label, hint]) => (
+        <div key={key} className="mt-3 first:mt-0">
+          <FieldRow label={label} htmlFor={key}>
+            <input
+              id={key}
+              type="number"
+              min={1}
+              placeholder="Off"
+              value={current[key] ?? ""}
+              onChange={(event) => set(key, event.target.value === "" ? null : Number(event.target.value))}
+              className={INPUT}
+            />
+          </FieldRow>
+          <p className="text-muted mt-1 text-xs">{hint}</p>
+        </div>
+      ))}
+    </Panel>
+  );
+}
 
 /**
  * The account Settings tab (functional spec 5.3): switches, sync mode, the
@@ -34,7 +353,6 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
 
   const [draft, setDraft] = useState<SettingsPatch | null>(null);
   const [seenVersion, setSeenVersion] = useState<number | undefined>(undefined);
-  const [aliasDraft, setAliasDraft] = useState("");
   if (data && seenVersion !== data.version) {
     setSeenVersion(data.version);
     setDraft(null);
@@ -45,12 +363,6 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
   const current = { ...data, ...(draft ?? {}) };
   const set = <K extends keyof SettingsPatch>(key: K, value: SettingsPatch[K]) =>
     setDraft((previous) => ({ ...(previous ?? { version: data.version }), version: data.version, [key]: value }));
-  const setBranding = (key: keyof EmailBranding, value: string) => {
-    const next: EmailBranding = { ...(current.email_branding ?? {}) };
-    if (value === "") delete next[key];
-    else next[key] = value;
-    set("email_branding", next);
-  };
   const dirty = draft !== null && Object.keys(draft).length > 1;
 
   const save = async () => {
@@ -64,276 +376,14 @@ export function AccountSettingsTab({ accountId }: { accountId: string }) {
     }
   };
 
-  const aliases = current.inbound_aliases ?? [];
-
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel title="Switches" caption="Behaviour per account">
-        <SwitchRow
-          id="portal_enabled"
-          label="Portal enabled"
-          checked={current.portal_enabled}
-          onChange={(v) => set("portal_enabled", v)}
-        />
-        <SwitchRow
-          id="consumption_visible"
-          label="Consumption visible in the portal"
-          checked={current.consumption_visible}
-          onChange={(v) => set("consumption_visible", v)}
-        />
-        <SwitchRow
-          id="csat_enabled"
-          label="CSAT surveys"
-          checked={current.csat_enabled}
-          onChange={(v) => set("csat_enabled", v)}
-        />
-        <SwitchRow
-          id="usage_analytics_portal"
-          label="Usage analytics for portal users"
-          detail="Per DPA"
-          checked={current.usage_analytics_portal}
-          onChange={(v) => set("usage_analytics_portal", v)}
-        />
-        <SwitchRow
-          id="store_search_terms"
-          label="Store search terms"
-          detail="Hashed only when off"
-          checked={current.store_search_terms}
-          onChange={(v) => set("store_search_terms", v)}
-        />
-        <div className="mt-3">
-          <FieldRow label="Sync mode" htmlFor="sync_mode">
-            <select
-              id="sync_mode"
-              value={current.sync_mode}
-              onChange={(event) => set("sync_mode", event.target.value as SyncMode)}
-              className={INPUT}
-            >
-              <option value="off">Off</option>
-              <option value="ingest_only">Ingest only</option>
-              <option value="bidirectional">Bidirectional</option>
-            </select>
-          </FieldRow>
-        </div>
-      </Panel>
-
-      <Panel
-        title="Axel"
-        caption={canConfigureAi ? "AI switch and opt-ins" : "Needs the ai:configure permission to change"}
-      >
-        <div aria-disabled={!canConfigureAi} data-testid="ai-section" className={canConfigureAi ? "" : "opacity-60"}>
-          <SwitchRow
-            id="ai_enabled"
-            label="AI enabled for this account"
-            detail={current.ai_region_ok ? "Region check passed" : "Region check failed"}
-            checked={current.ai_enabled}
-            disabled={!canConfigureAi}
-            onChange={(v) => set("ai_enabled", v)}
-          />
-          <div className="mt-3 flex flex-col gap-2">
-            {AI_CAPABILITIES.map((capability) => (
-              <FieldRow key={capability} label={capability.replace("_", " ")} htmlFor={`ai_${capability}`}>
-                <select
-                  id={`ai_${capability}`}
-                  value={current.ai_opt_ins?.[capability] ?? "off"}
-                  disabled={!canConfigureAi || !current.ai_enabled}
-                  onChange={(event) =>
-                    set("ai_opt_ins", { ...(current.ai_opt_ins ?? {}), [capability]: event.target.value })
-                  }
-                  className={INPUT}
-                >
-                  {AI_MODES.map((mode) => (
-                    <option key={mode} value={mode}>
-                      {mode}
-                    </option>
-                  ))}
-                </select>
-              </FieldRow>
-            ))}
-          </div>
-        </div>
-      </Panel>
-
-      <Panel title="Email" caption="Inbound aliases, sender identity and client mail chrome">
-        <FieldRow label="Outbound identity" htmlFor="outbound_identity">
-          <input
-            id="outbound_identity"
-            type="text"
-            value={current.outbound_identity ?? ""}
-            onChange={(event) => set("outbound_identity", event.target.value || null)}
-            className={INPUT}
-          />
-        </FieldRow>
-        <div className="mt-3">
-          <FieldRow label="Accent" htmlFor="email_accent">
-            <input
-              id="email_accent"
-              type="text"
-              placeholder="#10193a"
-              value={current.email_branding?.accent ?? ""}
-              onChange={(event) => setBranding("accent", event.target.value)}
-              className={INPUT}
-            />
-          </FieldRow>
-        </div>
-        <div className="mt-3">
-          <FieldRow label="Logo URL" htmlFor="email_logo">
-            <input
-              id="email_logo"
-              type="url"
-              placeholder="https://"
-              value={current.email_branding?.logo_url ?? ""}
-              onChange={(event) => setBranding("logo_url", event.target.value)}
-              className={INPUT}
-            />
-          </FieldRow>
-        </div>
-        <div className="mt-3">
-          <FieldRow label="Sender display name" htmlFor="email_sender">
-            <input
-              id="email_sender"
-              type="text"
-              value={current.email_branding?.sender_display_name ?? ""}
-              onChange={(event) => setBranding("sender_display_name", event.target.value)}
-              className={INPUT}
-            />
-          </FieldRow>
-        </div>
-        <div className="mt-3">
-          <FieldRow label="Footer line" htmlFor="email_footer">
-            <input
-              id="email_footer"
-              type="text"
-              value={current.email_branding?.footer_text ?? ""}
-              onChange={(event) => setBranding("footer_text", event.target.value)}
-              className={INPUT}
-            />
-          </FieldRow>
-        </div>
-        <div className="mt-3">
-          <p className="text-xms-label mb-1 text-body">Inbound aliases</p>
-          <div className="flex flex-wrap items-center gap-2">
-            {aliases.map((alias) => (
-              <span
-                key={alias}
-                className="border-xms-line bg-xms-card text-xms-body inline-flex h-[28px] items-center gap-1 rounded-pill border pr-1 pl-[10px] text-body"
-              >
-                <span className="xms-mono">{alias}</span>
-                <button
-                  type="button"
-                  aria-label={`Remove alias ${alias}`}
-                  onClick={() =>
-                    set(
-                      "inbound_aliases",
-                      aliases.filter((item) => item !== alias),
-                    )
-                  }
-                  className="text-xms-muted hover:text-xms-ink ml-1 flex h-5 w-5 items-center justify-center rounded-pill"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <form
-              className="flex items-center gap-1"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const next = aliasDraft.trim().toLowerCase();
-                if (!next || aliases.includes(next)) return;
-                set("inbound_aliases", [...aliases, next]);
-                setAliasDraft("");
-              }}
-            >
-              <input
-                aria-label="New alias"
-                type="email"
-                value={aliasDraft}
-                onChange={(event) => setAliasDraft(event.target.value)}
-                placeholder="support@client.example"
-                className={`${INPUT} h-[28px] w-[240px]`}
-              />
-              <button type="submit" className={`${SECONDARY_BUTTON} h-[28px]`}>
-                Add
-              </button>
-            </form>
-          </div>
-        </div>
-      </Panel>
-
-      <Panel title="Limits" caption="Retention and attachments">
-        <FieldRow label="Retention days" htmlFor="retention_days">
-          <input
-            id="retention_days"
-            type="number"
-            min={30}
-            value={current.retention_days}
-            onChange={(event) => set("retention_days", Number(event.target.value))}
-            className={INPUT}
-          />
-        </FieldRow>
-        <div className="mt-3">
-          <FieldRow label="Attachment max bytes" htmlFor="attachment_max_bytes">
-            <input
-              id="attachment_max_bytes"
-              type="number"
-              min={1024}
-              value={Number(current.attachment_max_bytes)}
-              onChange={(event) => set("attachment_max_bytes", Number(event.target.value))}
-              className={INPUT}
-            />
-          </FieldRow>
-        </div>
-      </Panel>
-
-      <Panel title="Reopen window" caption="After a ticket is resolved or closed">
-        <FieldRow label="Working days" htmlFor="reopen_window_business_days">
-          <input
-            id="reopen_window_business_days"
-            type="number"
-            min={0}
-            max={365}
-            value={current.reopen_window_business_days ?? 5}
-            onChange={(event) => set("reopen_window_business_days", Number(event.target.value))}
-            className={INPUT}
-          />
-        </FieldRow>
-        <p className="text-muted mt-1 text-xs">
-          How long a matched reply can reopen the ticket, counted on the account calendar. Zero never reopens, including
-          the resolve day.
-        </p>
-      </Panel>
-
-      <Panel
-        title="Container cases"
-        caption="When a ticket has quietly become a project, raise it for a scope decision (TM-27)"
-      >
-        <p className="text-muted mb-3 text-sm">
-          A ticket crossing any threshold set here is flagged out of scope with the reason, and the account owner is
-          told. A person still makes the decision. Leave a threshold empty to switch it off.
-        </p>
-        {(
-          [
-            ["container_time_entries", "Time entries", "entries logged against one ticket"],
-            ["container_elapsed_days", "Days open", "days since the ticket was raised"],
-            ["container_effort_minutes", "Effort (minutes)", "minutes logged against one ticket"],
-          ] as const
-        ).map(([key, label, hint]) => (
-          <div key={key} className="mt-3 first:mt-0">
-            <FieldRow label={label} htmlFor={key}>
-              <input
-                id={key}
-                type="number"
-                min={1}
-                placeholder="Off"
-                value={current[key] ?? ""}
-                onChange={(event) => set(key, event.target.value === "" ? null : Number(event.target.value))}
-                className={INPUT}
-              />
-            </FieldRow>
-            <p className="text-muted mt-1 text-xs">{hint}</p>
-          </div>
-        ))}
-      </Panel>
+      <SwitchesPanel current={current} set={set} />
+      <AxelPanel current={current} set={set} canConfigureAi={canConfigureAi} />
+      <EmailPanel current={current} set={set} />
+      <LimitsPanel current={current} set={set} />
+      <ReopenWindowPanel current={current} set={set} />
+      <ContainerCasesPanel current={current} set={set} />
 
       <div className="flex items-center gap-2 lg:col-span-2">
         <button type="button" className={PRIMARY_BUTTON} disabled={!dirty || saving} onClick={() => void save()}>

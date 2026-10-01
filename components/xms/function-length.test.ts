@@ -14,12 +14,6 @@ const LIMIT = 200;
 
 const ALLOWED = new Map<string, number>([
   ["app/(internal)/cases/[key]/page.tsx:TicketRecord", 202],
-  ["components/admin/account-settings-tab.tsx:AccountSettingsTab", 323],
-  ["components/admin/api-clients/api-clients-view.tsx:ApiClientsView", 253],
-  ["components/admin/billing/billing-periods-tab.tsx:BillingPeriodsTab", 237],
-  ["components/admin/calendars/calendar-editor.tsx:CalendarEditor", 242],
-  ["components/admin/contracts/account-contracts-tab.tsx:ContractRulesEditor", 241],
-  ["components/admin/forms/ticket-forms-panel.tsx:FieldEditor", 229],
   ["components/admin/mcp/library-panel.tsx:McpLibraryPanel", 231],
   ["components/admin/saved-queries.tsx:SavedQueriesPanel", 226],
   ["components/admin/security-dashboard.tsx:SecurityDashboard", 234],
