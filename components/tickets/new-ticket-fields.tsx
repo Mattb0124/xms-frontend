@@ -44,6 +44,12 @@ interface NamedContract {
   name: string;
 }
 
+function contractPrompt(contracts: NamedContract[], canReadContracts: boolean): string {
+  if (contracts.length > 0) return "Choose a contract";
+  if (canReadContracts) return "No active contract";
+  return "Contracts need the contracts:view permission";
+}
+
 export interface NewTicketWhoProps {
   draft: NewTicketDraft;
   accountId: string;
@@ -68,12 +74,6 @@ export function NewTicketWho({
   currentUserId,
   onChange,
 }: NewTicketWhoProps) {
-  const contractPrompt =
-    contracts.length > 0
-      ? "Choose a contract"
-      : canReadContracts
-        ? "No active contract"
-        : "Contracts need the contracts:view permission";
   return (
     <Panel title="Who and where">
       <div className="flex flex-col gap-3">
@@ -118,7 +118,7 @@ export function NewTicketWho({
             className={INPUT}
             disabled={!accountId}
           >
-            <option value="">{contractPrompt}</option>
+            <option value="">{contractPrompt(contracts, canReadContracts)}</option>
             {contracts.map((contract) => (
               <option key={contract.id} value={contract.id}>
                 {contract.key} · {contract.name}

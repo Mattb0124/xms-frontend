@@ -21,11 +21,7 @@ function AdminConnectorsPageBody() {
     () => Object.fromEntries((accounts.data ?? []).map((account) => [account.id, account.name])),
     [accounts.data],
   );
-  return (
-    <>
-      <ConnectorHealthList rows={health.data ?? []} accountNames={names} loading={health.isLoading} />
-    </>
-  );
+  return <ConnectorHealthList rows={health.data ?? []} accountNames={names} loading={health.isLoading} />;
 }
 
 /** Registered as `admin.connectors`: the sync health screen over every instance the reader can see. */

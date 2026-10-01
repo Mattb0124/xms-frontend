@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, type ReactNode } from "react";
 import { RailCard } from "@/components/xms/rail-card";
 import { StatePill } from "@/components/xms/state-pill";
 import { useToast } from "@/components/xms/toast";
-import { apiError, describeError } from "@/lib/admin/api-error";
+import { apiError, describeError, type ApiError } from "@/lib/admin/api-error";
 import { QUARANTINE_PLACEHOLDER, originLabel, scanChip } from "@/lib/attachments/scan";
 import {
   UploadRefusal,
@@ -56,6 +56,13 @@ export interface UseUploadsOptions {
   onDone?: (attachment: Attachment) => void;
 }
 
+/** Where a confirmed upload stands on the scan verdict the API returned. */
+function confirmedStage(scan: ScanState): UploadStage {
+  if (scan === "clean") return "clean";
+  if (scan === "quarantined") return "quarantined";
+  return "scanning";
+}
+
 /**
  * Tracks uploads for one ticket: every file goes through presign, upload
  * and confirm; the list keeps the stage and the verdict so the composer can
@@ -67,37 +74,25 @@ export function useUploads(ticketKey: string | undefined, options: UseUploadsOpt
   const update = (id: string, patch: Partial<UploadItem>) =>
     setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
 
-  const add = useCallback(
-    async (files: FileList | File[]) => {
-      if (!ticketKey) return;
-      for (const file of Array.from(files)) {
-        const id = `u${(counter.current += 1)}`;
-        setItems((current) => [...current, { id, name: file.name, size: file.size, stage: "presigning", percent: 0 }]);
-        try {
-          const attachment = await uploadAttachment(ticketKey, file, {
-            portal: options.portal,
-            visibility: options.visibility?.(),
-            onProgress: (progress) => update(id, { stage: progress.stage, percent: progress.percent }),
-          });
-          update(id, {
-            attachment,
-            stage:
-              attachment.scan_state === "clean"
-                ? "clean"
-                : attachment.scan_state === "quarantined"
-                  ? "quarantined"
-                  : "scanning",
-          });
-          options.onDone?.(attachment);
-        } catch (error) {
-          const refusal = error instanceof UploadRefusal ? error : new UploadRefusal("error");
-          update(id, { stage: "failed", error: describeRefusal(refusal) });
-        }
+  const add = async (files: FileList | File[]) => {
+    if (!ticketKey) return;
+    for (const file of Array.from(files)) {
+      const id = `u${(counter.current += 1)}`;
+      setItems((current) => [...current, { id, name: file.name, size: file.size, stage: "presigning", percent: 0 }]);
+      try {
+        const attachment = await uploadAttachment(ticketKey, file, {
+          portal: options.portal,
+          visibility: options.visibility?.(),
+          onProgress: (progress) => update(id, { stage: progress.stage, percent: progress.percent }),
+        });
+        update(id, { attachment, stage: confirmedStage(attachment.scan_state) });
+        options.onDone?.(attachment);
+      } catch (error) {
+        const refusal = error instanceof UploadRefusal ? error : new UploadRefusal("error");
+        update(id, { stage: "failed", error: describeRefusal(refusal) });
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ticketKey, options.portal],
-  );
+    }
+  };
 
   const remove = (id: string) => setItems((current) => current.filter((item) => item.id !== id));
   const clear = () => setItems([]);
@@ -285,6 +280,12 @@ export function AttachmentRow({
   );
 }
 
+function downloadRefusal(error: ApiError): string {
+  if (error.code === "scan_pending") return "The file is still being scanned.";
+  if (error.code === "quarantined") return QUARANTINE_PLACEHOLDER;
+  return describeError(error);
+}
+
 /** Opens the presigned URL the API mints after its RLS-protected read. */
 export function useOpenDownload(portal?: boolean) {
   const [download] = useLazyDownloadAttachmentQuery();
@@ -295,17 +296,7 @@ export function useOpenDownload(portal?: boolean) {
         const result = await download({ id: attachment.id, portal }).unwrap();
         openExternal(result.url);
       } catch (error) {
-        const parsed = apiError(error);
-        push({
-          title: "Not available",
-          detail:
-            parsed.code === "scan_pending"
-              ? "The file is still being scanned."
-              : parsed.code === "quarantined"
-                ? QUARANTINE_PLACEHOLDER
-                : describeError(parsed),
-          tone: "error",
-        });
+        push({ title: "Not available", detail: downloadRefusal(apiError(error)), tone: "error" });
       }
     },
     [download, portal, push],

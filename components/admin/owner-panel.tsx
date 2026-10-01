@@ -11,7 +11,15 @@ import {
   useGetAccountGranteesQuery,
   useListUsersQuery,
   type AccountRow,
+  type UserRecord,
 } from "@/redux/adminApi";
+
+/** The owner by name, or what the panel can say when the directory does not name them. */
+function ownerName(ownerId: string | null, owner: UserRecord | undefined): string {
+  if (owner) return fullName(owner) || owner.email;
+  if (ownerId) return "A user outside the directory listing";
+  return "Nobody yet";
+}
 
 /**
  * The one named primary owner of the account (TM-23), and the handover.
@@ -48,11 +56,7 @@ export function AccountOwnerPanel({ account }: { account: AccountRow }) {
   if (!grantees.data || !internal.data) return <Skeleton lines={4} className="max-w-md" />;
 
   const current = account.owner_user_id ? byId.get(account.owner_user_id) : undefined;
-  const currentName = current
-    ? `${fullName(current) || current.email}`
-    : account.owner_user_id
-      ? "A user outside the directory listing"
-      : "Nobody yet";
+  const currentName = ownerName(account.owner_user_id, current);
 
   return (
     <Panel title="Account owner" caption="One named person answers for this account">

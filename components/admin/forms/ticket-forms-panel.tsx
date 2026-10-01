@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmButton, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON, formatDate } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
+import { keyed, type Keyed } from "@/lib/admin/draft-rows";
 import {
   controllersFor,
   CUSTOM_PREFIX,
@@ -14,6 +15,7 @@ import {
   draftFromDefinition,
   draftVersion,
   emptyFieldDraft,
+  fieldRow,
   formError,
   mapsToOptions,
   publishedVersion,
@@ -21,6 +23,7 @@ import {
   validateFormDraft,
   versionLabel,
   type FieldDraft,
+  type FieldRow,
   type TicketForm,
 } from "@/lib/admin/ticket-forms";
 import {
@@ -31,6 +34,7 @@ import {
   kindLabel,
   type FormField,
   type FormFieldKind,
+  type FormFieldOption,
   type FormTicketType,
 } from "@/lib/portal/forms";
 import { cn } from "@/lib/utils";
@@ -56,226 +60,271 @@ import { useMe } from "@/redux/me";
  * server's, mirrored in `lib/portal/forms` so an author reads a problem
  * beside the field instead of taking a 400 for it. The server still decides.
  */
-function FieldEditor({
-  fields,
-  index,
-  onChange,
-  onRemove,
-  onMove,
-}: {
-  fields: FieldDraft[];
-  index: number;
-  onChange: (change: Partial<FieldDraft>) => void;
-  onRemove: () => void;
+
+export interface FieldHeaderProps {
+  number: number;
+  label: string;
+  /** The first field cannot move up, the last cannot move down. */
+  first: boolean;
+  last: boolean;
   onMove: (direction: -1 | 1) => void;
-}) {
-  const draft = fields[index];
-  const number = index + 1;
-  const controllers = controllersFor(fields, index);
-  const controller = controllers.find((field) => field.key === draft.conditionField);
-  const takesOptions = draft.kind === "choice" || draft.kind === "multi_choice";
+  onRemove: () => void;
+}
+
+function FieldHeader({ number, label, first, last, onMove, onRemove }: FieldHeaderProps) {
   return (
-    <li className="border-xms-line rounded-card border p-3" data-field={draft.key}>
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-xms-label font-mono text-body">Field {number}</span>
-        <span className="text-xms-ink text-body font-medium">{draft.label || "Untitled"}</span>
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onMove(-1)}
-            disabled={index === 0}
-            className="text-xms-accent text-body hover:underline disabled:opacity-40"
-          >
-            Move up
-          </button>
-          <button
-            type="button"
-            onClick={() => onMove(1)}
-            disabled={index === fields.length - 1}
-            className="text-xms-accent text-body hover:underline disabled:opacity-40"
-          >
-            Move down
-          </button>
-          <button type="button" onClick={onRemove} className="text-xms-accent text-body hover:underline">
-            Remove
-          </button>
-        </div>
+    <div className="mb-3 flex items-center gap-2">
+      <span className="text-xms-label font-mono text-body">Field {number}</span>
+      <span className="text-xms-ink text-body font-medium">{label || "Untitled"}</span>
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onMove(-1)}
+          disabled={first}
+          className="text-xms-accent text-body hover:underline disabled:opacity-40"
+        >
+          Move up
+        </button>
+        <button
+          type="button"
+          onClick={() => onMove(1)}
+          disabled={last}
+          className="text-xms-accent text-body hover:underline disabled:opacity-40"
+        >
+          Move down
+        </button>
+        <button type="button" onClick={onRemove} className="text-xms-accent text-body hover:underline">
+          Remove
+        </button>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-body">
-          <span className="text-xms-label">Label</span>
-          <input
-            aria-label={`Label of field ${number}`}
-            value={draft.label}
-            maxLength={160}
-            onChange={(event) => onChange({ label: event.target.value })}
-            className={INPUT}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-body">
-          <span className="text-xms-label">Key</span>
-          <input
-            aria-label={`Key of field ${number}`}
-            value={draft.key}
-            onChange={(event) => {
-              // A custom answer is filed under the key, so renaming the key
-              // renames where the answer goes rather than orphaning it.
-              const key = event.target.value;
-              const follows = draft.mapsTo === `${CUSTOM_PREFIX}${draft.key}`;
-              onChange({ key, ...(follows ? { mapsTo: `${CUSTOM_PREFIX}${key}` } : {}) });
-            }}
-            className={cn(INPUT, "font-mono")}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-body">
-          <span className="text-xms-label">Kind</span>
+    </div>
+  );
+}
+
+/** What each part of a field's editor is handed. */
+export interface FieldPartProps {
+  draft: FieldRow;
+  /** The field's place on the form, from 1, which names every control. */
+  number: number;
+  onChange: (change: Partial<FieldRow>) => void;
+}
+
+/** Label, key, kind, where the answer goes and the help text. */
+function FieldProperties({ draft, number, onChange }: FieldPartProps) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Label</span>
+        <input
+          aria-label={`Label of field ${number}`}
+          value={draft.label}
+          maxLength={160}
+          onChange={(event) => onChange({ label: event.target.value })}
+          className={INPUT}
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Key</span>
+        <input
+          aria-label={`Key of field ${number}`}
+          value={draft.key}
+          onChange={(event) => {
+            // A custom answer is filed under the key, so renaming the key
+            // renames where the answer goes rather than orphaning it.
+            const key = event.target.value;
+            const follows = draft.mapsTo === `${CUSTOM_PREFIX}${draft.key}`;
+            onChange({ key, ...(follows ? { mapsTo: `${CUSTOM_PREFIX}${key}` } : {}) });
+          }}
+          className={cn(INPUT, "font-mono")}
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Kind</span>
+        <select
+          aria-label={`Kind of field ${number}`}
+          value={draft.kind}
+          onChange={(event) => {
+            const kind = event.target.value as FormFieldKind;
+            onChange({ kind, mapsTo: mapsToOptions({ ...draft, kind })[0]?.value ?? draft.mapsTo });
+          }}
+          className={INPUT}
+        >
+          {FORM_FIELD_KINDS.map((kind) => (
+            <option key={kind} value={kind}>
+              {kindLabel(kind)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Answer goes to</span>
+        <select
+          aria-label={`Answer of field ${number} goes to`}
+          value={draft.mapsTo}
+          onChange={(event) => onChange({ mapsTo: event.target.value })}
+          className={INPUT}
+        >
+          {mapsToOptions(draft).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-body sm:col-span-2">
+        <span className="text-xms-label">Help text</span>
+        <input
+          aria-label={`Help of field ${number}`}
+          value={draft.help}
+          maxLength={400}
+          onChange={(event) => onChange({ help: event.target.value })}
+          className={INPUT}
+        />
+      </label>
+    </div>
+  );
+}
+
+export interface FieldRulesProps extends FieldPartProps {
+  /** The fields asked earlier whose answer this one may be asked on. */
+  controllers: FieldDraft[];
+}
+
+/** Whether the field must be answered, and the earlier answer it is asked on. */
+function FieldRules({ draft, number, controllers, onChange }: FieldRulesProps) {
+  const controller = controllers.find((field) => field.key === draft.conditionField);
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-4">
+      <label className="text-xms-body flex items-center gap-2 text-body">
+        <input
+          type="checkbox"
+          aria-label={`Field ${number} is required`}
+          checked={draft.required}
+          disabled={draft.kind === "attachment"}
+          onChange={(event) => onChange({ required: event.target.checked })}
+        />
+        Required
+      </label>
+      <label className="text-xms-body flex items-center gap-2 text-body">
+        <span className="text-xms-label">Asked only when</span>
+        <select
+          aria-label={`Field ${number} is asked only when`}
+          value={draft.conditionField}
+          onChange={(event) => {
+            const next = controllers.find((field) => field.key === event.target.value);
+            onChange({
+              conditionField: event.target.value,
+              conditionEquals: next ? (conditionValuesOf(next)[0]?.value ?? "") : "",
+            });
+          }}
+          className={cn(INPUT, "w-[200px]")}
+        >
+          <option value="">Always asked</option>
+          {controllers.map((field) => (
+            <option key={field.key} value={field.key}>
+              {field.label || field.key}
+            </option>
+          ))}
+        </select>
+      </label>
+      {controller ? (
+        <label className="text-xms-body flex items-center gap-2 text-body">
+          <span className="text-xms-label">answers</span>
           <select
-            aria-label={`Kind of field ${number}`}
-            value={draft.kind}
-            onChange={(event) => {
-              const kind = event.target.value as FormFieldKind;
-              onChange({ kind, mapsTo: mapsToOptions({ ...draft, kind })[0]?.value ?? draft.mapsTo });
-            }}
-            className={INPUT}
+            aria-label={`Field ${number} is asked when the answer is`}
+            value={draft.conditionEquals}
+            onChange={(event) => onChange({ conditionEquals: event.target.value })}
+            className={cn(INPUT, "w-[180px]")}
           >
-            {FORM_FIELD_KINDS.map((kind) => (
-              <option key={kind} value={kind}>
-                {kindLabel(kind)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-body">
-          <span className="text-xms-label">Answer goes to</span>
-          <select
-            aria-label={`Answer of field ${number} goes to`}
-            value={draft.mapsTo}
-            onChange={(event) => onChange({ mapsTo: event.target.value })}
-            className={INPUT}
-          >
-            {mapsToOptions(draft).map((option) => (
+            {conditionValuesOf(controller).map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-body sm:col-span-2">
-          <span className="text-xms-label">Help text</span>
-          <input
-            aria-label={`Help of field ${number}`}
-            value={draft.help}
-            maxLength={400}
-            onChange={(event) => onChange({ help: event.target.value })}
-            className={INPUT}
-          />
-        </label>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-4">
-        <label className="text-xms-body flex items-center gap-2 text-body">
-          <input
-            type="checkbox"
-            aria-label={`Field ${number} is required`}
-            checked={draft.required}
-            disabled={draft.kind === "attachment"}
-            onChange={(event) => onChange({ required: event.target.checked })}
-          />
-          Required
-        </label>
-        <label className="text-xms-body flex items-center gap-2 text-body">
-          <span className="text-xms-label">Asked only when</span>
-          <select
-            aria-label={`Field ${number} is asked only when`}
-            value={draft.conditionField}
-            onChange={(event) => {
-              const next = controllers.find((field) => field.key === event.target.value);
-              onChange({
-                conditionField: event.target.value,
-                conditionEquals: next ? (conditionValuesOf(next)[0]?.value ?? "") : "",
-              });
-            }}
-            className={cn(INPUT, "w-[200px]")}
-          >
-            <option value="">Always asked</option>
-            {controllers.map((field) => (
-              <option key={field.key} value={field.key}>
-                {field.label || field.key}
-              </option>
-            ))}
-          </select>
-        </label>
-        {controller ? (
-          <label className="text-xms-body flex items-center gap-2 text-body">
-            <span className="text-xms-label">answers</span>
-            <select
-              aria-label={`Field ${number} is asked when the answer is`}
-              value={draft.conditionEquals}
-              onChange={(event) => onChange({ conditionEquals: event.target.value })}
-              className={cn(INPUT, "w-[180px]")}
-            >
-              {conditionValuesOf(controller).map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-      </div>
-
-      {takesOptions ? (
-        <div className="border-xms-line mt-3 border-t pt-3">
-          <p className="text-xms-label mb-2 text-body">Options</p>
-          <ul className="flex flex-col gap-2">
-            {draft.options.map((option, order) => (
-              <li key={order} className="flex items-center gap-2">
-                <input
-                  aria-label={`Option ${order + 1} value of field ${number}`}
-                  value={option.value}
-                  placeholder="value"
-                  onChange={(event) =>
-                    onChange({
-                      options: draft.options.map((row, at) =>
-                        at === order ? { ...row, value: event.target.value } : row,
-                      ),
-                    })
-                  }
-                  className={cn(INPUT, "w-[180px] font-mono")}
-                />
-                <input
-                  aria-label={`Option ${order + 1} label of field ${number}`}
-                  value={option.label}
-                  placeholder="What the client reads"
-                  onChange={(event) =>
-                    onChange({
-                      options: draft.options.map((row, at) =>
-                        at === order ? { ...row, label: event.target.value } : row,
-                      ),
-                    })
-                  }
-                  className={cn(INPUT, "w-[240px]")}
-                />
-                <button
-                  type="button"
-                  onClick={() => onChange({ options: draft.options.filter((_, at) => at !== order) })}
-                  className="text-xms-accent text-body hover:underline"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={() => onChange({ options: [...draft.options, { value: "", label: "" }] })}
-            className={cn(SECONDARY_BUTTON, "mt-2")}
-          >
-            Add option to field {number}
-          </button>
-        </div>
       ) : null}
+    </div>
+  );
+}
 
+export interface FieldOptionsProps {
+  options: Keyed<FormFieldOption>[];
+  number: number;
+  onChange: (options: Keyed<FormFieldOption>[]) => void;
+}
+
+/** The options of a choice field, each a value and the label a client reads. */
+function FieldOptions({ options, number, onChange }: FieldOptionsProps) {
+  const edit = (id: number, change: Partial<FormFieldOption>) =>
+    onChange(options.map((option) => (option.id === id ? { ...option, ...change } : option)));
+  return (
+    <div className="border-xms-line mt-3 border-t pt-3">
+      <p className="text-xms-label mb-2 text-body">Options</p>
+      <ul className="flex flex-col gap-2">
+        {options.map((option, order) => (
+          <li key={option.id} className="flex items-center gap-2">
+            <input
+              aria-label={`Option ${order + 1} value of field ${number}`}
+              value={option.value}
+              placeholder="value"
+              onChange={(event) => edit(option.id, { value: event.target.value })}
+              className={cn(INPUT, "w-[180px] font-mono")}
+            />
+            <input
+              aria-label={`Option ${order + 1} label of field ${number}`}
+              value={option.label}
+              placeholder="What the client reads"
+              onChange={(event) => edit(option.id, { label: event.target.value })}
+              className={cn(INPUT, "w-[240px]")}
+            />
+            <button
+              type="button"
+              onClick={() => onChange(options.filter((other) => other.id !== option.id))}
+              className="text-xms-accent text-body hover:underline"
+            >
+              Remove
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => onChange([...options, keyed({ value: "", label: "" })])}
+        className={cn(SECONDARY_BUTTON, "mt-2")}
+      >
+        Add option to field {number}
+      </button>
+    </div>
+  );
+}
+
+export interface FieldEditorProps {
+  fields: FieldRow[];
+  index: number;
+  onChange: (change: Partial<FieldRow>) => void;
+  onRemove: () => void;
+  onMove: (direction: -1 | 1) => void;
+}
+
+function FieldEditor({ fields, index, onChange, onRemove, onMove }: FieldEditorProps) {
+  const draft = fields[index];
+  const number = index + 1;
+  return (
+    <li className="border-xms-line rounded-card border p-3" data-field={draft.key}>
+      <FieldHeader
+        number={number}
+        label={draft.label}
+        first={index === 0}
+        last={index === fields.length - 1}
+        onMove={onMove}
+        onRemove={onRemove}
+      />
+      <FieldProperties draft={draft} number={number} onChange={onChange} />
+      <FieldRules draft={draft} number={number} controllers={controllersFor(fields, index)} onChange={onChange} />
+      {draft.kind === "choice" || draft.kind === "multi_choice" ? (
+        <FieldOptions options={draft.options} number={number} onChange={(options) => onChange({ options })} />
+      ) : null}
       {draft.kind === "ci_picker" || draft.kind === "contact_picker" ? (
         <p className="text-xms-label mt-3 text-body">
           The portal serves no directory for this kind, so a client types the identifier. Asking for it is fine;
@@ -317,11 +366,15 @@ function FormEditor({ accountId, form }: { accountId: string; form: TicketForm }
   const [publish, publishing] = usePublishFormVersionMutation();
   const { push } = useToast();
   // Null means "what the server last answered for the draft"; anything else is unsaved.
-  const [draft, setDraft] = useState<FieldDraft[] | null>(null);
+  const [draft, setDraft] = useState<FieldRow[] | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
 
-  const fields = draft ?? draftFromDefinition((existingDraft ?? published)?.definition);
-  const edit = (index: number, change: Partial<FieldDraft>) =>
+  const saved = useMemo(
+    () => draftFromDefinition((draftVersion(form) ?? publishedVersion(form))?.definition).map(fieldRow),
+    [form],
+  );
+  const fields = draft ?? saved;
+  const edit = (index: number, change: Partial<FieldRow>) =>
     setDraft(fields.map((field, order) => (order === index ? { ...field, ...change } : field)));
   const move = (index: number, direction: -1 | 1) => {
     const target = index + direction;
@@ -394,7 +447,7 @@ function FormEditor({ accountId, form }: { accountId: string; form: TicketForm }
         <ol className="flex flex-col gap-3" aria-label="Draft fields">
           {fields.map((field, index) => (
             <FieldEditor
-              key={index}
+              key={field.id}
               fields={fields}
               index={index}
               onChange={(change) => edit(index, change)}
@@ -418,7 +471,7 @@ function FormEditor({ accountId, form }: { accountId: string; form: TicketForm }
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setDraft([...fields, emptyFieldDraft(fields.length)])}
+            onClick={() => setDraft([...fields, fieldRow(emptyFieldDraft(fields.length))])}
             className={SECONDARY_BUTTON}
           >
             Add field

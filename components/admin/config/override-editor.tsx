@@ -10,7 +10,7 @@ import {
   formatDate,
 } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
-import { SignalPill } from "@/components/xms/signal-pill";
+import { SignalPill, type SignalTone } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { catalogKind, formatBody, parseBody } from "@/lib/admin/config-catalog";
@@ -50,9 +50,14 @@ export function EffectivePill({ view }: { view: AccountConfigView }) {
   );
 }
 
+const VERSION_TONE: Record<ConfigVersion["status"], SignalTone> = {
+  active: "complete",
+  draft: "needs-input",
+  retired: "blocked",
+};
+
 function VersionStatusPill({ status }: { status: ConfigVersion["status"] }) {
-  const tone = status === "active" ? "complete" : status === "draft" ? "needs-input" : "blocked";
-  return <SignalPill tone={tone} label={status} />;
+  return <SignalPill tone={VERSION_TONE[status]} label={status} />;
 }
 
 interface BodyEditorProps {

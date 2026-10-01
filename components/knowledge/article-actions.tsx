@@ -59,8 +59,12 @@ export function FindingsSheet({ findings, onClose }: { findings: Finding[]; onCl
         it is.
       </p>
       <ul className="divide-xms-line divide-y" aria-label="Findings">
-        {findings.map((finding, index) => (
-          <li key={index} className="flex items-center gap-3 py-1.5" data-kind={finding.kind}>
+        {findings.map((finding) => (
+          <li
+            key={`${finding.section}:${finding.kind}:${finding.value}`}
+            className="flex items-center gap-3 py-1.5"
+            data-kind={finding.kind}
+          >
             <span className="text-xms-label w-[150px]">
               {SECTION_LABEL[finding.section as VersionSection] ?? finding.section}
             </span>

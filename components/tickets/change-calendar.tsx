@@ -11,7 +11,14 @@ import { MonthSelect } from "@/components/xms/month-select";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
-import { daysUntil, monthLabel, monthRange, nextWindow } from "@/lib/tickets/change-window";
+import {
+  daysUntil,
+  monthLabel,
+  monthRange,
+  nextWindow,
+  WINDOW_MOMENT_PILL,
+  windowMoment,
+} from "@/lib/tickets/change-window";
 import { ticketGroupStatusLabel } from "@/lib/tickets/groups";
 import {
   useChangeCalendarQuery,
@@ -32,12 +39,12 @@ function RightNow({ accountId }: { accountId: string }) {
   const { data, isLoading } = useChangeWindowAtQuery({ account_id: accountId });
   if (isLoading && !data) return <Skeleton lines={2} />;
   if (!data) return null;
-  const tone = data.inside ? "ready" : data.frozen ? "blocked" : "needs-input";
-  const label = data.inside ? "Inside a change window" : data.frozen ? "Frozen right now" : "Outside every window";
+  const moment = windowMoment(data);
+  const pill = WINDOW_MOMENT_PILL[moment];
   return (
-    <div className="flex flex-col gap-2" data-right-now={data.inside ? "inside" : data.frozen ? "frozen" : "outside"}>
+    <div className="flex flex-col gap-2" data-right-now={moment}>
       <div className="flex flex-wrap items-center gap-3">
-        <SignalPill tone={tone} label={label} />
+        <SignalPill tone={pill.tone} label={pill.label} />
         <span className="xms-mono text-xms-label text-body">{formatDate(data.at)}</span>
       </div>
       {data.windows.length === 0 ? (
@@ -109,6 +116,32 @@ function WindowCard({ window, accountName }: { window: ChangeCalendarWindow; acc
         <p className="text-xms-label text-body">Nothing is planned in this window yet.</p>
       )}
     </li>
+  );
+}
+
+export interface MonthWindowsProps {
+  windows: ChangeCalendarWindow[];
+  accountName: (id: string) => string;
+}
+
+function MonthWindows({ windows, accountName }: MonthWindowsProps) {
+  if (windows.length === 0) {
+    return (
+      <p className="text-xms-label p-4 text-body">
+        No change window falls in this month.{" "}
+        <Link href="/cases/groups" className="xms-link">
+          The groups catalog
+        </Link>{" "}
+        is where one is created.
+      </p>
+    );
+  }
+  return (
+    <ul className="flex flex-col" aria-label="Change windows">
+      {windows.map((window) => (
+        <WindowCard key={window.id} window={window} accountName={accountName(window.account_id)} />
+      ))}
+    </ul>
   );
 }
 
@@ -189,20 +222,8 @@ export function ChangeCalendarScreen() {
           <div className="p-4">
             <Skeleton lines={5} />
           </div>
-        ) : windows.length === 0 ? (
-          <p className="text-xms-label p-4 text-body">
-            No change window falls in this month.{" "}
-            <Link href="/cases/groups" className="xms-link">
-              The groups catalog
-            </Link>{" "}
-            is where one is created.
-          </p>
         ) : (
-          <ul className="flex flex-col" aria-label="Change windows">
-            {windows.map((window) => (
-              <WindowCard key={window.id} window={window} accountName={accountName(window.account_id)} />
-            ))}
-          </ul>
+          <MonthWindows windows={windows} accountName={accountName} />
         )}
       </Panel>
     </div>

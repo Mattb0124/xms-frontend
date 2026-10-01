@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { PORTAL_PRIMARY, PORTAL_SECONDARY, PortalCard, PortalNotice } from "@/components/portal/primitives";
 import { RequestList } from "@/components/portal/request-list";
 import { Skeleton } from "@/components/xms/skeleton";
@@ -18,6 +18,40 @@ export default function PortalRequestsPage() {
   const items = (list.data?.items ?? []).filter(
     (item) => scope === "all" || !["closed", "cancelled"].includes(item.state),
   );
+
+  let content: ReactNode;
+  if (list.isLoading) {
+    content = <Skeleton lines={5} />;
+  } else if (list.isError) {
+    // A failed list is not an empty list. Telling a client who has
+    // requests that they have none is the worst answer available
+    // (frontend review finding 2), so the refusal is worded and offered
+    // again rather than dressed up as an empty state.
+    content = (
+      <div className="flex flex-col items-start gap-3">
+        <PortalNotice tone="error">
+          We could not load your requests just now. Nothing has been lost; please try again.
+        </PortalNotice>
+        <button type="button" className={PORTAL_SECONDARY} onClick={() => void list.refetch()}>
+          Try again
+        </button>
+      </div>
+    );
+  } else {
+    content = (
+      <>
+        <RequestList
+          items={items}
+          emptyText={
+            scope === "open"
+              ? "No open requests. Search for a solution or make a request."
+              : "You have not made any requests yet."
+          }
+        />
+        <UnavailableNote count={list.data?.unavailable ?? 0} />
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -50,36 +84,7 @@ export default function PortalRequestsPage() {
           New request
         </Link>
       </header>
-      <PortalCard>
-        {list.isLoading ? (
-          <Skeleton lines={5} />
-        ) : list.isError ? (
-          // A failed list is not an empty list. Telling a client who has
-          // requests that they have none is the worst answer available
-          // (frontend review finding 2), so the refusal is worded and offered
-          // again rather than dressed up as an empty state.
-          <div className="flex flex-col items-start gap-3">
-            <PortalNotice tone="error">
-              We could not load your requests just now. Nothing has been lost; please try again.
-            </PortalNotice>
-            <button type="button" className={PORTAL_SECONDARY} onClick={() => void list.refetch()}>
-              Try again
-            </button>
-          </div>
-        ) : (
-          <>
-            <RequestList
-              items={items}
-              emptyText={
-                scope === "open"
-                  ? "No open requests. Search for a solution or make a request."
-                  : "You have not made any requests yet."
-              }
-            />
-            <UnavailableNote count={list.data?.unavailable ?? 0} />
-          </>
-        )}
-      </PortalCard>
+      <PortalCard>{content}</PortalCard>
     </div>
   );
 }

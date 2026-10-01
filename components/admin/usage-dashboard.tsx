@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CountList } from "@/components/admin/security-dashboard";
+import { CountList } from "@/components/admin/count-list";
 import { AdoptionPanel, FunnelPanel } from "@/components/admin/usage-funnel";
 import { formatHours } from "@/components/reporting/format";
 import { PeriodSwitcher } from "@/components/reporting/period-switcher";
@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useUsageDashboardQuery, type UsageAccountRow, type UsageCount } from "@/redux/reportingApi";
 
 function rows(list: UsageCount[] | undefined, limit = 15) {
-  return (list ?? []).slice(0, limit).map((row) => ({ label: row.key, n: row.n }));
+  return (list ?? []).slice(0, limit).map((row) => ({ key: row.key, label: row.key, n: row.n }));
 }
 
 /**

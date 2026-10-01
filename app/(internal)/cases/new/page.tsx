@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AdminGate, INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { HeaderAction } from "@/components/shell/content-header-bar";
 import { DropZone } from "@/components/tickets/attachments";
@@ -25,6 +25,11 @@ import {
   useListDirectoryGroupsQuery,
   useListGrantedAccountsQuery,
 } from "@/redux/ticketsApi";
+
+interface QueuedFile {
+  id: string;
+  file: File;
+}
 
 /** The full-screen record form (User Experience 3.3): label-left grid, live priority preview, one submit. */
 function NewTicketForm() {
@@ -52,18 +57,24 @@ function NewTicketForm() {
   const [error, setError] = useState<string | null>(null);
   const [details, setDetails] = useState<string[]>([]);
   const [contractChoices, setContractChoices] = useState<{ id: string; key: string; name: string }[] | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<QueuedFile[]>([]);
+  const fileCounter = useRef(0);
   const [uploading, setUploading] = useState(false);
   const priority = derivePriority(draft.impact, draft.urgency);
   const update = (patch: Partial<NewTicketDraft>) => setDraft((current) => ({ ...current, ...patch }));
   const canSubmit = accountId !== "" && draft.short_description.trim() !== "" && !isLoading && !uploading;
+
+  const queueFiles = (list: FileList | File[]) => {
+    const added = Array.from(list).map((file) => ({ id: `f${(fileCounter.current += 1)}`, file }));
+    setFiles((current) => [...current, ...added]);
+  };
 
   const submit = () =>
     submitNewTicket({
       accountId,
       contractId,
       draft,
-      files,
+      files: files.map((queued) => queued.file),
       create: (body) => create(body).unwrap(),
       track,
       push,
@@ -145,20 +156,17 @@ function NewTicketForm() {
       </Panel>
       <Panel title="Files" caption="Uploaded and scanned once the ticket exists">
         <div className="flex flex-col gap-2">
-          <DropZone
-            onFiles={(list) => setFiles((current) => [...current, ...Array.from(list)])}
-            disabled={isLoading || uploading}
-          />
+          <DropZone onFiles={queueFiles} disabled={isLoading || uploading} />
           {files.length > 0 ? (
             <ul className="flex flex-col gap-1" aria-label="Queued files">
-              {files.map((file, index) => (
-                <li key={`${file.name}-${index}`} className="flex items-center gap-2 text-body">
+              {files.map(({ id, file }) => (
+                <li key={id} className="flex items-center gap-2 text-body">
                   <span className="text-xms-ink">{file.name}</span>
                   <span className="xms-mono text-xms-label">{formatBytes(file.size)}</span>
                   <button
                     type="button"
                     className="text-xms-label ml-auto hover:underline"
-                    onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                    onClick={() => setFiles((current) => current.filter((queued) => queued.id !== id))}
                   >
                     Remove
                   </button>

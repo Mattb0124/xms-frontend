@@ -112,6 +112,7 @@ export function AssigneePicker({
   // they just took: the control is never blank when someone holds the ticket.
   const named = selected ? fullName(selected) : (valueLabel ?? (isMe ? me.principal?.displayName : null));
   const current = assigneeLabel(named, isMe);
+  const closedValue = current === "Unassigned" ? "" : current;
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const list = needle
@@ -136,7 +137,7 @@ export function AssigneePicker({
           // and the assignee stays in the placeholder for context.
           placeholder={current}
           data-current-assignee={current}
-          value={open ? query : current === "Unassigned" ? "" : current}
+          value={open ? query : closedValue}
           disabled={disabled}
           onFocus={() => {
             setQuery("");

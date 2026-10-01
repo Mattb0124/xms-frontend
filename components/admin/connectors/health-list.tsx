@@ -18,6 +18,20 @@ function accountLabel(row: ConnectorHealthRow, names?: Record<string, string>): 
   return names?.[row.account_id] ?? row.account_id.slice(0, 8);
 }
 
+function DeadLetteredOutbound({ count }: { count: number | undefined }) {
+  if (count === undefined) {
+    return <span className="text-xms-muted" data-dead-lettered-outbound="" aria-label="not answered" />;
+  }
+  if (count > 0) {
+    return (
+      <span className="text-[color:var(--state-overdue-text)]" data-dead-lettered-outbound={count}>
+        {count}
+      </span>
+    );
+  }
+  return <span data-dead-lettered-outbound="0">0</span>;
+}
+
 /**
  * The sync health screen (ServiceNow Sync functional 5.4): one row per
  * instance across the accounts the reader can see. Every number is the
@@ -95,19 +109,7 @@ export function ConnectorHealthList({ rows, accountNames, loading }: HealthListP
       align: "right",
       mono: true,
       sortValue: (row) => row.dead_lettered_outbound ?? null,
-      render: (row) =>
-        row.dead_lettered_outbound === undefined ? (
-          <span className="text-xms-muted" data-dead-lettered-outbound="" aria-label="not answered" />
-        ) : row.dead_lettered_outbound > 0 ? (
-          <span
-            className="text-[color:var(--state-overdue-text)]"
-            data-dead-lettered-outbound={row.dead_lettered_outbound}
-          >
-            {row.dead_lettered_outbound}
-          </span>
-        ) : (
-          <span data-dead-lettered-outbound="0">0</span>
-        ),
+      render: (row) => <DeadLetteredOutbound count={row.dead_lettered_outbound} />,
     },
     {
       key: "lag",
