@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CalendarEditor, calendarPatch } from "@/components/admin/calendars/calendar-editor";
+import { CalendarEditor } from "@/components/admin/calendars/calendar-editor";
+import { calendarPatch } from "@/lib/calendars/draft";
 import { ACCOUNT_ID, aCalendar, aHolidayCalendar, CALENDAR_ID, HOLIDAY_LIBRARY_ID } from "@/test-kit/calendars";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 

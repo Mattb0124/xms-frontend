@@ -12,7 +12,9 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import {
   describeTicketGroupError,
+  ticketGroupCreateBody,
   ticketGroupKindLabel,
+  ticketGroupPatchBody,
   ticketGroupStatusLabel,
   toFreezeDrafts,
   toFreezeWindows,
@@ -32,6 +34,7 @@ import {
   useListGrantedAccountsQuery,
   useListTicketGroupsQuery,
   usePatchTicketGroupMutation,
+  type GrantedAccount,
   type TicketGroup,
   type TicketGroupKind,
   type TicketGroupStatus,
@@ -53,7 +56,21 @@ export function scheduleLabel(group: Pick<TicketGroup, "starts_at" | "ends_at">)
   return `${formatDate(group.starts_at)} to ${formatDate(group.ends_at)}`;
 }
 
-function emptyDraft(accountId: string): TicketGroupDraft {
+/** One freeze on the form. The id only keys the row; the body is built from the other fields. */
+interface FreezeRow extends FreezeDraft {
+  id: string;
+}
+
+type GroupDraft = Omit<TicketGroupDraft, "freezes"> & { freezes: FreezeRow[] };
+
+let freezeRowCount = 0;
+
+function freezeRow(freeze: FreezeDraft): FreezeRow {
+  freezeRowCount += 1;
+  return { ...freeze, id: `freeze-${freezeRowCount}` };
+}
+
+function emptyDraft(accountId: string): GroupDraft {
   return {
     accountId,
     kind: "change_window",
@@ -68,7 +85,7 @@ function emptyDraft(accountId: string): TicketGroupDraft {
   };
 }
 
-function toDraft(group: TicketGroup): TicketGroupDraft {
+function toDraft(group: TicketGroup): GroupDraft {
   return {
     accountId: group.account_id,
     kind: group.kind,
@@ -78,7 +95,7 @@ function toDraft(group: TicketGroup): TicketGroupDraft {
     status: group.status,
     startsAt: toLocalInput(group.starts_at),
     endsAt: toLocalInput(group.ends_at),
-    freezes: toFreezeDrafts(group.freeze_windows),
+    freezes: toFreezeDrafts(group.freeze_windows).map(freezeRow),
     changeWindowReason: "",
   };
 }
@@ -89,38 +106,38 @@ function toDraft(group: TicketGroup): TicketGroupDraft {
  * window, so the whole set travels with every save and a removed row is
  * removed by being absent.
  */
-function FreezeRows({ freezes, onChange }: { freezes: FreezeDraft[]; onChange: (freezes: FreezeDraft[]) => void }) {
-  const edit = (index: number, change: Partial<FreezeDraft>) =>
-    onChange(freezes.map((freeze, order) => (order === index ? { ...freeze, ...change } : freeze)));
+function FreezeRows({ freezes, onChange }: { freezes: FreezeRow[]; onChange: (freezes: FreezeRow[]) => void }) {
+  const edit = (id: string, change: Partial<FreezeDraft>) =>
+    onChange(freezes.map((freeze) => (freeze.id === id ? { ...freeze, ...change } : freeze)));
   return (
     <div className="flex flex-col gap-2" data-freezes>
       <span className="text-xms-label">Freezes</span>
       {freezes.map((freeze, index) => (
-        <div key={index} className="flex flex-wrap items-end gap-2">
+        <div key={freeze.id} className="flex flex-wrap items-end gap-2">
           <input
             aria-label={`Freeze ${index + 1} starts`}
             type="datetime-local"
             value={freeze.startsAt}
-            onChange={(event) => edit(index, { startsAt: event.target.value })}
+            onChange={(event) => edit(freeze.id, { startsAt: event.target.value })}
             className={cn(INPUT, "xms-mono w-[200px]")}
           />
           <input
             aria-label={`Freeze ${index + 1} ends`}
             type="datetime-local"
             value={freeze.endsAt}
-            onChange={(event) => edit(index, { endsAt: event.target.value })}
+            onChange={(event) => edit(freeze.id, { endsAt: event.target.value })}
             className={cn(INPUT, "xms-mono w-[200px]")}
           />
           <input
             aria-label={`Freeze ${index + 1} reason`}
             value={freeze.reason}
             placeholder="Why nothing may go out"
-            onChange={(event) => edit(index, { reason: event.target.value })}
+            onChange={(event) => edit(freeze.id, { reason: event.target.value })}
             className={cn(INPUT, "w-[240px]")}
           />
           <button
             type="button"
-            onClick={() => onChange(freezes.filter((_, order) => order !== index))}
+            onClick={() => onChange(freezes.filter((row) => row.id !== freeze.id))}
             className="text-xms-accent pb-2 text-body hover:underline"
           >
             Remove freeze
@@ -133,7 +150,7 @@ function FreezeRows({ freezes, onChange }: { freezes: FreezeDraft[]; onChange: (
       <div>
         <button
           type="button"
-          onClick={() => onChange([...freezes, { startsAt: "", endsAt: "", reason: "" }])}
+          onClick={() => onChange([...freezes, freezeRow({ startsAt: "", endsAt: "", reason: "" })])}
           className={SECONDARY_BUTTON}
         >
           Add freeze
@@ -159,8 +176,8 @@ function GroupForm({
   onCancel,
   editingRow,
 }: {
-  draft: TicketGroupDraft;
-  setDraft: (draft: TicketGroupDraft) => void;
+  draft: GroupDraft;
+  setDraft: (draft: GroupDraft) => void;
   accounts: { id: string; name: string }[];
   editing: boolean;
   problems: string[];
@@ -171,9 +188,9 @@ function GroupForm({
   editingRow?: TicketGroup;
 }) {
   const scheduleChanged =
-    Boolean(editingRow) &&
+    editingRow !== undefined &&
     draft.kind === "change_window" &&
-    scheduleMoved(editingRow!, {
+    scheduleMoved(editingRow, {
       startsAt: toInstant(draft.startsAt),
       endsAt: toInstant(draft.endsAt),
       freezes: toFreezeWindows(draft.freezes),
@@ -318,43 +335,33 @@ function GroupForm({
 }
 
 /**
- * The groups catalog (TM-10): projects and change windows across the
- * accounts granted to this reader, with the schedule each one carries.
- * Reading is `tickets:view`, the screen's own gate; creating and editing are
- * `tickets:work`, so a reader without it sees the list and no form.
+ * The record form's state: the group being edited, if any, its draft, and
+ * the save that creates or patches it. A new group opens on the account the
+ * list is filtered to, or on the one account the reader holds.
  */
-export function TicketGroupsCatalog() {
-  const me = useMe();
-  const canWrite = me.hasPermission("tickets:work");
-  const { data: accounts } = useListGrantedAccountsQuery();
-  const [kind, setKind] = useState<TicketGroupKind | "">("");
-  const [status, setStatus] = useState<TicketGroupStatus | "">("");
-  const [accountId, setAccountId] = useState("");
-  const { data, isLoading } = useListTicketGroupsQuery({
-    account_id: accountId || undefined,
-    kind: kind || undefined,
-    status: status || undefined,
-  });
+function useGroupEditor(accounts: GrantedAccount[] | undefined, accountFilter: string) {
+  const { push } = useToast();
   const [create, creating] = useCreateTicketGroupMutation();
   const [patch, patching] = usePatchTicketGroupMutation();
-  const { push } = useToast();
   const [editing, setEditing] = useState<TicketGroup | null>(null);
-  const [draft, setDraft] = useState<TicketGroupDraft | null>(null);
+  const [draft, setDraft] = useState<GroupDraft | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
-
-  const accountName = (id: string) => accounts?.find((account) => account.id === id)?.name ?? id;
-  const rows = data ?? [];
 
   const openNew = () => {
     setEditing(null);
     setProblems([]);
-    setDraft(emptyDraft(accountId || (accounts?.length === 1 ? accounts[0].id : "")));
+    setDraft(emptyDraft(accountFilter || (accounts?.length === 1 ? accounts[0].id : "")));
   };
 
   const openEdit = (group: TicketGroup) => {
     setEditing(group);
     setProblems([]);
     setDraft(toDraft(group));
+  };
+
+  const close = () => {
+    setDraft(null);
+    setEditing(null);
   };
 
   const submit = async () => {
@@ -364,51 +371,24 @@ export function TicketGroupsCatalog() {
     if (found.length > 0) return;
     try {
       if (editing) {
-        const startsAt = toInstant(draft.startsAt);
-        const endsAt = toInstant(draft.endsAt);
-        const freezes = toFreezeWindows(draft.freezes);
-        const moved = scheduleMoved(editing, { startsAt, endsAt, freezes });
-        await patch({
-          id: editing.id,
-          body: {
-            version: editing.version,
-            name: draft.name.trim(),
-            description: draft.description.trim(),
-            status: draft.status,
-            // Sent only where they moved, so a rename does not read as a
-            // schedule change and ask for a reason that has nothing to say.
-            ...(moved
-              ? {
-                  starts_at: startsAt,
-                  ends_at: endsAt,
-                  freeze_windows: freezes,
-                  ...(draft.kind === "change_window" ? { change_window_reason: draft.changeWindowReason.trim() } : {}),
-                }
-              : {}),
-          },
-        }).unwrap();
+        await patch({ id: editing.id, body: ticketGroupPatchBody(editing, draft) }).unwrap();
         push({ title: `${draft.name.trim()} saved`, tone: "success" });
       } else {
-        await create({
-          account_id: draft.accountId,
-          kind: draft.kind,
-          name: draft.name.trim(),
-          description: draft.description.trim() || undefined,
-          status: draft.status,
-          starts_at: toInstant(draft.startsAt),
-          ends_at: toInstant(draft.endsAt),
-          freeze_windows: toFreezeWindows(draft.freezes),
-        }).unwrap();
+        await create(ticketGroupCreateBody(draft)).unwrap();
         push({ title: `${draft.name.trim()} created`, tone: "success" });
       }
-      setDraft(null);
-      setEditing(null);
+      close();
     } catch (error) {
       push({ title: "The group was not saved", detail: describeTicketGroupError(error), tone: "error" });
     }
   };
 
-  const columns: DenseColumn<TicketGroup>[] = [
+  const pending = creating.isLoading || patching.isLoading;
+  return { editing, draft, setDraft, problems, pending, openNew, openEdit, close, submit };
+}
+
+function groupColumns(accountName: (id: string) => string): DenseColumn<TicketGroup>[] {
+  return [
     {
       key: "name",
       title: "Name",
@@ -445,6 +425,29 @@ export function TicketGroupsCatalog() {
       ),
     },
   ];
+}
+
+/**
+ * The groups catalog (TM-10): projects and change windows across the
+ * accounts granted to this reader, with the schedule each one carries.
+ * Reading is `tickets:view`, the screen's own gate; creating and editing are
+ * `tickets:work`, so a reader without it sees the list and no form.
+ */
+export function TicketGroupsCatalog() {
+  const me = useMe();
+  const canWrite = me.hasPermission("tickets:work");
+  const { data: accounts } = useListGrantedAccountsQuery();
+  const [kind, setKind] = useState<TicketGroupKind | "">("");
+  const [status, setStatus] = useState<TicketGroupStatus | "">("");
+  const [accountId, setAccountId] = useState("");
+  const { data, isLoading } = useListTicketGroupsQuery({
+    account_id: accountId || undefined,
+    kind: kind || undefined,
+    status: status || undefined,
+  });
+  const editor = useGroupEditor(accounts, accountId);
+
+  const accountName = (id: string) => accounts?.find((account) => account.id === id)?.name ?? id;
 
   return (
     <div className="flex flex-col gap-4">
@@ -473,28 +476,29 @@ export function TicketGroupsCatalog() {
       </HeaderFilters>
       {canWrite ? (
         <HeaderAction>
-          <button type="button" onClick={openNew} className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}>
+          <button
+            type="button"
+            onClick={editor.openNew}
+            className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-1")}
+          >
             <PlusIcon size={ICON.action} />
             New
           </button>
         </HeaderAction>
       ) : null}
 
-      {draft ? (
-        <Panel title={editing ? `Edit ${editing.name}` : "New group"} caption="GROUP">
+      {editor.draft ? (
+        <Panel title={editor.editing ? `Edit ${editor.editing.name}` : "New group"} caption="GROUP">
           <GroupForm
-            draft={draft}
-            setDraft={setDraft}
+            draft={editor.draft}
+            setDraft={editor.setDraft}
             accounts={accounts ?? []}
-            editing={editing !== null}
-            editingRow={editing ?? undefined}
-            problems={problems}
-            pending={creating.isLoading || patching.isLoading}
-            onSubmit={() => void submit()}
-            onCancel={() => {
-              setDraft(null);
-              setEditing(null);
-            }}
+            editing={editor.editing !== null}
+            editingRow={editor.editing ?? undefined}
+            problems={editor.problems}
+            pending={editor.pending}
+            onSubmit={() => void editor.submit()}
+            onCancel={editor.close}
           />
         </Panel>
       ) : null}
@@ -507,11 +511,11 @@ export function TicketGroupsCatalog() {
           // header lost in pass two. It is named for what it holds, with the
           // sentence that explains the screen beside it.
           title="Groups"
-          columns={columns}
-          rows={rows}
+          columns={groupColumns(accountName)}
+          rows={data ?? []}
           rowKey={(row) => row.id}
           defaultSort={{ key: "schedule", direction: "desc" }}
-          onRowClick={canWrite ? openEdit : undefined}
+          onRowClick={canWrite ? editor.openEdit : undefined}
           // A line where the rows would be, not a card inside the card.
           emptyState={
             canWrite

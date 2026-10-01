@@ -1,0 +1,38 @@
+---
+description: XMS Web data layer. RTK Query endpoints and cache tags, what a write or a refusal reloads, typed API errors, downloads, polling, and the server as the only author of every figure
+globs: "redux/**,lib/**,components/**/*.tsx,app/**/*.tsx"
+alwaysApply: false
+---
+
+# Data layer
+
+## Endpoints and tags
+
+- Add endpoints to the area's slice with `xmsApi.injectEndpoints({ endpoints: (build) => ({ ... }), overrideExisting: false })` and export the hooks from it. Type both sides: `build.query<BillingPeriod[], string>`.
+- Every query provides a tag and every mutation invalidates one. Build them with the slice's helper (`budgetTag(accountId)`, `billingTag(accountId)` in `redux/timeApi.ts`) so provider and invalidator cannot drift. A new tag type goes into `tagTypes` in `redux/api.ts`.
+- Invalidate everything the write changes, not only the record it names: `logTicketTime` reloads the ticket's time, the timesheet, comp time, the contract position and the budget.
+- Decide what a refusal reloads, and say why in a comment on the endpoint.
+  - A refusal that means the view is behind (`stale_version`, `invalid_transition`) reloads anyway: `invalidatesTags: (_result, _error, { accountId }) => [billingTag(accountId)]` on `transitionBillingPeriod`.
+  - A refusal that changed nothing reloads nothing: `(_result, error, { accountId }) => (error ? [] : [rateCardsTag(accountId)])` on `createRateCard`.
+- A write to a versioned record sends the `version` the screen read: `patchEngagementBody(engagement, draft)` puts `engagement.version` first.
+
+## Errors
+
+- Read every error with `apiError(error)` from `lib/admin/api-error.ts` (`status`, `code`, `details`, `permission`, `requestId`). An area with its own codes adds a reader that keeps the extra fields its bodies carry (`capacityError` keeps `current`, `problems` and `keys`) and a describer that switches on `code` with `default: return describeError(error)`.
+- Branch on `code`, never on message text or on the status alone.
+  YES: `case "stale_version":`. NO: `if (String(error.data?.message).includes("version"))`.
+- For an edit to a versioned record, take the handler from `useMutationErrors(refetch)` in `lib/admin/use-mutation-errors.ts`. On `stale_version` it toasts "Reloaded" and refetches, otherwise it toasts "Not saved", and it returns the parsed error for inline display. It words with the shared `describeError`, so a code only your area knows goes through your describer instead.
+
+## Transport and polling
+
+- No `fetch` in a component or a page. A JSON route is an endpoint. A file the reader downloads goes through `downloadFile` or `fetchDownload` in `lib/exports/download.ts`, with the path from the slice (`downloadFile({ url: billingExportPath(accountId, period.id, format) })`). A presigned link the API minted opens with `openExternal` (`security.mdc`).
+- Poll with `pollingInterval: LIVE_REFRESH_MS` (the desk's lists, counts and open record) or `WORKER_REFRESH_MS` (integration health and migration batches, which move with the worker) from `lib/refresh.ts`. A new cadence is a named constant there with its reason.
+  YES: `useConnectorHealthQuery(undefined, { pollingInterval: WORKER_REFRESH_MS, refetchOnFocus: true })`. NO: `pollingInterval: 15000`, or a `setInterval` that calls `refetch`.
+- An interval may tick a local clock and nothing else (`SlaValue` counts down between polls).
+
+## The server is the only author
+
+- Never compute an SLA due time, a breach, a derived priority, burn-down, remaining capacity, a budget status or a permission in the browser. Render the value the API sent.
+- When a figure needs its basis to be read correctly, put the basis in the label ("Remaining of plan" in `CapacityGrid`), never a recomputation.
+- A figure the API did not send is left out, tile and panel both, never printed as zero.
+  YES: `row.n === undefined ? null : <span className="xms-mono">{row.n}</span>`. NO: `{row.n ?? 0}`.

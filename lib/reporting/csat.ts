@@ -58,7 +58,9 @@ export function respondentLabel(response: Pick<CsatResponse, "contact_name" | "c
 
 /** Low scores read as overdue, neutral as needs input, the rest as complete. */
 export function scoreTone(score: number): SignalTone {
-  return score <= 2 ? "overdue" : score === 3 ? "needs-input" : "complete";
+  if (score <= 2) return "overdue";
+  if (score === 3) return "needs-input";
+  return "complete";
 }
 
 // The quarterly relationship survey -------------------------------------------

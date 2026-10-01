@@ -1,0 +1,36 @@
+---
+description: XMS Web tests. Vitest colocated, builders only in test-kit, renderDesk and renderPortal over the fetch stub, assertions on what the reader sees, the refusal path of every write, and guard tests kept strict
+globs: "**/*.test.ts,**/*.test.tsx,test-kit/**,e2e/**"
+alwaysApply: false
+---
+
+# Testing
+
+Load the `writing-tests` skill for anything these rules do not settle.
+
+## Where tests live
+
+- Unit and component tests are Vitest, colocated as `<file>.test.ts(x)`. `vitest.config.ts` discovers every `**/*.test.{ts,tsx}` and runs them under jsdom; a test that only reads files starts with `// @vitest-environment node`.
+- Golden paths are Playwright, in `e2e/*.spec.ts` (`pnpm test:e2e`). A path that needs a live API skips on its variable, as `e2e/tickets.spec.ts` does without `E2E_API_TOKEN`; nothing else is skipped.
+- Builders and ids live only in `test-kit/<area>.ts(x)`, which declares no suite. A test file never imports another test file, and source never imports a test file (`test-kit/shared-fixtures.test.ts`).
+  YES: `import { aBucket, BUCKET_ID } from "@/test-kit/time";`. NO: a builder imported from `redux/timeApi.test.ts`.
+
+## Rendering against the API
+
+- Render desk components with `renderDesk` and portal components with `renderPortal`. Use `renderDeskInShell` when the controls portal into the header bar, and mock `next/navigation` for it.
+- Stub the API with `stubFetch({ "GET /v1/admin/me": () => json(me), ... })` from `@/test-kit/desk`. It records every call as `{ key, search, body }` and answers an unlisted route with a 404 `not_found`. Restore with `afterEach(() => vi.unstubAllGlobals())`.
+- A slice test dispatches the endpoint on a fresh store and asserts the exact path, query and body: `await store.dispatch(timeApi.endpoints.ticketTime.initiate("CS0001001")).unwrap()` after `makeStore()`.
+
+## What to assert
+
+- Assert on what the reader sees and does: roles, accessible names and text (`await screen.findByRole("list", { name: "Buckets" })`, `getByLabelText`, `within(list)`). Never on hook internals or component state.
+- Wait with `findBy*` or `waitFor`, not a timed sleep. To prove nothing was asked, wait for the visible refusal first, then check the calls.
+  YES: `await screen.findByText(/needs the time:log permission/);` then `expect(calls.some((call) => call.key === BUCKETS)).toBe(false);`.
+- A gated surface: without the permission it asks nothing and names the permission.
+- Every write: the exact body, including the `version` it read when the record has one, and at least one refusal, stubbed with its code and asserted in its words. `json({ code: "unknown_billable_class" }, 400)` must show "That class is not in this account's catalog."
+- An accessibility check is available through `vitest-axe`, as in `components/portal/request-form.test.tsx`.
+
+## Guard tests
+
+- A guard test (`components/admin/fail-closed.test.ts`, `components/xms/function-length.test.ts`, `components/xms/house-copy.test.ts`, `components/xms/surfaces.test.tsx`, `test-kit/shared-fixtures.test.ts`, `styles/tokens/tokens.test.ts`) changes only to cover more: a new map entry, a new pattern, a new file.
+- Never widen an allowlist, loosen a pattern or delete a case to get green. Keep each self-test that proves a guard still catches the bad shape, like "recognizes the shape the review objected to" in `fail-closed.test.ts`.

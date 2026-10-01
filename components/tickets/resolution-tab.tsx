@@ -52,6 +52,13 @@ export function recordDisciplineItems(
   ];
 }
 
+function solutionLine(ticket: TicketView, linkedCount: number, codes: ResolutionCode[]): string {
+  if (linkedCount > 0) return `${linkedCount} resolution record${linkedCount === 1 ? "" : "s"} below`;
+  if (ticket.resolution.solution_candidate) return "New-article candidate";
+  if (isNoSolutionCode(ticket.resolution.code, codes)) return "Waived by the resolution code";
+  return "None";
+}
+
 /** One field of the record: render 05's bold label with its value under it. */
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -90,15 +97,7 @@ export function ResolutionTab({ ticket, catalogs }: { ticket: TicketView; catalo
           {ticket.resolution.code ? resolutionLabel(ticket.resolution.code, codes) : "Not set"}
         </Field>
         <Field label="Resolution notes">{ticket.resolution.notes || "Not written yet"}</Field>
-        <Field label="Solution">
-          {linked.length > 0
-            ? `${linked.length} resolution record${linked.length === 1 ? "" : "s"} below`
-            : ticket.resolution.solution_candidate
-              ? "New-article candidate"
-              : isNoSolutionCode(ticket.resolution.code, codes)
-                ? "Waived by the resolution code"
-                : "None"}
-        </Field>
+        <Field label="Solution">{solutionLine(ticket, linked.length, codes)}</Field>
         <Field label="Time exemption">{ticket.resolution.time_exemption_reason || "Not required"}</Field>
         {resolved ? (
           <>

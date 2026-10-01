@@ -59,6 +59,36 @@ export function participantLine(row: TicketParticipant): string {
   }
 }
 
+export interface ParticipantActionsProps {
+  row: TicketParticipant;
+  readOnly?: boolean;
+  onAccept: () => void;
+  onDecline: () => void;
+  onRemove: () => void;
+}
+
+/** Answering an ask made of the reader, or taking a part that is still open off the ticket. */
+function ParticipantActions({ row, readOnly, onAccept, onDecline, onRemove }: ParticipantActionsProps) {
+  if (row.can_answer) {
+    return (
+      <span className="ml-auto flex items-center gap-3">
+        <button type="button" className="xms-link" onClick={onAccept}>
+          Accept
+        </button>
+        <button type="button" className="text-xms-label hover:underline" onClick={onDecline}>
+          Decline
+        </button>
+      </span>
+    );
+  }
+  if (readOnly || (row.status !== "active" && row.status !== "invited")) return null;
+  return (
+    <button type="button" onClick={onRemove} className="text-xms-label ml-auto hover:underline">
+      {row.status === "invited" ? "Withdraw" : "Remove"}
+    </button>
+  );
+}
+
 /**
  * Who had a part in this ticket besides the assignee (TM-21), and who has
  * been asked onto it (TM-22).
@@ -140,44 +170,25 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
               <span className="bg-xms-tint text-xms-label rounded-pill px-2 py-[1px] text-body">
                 {roleLabel(row.role)}
               </span>
-              {row.can_answer ? (
-                <span className="ml-auto flex items-center gap-3">
-                  <button
-                    type="button"
-                    className="xms-link"
-                    onClick={() =>
-                      answer({ key: ticketKey, id: row.id, answer: "accept" })
-                        .unwrap()
-                        .catch((error) => say("Not accepted", error))
-                    }
-                  >
-                    Accept
-                  </button>
-                  <button
-                    type="button"
-                    className="text-xms-label hover:underline"
-                    onClick={() =>
-                      answer({ key: ticketKey, id: row.id, answer: "decline" })
-                        .unwrap()
-                        .catch((error) => say("Not declined", error))
-                    }
-                  >
-                    Decline
-                  </button>
-                </span>
-              ) : !readOnly && (row.status === "active" || row.status === "invited") ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    remove({ key: ticketKey, id: row.id })
-                      .unwrap()
-                      .catch((error) => say("Not removed", error))
-                  }
-                  className="text-xms-label ml-auto hover:underline"
-                >
-                  {row.status === "invited" ? "Withdraw" : "Remove"}
-                </button>
-              ) : null}
+              <ParticipantActions
+                row={row}
+                readOnly={readOnly}
+                onAccept={() =>
+                  answer({ key: ticketKey, id: row.id, answer: "accept" })
+                    .unwrap()
+                    .catch((error) => say("Not accepted", error))
+                }
+                onDecline={() =>
+                  answer({ key: ticketKey, id: row.id, answer: "decline" })
+                    .unwrap()
+                    .catch((error) => say("Not declined", error))
+                }
+                onRemove={() =>
+                  remove({ key: ticketKey, id: row.id })
+                    .unwrap()
+                    .catch((error) => say("Not removed", error))
+                }
+              />
             </div>
             {row.status === "active" && row.joined_at ? (
               <p className="text-xms-label text-body">since {formatDay(row.joined_at)}</p>
@@ -189,7 +200,7 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
           </li>
         ))}
       </ul>
-      {readOnly ? null : asking ? (
+      {!readOnly && asking ? (
         <div className="mt-2 flex flex-col gap-2">
           <label className="sr-only" htmlFor="participant-who">
             Person or group
@@ -261,11 +272,12 @@ export function ParticipantsCard({ ticketKey, readOnly }: { ticketKey: string; r
             </button>
           </div>
         </div>
-      ) : (
+      ) : null}
+      {!readOnly && !asking ? (
         <button type="button" className="xms-link mt-2 text-body" onClick={() => setAsking(true)}>
           Ask somebody on
         </button>
-      )}
+      ) : null}
     </RailCard>
   );
 }

@@ -36,25 +36,38 @@ type Sheet =
 
 const TERMINAL_CONFIRM = new Set(["closed", "cancelled", "rejected"]);
 
+/** The sheet that collects what a move requires, or none when it can be sent as it stands. */
+function sheetFor(target: AllowedTransition): Sheet {
+  if (target.requires.includes("pause_reason")) return { kind: "pause", target };
+  if (target.requires.includes("resolution") || target.requires.includes("time_logged")) {
+    return { kind: "resolve", target };
+  }
+  if (target.reopen || TERMINAL_CONFIRM.has(target.to)) return { kind: "confirm", target };
+  return { kind: "none" };
+}
+
+interface Attempt {
+  body: TransitionBody;
+  target: AllowedTransition;
+}
+
+interface WindowRefused {
+  target: AllowedTransition;
+  refusal: ChangeWindowRefusal;
+}
+
 /**
- * The state pill is the only route through the state machine (User
- * Experience section 6): its menu lists the allowed next states from the
- * API and collects the required inputs in an inline sheet, never a modal
- * wizard. Pausing states ask for the reason; resolving states show the
- * close discipline; closing, cancelling and reopening confirm.
+ * Every move the menu sends, and the change window refusal (TM-18) one of
+ * them may earn: the refusal the sheet shows, the reason it collects, and
+ * the same move sent again with that reason.
  */
-export function TransitionMenu({ ticket, className }: { ticket: TicketView; className?: string }) {
-  const me = useMe();
-  const { data } = useGetTransitionsQuery(ticket.key);
-  const canOverride = me.hasPermission(OVERRIDE_PERMISSION);
+function useWindowedTransition(ticketKey: string, canOverride: boolean) {
   // The body the server last refused, so the sheet can send the same move
   // again with the reason added rather than reconstructing it.
-  const attempted = useRef<{ body: TransitionBody; target: AllowedTransition } | null>(null);
-  const [windowSheet, setWindowSheet] = useState<{ target: AllowedTransition; refusal: ChangeWindowRefusal } | null>(
-    null,
-  );
-  const [windowReason, setWindowReason] = useState("");
-  const [windowProblem, setWindowProblem] = useState<string | null>(null);
+  const attempted = useRef<Attempt | null>(null);
+  const [refused, setRefused] = useState<WindowRefused | null>(null);
+  const [reason, setReason] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
 
   /**
    * The window rules refused this move (TM-18). A freeze or a clash on the
@@ -67,18 +80,191 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
   const onRefused = useCallback(
     (error: TransitionError) => {
       const refusal = error.changeWindow;
-      const pending = attempted.current;
-      if (!refusal || !pending || pending.body.change_window_reason) return false;
+      const last = attempted.current;
+      if (!refusal || !last || last.body.change_window_reason) return false;
       if (refusal.kind === "override" && !canOverride) return false;
-      setWindowSheet({ target: pending.target, refusal });
-      setWindowReason("");
-      setWindowProblem(null);
+      setRefused({ target: last.target, refusal });
+      setReason("");
+      setProblem(null);
       return true;
     },
     [canOverride],
   );
 
-  const { transition, pending } = useTransition(ticket.key, onRefused);
+  const { transition, pending } = useTransition(ticketKey, onRefused);
+
+  /** Every move goes through here, so the refusal handler always knows what was tried. */
+  const run = (body: TransitionBody, target: AllowedTransition) => {
+    attempted.current = { body, target };
+    return transition(body, target.label);
+  };
+
+  /** The same move again, this time with the reason the audit will carry. Resolves to whether it moved. */
+  const carry = async (): Promise<boolean> => {
+    const trimmed = reason.trim();
+    if (trimmed === "") {
+      setProblem(CHANGE_REASON_REQUIRED);
+      return false;
+    }
+    const last = attempted.current;
+    if (!last) return false;
+    const view = await run({ ...last.body, change_window_reason: trimmed }, last.target);
+    if (view) setRefused(null);
+    return Boolean(view);
+  };
+
+  return { run, pending, refused, reason, setReason, problem, dismiss: () => setRefused(null), carry };
+}
+
+export interface TransitionListProps {
+  transitions: AllowedTransition[] | undefined;
+  onChoose: (target: AllowedTransition) => void;
+}
+
+function TransitionList({ transitions, onChoose }: TransitionListProps) {
+  return (
+    <ul role="menu" className="xms-card xms-enter-pop absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-body">
+      {(transitions ?? []).map((target) => (
+        <li key={target.to} role="none">
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => onChoose(target)}
+            className="hover:bg-xms-control-hover flex w-full items-center gap-2 px-3 py-1.5 text-left"
+          >
+            <StatePill state={target.to} label={target.label} />
+            {target.requires.length > 0 ? <span className="text-xms-label ml-auto text-body">needs input</span> : null}
+          </button>
+        </li>
+      ))}
+      {transitions && transitions.length === 0 ? (
+        <li className="text-xms-label px-3 py-1.5">No moves from here</li>
+      ) : null}
+    </ul>
+  );
+}
+
+interface PauseDraft {
+  reason: PauseReason;
+  note: string;
+}
+
+export interface PauseSheetProps {
+  target: AllowedTransition;
+  draft: PauseDraft;
+  onChange: (draft: PauseDraft) => void;
+  pending: boolean;
+  onCancel: () => void;
+  onSubmit: () => void;
+}
+
+function PauseSheet({ target, draft, onChange, pending, onCancel, onSubmit }: PauseSheetProps) {
+  return (
+    <form
+      aria-label={`Move to ${target.label}`}
+      className="xms-card absolute top-full left-0 z-20 mt-1 flex w-[340px] flex-col gap-3 p-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <p className="xms-caption">Pause the SLA clocks</p>
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Reason</span>
+        <select
+          aria-label="Pause reason"
+          value={draft.reason}
+          onChange={(event) => onChange({ ...draft, reason: event.target.value as PauseReason })}
+          className={INPUT}
+        >
+          {PAUSE_REASONS.map((reason) => (
+            <option key={reason.value} value={reason.value}>
+              {reason.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Note (optional)</span>
+        <input
+          aria-label="Pause note"
+          value={draft.note}
+          onChange={(event) => onChange({ ...draft, note: event.target.value })}
+          className={INPUT}
+        />
+      </label>
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-body"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={pending}
+          className="bg-xms-accent h-[32px] rounded-control px-3 text-body font-medium text-white disabled:opacity-50"
+        >
+          Move to {target.label}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export interface ConfirmSheetProps {
+  ticketKey: string;
+  target: AllowedTransition;
+  pending: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+function ConfirmSheet({ ticketKey, target, pending, onCancel, onConfirm }: ConfirmSheetProps) {
+  return (
+    <div
+      role="dialog"
+      aria-label={`Confirm ${target.label}`}
+      className="xms-card absolute top-full left-0 z-20 mt-1 flex w-[340px] flex-col gap-3 p-4 text-body"
+    >
+      <p className="text-xms-ink">
+        {target.reopen
+          ? "Reopen this ticket? The breach latches and the original due times stay."
+          : `Move ${ticketKey} to ${target.label}?`}
+      </p>
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="border-xms-line text-xms-body h-[32px] rounded-control border px-3"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={onConfirm}
+          className="bg-xms-accent h-[32px] rounded-control px-3 font-medium text-white disabled:opacity-50"
+        >
+          {target.reopen ? "Reopen" : `Move to ${target.label}`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The state pill is the only route through the state machine (User
+ * Experience section 6): its menu lists the allowed next states from the
+ * API and collects the required inputs in an inline sheet, never a modal
+ * wizard. Pausing states ask for the reason; resolving states show the
+ * close discipline; closing, cancelling and reopening confirm.
+ */
+export function TransitionMenu({ ticket, className }: { ticket: TicketView; className?: string }) {
+  const me = useMe();
+  const { data } = useGetTransitionsQuery(ticket.key);
+  const moves = useWindowedTransition(ticket.key, me.hasPermission(OVERRIDE_PERMISSION));
   const catalogs = useCatalogs(ticket.account_id);
   const { data: time } = useTicketTimeQuery(ticket.key);
   const { data: rail } = useTicketSolutionsQuery(ticket.key);
@@ -88,47 +274,25 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
   // how much resolution note it wants. Asked for only while the sheet is
   // open, since a reader browsing the record does not need it.
   const { data: gate } = useGetTimeGateQuery(ticket.key, { skip: sheet.kind !== "resolve" });
-  const [pauseReason, setPauseReason] = useState<PauseReason>("awaiting_client");
-  const [pauseNote, setPauseNote] = useState("");
-  const [serverMissing, setServerMissing] = useState<string[]>([]);
+  const [pause, setPause] = useState<PauseDraft>({ reason: "awaiting_client", note: "" });
   const terminal = TERMINAL_CONFIRM.has(ticket.state);
-
-  /** Every move goes through here, so the refusal handler always knows what was tried. */
-  const run = (body: TransitionBody, target: AllowedTransition) => {
-    attempted.current = { body, target };
-    return transition(body, target.label);
-  };
+  const closeSheet = () => setSheet({ kind: "none" });
 
   const choose = (target: AllowedTransition) => {
     setOpen(false);
-    setServerMissing([]);
-    setWindowSheet(null);
-    if (target.requires.includes("pause_reason")) setSheet({ kind: "pause", target });
-    else if (target.requires.includes("resolution") || target.requires.includes("time_logged"))
-      setSheet({ kind: "resolve", target });
-    else if (target.reopen || TERMINAL_CONFIRM.has(target.to)) setSheet({ kind: "confirm", target });
-    else void run({ version: ticket.version, to: target.to }, target);
+    moves.dismiss();
+    const next = sheetFor(target);
+    if (next.kind === "none") void moves.run({ version: ticket.version, to: target.to }, target);
+    else setSheet(next);
   };
 
   const finish = async (body: TransitionBody, target: AllowedTransition) => {
-    const view = await run(body, target);
-    if (view) setSheet({ kind: "none" });
+    const view = await moves.run(body, target);
+    if (view) closeSheet();
   };
 
-  /** The same move again, this time with the reason the audit will carry. */
   const carryWindow = async () => {
-    const reason = windowReason.trim();
-    if (reason === "") {
-      setWindowProblem(CHANGE_REASON_REQUIRED);
-      return;
-    }
-    const pending = attempted.current;
-    if (!pending) return;
-    const view = await run({ ...pending.body, change_window_reason: reason }, pending.target);
-    if (view) {
-      setWindowSheet(null);
-      setSheet({ kind: "none" });
-    }
+    if (await moves.carry()) closeSheet();
   };
 
   return (
@@ -138,7 +302,7 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`State ${ticket.state_label}, change`}
-        disabled={terminal || pending}
+        disabled={terminal || moves.pending}
         onClick={() => setOpen((value) => !value)}
         className="inline-flex disabled:cursor-default"
       >
@@ -153,85 +317,26 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
           trailing={terminal ? undefined : <ChevronDownIcon size={ICON.action} className="text-xms-label" />}
         />
       </button>
-      {open ? (
-        <ul
-          role="menu"
-          className="xms-card xms-enter-pop absolute top-full left-0 z-20 mt-1 min-w-[220px] py-1 text-body"
-        >
-          {(data?.transitions ?? []).map((target) => (
-            <li key={target.to} role="none">
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => choose(target)}
-                className="hover:bg-xms-control-hover flex w-full items-center gap-2 px-3 py-1.5 text-left"
-              >
-                <StatePill state={target.to} label={target.label} />
-                {target.requires.length > 0 ? (
-                  <span className="text-xms-label ml-auto text-body">needs input</span>
-                ) : null}
-              </button>
-            </li>
-          ))}
-          {data && data.transitions.length === 0 ? (
-            <li className="text-xms-label px-3 py-1.5">No moves from here</li>
-          ) : null}
-        </ul>
-      ) : null}
+      {open ? <TransitionList transitions={data?.transitions} onChoose={choose} /> : null}
       {sheet.kind === "pause" ? (
-        <form
-          aria-label={`Move to ${sheet.target.label}`}
-          className="xms-card absolute top-full left-0 z-20 mt-1 flex w-[340px] flex-col gap-3 p-4"
-          onSubmit={(event) => {
-            event.preventDefault();
+        <PauseSheet
+          target={sheet.target}
+          draft={pause}
+          onChange={setPause}
+          pending={moves.pending}
+          onCancel={closeSheet}
+          onSubmit={() =>
             void finish(
-              { version: ticket.version, to: sheet.target.to, pause_reason: pauseReason, note: pauseNote || undefined },
+              {
+                version: ticket.version,
+                to: sheet.target.to,
+                pause_reason: pause.reason,
+                note: pause.note || undefined,
+              },
               sheet.target,
-            );
-          }}
-        >
-          <p className="xms-caption">Pause the SLA clocks</p>
-          <label className="flex flex-col gap-1 text-body">
-            <span className="text-xms-label">Reason</span>
-            <select
-              aria-label="Pause reason"
-              value={pauseReason}
-              onChange={(event) => setPauseReason(event.target.value as PauseReason)}
-              className={INPUT}
-            >
-              {PAUSE_REASONS.map((reason) => (
-                <option key={reason.value} value={reason.value}>
-                  {reason.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-body">
-            <span className="text-xms-label">Note (optional)</span>
-            <input
-              aria-label="Pause note"
-              value={pauseNote}
-              onChange={(event) => setPauseNote(event.target.value)}
-              className={INPUT}
-            />
-          </label>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setSheet({ kind: "none" })}
-              className="border-xms-line text-xms-body h-[32px] rounded-control border px-3 text-body"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={pending}
-              className="bg-xms-accent h-[32px] rounded-control px-3 text-body font-medium text-white disabled:opacity-50"
-            >
-              Move to {sheet.target.label}
-            </button>
-          </div>
-        </form>
+            )
+          }
+        />
       ) : null}
       {sheet.kind === "resolve" ? (
         <div className="xms-card absolute top-full left-0 z-20 mt-1 w-[420px] p-4">
@@ -243,59 +348,35 @@ export function TransitionMenu({ ticket, className }: { ticket: TicketView; clas
             exemptionReasons={gate?.exemption_reasons}
             minNotesChars={gate?.min_resolution_notes_chars}
             suggested={rail?.articles ?? []}
-            pending={pending}
-            serverMissing={serverMissing}
-            onCancel={() => setSheet({ kind: "none" })}
-            onSubmit={async (draft) => {
-              const view = await run(
+            pending={moves.pending}
+            onCancel={closeSheet}
+            onSubmit={(draft) =>
+              finish(
                 { version: ticket.version, to: sheet.target.to, resolution: toResolutionBody(draft) },
                 sheet.target,
-              );
-              if (view) setSheet({ kind: "none" });
-              else setServerMissing([]);
-            }}
+              )
+            }
           />
         </div>
       ) : null}
       {sheet.kind === "confirm" ? (
-        <div
-          role="dialog"
-          aria-label={`Confirm ${sheet.target.label}`}
-          className="xms-card absolute top-full left-0 z-20 mt-1 flex w-[340px] flex-col gap-3 p-4 text-body"
-        >
-          <p className="text-xms-ink">
-            {sheet.target.reopen
-              ? "Reopen this ticket? The breach latches and the original due times stay."
-              : `Move ${ticket.key} to ${sheet.target.label}?`}
-          </p>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setSheet({ kind: "none" })}
-              className="border-xms-line text-xms-body h-[32px] rounded-control border px-3"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => void finish({ version: ticket.version, to: sheet.target.to }, sheet.target)}
-              className="bg-xms-accent h-[32px] rounded-control px-3 font-medium text-white disabled:opacity-50"
-            >
-              {sheet.target.reopen ? "Reopen" : `Move to ${sheet.target.label}`}
-            </button>
-          </div>
-        </div>
+        <ConfirmSheet
+          ticketKey={ticket.key}
+          target={sheet.target}
+          pending={moves.pending}
+          onCancel={closeSheet}
+          onConfirm={() => void finish({ version: ticket.version, to: sheet.target.to }, sheet.target)}
+        />
       ) : null}
-      {windowSheet ? (
+      {moves.refused ? (
         <ChangeWindowSheet
-          refusal={windowSheet.refusal}
-          target={windowSheet.target}
-          reason={windowReason}
-          onReasonChange={setWindowReason}
-          problem={windowProblem}
-          pending={pending}
-          onCancel={() => setWindowSheet(null)}
+          refusal={moves.refused.refusal}
+          target={moves.refused.target}
+          reason={moves.reason}
+          onReasonChange={moves.setReason}
+          problem={moves.problem}
+          pending={moves.pending}
+          onCancel={moves.dismiss}
           onCarry={() => void carryWindow()}
         />
       ) : null}

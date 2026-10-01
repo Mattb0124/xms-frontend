@@ -77,17 +77,23 @@ function MigrationScreen() {
         <TabBar tabs={TABS} active={tab} onChange={setTab} />
         {tab === "batches" ? (
           <BatchList rows={batches.data ?? []} accountNames={names} loading={batches.isLoading} />
-        ) : filter.account_id ? (
-          <ReconciliationTab accountId={filter.account_id} />
         ) : (
-          <Panel title="Reconciliation" caption="One account at a time">
-            <p className="text-xms-label text-body">
-              Add an account filter to see its reconciliation reports, or open a batch and use its Reconciliation tab.
-            </p>
-          </Panel>
+          <ReconciliationBody accountId={filter.account_id} />
         )}
       </div>
     </>
+  );
+}
+
+/** The reports are read one account at a time, so the tab asks for the account filter until one is set. */
+function ReconciliationBody({ accountId }: { accountId: string | undefined }) {
+  if (accountId) return <ReconciliationTab accountId={accountId} />;
+  return (
+    <Panel title="Reconciliation" caption="One account at a time">
+      <p className="text-xms-label text-body">
+        Add an account filter to see its reconciliation reports, or open a batch and use its Reconciliation tab.
+      </p>
+    </Panel>
   );
 }
 

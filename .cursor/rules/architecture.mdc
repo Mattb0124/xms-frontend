@@ -1,0 +1,38 @@
+---
+description: Where XMS Web code goes. Thin App Router pages, components that render, lib modules that decide, redux slices that call the API, and a portal kept apart from the desk
+globs: "app/**,components/**,lib/**,redux/**"
+alwaysApply: false
+---
+
+# Architecture
+
+Each layer has one job. Put new code in the layer whose job it is, beside the code of its area.
+
+## Layers
+
+- `app/**` routes. A `page.tsx` reads its params, renders the gate and mounts one screen component. It holds no columns, forms or lists.
+  YES: `app/(internal)/cases/groups/page.tsx` renders `<AdminGate permission="tickets:view"><TicketGroupsCatalog /></AdminGate>`.
+  NO: the shape of `app/(internal)/admin/users/page.tsx`, whose columns, invite form and list live inside the page.
+- `components/<area>/` renders. A component reads hooks, holds UI state and draws. It does not decide a business rule, build a request body or word a refusal.
+- `lib/<area>/` decides. Rule modules are pure (no JSX, no hooks, no fetch) and hold the area's vocabulary with labels and tones (`ENGAGEMENT_STATUS`), the draft grammar of a form (`emptyEngagementDraft`, `draftFromEngagement`, `validateEngagement`, `engagementBody`, `patchEngagementBody` in `lib/contracts/engagements.ts`), the error reader and describer (`capacityError`, `describeCapacityError`) and the URL filter grammar (`lib/capacity/filters.ts`). A hook several areas share may live here as `use-<name>.ts` (`lib/tickets/use-catalogs.ts`).
+- `redux/<area>Api.ts` calls the `/v1` API: the endpoints, their request and response types, their tags. Everything a screen reads or writes goes through a slice, except the transports below.
+- The other transports live in `lib/`: downloads in `lib/exports/download.ts`, uploads in `lib/attachments/upload.ts`, the Axel stream in `lib/axel/use-axel-turn.ts`, telemetry in `lib/telemetry/client.ts`. A new one goes there too, with `fetch` passed in where a test must replace it (`fetchImpl` in `fetchDownload`).
+- A module that holds a server-only value or calls the upstream starts with `import "server-only"` (`lib/upstream/proxy.ts`, `lib/platform/client.ts`). Keep its pure rules in a file a test can import without it (`lib/upstream/forward.ts`).
+
+## The portal is its own application
+
+`app/(portal)/`, `components/portal/` and `lib/portal/` render portal view models in client language. They may use `components/xms/` primitives, shared `lib/` helpers and `redux/portalApi.ts`; they never import from `app/(internal)/`, `components/tickets/` or `components/admin/`. No test enforces this, so check your imports.
+YES: `ClientStatusPill` in `components/portal/primitives.tsx` draws `<StatePill state={state} label={clientStatus(state)} />`. NO: importing `TransitionMenu` from `components/tickets/transition-menu` into a portal page.
+
+## Reuse before you build
+
+- Use the house components in `components/xms/`, one file each, imported by path: `DenseTable`, `Panel`, `SignalPill`, `StatePill`, `EmptyBanner`, `Skeleton`, `TabBar`, `TablePager`, `FilterChip`, `useToast`. Admin controls come from `components/admin/primitives.tsx`: `PRIMARY_BUTTON`, `INPUT`, `ConfirmButton`, `RecordBar`, `FieldRow`, `InlineError`.
+- Add a primitive to `components/xms/<name>.tsx` only when a second area needs it; until then it stays in its area's file.
+- Import with the `@/` alias. Add no barrel `index.ts` and no relative `../` import.
+
+## Where a new file goes
+
+- A screen: `app/(internal)/<route>/page.tsx` mounting `components/<area>/<screen>.tsx`, plus its `lib/routes.ts` row.
+- A rule, label map, form draft or error describer: `lib/<area>/<topic>.ts` with a colocated `<topic>.test.ts`.
+- An endpoint: the area's existing `redux/<area>Api.ts`. A new slice only for an API area with no slice yet, injected into `xmsApi`.
+- A test builder: `test-kit/<area>.ts` (`testing.mdc`). A token: `styles/tokens/xms-scope.css` (`styling.mdc`).
