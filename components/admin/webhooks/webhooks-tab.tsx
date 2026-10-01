@@ -1,16 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ConfirmButton, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON, formatDate } from "@/components/admin/primitives";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { Panel } from "@/components/xms/panel";
 import { SignalPill, type SignalTone } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
-import { useToast } from "@/components/xms/toast";
+import { useToast, type ToastItem } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { eligibleClients, eventsLabel, lastErrorLine, pausedLine } from "@/lib/integrations/webhooks";
 import { cn } from "@/lib/utils";
-import { useApiClientsQuery, type ApiClient } from "@/redux/apiClientsApi";
+import { useApiClientsQuery } from "@/redux/apiClientsApi";
 import {
   useAccountWebhookDeadLettersQuery,
   useAccountWebhookDeliveriesQuery,
@@ -22,6 +23,7 @@ import {
   useResumeAccountWebhookMutation,
   useRotateAccountWebhookSecretMutation,
   useWebhookEventTypesQuery,
+  type WebhookDeadLetter,
   type WebhookDelivery,
   type WebhookSubscription,
 } from "@/redux/webhooksApi";
@@ -40,23 +42,14 @@ const DELIVERY_TONE: Record<WebhookDelivery["status"], SignalTone> = {
   replayed: "ready",
 };
 
-/**
- * Why the worker stopped sending, in words rather than in its own
- * vocabulary. A subscription paused by a person carries their note instead.
- */
-export function pausedLine(row: WebhookSubscription): string {
-  if (row.status !== "paused") return "";
-  if (row.paused_note) return row.paused_note;
-  switch (row.paused_reason) {
-    case "consecutive_failures":
-      return `Paused by XMS after ${row.consecutive_failures} deliveries in a row failed.`;
-    case "endpoint_gone":
-      return "Paused by XMS: the endpoint stopped answering at all.";
-    case "manual":
-      return "Paused by hand.";
-    default:
-      return row.paused_reason ? `Paused: ${row.paused_reason}.` : "Paused.";
-  }
+/** A signing secret as create or rotate answered it, beside the endpoint it signs for. */
+export interface ShownSecret {
+  endpoint: string;
+  value: string;
+}
+
+function failure(title: string, caught: unknown): Omit<ToastItem, "id"> {
+  return { title, detail: describeError(apiError(caught)), tone: "error" };
 }
 
 /**
@@ -78,28 +71,11 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
   const { data: eventTypes } = useWebhookEventTypesQuery();
   const { data: deadLetters } = useAccountWebhookDeadLettersQuery({ accountId });
   const [create, creating] = useCreateAccountWebhookMutation();
-  const [pause] = usePauseAccountWebhookMutation();
-  const [resume] = useResumeAccountWebhookMutation();
-  const [rotate] = useRotateAccountWebhookSecretMutation();
-  const [remove] = useDeleteAccountWebhookMutation();
-  const [replay] = useReplayAccountWebhookMutation();
   const { push } = useToast();
 
   const [adding, setAdding] = useState(false);
-  const [secret, setSecret] = useState<{ endpoint: string; value: string } | null>(null);
+  const [secret, setSecret] = useState<ShownSecret | null>(null);
   const [open, setOpen] = useState<string | null>(null);
-
-  // Only the clients granted this account can carry one of its endpoints.
-  const eligible = useMemo(
-    () =>
-      (clients ?? []).filter(
-        (client: ApiClient) => client.account_ids.includes(accountId) && client.status === "active",
-      ),
-    [clients, accountId],
-  );
-
-  const failed = (caught: unknown, title: string) =>
-    push({ title, detail: describeError(apiError(caught)), tone: "error" });
 
   const columns: DenseColumn<WebhookSubscription>[] = [
     {
@@ -114,11 +90,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
       key: "events",
       title: "Listens for",
       wrap: true,
-      render: (row) => (
-        <span className="text-xms-body text-body">
-          {row.event_types.length} {row.event_types.length === 1 ? "event" : "events"}: {row.event_types.join(", ")}
-        </span>
-      ),
+      render: (row) => <span className="text-xms-body text-body">{eventsLabel(row.event_types)}</span>,
     },
     {
       key: "status",
@@ -138,65 +110,13 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
       title: "",
       width: "300px",
       render: (row) => (
-        <span className="flex flex-wrap items-center gap-2">
-          <button type="button" className={SECONDARY_BUTTON} onClick={() => setOpen(open === row.id ? null : row.id)}>
-            {open === row.id ? "Hide deliveries" : "Deliveries"}
-          </button>
-          {row.status === "paused" ? (
-            <button
-              type="button"
-              className={SECONDARY_BUTTON}
-              onClick={async () => {
-                try {
-                  await resume({ accountId, id: row.id }).unwrap();
-                  push({ title: "Sending resumed", tone: "success" });
-                } catch (caught) {
-                  failed(caught, "It was not resumed");
-                }
-              }}
-            >
-              Resume
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={SECONDARY_BUTTON}
-              onClick={async () => {
-                try {
-                  await pause({ accountId, id: row.id, reason: "Paused by an administrator" }).unwrap();
-                  push({ title: "Sending paused", tone: "info" });
-                } catch (caught) {
-                  failed(caught, "It was not paused");
-                }
-              }}
-            >
-              Pause
-            </button>
-          )}
-          <ConfirmButton
-            label="Rotate secret"
-            onConfirm={async () => {
-              try {
-                const next = await rotate({ accountId, id: row.id }).unwrap();
-                setSecret({ endpoint: row.endpoint_url, value: next.secret });
-              } catch (caught) {
-                failed(caught, "The secret was not rotated");
-              }
-            }}
-          />
-          <ConfirmButton
-            label="Remove"
-            danger
-            onConfirm={async () => {
-              try {
-                await remove({ accountId, id: row.id }).unwrap();
-                push({ title: "Endpoint removed", tone: "success" });
-              } catch (caught) {
-                failed(caught, "It was not removed");
-              }
-            }}
-          />
-        </span>
+        <SubscriptionActions
+          accountId={accountId}
+          row={row}
+          showingDeliveries={open === row.id}
+          onToggleDeliveries={() => setOpen(open === row.id ? null : row.id)}
+          onRotated={setSecret}
+        />
       ),
     },
   ];
@@ -205,20 +125,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {secret ? (
-        <Panel
-          title="The signing secret"
-          subtitle="Copy it now. It is stored sealed and this is the only time it can be read."
-        >
-          <p className="text-xms-label text-body">{secret.endpoint}</p>
-          <p className="xms-field border-xms-line xms-mono text-xms-ink mt-2 rounded-control border px-3 py-2 text-body break-all">
-            {secret.value}
-          </p>
-          <button type="button" className={cn(SECONDARY_BUTTON, "mt-3")} onClick={() => setSecret(null)}>
-            I have copied it
-          </button>
-        </Panel>
-      ) : null}
+      {secret ? <SecretPanel secret={secret} onDismiss={() => setSecret(null)} /> : null}
 
       <DenseTable<WebhookSubscription>
         title="Webhook endpoints"
@@ -235,7 +142,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
 
       {adding ? (
         <NewSubscription
-          clients={eligible}
+          clients={eligibleClients(clients ?? [], accountId)}
           eventTypes={eventTypes ?? []}
           pending={creating.isLoading}
           onCancel={() => setAdding(false)}
@@ -245,7 +152,7 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
               setSecret({ endpoint: made.endpoint_url, value: made.secret });
               setAdding(false);
             } catch (caught) {
-              failed(caught, "The endpoint was not registered");
+              push(failure("The endpoint was not registered", caught));
             }
           }}
         />
@@ -254,75 +161,186 @@ export function AccountWebhooksTab({ accountId }: { accountId: string }) {
       {open ? <Deliveries accountId={accountId} subscriptionId={open} /> : null}
 
       {deadLetters && deadLetters.length > 0 ? (
-        <Panel
-          title="Dead letters"
-          subtitle="Deliveries XMS gave up on. Replaying one sends the same event again, to the endpoint as it stands now."
-          flush
-        >
-          <DenseTable
-            title="Dead letters"
-            titleHidden
-            columns={[
-              { key: "event", title: "Event", render: (row: (typeof deadLetters)[number]) => row.event_type },
-              {
-                key: "endpoint",
-                title: "Endpoint",
-                wrap: true,
-                render: (row: (typeof deadLetters)[number]) => (
-                  <span className="xms-mono text-body">{row.endpoint_url}</span>
-                ),
-              },
-              {
-                key: "first",
-                title: "First failed",
-                width: "140px",
-                mono: true,
-                render: (row: (typeof deadLetters)[number]) => formatDate(row.first_failed_at),
-              },
-              {
-                key: "attempts",
-                title: "Attempts",
-                width: "90px",
-                align: "right",
-                mono: true,
-                render: (row: (typeof deadLetters)[number]) => row.attempt,
-              },
-              {
-                key: "error",
-                title: "Last error",
-                wrap: true,
-                render: (row: (typeof deadLetters)[number]) => (
-                  <span className="text-xms-label text-body">
-                    {row.response_status ? `HTTP ${row.response_status}. ` : ""}
-                    {row.error ?? "No response."}
-                  </span>
-                ),
-              },
-              {
-                key: "replay",
-                title: "",
-                width: "110px",
-                render: (row: (typeof deadLetters)[number]) => (
-                  <ConfirmButton
-                    label="Replay"
-                    onConfirm={async () => {
-                      try {
-                        await replay({ accountId, deliveryId: row.id }).unwrap();
-                        push({ title: "Sent again", tone: "success" });
-                      } catch (caught) {
-                        failed(caught, "It was not replayed");
-                      }
-                    }}
-                  />
-                ),
-              },
-            ]}
-            rows={deadLetters}
-            rowKey={(row) => row.id}
-          />
-        </Panel>
+        <DeadLettersPanel accountId={accountId} deadLetters={deadLetters} />
       ) : null}
     </div>
+  );
+}
+
+export interface SecretPanelProps {
+  secret: ShownSecret;
+  onDismiss: () => void;
+}
+
+function SecretPanel({ secret, onDismiss }: SecretPanelProps) {
+  return (
+    <Panel
+      title="The signing secret"
+      subtitle="Copy it now. It is stored sealed and this is the only time it can be read."
+    >
+      <p className="text-xms-label text-body">{secret.endpoint}</p>
+      <p className="xms-field border-xms-line xms-mono text-xms-ink mt-2 rounded-control border px-3 py-2 text-body break-all">
+        {secret.value}
+      </p>
+      <button type="button" className={cn(SECONDARY_BUTTON, "mt-3")} onClick={onDismiss}>
+        I have copied it
+      </button>
+    </Panel>
+  );
+}
+
+export interface SubscriptionActionsProps {
+  accountId: string;
+  row: WebhookSubscription;
+  showingDeliveries: boolean;
+  onToggleDeliveries: () => void;
+  onRotated: (secret: ShownSecret) => void;
+}
+
+/** One endpoint's row actions: its deliveries, pause or resume, a new secret, and removal. */
+function SubscriptionActions({
+  accountId,
+  row,
+  showingDeliveries,
+  onToggleDeliveries,
+  onRotated,
+}: SubscriptionActionsProps) {
+  const [pause] = usePauseAccountWebhookMutation();
+  const [resume] = useResumeAccountWebhookMutation();
+  const [rotate] = useRotateAccountWebhookSecretMutation();
+  const [remove] = useDeleteAccountWebhookMutation();
+  const { push } = useToast();
+  const target = { accountId, id: row.id };
+
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      <button type="button" className={SECONDARY_BUTTON} onClick={onToggleDeliveries}>
+        {showingDeliveries ? "Hide deliveries" : "Deliveries"}
+      </button>
+      {row.status === "paused" ? (
+        <button
+          type="button"
+          className={SECONDARY_BUTTON}
+          onClick={async () => {
+            try {
+              await resume(target).unwrap();
+              push({ title: "Sending resumed", tone: "success" });
+            } catch (caught) {
+              push(failure("It was not resumed", caught));
+            }
+          }}
+        >
+          Resume
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={SECONDARY_BUTTON}
+          onClick={async () => {
+            try {
+              await pause({ ...target, reason: "Paused by an administrator" }).unwrap();
+              push({ title: "Sending paused", tone: "info" });
+            } catch (caught) {
+              push(failure("It was not paused", caught));
+            }
+          }}
+        >
+          Pause
+        </button>
+      )}
+      <ConfirmButton
+        label="Rotate secret"
+        onConfirm={async () => {
+          try {
+            const next = await rotate(target).unwrap();
+            onRotated({ endpoint: row.endpoint_url, value: next.secret });
+          } catch (caught) {
+            push(failure("The secret was not rotated", caught));
+          }
+        }}
+      />
+      <ConfirmButton
+        label="Remove"
+        danger
+        onConfirm={async () => {
+          try {
+            await remove(target).unwrap();
+            push({ title: "Endpoint removed", tone: "success" });
+          } catch (caught) {
+            push(failure("It was not removed", caught));
+          }
+        }}
+      />
+    </span>
+  );
+}
+
+/** The deliveries XMS gave up on, each of which can be sent again. */
+function DeadLettersPanel({ accountId, deadLetters }: { accountId: string; deadLetters: WebhookDeadLetter[] }) {
+  const [replay] = useReplayAccountWebhookMutation();
+  const { push } = useToast();
+
+  return (
+    <Panel
+      title="Dead letters"
+      subtitle="Deliveries XMS gave up on. Replaying one sends the same event again, to the endpoint as it stands now."
+      flush
+    >
+      <DenseTable<WebhookDeadLetter>
+        title="Dead letters"
+        titleHidden
+        columns={[
+          { key: "event", title: "Event", render: (row) => row.event_type },
+          {
+            key: "endpoint",
+            title: "Endpoint",
+            wrap: true,
+            render: (row) => <span className="xms-mono text-body">{row.endpoint_url}</span>,
+          },
+          {
+            key: "first",
+            title: "First failed",
+            width: "140px",
+            mono: true,
+            render: (row) => formatDate(row.first_failed_at),
+          },
+          {
+            key: "attempts",
+            title: "Attempts",
+            width: "90px",
+            align: "right",
+            mono: true,
+            render: (row) => row.attempt,
+          },
+          {
+            key: "error",
+            title: "Last error",
+            wrap: true,
+            render: (row) => <span className="text-xms-label text-body">{lastErrorLine(row)}</span>,
+          },
+          {
+            key: "replay",
+            title: "",
+            width: "110px",
+            render: (row) => (
+              <ConfirmButton
+                label="Replay"
+                onConfirm={async () => {
+                  try {
+                    await replay({ accountId, deliveryId: row.id }).unwrap();
+                    push({ title: "Sent again", tone: "success" });
+                  } catch (caught) {
+                    push(failure("It was not replayed", caught));
+                  }
+                }}
+              />
+            ),
+          },
+        ]}
+        rows={deadLetters}
+        rowKey={(row) => row.id}
+      />
+    </Panel>
   );
 }
 
@@ -372,25 +390,21 @@ function Deliveries({ accountId, subscriptionId }: { accountId: string; subscrip
   );
 }
 
+export interface NewSubscriptionProps {
+  clients: { id: string; name: string }[];
+  eventTypes: string[];
+  pending: boolean;
+  onCreate: (body: { api_client_id: string; endpoint_url: string; event_types: string[] }) => void;
+  onCancel: () => void;
+}
+
 /**
  * Registering an endpoint. The client is required because a subscription
  * belongs to one: the signature XMS sends is that client's, and an account
  * with no active client granted cannot have an endpoint at all, which the
  * form says rather than offering an empty menu.
  */
-function NewSubscription({
-  clients,
-  eventTypes,
-  pending,
-  onCreate,
-  onCancel,
-}: {
-  clients: { id: string; name: string }[];
-  eventTypes: string[];
-  pending: boolean;
-  onCreate: (body: { api_client_id: string; endpoint_url: string; event_types: string[] }) => void;
-  onCancel: () => void;
-}) {
+function NewSubscription({ clients, eventTypes, pending, onCreate, onCancel }: NewSubscriptionProps) {
   const [client, setClient] = useState("");
   const [url, setUrl] = useState("");
   const [chosen, setChosen] = useState<string[]>([]);

@@ -69,17 +69,28 @@ export function ModeSwitch({ instance, refetch }: { instance: ConnectorInstance;
           );
         })}
       </div>
-      {refused ? (
-        <p className="text-body text-[color:var(--state-overdue-text)]" data-mode-refused>
-          {refused}
-        </p>
-      ) : blocker && instance.mode !== "bidirectional" ? (
-        <p className="text-xms-label text-body" data-mode-hint>
-          {blocker}
-        </p>
-      ) : null}
+      <ModeNote refused={refused} hint={instance.mode === "bidirectional" ? null : blocker} />
     </div>
   );
+}
+
+/** The API's refusal of the last switch when there is one, else what the promotion still needs. */
+function ModeNote({ refused, hint }: { refused: string | null; hint: string | null }) {
+  if (refused) {
+    return (
+      <p className="text-body text-[color:var(--state-overdue-text)]" data-mode-refused>
+        {refused}
+      </p>
+    );
+  }
+  if (hint) {
+    return (
+      <p className="text-xms-label text-body" data-mode-hint>
+        {hint}
+      </p>
+    );
+  }
+  return null;
 }
 
 /** Trip with a reason; arm with a reason. Both are security events on the server. */
@@ -147,17 +158,22 @@ export function TestConnectionButton({ instance }: { instance: ConnectorInstance
       >
         {isLoading ? "Testing" : "Test connection"}
       </button>
-      {result ? (
-        result.ok ? (
-          <span className="xms-mono text-body text-[color:var(--state-complete-text)]" data-test="ok">
-            Connected, {result.fields ?? 0} fields, {result.latency_ms} ms
-          </span>
-        ) : (
-          <span className="text-body text-[color:var(--state-overdue-text)]" data-test="failed" title={result.error}>
-            Failed: {result.error}
-          </span>
-        )
-      ) : null}
+      {result ? <TestResult result={result} /> : null}
+    </span>
+  );
+}
+
+function TestResult({ result }: { result: TestConnectionResult }) {
+  if (result.ok) {
+    return (
+      <span className="xms-mono text-body text-[color:var(--state-complete-text)]" data-test="ok">
+        Connected, {result.fields ?? 0} fields, {result.latency_ms} ms
+      </span>
+    );
+  }
+  return (
+    <span className="text-body text-[color:var(--state-overdue-text)]" data-test="failed" title={result.error}>
+      Failed: {result.error}
     </span>
   );
 }

@@ -140,6 +140,12 @@ export function RecordDrawer({
   );
 }
 
+function emptyRecordsLine(filtered: boolean, loading: boolean): string {
+  if (filtered) return "No records match.";
+  if (loading) return "Loading";
+  return "No records yet. Run the batch.";
+}
+
 /**
  * The Records tab (Data Migration functional 5.2): per-record results with
  * a status filter and a search over the source id and key; a row opens the
@@ -161,9 +167,7 @@ export function RecordsTab({ batchId }: { batchId: string }) {
         rowKey={(row) => row.id}
         loading={records.isLoading}
         onRowClick={(row) => setSelected(row.id)}
-        emptyState={
-          status || q ? "No records match." : records.isLoading ? "Loading" : "No records yet. Run the batch."
-        }
+        emptyState={emptyRecordsLine(Boolean(status || q), records.isLoading)}
         search={
           <form
             className="flex items-center gap-2"

@@ -9,6 +9,7 @@ import {
   rowsToQuery,
   scopeOf,
 } from "@/components/admin/audit-search";
+import type * as download from "@/lib/exports/download";
 import { json, renderDeskInShell, stubFetch } from "@/test-kit/desk";
 import { anAuditEvent, anOperatorAuditRow, aSavedQuery, aSavedQueryPage, SAVED_QUERY_ID } from "@/test-kit/reporting";
 
@@ -18,7 +19,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/admin/audit", useRouter
 
 const downloadFile = vi.fn();
 vi.mock("@/lib/exports/download", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/exports/download")>();
+  const actual = await importOriginal<typeof download>();
   return { ...actual, downloadFile: (request: unknown) => downloadFile(request) };
 });
 

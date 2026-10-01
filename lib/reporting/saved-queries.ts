@@ -59,12 +59,14 @@ export function ownerLabel(query: AuditSavedQuery, viewerUserId: string | undefi
   return query.owner_name ?? query.owner_user_id.slice(0, 8);
 }
 
+export function conditionsLabel(count: number): string {
+  return `${count} condition${count === 1 ? "" : "s"}`;
+}
+
 /** The line under a saved query's name: how many conditions it carries, who saved it and who else has it. */
 export function savedQueryLine(query: AuditSavedQuery, viewerUserId: string | undefined): string {
-  const count = query.conditions.length;
-  const conditions = `${count} condition${count === 1 ? "" : "s"}`;
   const sharing = query.shared ? "shared" : "private";
-  return `${conditions}, ${sharing}, saved by ${ownerLabel(query, viewerUserId)}`;
+  return `${conditionsLabel(query.conditions.length)}, ${sharing}, saved by ${ownerLabel(query, viewerUserId)}`;
 }
 
 /** Whether the signed-in reader may rename, reshare or delete this one. Editing is the owner's alone. */
