@@ -70,6 +70,22 @@ describe("ConditionBuilder", () => {
     expect(screen.getByLabelText("Field")).toHaveValue("short_description");
   });
 
+  it("keeps a row's own controls when a row above it is removed", () => {
+    render(
+      <Harness
+        initial={[
+          { field: "short_description", op: "contains", value: "sap" },
+          { field: "short_description", op: "contains", value: "azure" },
+        ]}
+      />,
+    );
+    const azure = screen.getByDisplayValue("azure");
+    fireEvent.click(screen.getAllByLabelText("Remove condition")[0]);
+    expect(screen.getByTestId("serialized")).toHaveTextContent('[["short_description","contains","azure"]]');
+    // The same element, not the first row's input redrawn with the second row's value.
+    expect(screen.getByDisplayValue("azure")).toBe(azure);
+  });
+
   it("clears every condition at once and keeps both links standing", () => {
     render(
       <Harness
