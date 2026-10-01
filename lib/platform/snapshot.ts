@@ -1,9 +1,9 @@
 import "server-only";
 
 import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
-import { config, Upstream } from "./config";
+import { config, type Upstream } from "./config";
 import { serviceIdentity } from "./client";
-import { AwsIdentity, PlatformIdentity, PlatformSnapshot, ServiceReport } from "./types";
+import type { AwsIdentity, PlatformIdentity, PlatformSnapshot, ServiceReport } from "./types";
 
 /**
  * The evidence behind the proof page.
@@ -22,16 +22,19 @@ import { AwsIdentity, PlatformIdentity, PlatformSnapshot, ServiceReport } from "
 
 /* -------------------------------------------------- this service's own -- */
 
+function credentialSourceOf(webIdentityFile: string | undefined): string {
+  if (webIdentityFile) return "IRSA (sts:AssumeRoleWithWebIdentity via the cluster OIDC provider)";
+  if (process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI || process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI)
+    return "EKS Pod Identity / container credentials";
+  return "ambient (local profile or instance role)";
+}
+
 async function awsIdentity(): Promise<AwsIdentity> {
   // IRSA hands the pod these two variables and a projected token file. Their
   // presence is what distinguishes a web-identity role from anything else.
   const webIdentityFile = process.env.AWS_WEB_IDENTITY_TOKEN_FILE;
   const roleArn = process.env.AWS_ROLE_ARN ?? null;
-  const credentialSource = webIdentityFile
-    ? "IRSA (sts:AssumeRoleWithWebIdentity via the cluster OIDC provider)"
-    : process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI || process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
-      ? "EKS Pod Identity / container credentials"
-      : "ambient (local profile or instance role)";
+  const credentialSource = credentialSourceOf(webIdentityFile);
 
   try {
     // One attempt. A page whose purpose is to answer quickly should not spend

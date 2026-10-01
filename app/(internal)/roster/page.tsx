@@ -23,6 +23,14 @@ const ACTIVE_LABEL: Record<NonNullable<PeopleFilter["active"]>, string> = {
   all: "everyone",
 };
 
+function emptyMessage(loading: boolean, filter: PeopleFilter, canAdmin: boolean): string {
+  if (loading) return "Loading";
+  if (filter.role || filter.group || filter.skill || filter.q)
+    return "No one here. Set a dimension back to all, or clear the search.";
+  if (canAdmin) return "No one on the roster yet. Import from the directory to start.";
+  return "No one matches.";
+}
+
 function RosterScreen() {
   const router = useRouter();
   const pathname = usePathname();
@@ -140,15 +148,7 @@ function RosterScreen() {
               </button>
             </form>
           }
-          emptyState={
-            people.isLoading
-              ? "Loading"
-              : filter.role || filter.group || filter.skill || filter.q
-                ? "No one here. Set a dimension back to all, or clear the search."
-                : canAdmin
-                  ? "No one on the roster yet. Import from the directory to start."
-                  : "No one matches."
-          }
+          emptyState={emptyMessage(people.isLoading, filter, canAdmin)}
         />
       </div>
     </>

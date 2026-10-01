@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
+import { consumesLabel } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import {
@@ -171,7 +172,7 @@ function BucketRow({
       <span className="text-xms-body text-body">{bucketCodeLabel(bucket.code ?? "custom")}</span>
       <span className="text-xms-body text-body" data-class>
         {className}
-        {consumes === undefined ? "" : consumes ? ", consumes the contract" : ", does not consume the contract"}
+        {consumes === undefined ? "" : `, ${consumesLabel(consumes)}`}
       </span>
       <SignalPill
         tone={bucket.status === "active" ? "ready" : "complete"}

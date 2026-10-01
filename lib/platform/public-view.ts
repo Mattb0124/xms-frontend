@@ -90,6 +90,12 @@ const isVaultEnabled = (s: ServiceReport): VaultEnabled | null =>
 const isDbEnabled = (s: ServiceReport): DatabaseEnabled | null =>
   s.identity?.database.enabled ? (s.identity.database as DatabaseEnabled) : null;
 
+/** A service that did not answer is "unknown"; one that answered without a database is "none". */
+function databaseAuthOf(s: ServiceReport, db: DatabaseEnabled | null): PublicServiceRow["databaseAuth"] {
+  if (db) return db.authMethod === "aws-iam-token" ? "iam-token" : "password";
+  return s.identity ? "none" : "unknown";
+}
+
 export function toPublicSnapshot(snap: PlatformSnapshot): PublicSnapshot {
   const services = snap.services;
   const answered = services.filter((s) => s.reachable && s.identity);
@@ -108,13 +114,7 @@ export function toPublicSnapshot(snap: PlatformSnapshot): PublicSnapshot {
       identityFromWebToken: Boolean(s.identity?.aws.credentialSource?.toUpperCase().includes("IRSA")),
       vaultKeyCount: v ? v.paths.reduce((n, p) => n + p.keys, 0) : null,
       vaultPathCount: v ? v.paths.length : null,
-      databaseAuth: db
-        ? db.authMethod === "aws-iam-token"
-          ? "iam-token"
-          : "password"
-        : s.identity
-          ? "none"
-          : "unknown",
+      databaseAuth: databaseAuthOf(s, db),
       tlsVersion: session?.tls.version ?? null,
       tlsCipher: session?.tls.cipher ?? null,
       ownDatabaseRole: session ? session.currentUser === s.name : null,

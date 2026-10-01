@@ -1,7 +1,7 @@
 import "server-only";
 
-import { config, Upstream } from "./config";
-import { PlatformIdentity } from "./types";
+import { config, type Upstream } from "./config";
+import type { PlatformIdentity } from "./types";
 
 /**
  * The one place that knows how to reach the internal services.
@@ -86,6 +86,11 @@ interface CallOptions {
   body?: unknown;
 }
 
+function unreachableDetail(cause: unknown, timeoutMs: number): string {
+  if (cause instanceof Error && cause.name === "TimeoutError") return `no response within ${timeoutMs}ms`;
+  return cause instanceof Error ? cause.message : String(cause);
+}
+
 /**
  * One request to one internal service. Everything else in this file is a
  * typed wrapper around this function, so the timeout, the error shape and
@@ -113,13 +118,7 @@ async function callUpstream<T>(upstream: Upstream, path: string, options: CallOp
       signal: AbortSignal.timeout(upstreamTimeoutMs),
     });
   } catch (cause) {
-    const detail =
-      cause instanceof Error && cause.name === "TimeoutError"
-        ? `no response within ${upstreamTimeoutMs}ms`
-        : cause instanceof Error
-          ? cause.message
-          : String(cause);
-    throw new UpstreamError(upstream.name, url, null, detail);
+    throw new UpstreamError(upstream.name, url, null, unreachableDetail(cause, upstreamTimeoutMs));
   }
 
   if (!response.ok) {

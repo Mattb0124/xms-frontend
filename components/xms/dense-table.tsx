@@ -108,45 +108,342 @@ function compare(a: string | number | null | undefined, b: string | number | nul
   return String(a).localeCompare(String(b));
 }
 
-/**
- * The dense list in a Count card: sticky header, no striping, row then cell
- * hover, mono keys and SLA values (xms-web-data-table skill, Wireframes v2
- * section 3.1 and v3 section 8.4). The server is the author of every value.
- */
-export function DenseTable<Row>(props: DenseTableProps<Row>) {
-  const { columns, rows, rowKey, selectable, onRowClick, onRowPreview } = props;
-  const display = props.display;
-  // Tighter rows fit more of the list on a screen; the default is the height
-  // the renders draw.
-  // 8px compact, which puts the row pitch at 40px: Docker's own table measures
-  // exactly 40 between separators (sampled down the left of its data area,
-  // deltas 41, 40, 40, 40, 40, 40, 40), and 7px landed us at 38.
-  const cellY = display?.compact ? "py-[8px]" : "py-[13px]";
-  // The row last opened keeps a quiet mark, so a reader coming back from a
-  // record finds their place. It is not a selection, so it carries no rail.
-  const [active, setActive] = useState<string | null>(null);
-  const drawn = useMemo(() => columns.filter((column) => !column.hidden), [columns]);
-  const [localSort, setLocalSort] = useState<SortState | undefined>(props.defaultSort);
-  const sort = props.sort ?? localSort;
-  const selected = props.selected ?? new Set<string>();
+const ARIA_SORT: Record<SortDirection, "ascending" | "descending"> = { asc: "ascending", desc: "descending" };
+
+/** The sort in force (the screen's when it controls one) and the rows in that order. */
+function useSortedRows<Row>({
+  columns,
+  rows,
+  sort: controlled,
+  defaultSort,
+  onSortChange,
+}: Pick<DenseTableProps<Row>, "columns" | "rows" | "sort" | "defaultSort" | "onSortChange">) {
+  const [localSort, setLocalSort] = useState<SortState | undefined>(defaultSort);
+  const sort = controlled ?? localSort;
 
   const setSort = (key: string) => {
     const column = columns.find((c) => c.key === key);
     if (!column?.sortValue) return;
     const next: SortState =
       sort?.key === key ? { key, direction: sort.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" };
-    if (props.onSortChange) props.onSortChange(next);
+    if (onSortChange) onSortChange(next);
     else setLocalSort(next);
   };
 
   const ordered = useMemo(() => {
-    if (props.sort || !sort) return rows;
+    if (controlled || !sort) return rows;
     const column = columns.find((c) => c.key === sort.key);
     if (!column?.sortValue) return rows;
     const accessor = column.sortValue;
     const copy = [...rows].sort((a, b) => compare(accessor(a), accessor(b)));
     return sort.direction === "asc" ? copy : copy.reverse();
-  }, [rows, sort, columns, props.sort]);
+  }, [rows, sort, columns, controlled]);
+
+  return { sort, ordered, setSort };
+}
+
+export interface CardHeaderProps {
+  title: string;
+  titleHidden?: boolean;
+  search?: ReactNode;
+  actions?: ReactNode;
+}
+
+function CardHeader({ title, titleHidden, search, actions }: CardHeaderProps) {
+  return (
+    <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
+      {/* The search field opens the header: a reader looking for a row
+          starts at the left edge of the card, not at its far corner. A card
+          that carries one needs no title beside it, since the strip above
+          already names the screen and the field says what it searches; the
+          title stays on the card's accessible name for anyone not reading
+          the screen. The card's own actions close the row. */}
+      {search ? <div className="min-w-0 max-w-[360px] flex-1">{search}</div> : null}
+      {!search && !titleHidden ? (
+        <span className="text-xms-ink text-lead leading-[1.3] font-semibold">{title}</span>
+      ) : null}
+      {actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div> : null}
+    </header>
+  );
+}
+
+export interface ColumnWidthsProps<Row> {
+  columns: DenseColumn<Row>[];
+  selectable?: boolean;
+  previewable: boolean;
+}
+
+/** Without a header row the widths have nowhere else to live. */
+function ColumnWidths<Row>({ columns, selectable, previewable }: ColumnWidthsProps<Row>) {
+  return (
+    <colgroup>
+      {selectable ? <col style={{ width: "44px" }} /> : null}
+      {previewable ? <col style={{ width: "36px" }} /> : null}
+      {columns.map((column) => (
+        <col key={column.key} style={{ width: column.width }} />
+      ))}
+    </colgroup>
+  );
+}
+
+export interface ColumnHeaderProps<Row> {
+  column: DenseColumn<Row>;
+  sort: SortState | undefined;
+  headY: string;
+  onSort: (key: string) => void;
+}
+
+function ColumnHeader<Row>({ column, sort, headY, onSort }: ColumnHeaderProps<Row>) {
+  const direction = sort?.key === column.key ? sort.direction : undefined;
+  return (
+    <th
+      style={{ width: column.width }}
+      aria-sort={direction ? ARIA_SORT[direction] : undefined}
+      className={cn(
+        // No colour or weight here: the treatment is .xms-sticky-head th in
+        // xms-scope.css, which puts a column header in the muted ink at
+        // 600. These carried text-xms-ink and font-bold, and a utility
+        // beats a layered rule, so the header stayed near-black and bold
+        // when that rule was added on 2026-09-14 and the change looked
+        // like it had worked.
+        "px-[14px] text-left whitespace-nowrap",
+        headY,
+        column.align === "right" && "text-right",
+      )}
+    >
+      {column.sortValue ? (
+        <button
+          type="button"
+          onClick={() => onSort(column.key)}
+          className="hover:text-xms-accent inline-flex items-center gap-[5px]"
+        >
+          {column.title}
+          {/* 13px, and the idle glyph is the quietest line in
+              the system, not the label grey it was drawn in
+              (hand-off section 5). */}
+          <SortCaret
+            className={cn("xms-sort-caret", direction ? "text-xms-accent" : "text-xms-quiet-line")}
+            direction={direction}
+          />
+        </button>
+      ) : (
+        column.title
+      )}
+    </th>
+  );
+}
+
+export interface ColumnHeadersProps<Row> {
+  columns: DenseColumn<Row>[];
+  headless?: boolean;
+  compact?: boolean;
+  selectable?: boolean;
+  previewable: boolean;
+  allSelected: boolean;
+  sort: SortState | undefined;
+  onToggleAll: () => void;
+  onSort: (key: string) => void;
+}
+
+function ColumnHeaders<Row>({
+  columns,
+  headless,
+  compact,
+  selectable,
+  previewable,
+  allSelected,
+  sort,
+  onToggleAll,
+  onSort,
+}: ColumnHeadersProps<Row>) {
+  const headY = compact ? "py-[7px]" : "py-[11px]";
+  return (
+    <thead className={cn("bg-xms-card sticky top-0 z-10", headless && "hidden")}>
+      <tr className={cn(!headless && "border-xms-line-head border-b-[1px]")}>
+        {selectable ? (
+          <th className={cn("w-11 px-5", headY)}>
+            <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={onToggleAll} />
+          </th>
+        ) : null}
+        {previewable ? <th className="w-[36px] pr-2 pl-0" aria-label="Preview" /> : null}
+        {columns.map((column) => (
+          <ColumnHeader key={column.key} column={column} sort={sort} headY={headY} onSort={onSort} />
+        ))}
+      </tr>
+    </thead>
+  );
+}
+
+export interface SelectCellProps {
+  id: string;
+  selected: boolean;
+  cellY: string;
+  onToggle: (id: string) => void;
+}
+
+function SelectCell({ id, selected, cellY, onToggle }: SelectCellProps) {
+  return (
+    <td className={cn("px-5 align-middle", cellY)} onClick={(event) => event.stopPropagation()}>
+      {/* The box stands where the pointer is, or where a row is
+          already ticked. It keeps its space either way, so a
+          row does not shift as the pointer crosses it, and it
+          stays reachable by keyboard because only its opacity
+          changes. */}
+      <input
+        type="checkbox"
+        aria-label={`Select ${id}`}
+        checked={selected}
+        onChange={() => onToggle(id)}
+        className={cn(
+          "transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100",
+          selected ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </td>
+  );
+}
+
+export interface PreviewCellProps {
+  id: string;
+  cellY: string;
+  onPreview: (anchor: { top: number; left: number; bottom: number }) => void;
+}
+
+function PreviewCell({ id, cellY, onPreview }: PreviewCellProps) {
+  return (
+    <td className={cn("w-[36px] pr-2 pl-0 align-middle", cellY)} onClick={(event) => event.stopPropagation()}>
+      {/* Opens the record beside the list rather than leaving
+          it, so a reader can read one row and stay where they
+          were. Drawn on hover, like the box it stands next
+          to. */}
+      <button
+        type="button"
+        aria-label={`Preview ${id}`}
+        onClick={(event) => {
+          const box = event.currentTarget.getBoundingClientRect();
+          onPreview({ top: box.top, left: box.left, bottom: box.bottom });
+        }}
+        className="text-xms-icon hover:text-xms-accent rounded-none opacity-0 transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100"
+      >
+        <InfoIcon size={ICON.row} />
+      </button>
+    </td>
+  );
+}
+
+export interface DenseRowProps<Row> {
+  row: Row;
+  id: string;
+  columns: DenseColumn<Row>[];
+  display?: TableDisplay;
+  selectable?: boolean;
+  selected: boolean;
+  active: boolean;
+  onToggle: (id: string) => void;
+  onActivate: (id: string) => void;
+  onRowClick?: (row: Row) => void;
+  onRowPreview?: DenseTableProps<Row>["onRowPreview"];
+}
+
+function DenseRow<Row>({
+  row,
+  id,
+  columns,
+  display,
+  selectable,
+  selected,
+  active,
+  onToggle,
+  onActivate,
+  onRowClick,
+  onRowPreview,
+}: DenseRowProps<Row>) {
+  // Tighter rows fit more of the list on a screen; the default is the height
+  // the renders draw.
+  // 8px compact, which puts the row pitch at 40px: Docker's own table measures
+  // exactly 40 between separators (sampled down the left of its data area,
+  // deltas 41, 40, 40, 40, 40, 40, 40), and 7px landed us at 38.
+  const cellY = display?.compact ? "py-[8px]" : "py-[13px]";
+  return (
+    // An openable row is reachable from the keyboard and opens on
+    // Enter (Design System section 6, review finding 19): without
+    // a tab stop the only way in was the key link. A keypress that
+    // started inside the row, in the checkbox or the key link,
+    // belongs to that control and is left alone.
+    <tr
+      data-row-key={id}
+      data-selected={selected ? "true" : undefined}
+      tabIndex={onRowClick ? 0 : undefined}
+      onClick={
+        onRowClick
+          ? (event) => {
+              // A row opens its record, but a link inside a cell
+              // opens what it names: the contact, the CSM, the
+              // person it is assigned to. Without this the row
+              // swallowed every one of them.
+              if ((event.target as HTMLElement).closest("a,button,input,select,textarea,label")) return;
+              onActivate(id);
+              onRowClick(row);
+            }
+          : undefined
+      }
+      onKeyDown={
+        onRowClick
+          ? (event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              onRowClick(row);
+            }
+          : undefined
+      }
+      className={cn(
+        // One hairline and a hover fill separate two rows, and
+        // nothing else does (hand-off rule 1).
+        "group/row border-xms-line-row hover:bg-xms-row-hover border-b",
+        selected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent-hover)]",
+        display?.activeRow !== false && active && !selected && "bg-xms-row-hover",
+        onRowClick && "cursor-pointer",
+      )}
+    >
+      {selectable ? <SelectCell id={id} selected={selected} cellY={cellY} onToggle={onToggle} /> : null}
+      {onRowPreview ? <PreviewCell id={id} cellY={cellY} onPreview={(anchor) => onRowPreview(row, anchor)} /> : null}
+      {columns.map((column) => (
+        <td
+          key={column.key}
+          className={cn(
+            // 13px vertical, 14px horizontal (hand-off section 4).
+            // A row is as tall as the sentence in it, and every
+            // other cell sits in the middle of that height rather
+            // than hanging from the top of it.
+            "hover:bg-xms-cell-hover text-xms-ink px-[14px] align-middle",
+            cellY,
+            column.wrap || display?.wrap ? undefined : "whitespace-nowrap",
+            column.mono && "xms-mono",
+            column.align === "right" && "text-right",
+          )}
+        >
+          {column.render ? column.render(row) : String(column.sortValue?.(row) ?? "")}
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+/**
+ * The dense list in a Count card: sticky header, no striping, row then cell
+ * hover, mono keys and SLA values (xms-web-data-table skill, Wireframes v2
+ * section 3.1 and v3 section 8.4). The server is the author of every value.
+ */
+export function DenseTable<Row>(props: DenseTableProps<Row>) {
+  const { columns, rowKey, selectable, onRowClick, onRowPreview } = props;
+  const display = props.display;
+  // The row last opened keeps a quiet mark, so a reader coming back from a
+  // record finds their place. It is not a selection, so it carries no rail.
+  const [active, setActive] = useState<string | null>(null);
+  const drawn = useMemo(() => columns.filter((column) => !column.hidden), [columns]);
+  const { sort, ordered, setSort } = useSortedRows(props);
+  const selected = props.selected ?? new Set<string>();
 
   const allKeys = ordered.map(rowKey);
   const allSelected = allKeys.length > 0 && allKeys.every((key) => selected.has(key));
@@ -177,20 +474,7 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
       )}
       aria-label={props.title}
     >
-      <header className="border-xms-line flex min-h-[48px] flex-wrap items-center gap-[14px] border-b px-5 py-3">
-        {/* The search field opens the header: a reader looking for a row
-            starts at the left edge of the card, not at its far corner. A card
-            that carries one needs no title beside it, since the strip above
-            already names the screen and the field says what it searches; the
-            title stays on the card's accessible name for anyone not reading
-            the screen. The card's own actions close the row. */}
-        {props.search ? (
-          <div className="min-w-0 max-w-[360px] flex-1">{props.search}</div>
-        ) : props.titleHidden ? null : (
-          <span className="text-xms-ink text-lead leading-[1.3] font-semibold">{props.title}</span>
-        )}
-        {props.actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{props.actions}</div> : null}
-      </header>
+      <CardHeader title={props.title} titleHidden={props.titleHidden} search={props.search} actions={props.actions} />
       {props.banner}
       {/* Horizontal overflow scrolls inside the card, never the page
           (hand-off section 5). On a list screen it carries the vertical
@@ -205,173 +489,38 @@ export function DenseTable<Row>(props: DenseTableProps<Row>) {
           data-plain={display && !display.coloring ? "true" : undefined}
           className="xms-sticky-head w-full border-collapse text-body"
         >
-          {/* Without a header row the widths have nowhere else to live. */}
           {props.headless ? (
-            <colgroup>
-              {selectable ? <col style={{ width: "44px" }} /> : null}
-              {onRowPreview ? <col style={{ width: "36px" }} /> : null}
-              {drawn.map((column) => (
-                <col key={column.key} style={{ width: column.width }} />
-              ))}
-            </colgroup>
+            <ColumnWidths columns={drawn} selectable={selectable} previewable={Boolean(onRowPreview)} />
           ) : null}
-          <thead className={cn("bg-xms-card sticky top-0 z-10", props.headless && "hidden")}>
-            <tr className={cn(!props.headless && "border-xms-line-head border-b-[1px]")}>
-              {selectable ? (
-                <th className={cn("w-11 px-5", display?.compact ? "py-[7px]" : "py-[11px]")}>
-                  <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={toggleAll} />
-                </th>
-              ) : null}
-              {onRowPreview ? <th className="w-[36px] pr-2 pl-0" aria-label="Preview" /> : null}
-              {drawn.map((column) => {
-                const active = sort?.key === column.key;
-                return (
-                  <th
-                    key={column.key}
-                    style={{ width: column.width }}
-                    aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : undefined}
-                    className={cn(
-                      // No colour or weight here: the treatment is .xms-sticky-head th in
-                      // xms-scope.css, which puts a column header in the muted ink at
-                      // 600. These carried text-xms-ink and font-bold, and a utility
-                      // beats a layered rule, so the header stayed near-black and bold
-                      // when that rule was added on 2026-09-14 and the change looked
-                      // like it had worked.
-                      "px-[14px] text-left whitespace-nowrap",
-                      display?.compact ? "py-[7px]" : "py-[11px]",
-                      column.align === "right" && "text-right",
-                    )}
-                  >
-                    {column.sortValue ? (
-                      <button
-                        type="button"
-                        onClick={() => setSort(column.key)}
-                        className="hover:text-xms-accent inline-flex items-center gap-[5px]"
-                      >
-                        {column.title}
-                        {/* 13px, and the idle glyph is the quietest line in
-                            the system, not the label grey it was drawn in
-                            (hand-off section 5). */}
-                        <SortCaret
-                          className={cn("xms-sort-caret", active ? "text-xms-accent" : "text-xms-quiet-line")}
-                          direction={active ? sort?.direction : undefined}
-                        />
-                      </button>
-                    ) : (
-                      column.title
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
+          <ColumnHeaders
+            columns={drawn}
+            headless={props.headless}
+            compact={display?.compact}
+            selectable={selectable}
+            previewable={Boolean(onRowPreview)}
+            allSelected={allSelected}
+            sort={sort}
+            onToggleAll={toggleAll}
+            onSort={setSort}
+          />
           <tbody>
             {ordered.map((row) => {
               const key = rowKey(row);
-              const isSelected = selected.has(key);
               return (
-                // An openable row is reachable from the keyboard and opens on
-                // Enter (Design System section 6, review finding 19): without
-                // a tab stop the only way in was the key link. A keypress that
-                // started inside the row, in the checkbox or the key link,
-                // belongs to that control and is left alone.
-                <tr
+                <DenseRow
                   key={key}
-                  data-row-key={key}
-                  data-selected={isSelected ? "true" : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  onClick={
-                    onRowClick
-                      ? (event) => {
-                          // A row opens its record, but a link inside a cell
-                          // opens what it names: the contact, the CSM, the
-                          // person it is assigned to. Without this the row
-                          // swallowed every one of them.
-                          if ((event.target as HTMLElement).closest("a,button,input,select,textarea,label")) return;
-                          setActive(key);
-                          onRowClick(row);
-                        }
-                      : undefined
-                  }
-                  onKeyDown={
-                    onRowClick
-                      ? (event) => {
-                          if (event.target !== event.currentTarget) return;
-                          if (event.key !== "Enter" && event.key !== " ") return;
-                          event.preventDefault();
-                          onRowClick(row);
-                        }
-                      : undefined
-                  }
-                  className={cn(
-                    // One hairline and a hover fill separate two rows, and
-                    // nothing else does (hand-off rule 1).
-                    "group/row border-xms-line-row hover:bg-xms-row-hover border-b",
-                    isSelected && "bg-xms-tint shadow-[inset_3px_0_0_var(--xms-accent-hover)]",
-                    display?.activeRow !== false && active === key && !isSelected && "bg-xms-row-hover",
-                    onRowClick && "cursor-pointer",
-                  )}
-                >
-                  {selectable ? (
-                    <td className={cn("px-5 align-middle", cellY)} onClick={(event) => event.stopPropagation()}>
-                      {/* The box stands where the pointer is, or where a row is
-                          already ticked. It keeps its space either way, so a
-                          row does not shift as the pointer crosses it, and it
-                          stays reachable by keyboard because only its opacity
-                          changes. */}
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${key}`}
-                        checked={isSelected}
-                        onChange={() => toggleOne(key)}
-                        className={cn(
-                          "transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100",
-                          isSelected ? "opacity-100" : "opacity-0",
-                        )}
-                      />
-                    </td>
-                  ) : null}
-                  {onRowPreview ? (
-                    <td
-                      className={cn("w-[36px] pr-2 pl-0 align-middle", cellY)}
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {/* Opens the record beside the list rather than leaving
-                          it, so a reader can read one row and stay where they
-                          were. Drawn on hover, like the box it stands next
-                          to. */}
-                      <button
-                        type="button"
-                        aria-label={`Preview ${key}`}
-                        onClick={(event) => {
-                          const box = event.currentTarget.getBoundingClientRect();
-                          onRowPreview(row, { top: box.top, left: box.left, bottom: box.bottom });
-                        }}
-                        className="text-xms-icon hover:text-xms-accent rounded-none opacity-0 transition-opacity focus-visible:opacity-100 group-hover/row:opacity-100"
-                      >
-                        <InfoIcon size={ICON.row} />
-                      </button>
-                    </td>
-                  ) : null}
-                  {drawn.map((column) => (
-                    <td
-                      key={column.key}
-                      className={cn(
-                        // 13px vertical, 14px horizontal (hand-off section 4).
-                        // A row is as tall as the sentence in it, and every
-                        // other cell sits in the middle of that height rather
-                        // than hanging from the top of it.
-                        "hover:bg-xms-cell-hover text-xms-ink px-[14px] align-middle",
-                        cellY,
-                        column.wrap || display?.wrap ? undefined : "whitespace-nowrap",
-                        column.mono && "xms-mono",
-                        column.align === "right" && "text-right",
-                      )}
-                    >
-                      {column.render ? column.render(row) : String(column.sortValue?.(row) ?? "")}
-                    </td>
-                  ))}
-                </tr>
+                  id={key}
+                  row={row}
+                  columns={drawn}
+                  display={display}
+                  selectable={selectable}
+                  selected={selected.has(key)}
+                  active={active === key}
+                  onToggle={toggleOne}
+                  onActivate={setActive}
+                  onRowClick={onRowClick}
+                  onRowPreview={onRowPreview}
+                />
               );
             })}
             {ordered.length === 0 && !props.loading ? (

@@ -1,11 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ICON, ClockIcon, InboxIcon, PinIcon, SearchIcon, screenIcon } from "@/components/xms/icons";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+} from "react";
+import { ICON, ClockIcon, InboxIcon, PinIcon, SearchIcon, screenIcon, type IconProps } from "@/components/xms/icons";
 import { navigableHref, SECTIONS, type Screen } from "@/lib/routes";
-import { useSearchSolutionsQuery } from "@/redux/knowledgeApi";
-import { useListTicketsQuery } from "@/redux/ticketsApi";
+import { useSearchSolutionsQuery, type SearchHit } from "@/redux/knowledgeApi";
+import { useListTicketsQuery, type TicketView } from "@/redux/ticketsApi";
 import { cn } from "@/lib/utils";
 
 /** A ticket key typed on its own is an address, not a search term. */
@@ -48,23 +58,24 @@ interface Row {
   href: string;
 }
 
-interface SectionRows {
-  section: string;
+interface RowGroup {
+  name: string;
   rows: Row[];
 }
 
 /**
- * The screen rows under the section each one belongs to, in the order the
- * rows arrive. The same shape as the sidebar's `sidebarTree`: a section is a
- * place screens live, not a screen of its own.
+ * The rows under the name each one carries, in the order the rows arrive.
+ * The screens are grouped this way by section, the same shape as the
+ * sidebar's `sidebarTree`: a section is a place screens live, not a screen of
+ * its own.
  */
-function bySection(rows: readonly Row[]): SectionRows[] {
-  const groups: SectionRows[] = [];
+function groupRows(rows: readonly Row[], nameOf: (row: Row) => string): RowGroup[] {
+  const groups: RowGroup[] = [];
   for (const row of rows) {
-    const section = row.section ?? "Other";
-    const found = groups.find((group) => group.section === section);
+    const name = nameOf(row);
+    const found = groups.find((group) => group.name === name);
     if (found) found.rows.push(row);
-    else groups.push({ section, rows: [row] });
+    else groups.push({ name, rows: [row] });
   }
   return groups;
 }
@@ -76,6 +87,279 @@ function relative(iso: string, now = Date.now()): string {
   const hours = Math.round(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   return `${Math.round(hours / 24)}d ago`;
+}
+
+function rowIcon(row: Row): ComponentType<IconProps> {
+  if (row.icon === "screen" && row.screen) return screenIcon(row.screen.screen);
+  if (row.icon === "recent") return ClockIcon;
+  return InboxIcon;
+}
+
+interface RecordSources {
+  key: string | null;
+  term: string;
+  recents: FinderRecent[];
+  tickets: TicketView[];
+  solutions: SearchHit[];
+}
+
+/** The rows that open a record: the key typed, the records opened lately, and what the search found. */
+function recordRows({ key, term, recents, tickets, solutions }: RecordSources): Row[] {
+  const out: Row[] = [];
+  if (key) {
+    out.push({ id: `key:${key}`, group: "Go to", label: key, icon: "ticket", href: `/cases/${key}` });
+  }
+  if (!term) {
+    for (const recent of recents.slice(0, 6)) {
+      out.push({
+        id: `recent:${recent.path}`,
+        group: "Recent",
+        label: recent.label,
+        code: recent.code,
+        meta: relative(recent.at),
+        icon: "recent",
+        href: recent.path,
+      });
+    }
+  }
+  for (const ticket of tickets) {
+    out.push({
+      id: `ticket:${ticket.key}`,
+      group: "Tickets",
+      label: ticket.short_description,
+      code: ticket.key,
+      meta: ticket.state_label,
+      icon: "ticket",
+      href: `/cases/${ticket.key}`,
+    });
+  }
+  for (const hit of solutions) {
+    out.push({
+      id: `solution:${hit.display_key}`,
+      group: "Solutions",
+      label: hit.title,
+      code: hit.display_key,
+      icon: "solution",
+      href: `/knowledge/${hit.display_key}`,
+    });
+  }
+  return out;
+}
+
+function screenRows(term: string, screens: Screen[]): Row[] {
+  const lower = term.toLowerCase();
+  // Screens come out section by section, in the order the registry declares
+  // the sections, so the panel draws them as the tree the sidebar draws
+  // rather than one flat list with the section written down the right. The
+  // keyboard walks `rows` in this same order, so the highlight follows the
+  // tree top to bottom.
+  const matching = screens
+    .map((screen, at) => ({ screen, at }))
+    .filter(({ screen }) => !term || screen.label.toLowerCase().includes(lower))
+    .sort((a, b) => SECTIONS.indexOf(a.screen.section) - SECTIONS.indexOf(b.screen.section) || a.at - b.at);
+  const out: Row[] = [];
+  for (const { screen } of matching) {
+    const href = navigableHref(screen, screens);
+    // A screen with a dynamic segment has no address of its own, so it is
+    // never offered as one (frontend review finding 1).
+    if (!href) continue;
+    out.push({
+      id: `screen:${screen.path}`,
+      group: "Screens",
+      section: screen.section,
+      label: screen.label,
+      icon: "screen",
+      screen,
+      href,
+    });
+  }
+  return out;
+}
+
+interface FinderRowsInput extends Pick<FinderProps, "recents" | "screens" | "canSeeTickets" | "canSeeKnowledge"> {
+  query: string;
+  open: boolean;
+}
+
+/**
+ * The rows for what the box holds, in the order the keyboard walks them. Free
+ * text asks the two search routes, each skipped for a reader who may not call
+ * it and while the panel is closed.
+ */
+function useFinderRows({ query, open, recents, screens, canSeeTickets, canSeeKnowledge }: FinderRowsInput) {
+  const term = query.trim();
+  const key = TICKET_KEY.test(term) ? term.toUpperCase() : null;
+  // A key is an address, so the search behind it is not worth running.
+  const searching = !key && term.length >= MIN_QUERY;
+
+  const { data: tickets } = useListTicketsQuery({ q: term, limit: 6 }, { skip: !searching || !canSeeTickets || !open });
+  const { data: solutions } = useSearchSolutionsQuery(
+    { q: term, limit: 5 },
+    { skip: !searching || !canSeeKnowledge || !open },
+  );
+
+  const rows = useMemo<Row[]>(
+    () => [
+      ...recordRows({ key, term, recents, tickets: tickets?.items ?? [], solutions: solutions ?? [] }),
+      ...screenRows(term, screens),
+    ],
+    [key, term, recents, tickets, solutions, screens],
+  );
+  return { rows, searching };
+}
+
+/** Ctrl+K and `/` both land here now that there is one box to land in. */
+function useFinderShortcut(input: RefObject<HTMLInputElement | null>, setOpen: Dispatch<SetStateAction<boolean>>) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      const wants =
+        ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") || (event.key === "/" && !typing);
+      if (!wants) return;
+      event.preventDefault();
+      setOpen(true);
+      input.current?.focus();
+      input.current?.select();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [input, setOpen]);
+}
+
+/**
+ * A click anywhere else puts it away. Pointer-down rather than click, so a
+ * press that starts outside does not first run the row it lands on.
+ */
+function useCloseOnOutsidePress(
+  box: RefObject<HTMLDivElement | null>,
+  open: boolean,
+  setOpen: Dispatch<SetStateAction<boolean>>,
+) {
+  useEffect(() => {
+    if (!open) return;
+    const away = (event: PointerEvent) => {
+      if (!box.current?.contains(event.target as Node)) setOpen(false);
+    };
+    window.addEventListener("pointerdown", away);
+    return () => window.removeEventListener("pointerdown", away);
+  }, [box, open, setOpen]);
+}
+
+export interface FinderRowProps {
+  row: Row;
+  icon: ComponentType<IconProps>;
+  nested: boolean;
+  highlighted: boolean;
+  pinned: ReadonlySet<string>;
+  onHover: () => void;
+  onGo: () => void;
+  onTogglePin: (path: string) => void;
+}
+
+function FinderRow({ row, icon: Icon, nested, highlighted, pinned, onHover, onGo, onTogglePin }: FinderRowProps) {
+  const screen = row.screen;
+  return (
+    <li role="option" aria-selected={highlighted}>
+      <div
+        className={cn(
+          "flex items-center gap-[10px] py-[7px] pr-3",
+          // A row under a section parent sits one step further in, the way
+          // the sidebar's rows sit under theirs.
+          nested ? "pl-9" : "pl-3",
+          highlighted ? "bg-xms-tint" : "",
+        )}
+      >
+        <button
+          type="button"
+          onMouseEnter={onHover}
+          onClick={onGo}
+          className="xms-plain flex min-w-0 flex-1 items-center gap-[10px] text-left"
+        >
+          <Icon size={ICON.action} className="text-xms-label shrink-0" />
+          {row.code ? <span className="xms-mono text-xms-label shrink-0 text-body">{row.code}</span> : null}
+          <span className="text-xms-ink min-w-0 flex-1 truncate text-body">{row.label}</span>
+          {row.meta ? <span className="text-xms-muted shrink-0 text-body">{row.meta}</span> : null}
+        </button>
+        {/* The pin the All overlay used to carry. It is the only
+            way to add a row to the sidebar, so it moved here
+            rather than being dropped with the overlay. */}
+        {screen ? (
+          <button
+            type="button"
+            aria-label={pinned.has(screen.path) ? `Unpin ${row.label}` : `Pin ${row.label}`}
+            aria-pressed={pinned.has(screen.path)}
+            onClick={() => onTogglePin(screen.path)}
+            className="text-xms-label hover:text-xms-ink shrink-0"
+          >
+            <PinIcon size={ICON.glyph} filled={pinned.has(screen.path)} />
+          </button>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+export interface FinderResultsProps {
+  rows: Row[];
+  searching: boolean;
+  /** The highlighted row's position in `rows`. */
+  index: number;
+  pinned: ReadonlySet<string>;
+  onHover: (position: number) => void;
+  onGo: (row: Row) => void;
+  onTogglePin: (path: string) => void;
+}
+
+function FinderResults({ rows, searching, index, pinned, onHover, onGo, onTogglePin }: FinderResultsProps) {
+  const grouped = useMemo(() => groupRows(rows, (row) => row.group), [rows]);
+
+  const rowFor = (row: Row, nested: boolean) => {
+    const position = rows.indexOf(row);
+    return (
+      <FinderRow
+        key={row.id}
+        row={row}
+        icon={rowIcon(row)}
+        nested={nested}
+        highlighted={position === index}
+        pinned={pinned}
+        onHover={() => onHover(position)}
+        onGo={() => onGo(row)}
+        onTogglePin={onTogglePin}
+      />
+    );
+  };
+
+  return (
+    <div id="finder-results" role="listbox" aria-label="Results" className="xms-card xms-finder-panel">
+      {grouped.map(({ name: group, rows: groupRowsOf }) => (
+        <div key={group}>
+          <p className="xms-caption text-xms-label px-3 pt-3 pb-1">{group}</p>
+          {group === "Screens" ? (
+            // The tree: a section is the parent and its screens sit under
+            // it. A group rather than a disclosure, because a finder is
+            // for finding, and a closed branch is a screen that cannot be
+            // found.
+            groupRows(groupRowsOf, (row) => row.section ?? "Other").map(({ name: section, rows: sectionRows }) => (
+              <div key={section} role="group" aria-label={section}>
+                <p className="text-xms-ink pt-[6px] pb-[2px] pr-3 pl-6 text-body font-medium">{section}</p>
+                <ul>{sectionRows.map((row) => rowFor(row, true))}</ul>
+              </div>
+            ))
+          ) : (
+            <ul>{groupRowsOf.map((row) => rowFor(row, false))}</ul>
+          )}
+        </div>
+      ))}
+      {rows.length === 0 ? (
+        <p className="text-xms-label px-3 py-4 text-body">
+          {searching ? "Nothing matches." : "Type a ticket key, a word, or a screen name."}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 /**
@@ -101,113 +385,9 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
   const [index, setIndex] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLDivElement>(null);
-
-  const term = query.trim();
-  const key = TICKET_KEY.test(term) ? term.toUpperCase() : null;
-  // A key is an address, so the search behind it is not worth running.
-  const searching = !key && term.length >= MIN_QUERY;
-
-  const { data: tickets } = useListTicketsQuery({ q: term, limit: 6 }, { skip: !searching || !canSeeTickets || !open });
-  const { data: solutions } = useSearchSolutionsQuery(
-    { q: term, limit: 5 },
-    { skip: !searching || !canSeeKnowledge || !open },
-  );
-
-  const rows = useMemo<Row[]>(() => {
-    const out: Row[] = [];
-    if (key) {
-      out.push({ id: `key:${key}`, group: "Go to", label: key, icon: "ticket", href: `/cases/${key}` });
-    }
-    if (!term) {
-      for (const recent of recents.slice(0, 6)) {
-        out.push({
-          id: `recent:${recent.path}`,
-          group: "Recent",
-          label: recent.label,
-          code: recent.code,
-          meta: relative(recent.at),
-          icon: "recent",
-          href: recent.path,
-        });
-      }
-    }
-    for (const ticket of tickets?.items ?? []) {
-      out.push({
-        id: `ticket:${ticket.key}`,
-        group: "Tickets",
-        label: ticket.short_description,
-        code: ticket.key,
-        meta: ticket.state_label,
-        icon: "ticket",
-        href: `/cases/${ticket.key}`,
-      });
-    }
-    for (const hit of solutions ?? []) {
-      out.push({
-        id: `solution:${hit.display_key}`,
-        group: "Solutions",
-        label: hit.title,
-        code: hit.display_key,
-        icon: "solution",
-        href: `/knowledge/${hit.display_key}`,
-      });
-    }
-    const lower = term.toLowerCase();
-    // Screens come out section by section, in the order the registry declares
-    // the sections, so the panel draws them as the tree the sidebar draws
-    // rather than one flat list with the section written down the right. The
-    // keyboard walks `rows` in this same order, so the highlight follows the
-    // tree top to bottom.
-    const matching = screens
-      .map((screen, at) => ({ screen, at }))
-      .filter(({ screen }) => !term || screen.label.toLowerCase().includes(lower))
-      .sort((a, b) => SECTIONS.indexOf(a.screen.section) - SECTIONS.indexOf(b.screen.section) || a.at - b.at);
-    for (const { screen } of matching) {
-      const href = navigableHref(screen, screens);
-      // A screen with a dynamic segment has no address of its own, so it is
-      // never offered as one (frontend review finding 1).
-      if (!href) continue;
-      out.push({
-        id: `screen:${screen.path}`,
-        group: "Screens",
-        section: screen.section,
-        label: screen.label,
-        icon: "screen",
-        screen,
-        href,
-      });
-    }
-    return out;
-  }, [key, term, recents, tickets, solutions, screens]);
-
-  // Ctrl+K and `/` both land here now that there is one box to land in.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const typing =
-        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
-      const wants =
-        ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") || (event.key === "/" && !typing);
-      if (!wants) return;
-      event.preventDefault();
-      setOpen(true);
-      input.current?.focus();
-      input.current?.select();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  // A click anywhere else puts it away. Pointer-down rather than click, so a
-  // press that starts outside does not first run the row it lands on.
-  useEffect(() => {
-    if (!open) return;
-    const away = (event: PointerEvent) => {
-      if (!box.current?.contains(event.target as Node)) setOpen(false);
-    };
-    window.addEventListener("pointerdown", away);
-    return () => window.removeEventListener("pointerdown", away);
-  }, [open]);
+  const { rows, searching } = useFinderRows({ query, open, recents, screens, canSeeTickets, canSeeKnowledge });
+  useFinderShortcut(input, setOpen);
+  useCloseOnOutsidePress(box, open, setOpen);
 
   const go = useCallback(
     (row: Row) => {
@@ -218,70 +398,6 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
     },
     [router],
   );
-
-  const grouped = useMemo(() => {
-    const order: string[] = [];
-    const byGroup = new Map<string, Row[]>();
-    rows.forEach((row) => {
-      if (!byGroup.has(row.group)) {
-        byGroup.set(row.group, []);
-        order.push(row.group);
-      }
-      byGroup.get(row.group)!.push(row);
-    });
-    return order.map((group) => ({ group, rows: byGroup.get(group)! }));
-  }, [rows]);
-
-  const renderRow = (row: Row, nested: boolean) => {
-    const position = rows.indexOf(row);
-    const Icon =
-      row.icon === "screen" && row.screen
-        ? screenIcon(row.screen.screen)
-        : row.icon === "solution"
-          ? InboxIcon
-          : row.icon === "recent"
-            ? ClockIcon
-            : InboxIcon;
-    return (
-      <li key={row.id} role="option" aria-selected={position === index}>
-        <div
-          className={cn(
-            "flex items-center gap-[10px] py-[7px] pr-3",
-            // A row under a section parent sits one step further in, the way
-            // the sidebar's rows sit under theirs.
-            nested ? "pl-9" : "pl-3",
-            position === index ? "bg-xms-tint" : "",
-          )}
-        >
-          <button
-            type="button"
-            onMouseEnter={() => setIndex(position)}
-            onClick={() => go(row)}
-            className="xms-plain flex min-w-0 flex-1 items-center gap-[10px] text-left"
-          >
-            <Icon size={ICON.action} className="text-xms-label shrink-0" />
-            {row.code ? <span className="xms-mono text-xms-label shrink-0 text-body">{row.code}</span> : null}
-            <span className="text-xms-ink min-w-0 flex-1 truncate text-body">{row.label}</span>
-            {row.meta ? <span className="text-xms-muted shrink-0 text-body">{row.meta}</span> : null}
-          </button>
-          {/* The pin the All overlay used to carry. It is the only
-              way to add a row to the sidebar, so it moved here
-              rather than being dropped with the overlay. */}
-          {row.screen ? (
-            <button
-              type="button"
-              aria-label={pinned.has(row.screen.path) ? `Unpin ${row.label}` : `Pin ${row.label}`}
-              aria-pressed={pinned.has(row.screen.path)}
-              onClick={() => onTogglePin(row.screen!.path)}
-              className="text-xms-label hover:text-xms-ink shrink-0"
-            >
-              <PinIcon size={ICON.glyph} filled={pinned.has(row.screen.path)} />
-            </button>
-          ) : null}
-        </div>
-      </li>
-    );
-  };
 
   return (
     <div ref={box} className="relative">
@@ -325,32 +441,15 @@ export function Finder({ screens, recents, pinned, onTogglePin, canSeeTickets, c
       </div>
 
       {open ? (
-        <div id="finder-results" role="listbox" aria-label="Results" className="xms-card xms-finder-panel">
-          {grouped.map(({ group, rows: groupRows }) => (
-            <div key={group}>
-              <p className="xms-caption text-xms-label px-3 pt-3 pb-1">{group}</p>
-              {group === "Screens" ? (
-                // The tree: a section is the parent and its screens sit under
-                // it. A group rather than a disclosure, because a finder is
-                // for finding, and a closed branch is a screen that cannot be
-                // found.
-                bySection(groupRows).map(({ section, rows: sectionRows }) => (
-                  <div key={section} role="group" aria-label={section}>
-                    <p className="text-xms-ink pt-[6px] pb-[2px] pr-3 pl-6 text-body font-medium">{section}</p>
-                    <ul>{sectionRows.map((row) => renderRow(row, true))}</ul>
-                  </div>
-                ))
-              ) : (
-                <ul>{groupRows.map((row) => renderRow(row, false))}</ul>
-              )}
-            </div>
-          ))}
-          {rows.length === 0 ? (
-            <p className="text-xms-label px-3 py-4 text-body">
-              {searching ? "Nothing matches." : "Type a ticket key, a word, or a screen name."}
-            </p>
-          ) : null}
-        </div>
+        <FinderResults
+          rows={rows}
+          searching={searching}
+          index={index}
+          pinned={pinned}
+          onHover={setIndex}
+          onGo={go}
+          onTogglePin={onTogglePin}
+        />
       ) : null}
     </div>
   );

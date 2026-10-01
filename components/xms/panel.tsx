@@ -61,7 +61,7 @@ export function Panel({ title, caption, note, subtitle, actions, children, flush
         {note ? <span className="text-xms-muted shrink-0 text-body leading-[1.3]">{note}</span> : null}
         {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}
       </header>
-      <div className={cn(bare ? undefined : flush ? "overflow-x-auto" : "p-4")}>{children}</div>
+      <div className={cn(!bare && (flush ? "overflow-x-auto" : "p-4"))}>{children}</div>
     </section>
   );
 }

@@ -22,6 +22,12 @@ import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useListGrantedAccountsQuery, useListTicketsQuery, type TicketView } from "@/redux/ticketsApi";
 
+function briefLine(breached: number, open: number, atRisk: number): string {
+  if (breached > 0) return `${breached} of your tickets ${breached === 1 ? "has" : "have"} breached; start there.`;
+  if (open === 0) return "Nothing is assigned to you. The Cases list has the unassigned work.";
+  return `${open} open on your desk, ${atRisk} at risk.`;
+}
+
 /**
  * My work (render 08, User Experience 3.1, Wireframes section 3.3): four
  * scorecards, the Axel brief, one "Needs attention" list, and a rail with
@@ -140,15 +146,7 @@ export default function MyWorkPage() {
           />
         ))}
       </div>
-      <BriefLine
-        text={
-          breached > 0
-            ? `${breached} of your tickets ${breached === 1 ? "has" : "have"} breached; start there.`
-            : mine.length === 0
-              ? "Nothing is assigned to you. The Cases list has the unassigned work."
-              : `${mine.length} open on your desk, ${atRisk} at risk.`
-        }
-      />
+      <BriefLine text={briefLine(breached, mine.length, atRisk)} />
       {/* The render puts the list on the left and Time today and Waiting on me
           in a 300px rail beside it. */}
       {isLoading && !data ? (

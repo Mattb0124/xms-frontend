@@ -109,7 +109,7 @@ export function SlaValue({ snapshot, tickMs = 30_000, now, dot, verbose, kind, c
     return () => window.clearInterval(id);
   }, [tickMs, now]);
   const display = formatSla(snapshot, now ?? clock);
-  const word = !verbose ? "" : display.tone === "ok" || display.tone === "warn" ? " left" : "";
+  const word = verbose && (display.tone === "ok" || display.tone === "warn") ? " left" : "";
   // Spoken, a breach is breached by an amount. The bare "-49d 09h" is the
   // list column's treatment, where the minus sign is read against a column of
   // numbers; in a sentence it reads as a negative amount of time left.

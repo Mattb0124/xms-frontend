@@ -1,7 +1,8 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CapacityPage from "@/app/(internal)/capacity/page";
-import { changedCells, presentAccounts, REMAINING_BASIS } from "@/components/capacity/capacity-grid";
+import { REMAINING_BASIS } from "@/components/capacity/capacity-grid";
+import { changedCells, presentAccounts } from "@/lib/capacity/allocations";
 import { capacityFilterToSearch } from "@/lib/capacity/filters";
 import {
   ACCOUNT_ID,
