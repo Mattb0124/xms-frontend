@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { DashboardStrip } from "@/components/portal/dashboard-strip";
 import { PORTAL_INPUT, PORTAL_PRIMARY, PortalCard } from "@/components/portal/primitives";
 import { RequestList } from "@/components/portal/request-list";
@@ -27,14 +27,17 @@ export function SearchHome({ debounceMs = 250 }: { debounceMs?: number }) {
   const matches = usePortalTicketsQuery({ scope: "all", q: query }, { skip: query.length < 2 });
   const articles = useSearchArticlesQuery(query, { skip: query.length < 2 });
 
-  useEffect(() => {
-    if (query.length < 2 || matches.isFetching) return;
+  // The term itself is never sent; only its length and the result count.
+  const onSearchSettled = useEffectEvent((termLength: number) => {
     trackSearch(
-      { scope: "portal", term_length: query.length, result_count: matches.data?.items.length ?? 0 },
+      { scope: "portal", term_length: termLength, result_count: matches.data?.items.length ?? 0 },
       "search.run",
     );
-    // The term itself is never sent; only its length and the result count.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
+  useEffect(() => {
+    if (query.length < 2 || matches.isFetching) return;
+    onSearchSettled(query.length);
   }, [query, matches.isFetching]);
 
   return (

@@ -158,9 +158,7 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
               key={action.to}
               type="button"
               onClick={() => setConfirming(action)}
-              className={
-                action.to === "cancelled" ? PORTAL_DANGER : action.to === "closed" ? PORTAL_PRIMARY : PORTAL_SECONDARY
-              }
+              className={actionClass(action)}
               disabled={transitionState.isLoading}
             >
               {actionLabel(action)}
@@ -224,6 +222,12 @@ export function RequestDetail({ requestKey }: { requestKey: string }) {
       </PortalCard>
     </div>
   );
+}
+
+function actionClass(action: PortalTransition): string {
+  if (action.to === "cancelled") return PORTAL_DANGER;
+  if (action.to === "closed") return PORTAL_PRIMARY;
+  return PORTAL_SECONDARY;
 }
 
 function actionLabel(action: PortalTransition): string {

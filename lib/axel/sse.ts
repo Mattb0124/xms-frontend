@@ -68,7 +68,9 @@ export class SseLineParser {
 }
 
 function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : value === undefined || value === null ? fallback : String(value);
+  if (typeof value === "string") return value;
+  if (value === undefined || value === null) return fallback;
+  return String(value);
 }
 
 /** One event payload to a typed frame; null when it is not JSON the panel can use. */
