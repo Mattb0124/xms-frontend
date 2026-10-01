@@ -13,8 +13,8 @@ export interface FinderBarProps {
   axelOpen: boolean;
   unreadCount: number;
   onNotifications: () => void;
-  userInitials: string;
-  onUser: () => void;
+  /** The account button. The shell owns it, because the menu hangs below the bar. */
+  account: ReactNode;
 }
 
 /**
@@ -99,9 +99,7 @@ export function FinderBar(props: FinderBarProps) {
           {/* The reference also carries a green presence dot on the disc. It is
               still not drawn: XMS has no presence, and a status mark that is
               always the same colour tells the reader something untrue. */}
-          <button type="button" aria-label="Account menu" onClick={props.onUser} className="aix-avatar">
-            <span className="aix-avatar-disc">{props.userInitials}</span>
-          </button>
+          {props.account}
         </div>
       </div>
     </header>
