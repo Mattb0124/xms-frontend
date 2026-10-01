@@ -9,6 +9,8 @@ import {
   UploadRefusal,
   describeRefusal,
   formatBytes,
+  isInFlight,
+  stageAfterConfirm,
   uploadAttachment,
   type UploadStage,
 } from "@/lib/attachments/upload";
@@ -25,12 +27,6 @@ function chipClass(chip: ScanChip): string {
     return "border-[color:var(--state-complete-border)] bg-[color:var(--state-complete-bg)] text-[color:var(--state-complete-text)]";
   }
   return "border-xms-line bg-xms-tint text-xms-label";
-}
-
-function uploadStageOf(scanState: Attachment["scan_state"]): UploadStage {
-  if (scanState === "clean") return "clean";
-  if (scanState === "quarantined") return "quarantined";
-  return "scanning";
 }
 
 /**
@@ -75,7 +71,7 @@ export function usePortalUploads(requestKey: string | undefined) {
           portal: true,
           onProgress: (progress) => update(id, { stage: progress.stage }),
         });
-        update(id, { stage: uploadStageOf(attachment.scan_state) });
+        update(id, { stage: stageAfterConfirm(attachment.scan_state) });
       } catch (error) {
         update(id, {
           stage: "failed",
@@ -84,7 +80,7 @@ export function usePortalUploads(requestKey: string | undefined) {
       }
     }
   };
-  const busy = items.some((item) => ["presigning", "uploading", "scanning"].includes(item.stage));
+  const busy = items.some((item) => isInFlight(item.stage));
   return { items, add, busy };
 }
 

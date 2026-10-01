@@ -3,8 +3,11 @@ import {
   UploadRefusal,
   describeRefusal,
   formatBytes,
+  isInFlight,
+  stageAfterConfirm,
   uploadAttachment,
   type UploadProgress,
+  type UploadStage,
 } from "@/lib/attachments/upload";
 import { scanChip } from "@/lib/attachments/scan";
 
@@ -133,6 +136,21 @@ describe("uploadAttachment", () => {
     expect(describeRefusal(new UploadRefusal("unsupported_type"))).toBe("That file type is not accepted.");
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(4096)).toBe("4 KB");
+  });
+});
+
+describe("upload stages", () => {
+  it("reads a confirmed file's stage from its verdict, an unscanned one still scanning", () => {
+    expect(stageAfterConfirm("clean")).toBe("clean");
+    expect(stageAfterConfirm("quarantined")).toBe("quarantined");
+    expect(stageAfterConfirm("pending")).toBe("scanning");
+  });
+
+  it("holds a file in flight until it has a verdict or has failed", () => {
+    const inFlight: UploadStage[] = ["presigning", "uploading", "scanning"];
+    const settled: UploadStage[] = ["clean", "quarantined", "failed"];
+    expect(inFlight.map(isInFlight)).toEqual([true, true, true]);
+    expect(settled.map(isInFlight)).toEqual([false, false, false]);
   });
 });
 
