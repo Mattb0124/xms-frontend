@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import { ContentHeaderBar } from "@/components/shell/content-header-bar";
 import { Finder, type FinderRecent } from "@/components/shell/finder";
 import { FinderBar } from "@/components/shell/finder-bar";
@@ -108,14 +108,16 @@ export function Shell({ children }: { children: ReactNode }) {
   // read "Ticket" ten times (AIBL-329). A record names itself: the ticket the
   // shell has already fetched for Axel gives its key and its description, and
   // nothing extra is asked for to get them.
-  useEffect(() => {
+  const recordVisit = useEffectEvent(() => {
     if (!current) return;
     const label =
       axelTicket && current.screen === "ticket" ? `${axelTicket.key}  ${axelTicket.short_description}` : current.label;
     const entry: FinderRecent = { path: currentHref, label, at: new Date().toISOString() };
     const rest = historyRaw.filter((raw) => parseHistory(raw)?.path !== currentHref);
     setHistory([JSON.stringify(entry), ...rest]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => {
+    recordVisit();
   }, [currentHref, axelTicket?.key]);
 
   const history = useMemo<FinderRecent[]>(
