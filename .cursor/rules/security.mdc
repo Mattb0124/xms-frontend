@@ -12,23 +12,25 @@ Load the `xms-security-first` skill before you design or review a change that to
 
 - Every `href`, `window.open` target or download name built from API data goes through `lib/safe-url.ts`. `safeHref(value)` passes `http(s)` URLs and application paths and returns `null` for anything else (`javascript:`, `data:`, `//host`); on `null`, render text instead of a link.
   YES: `const pdf = safeHref(files.pdf);` then `<a href={pdf} target="_blank" rel={EXTERNAL_REL}>` in `run-review.tsx`. NO: `<a href={files.pdf}>`.
-- Open a window only with `openExternal(url)`, and give every external link `rel={EXTERNAL_REL}` (`noopener noreferrer`). `lib/safe-url.test.ts` fails on any other `window.open(` and on `rel="noopener"` alone.
+- Open a window only with `openExternal(url)`, and give every external link `rel={EXTERNAL_REL}` (`noopener noreferrer`). ESLint refuses `window.open` anywhere else, and `lib/safe-url.test.ts` fails on `rel="noopener"` alone.
 - A file name from the server goes through `safeFileName(name, fallback)`; `lib/exports/download.ts` already does it for downloads.
 
 ## No HTML from data
 
-- Never use `dangerouslySetInnerHTML`, `innerHTML`, `insertAdjacentHTML`, or a markdown or HTML renderer. The tree has none and no test scans for one, and the CSP keeps `style-src 'unsafe-inline'` on the strength of it. Render text and let React escape it.
+- Never use `dangerouslySetInnerHTML`, `innerHTML`, `outerHTML`, `insertAdjacentHTML`, or a markdown or HTML renderer. ESLint refuses the four properties (`react/no-danger` and `no-restricted-syntax` in `eslint.config.mjs`), and a renderer would be a new dependency, which needs its reason (`guardrails.mdc`). The CSP keeps `style-src 'unsafe-inline'` on the strength of it. Render text and let React escape it.
 
 ## The Content Security Policy
 
-- `lib/security/csp.ts` builds the one policy (`contentSecurityPolicy`, `newNonce`, `NONCE_HEADER`) and `proxy.ts` sends it with a fresh nonce per request. `next.config.ts` sends the other security headers and never a CSP; `next.config.test.ts` and `proxy.test.ts` hold both.
-- A new origin is a change to `contentSecurityPolicy`, with its test in `proxy.test.ts` and its reason in the commit. Never send a second policy, and never write an inline `<script>` without the nonce.
+- `lib/security/csp.ts` builds the one policy (`contentSecurityPolicy`, `newNonce`, `NONCE_HEADER`) and `proxy.ts` sends it with a fresh nonce per request. `next.config.ts` sends the other security headers and never a CSP; `next.config.test.ts`, `proxy.test.ts` and `lib/security/csp.test.ts` hold them.
+- A script that loads its own scripts needs the nonce handed to it. `app/layout.tsx` reads it back from the headers and passes it to next-themes and, through `Providers`, to `ClerkProvider`'s `nonce` prop: rendered inside a client component, Clerk never reads the header itself. `telemetry={false}` keeps it from calling a host the policy does not list (`components/providers.test.tsx`).
+- A new origin is a change to `contentSecurityPolicy`, with its test in `lib/security/csp.test.ts` and its reason in the commit, as the Cloudflare challenge origin behind Clerk's bot protection has. Never send a second policy, and never write an inline `<script>` without the nonce.
 - Keep `'unsafe-inline'` in `style-src` and the nonce out of it: `next/font` and `next-themes` write inline styles that carry no nonce.
 
 ## Environment and auth
 
 - `NEXT_PUBLIC_*` is compiled into the browser bundle. The public values in `.env.example` are the Clerk publishable key and sign-in URL, the deploy target and the dev-mode flag; a secret or a server-only address (`BACKEND_URL`, `CLERK_SECRET_KEY`) never carries the prefix.
-- Read a server-only value only in a module that starts with `import "server-only"`, as `lib/upstream/proxy.ts` does for `BACKEND_URL`.
+- Read a server-only value only in a module that starts with `import "server-only"`, as `lib/upstream/proxy.ts` does for `BACKEND_URL`. A screen reads no `process.env` at all; ESLint refuses it in `components/` and `app/` outside route handlers.
+- Per-browser state goes through `lib/persisted-set.ts`, and only the local target's pasted token through `lib/auth/token.ts` (security review finding 27). ESLint refuses `localStorage` and `sessionStorage` everywhere else.
 - Authenticate with the bearer the base query adds (`getBearerToken`, `credentials: "omit"` in `redux/api.ts`). Add no cookie authentication. The dev token paste is for the local target only (`AUTH_DEV_MODE` in `lib/auth/dev-mode.ts`).
 
 ## Telemetry

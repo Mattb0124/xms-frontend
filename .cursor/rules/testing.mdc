@@ -26,6 +26,8 @@ Load the `writing-tests` skill for anything these rules do not settle.
 - Assert on what the reader sees and does: roles, accessible names and text (`await screen.findByRole("list", { name: "Buckets" })`, `getByLabelText`, `within(list)`). Never on hook internals or component state.
 - Wait with `findBy*` or `waitFor`, not a timed sleep. To prove nothing was asked, wait for the visible refusal first, then check the calls.
   YES: `await screen.findByText(/needs the time:log permission/);` then `expect(calls.some((call) => call.key === BUCKETS)).toBe(false);`.
+- To move time, fake only the timers the code uses and let the rest run: `vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], shouldAdvanceTime: true })`, then `await vi.advanceTimersByTimeAsync(RUN_PROGRESS_REFRESH_MS)`, with `vi.useRealTimers()` in `afterEach`. RTK Query polls on `setTimeout`; the polling test in `components/admin/migration/migration-pages.test.tsx` is the pattern.
+- A run that reports an unhandled error has failed, even when every test passed. Find what outlived its file instead of rerunning; `vitest.setup.ts` already holds each file's animation frames inside its window (`test-kit/animation-frames.ts`).
 - A gated surface: without the permission it asks nothing and names the permission.
 - Every write: the exact body, including the `version` it read when the record has one, and at least one refusal, stubbed with its code and asserted in its words. `json({ code: "unknown_billable_class" }, 400)` must show "That class is not in this account's catalog."
 - An accessibility check is available through `vitest-axe`, as in `components/portal/request-form.test.tsx`.

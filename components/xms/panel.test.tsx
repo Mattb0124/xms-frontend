@@ -10,7 +10,8 @@ import { Panel } from "@/components/xms/panel";
  * HOURS ARE THE SERVER'S", "WEIGHTED PIPELINE AND COMMITTED PROJECT DEMAND
  * STACKED ON THE ALLOCATED HOURS; THE LIGHTER SHADES ARE DEMAND"), with
  * engineering language leaking into the product. Design System section 4:
- * ALL-CAPS accent eyebrow, ink title, one-line subtitle.
+ * a short eyebrow, ink title, one-line subtitle. The eyebrow has been written
+ * and drawn in sentence case since the shouted eyebrow was retired.
  */
 describe("Panel header", () => {
   it("draws the eyebrow above the title and the subtitle under it", () => {
@@ -22,7 +23,7 @@ describe("Panel header", () => {
     const header = screen.getByRole("region", { name: "People" }).querySelector("header");
     expect(header?.querySelector(".xms-caption")).toHaveTextContent("This month");
     expect(header).toHaveTextContent("7 people, with their hours for the month.");
-    // The subtitle is body text, never the uppercase mono eyebrow.
+    // The subtitle is body text, never a second eyebrow.
     expect(header?.querySelectorAll(".xms-caption")).toHaveLength(1);
   });
 
