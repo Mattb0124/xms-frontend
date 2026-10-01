@@ -71,37 +71,42 @@ export function changeSentence(field: string, oldValue: unknown, newValue: unkno
 /** Render 03's activity row: 12px above and below on a row hairline. */
 const ROW = "border-xms-line-row flex flex-wrap items-baseline gap-3 border-b py-3 last:border-b-0";
 
-/** One audit row as a diff sentence; state changes render on the ramp. */
-export function AuditRow({ item }: { item: TimelineItem }) {
-  const isState = item.event_type === "ticket.transition" && item.field === "state";
+/** What an audit row says happened; a state change renders on the ramp. */
+function AuditSentence({ item }: { item: TimelineItem }) {
+  if (item.event_type === "ticket.transition" && item.field === "state") {
+    return (
+      <>
+        <span className="text-xms-label">moved</span>
+        <StatePill state={String(item.old_value)} label={humanState(String(item.old_value))} />
+        <span className="text-xms-muted">to</span>
+        <StatePill state={String(item.new_value)} label={humanState(String(item.new_value))} />
+      </>
+    );
+  }
   const reason = reopenReason(item);
-  const label = (item.event_type ?? "event").replace(/[._]/g, " ");
+  if (reason) return <span className="text-xms-label">{reason}</span>;
   const opaque = item.field ? changeSentence(item.field, item.old_value, item.new_value) : null;
+  if (opaque) return <span className="text-xms-label">{opaque}</span>;
+  if (item.field) {
+    return (
+      <>
+        <span className="text-xms-label">changed</span>
+        <span className="text-xms-ink font-medium">{item.field.replace(/_/g, " ")}</span>
+        <span className="xms-mono text-xms-label line-through">{valueText(item.old_value)}</span>
+        <span className="xms-mono text-xms-ink">{valueText(item.new_value)}</span>
+      </>
+    );
+  }
+  return <span className="text-xms-label">{(item.event_type ?? "event").replace(/[._]/g, " ")}</span>;
+}
+
+/** One audit row as a diff sentence. */
+export function AuditRow({ item }: { item: TimelineItem }) {
   return (
     <li className={ROW} data-event={item.event_type}>
       <ActorChip name={item.actor_name ?? "System"} kind={item.actor_kind === "ai" ? "ai" : "user"} />
       <span className="text-xms-ink flex flex-1 flex-wrap items-center gap-2 text-body leading-[1.5]">
-        {isState ? (
-          <>
-            <span className="text-xms-label">moved</span>
-            <StatePill state={String(item.old_value)} label={humanState(String(item.old_value))} />
-            <span className="text-xms-muted">to</span>
-            <StatePill state={String(item.new_value)} label={humanState(String(item.new_value))} />
-          </>
-        ) : reason ? (
-          <span className="text-xms-label">{reason}</span>
-        ) : opaque ? (
-          <span className="text-xms-label">{opaque}</span>
-        ) : item.field ? (
-          <>
-            <span className="text-xms-label">changed</span>
-            <span className="text-xms-ink font-medium">{item.field.replace(/_/g, " ")}</span>
-            <span className="xms-mono text-xms-label line-through">{valueText(item.old_value)}</span>
-            <span className="xms-mono text-xms-ink">{valueText(item.new_value)}</span>
-          </>
-        ) : (
-          <span className="text-xms-label">{label}</span>
-        )}
+        <AuditSentence item={item} />
       </span>
       <span className="xms-mono text-xms-muted shrink-0 text-body">{formatStamp(item.created_at)}</span>
     </li>

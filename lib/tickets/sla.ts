@@ -40,7 +40,9 @@ export function clockDisplay(clock: ClockView | undefined, now: Date = new Date(
  */
 export function tighterClock(sla: TicketSla | undefined): ClockView | undefined {
   if (!sla) return undefined;
-  const live = [sla.response, sla.resolution].filter((clock): clock is ClockView => Boolean(clock) && !clock!.met);
+  const live = [sla.response, sla.resolution]
+    .filter((clock): clock is ClockView => Boolean(clock))
+    .filter((clock) => !clock.met);
   if (live.length === 0) return sla.resolution ?? sla.response;
   return live.sort((a, b) => a.remainingMinutes - b.remainingMinutes)[0];
 }

@@ -28,6 +28,13 @@ export interface SlaRow {
   metAt: string | null;
 }
 
+function slaStage(clock: ClockView, breached: boolean): SlaStage {
+  if (clock.met) return "Met";
+  if (breached) return "Breached";
+  if (clock.paused) return "Paused";
+  return "In progress";
+}
+
 /**
  * The rows for a ticket's clocks. Every due time, pause and target is the
  * server's; the only thing counted here is the minutes since the record was
@@ -48,11 +55,10 @@ export function slaRows(
     // due time now behind us. `clock.breached` alone is not set on every
     // clock that is past due, since the sweep that latches it runs behind.
     const breached = clock.breached || clockDisplay(clock, now).tone === "breach";
-    const stage: SlaStage = clock.met ? "Met" : breached ? "Breached" : clock.paused ? "Paused" : "In progress";
     return {
       kind: clock.kind,
       definition: clock.kind === "response" ? "Response" : "Resolution",
-      stage,
+      stage: slaStage(clock, breached),
       elapsedMinutes: Math.max(0, elapsed),
       percent: clock.targetMinutes > 0 ? (Math.max(0, elapsed) / clock.targetMinutes) * 100 : 0,
       leftMinutes: Math.max(0, remaining),

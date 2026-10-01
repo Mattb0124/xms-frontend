@@ -19,6 +19,12 @@ export interface SolutionPickerProps {
   disabled?: boolean;
 }
 
+function emptyLine(isFetching: boolean, searched: boolean): string {
+  if (isFetching) return "Searching";
+  if (searched) return "No published article matches.";
+  return "Type to search, or pick a suggestion.";
+}
+
 /** Searchable picker over the published articles the reader may see (GET /search/solutions). */
 export function SolutionPicker({ value, onChange, suggested = [], disabled }: SolutionPickerProps) {
   const [query, setQuery] = useState("");
@@ -31,7 +37,8 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
     return () => window.clearTimeout(handle);
   }, [query, search]);
 
-  const hits = query.trim().length >= 2 ? (data ?? []).filter((hit) => hit.status === "published") : suggested;
+  const searched = query.trim().length >= 2;
+  const hits = searched ? (data ?? []).filter((hit) => hit.status === "published") : suggested;
 
   if (value) {
     return (
@@ -77,15 +84,7 @@ export function SolutionPicker({ value, onChange, suggested = [], disabled }: So
             </button>
           </li>
         ))}
-        {hits.length === 0 ? (
-          <li className="text-xms-label px-2 py-1.5">
-            {isFetching
-              ? "Searching"
-              : query.trim().length >= 2
-                ? "No published article matches."
-                : "Type to search, or pick a suggestion."}
-          </li>
-        ) : null}
+        {hits.length === 0 ? <li className="text-xms-label px-2 py-1.5">{emptyLine(isFetching, searched)}</li> : null}
       </ul>
     </div>
   );
