@@ -100,10 +100,24 @@ export function thresholdLabel(marker: ThresholdMarker): string {
   return `${marker.percent}%`;
 }
 
+export type ThresholdStanding = "fired" | "next" | "ahead";
+
+/** A fired threshold reads as fired even while it is also the next one marked. */
+export function thresholdStanding(marker: ThresholdMarker): ThresholdStanding {
+  if (marker.fired) return "fired";
+  if (marker.next) return "next";
+  return "ahead";
+}
+
 /** The note under the bar when consuming minutes carried no rate (5.9). */
 export function unratedNote(minutes: number): string | null {
   if (minutes <= 0) return null;
   return `${formatHours(minutes)} in this period carry no rate; add a rate card for the roles involved before the period locks.`;
+}
+
+/** Whether a billable class burns the contract, in the words the bucket screens use. */
+export function consumesLabel(consumes: boolean): string {
+  return consumes ? "consumes the contract" : "does not consume the contract";
 }
 
 export const OVERAGE_RULE_LABEL: Record<OverageRule, string> = {

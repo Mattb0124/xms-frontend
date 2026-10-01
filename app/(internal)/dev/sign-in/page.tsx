@@ -36,6 +36,13 @@ interface DevUser {
   roles: string[];
 }
 
+function unavailableReason(): string {
+  if (CLERK_ENABLED) return "Sign in through Clerk.";
+  if (!IS_LOCAL_TARGET)
+    return `The pasted token is local only, and this build names the ${DEPLOY_TARGET} deploy target.`;
+  return "Set NEXT_PUBLIC_AUTH_DEV_MODE=true in .env.local to use a pasted token.";
+}
+
 export default function DevSignInPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -67,13 +74,7 @@ export default function DevSignInPage() {
   if (!AUTH_DEV_MODE) {
     return (
       <Panel title="Development sign-in" caption="Not available">
-        <p className="text-xms-body text-body">
-          {CLERK_ENABLED
-            ? "Sign in through Clerk."
-            : !IS_LOCAL_TARGET
-              ? `The pasted token is local only, and this build names the ${DEPLOY_TARGET} deploy target.`
-              : "Set NEXT_PUBLIC_AUTH_DEV_MODE=true in .env.local to use a pasted token."}
-        </p>
+        <p className="text-xms-body text-body">{unavailableReason()}</p>
       </Panel>
     );
   }

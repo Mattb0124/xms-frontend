@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from "react";
 
+/** The class the clock and its bar carry: expired, under two minutes left, or neither. */
+function countdownState(remainingMs: number): string {
+  if (remainingMs <= 0) return "is-expired";
+  if (remainingMs < 120_000) return "is-soon";
+  return "";
+}
+
 /**
  * The clock on the proof page.
  *
@@ -54,7 +61,7 @@ export function TokenCountdown({ issuedAt, expiresAt }: { issuedAt: string; expi
   const total = Number.isNaN(issued) ? 0 : expiry - issued;
   const fraction = total > 0 ? Math.max(0, Math.min(1, remainingMs / total)) : 0;
 
-  const state = remainingMs <= 0 ? "is-expired" : remaining < 120 ? "is-soon" : "";
+  const state = countdownState(remainingMs);
 
   return (
     <div>

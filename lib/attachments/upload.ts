@@ -74,6 +74,12 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 
+function stageAfterConfirm(scanState: Attachment["scan_state"]): UploadStage {
+  if (scanState === "quarantined") return "quarantined";
+  if (scanState === "clean") return "clean";
+  return "scanning";
+}
+
 async function readError(response: Response): Promise<UploadRefusal> {
   try {
     const body = (await response.json()) as { code?: string } & Record<string, unknown>;
@@ -137,9 +143,6 @@ export async function uploadAttachment(
   });
   if (!confirm.ok) throw await readError(confirm);
   const confirmed = (await confirm.json()) as Attachment;
-  report(
-    confirmed.scan_state === "quarantined" ? "quarantined" : confirmed.scan_state === "clean" ? "clean" : "scanning",
-    100,
-  );
+  report(stageAfterConfirm(confirmed.scan_state), 100);
   return confirmed;
 }

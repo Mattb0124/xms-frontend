@@ -19,9 +19,11 @@ import {
   formatHours,
   thresholdLabel,
   thresholdMarkers,
+  thresholdStanding,
   unratedNote,
   type BudgetTone,
   type ThresholdMarker,
+  type ThresholdStanding,
 } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
@@ -46,10 +48,16 @@ const FILL: Record<BudgetTone, string> = {
   breach: "var(--state-overdue-text)",
 };
 
-const LEGEND: Record<"fired" | "next" | "ahead", string> = {
+const LEGEND: Record<ThresholdStanding, string> = {
   fired: "text-[color:var(--state-needs-input-text)]",
   next: "text-xms-ink font-medium",
   ahead: "text-xms-label",
+};
+
+const TICK: Record<ThresholdStanding, string> = {
+  fired: "var(--state-needs-input-text)",
+  next: "var(--xms-ink)",
+  ahead: "var(--xms-line-strong)",
 };
 
 function clamp(value: number): number {
@@ -95,22 +103,14 @@ export function BurnBar({ percent, tone, markers, label }: BurnBarProps) {
               className="absolute -top-[3px] h-4 w-[2px]"
               style={{
                 left: `calc(${marker.percent}% - 1px)`,
-                background: marker.fired
-                  ? "var(--state-needs-input-text)"
-                  : marker.next
-                    ? "var(--xms-ink)"
-                    : "var(--xms-line-strong)",
+                background: TICK[thresholdStanding(marker)],
               }}
             />
           ))}
       </div>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-body" aria-label="Thresholds">
         {markers.map((marker) => (
-          <li
-            key={marker.percent}
-            data-threshold={marker.percent}
-            className={LEGEND[marker.fired ? "fired" : marker.next ? "next" : "ahead"]}
-          >
+          <li key={marker.percent} data-threshold={marker.percent} className={LEGEND[thresholdStanding(marker)]}>
             {thresholdLabel(marker)}
           </li>
         ))}

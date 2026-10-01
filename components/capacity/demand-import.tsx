@@ -111,8 +111,8 @@ export function ImportDemandPanel() {
             className="divide-xms-line divide-y rounded-control border border-[color:var(--state-overdue-border)]"
             aria-label="Import problems"
           >
-            {problems.map((row, index) => (
-              <li key={`${row.line}:${index}`} className="flex gap-3 px-3 py-1.5" data-problem-line={row.line}>
+            {problems.map((row) => (
+              <li key={`${row.line}:${row.problem}`} className="flex gap-3 px-3 py-1.5" data-problem-line={row.line}>
                 <span className="xms-mono text-xms-label w-[64px] shrink-0">
                   {row.line === 0 ? "file" : `line ${row.line}`}
                 </span>

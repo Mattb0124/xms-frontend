@@ -28,16 +28,17 @@ function clamp(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
+function fillColorOf(fill: number, { breached, met }: Pick<MeterBarProps, "breached" | "met">): string {
+  if (breached) return "var(--state-overdue-text)";
+  if (met) return "var(--state-complete-text)";
+  if (fill >= 75) return "var(--xms-sla-warn)";
+  return "var(--xms-accent)";
+}
+
 /** SLA meter with grey pause segments over the elapsed fill (Wireframes v2 section 3.2). */
 export function MeterBar({ percent, pauses = [], breached, met, paused, label, className }: MeterBarProps) {
   const fill = clamp(percent);
-  const fillColor = breached
-    ? "var(--state-overdue-text)"
-    : met
-      ? "var(--state-complete-text)"
-      : fill >= 75
-        ? "var(--xms-sla-warn)"
-        : "var(--xms-accent)";
+  const fillColor = fillColorOf(fill, { breached, met });
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label ? <span className="text-xms-label text-body">{label}</span> : null}
@@ -55,9 +56,9 @@ export function MeterBar({ percent, pauses = [], breached, met, paused, label, c
         className="bg-xms-line-row relative h-2 w-full overflow-hidden rounded-pill"
       >
         <div className="absolute inset-y-0 left-0 rounded-pill" style={{ width: `${fill}%`, background: fillColor }} />
-        {pauses.map((segment, index) => (
+        {pauses.map((segment) => (
           <div
-            key={index}
+            key={`${segment.startPct}:${segment.endPct}`}
             data-pause
             className="absolute inset-y-0"
             style={{
