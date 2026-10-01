@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ConfirmButton, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON, SwitchRow } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
-import { enabledSlugs, libraryOf, retiredSlugs } from "@/lib/admin/mcp-library";
+import { describeSaveRefusal, enabledSlugs, libraryOf, retiredSlugs, serverAddress } from "@/lib/admin/mcp-library";
 import {
   useGetAccountConfigQuery,
   useGetConfigQuery,
@@ -57,8 +57,7 @@ export function AccountMcpPanel({ accountId }: { accountId: string }) {
       await save({ accountId, kind: "mcp", body: { enabled: chosen } }).unwrap();
       setDraft(null);
     } catch (caught) {
-      const detail = (caught as { data?: { problems?: string[] } })?.data?.problems?.join("; ");
-      setProblem(detail ?? "That could not be saved.");
+      setProblem(describeSaveRefusal(caught));
     }
   }
 
@@ -101,7 +100,7 @@ export function AccountMcpPanel({ accountId }: { accountId: string }) {
               key={server.slug}
               id={`mcp-${server.slug}`}
               label={server.name}
-              detail={server.transport === "streamable_http" ? server.url : server.command}
+              detail={serverAddress(server)}
               checked={chosen.includes(server.slug)}
               onChange={(next) => toggle(server.slug, next)}
               disabled={busy}
