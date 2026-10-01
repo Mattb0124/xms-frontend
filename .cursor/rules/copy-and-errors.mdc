@@ -1,0 +1,35 @@
+---
+description: XMS Web copy and refusal wording. No em-dashes, -ize spelling, sentence case, ServiceNow vocabulary, one date format, every refusal worded once by its code in lib, and client language on the portal
+globs: "app/**/*.tsx,components/**/*.tsx,lib/**"
+alwaysApply: false
+---
+
+# Copy and errors
+
+## House copy (`components/xms/house-copy.test.ts`)
+
+- No em-dash anywhere, in copy, comments and tests alike: write a comma, a colon or two sentences. The test scans the tracked non-test source under `app`, `components`, `lib` and `redux`.
+- Spell with -ize: `generalize`, `prioritize`, `normalize`, `organization`. The test refuses `-isation` and the `-ise` forms of the common verbs. A wire value the API spells otherwise is one of the five `WIRE_CONTRACTS`, and that set is closed.
+- Take ticket type words from `lib/tickets/vocab.ts` (`TICKET_TYPES`, `ticketTypeLabel`): `service_request` reads "Request".
+
+## Words
+
+- Sentence case for every label, button, title, caption, toast and empty state: "New engagement", "Save as view", "Approve and send", "No surveys pending.".
+  NO: "New Engagement", "SAVE AS VIEW".
+- Use ServiceNow vocabulary where it helps adoption: a case with its `CS` key, Work note beside Public reply, Assignment group, Assigned to, Short description, resolution codes.
+- Write a date with `formatMoment`, `formatDay` or `formatTime` from `lib/format/date.ts`, which is how XMS writes a date, in one place. Add no new `toLocaleString` spelling of one.
+- Name a person by the name the API sent (`run_by_name`, `submitted_by_name`), not by an id.
+
+## Refusals
+
+- Word every refusal once, in the area's describer in `lib/<area>/`, keyed on `code`. `describeEngagementError` turns `renewal_date_required`, `stale_version`, `not_found` and `forbidden` into sentences and falls back to `describeError`. A component shows the describer's words, never its own string for a server code, the raw code or the response's message.
+  YES: `push({ title: "Not created", detail: describeBillingError(billingError(caught)), tone: "error" })`.
+  NO: `push({ title: "Error", detail: "Version conflict", tone: "error" })`, or `detail: String(caught)`.
+- Carry the server's facts into the words: the status the record has now, the moves it allows, the day, the permission. On `invalid_transition`, `describeBillingError` names the period's status and the moves left.
+- A code the API adds gets its case and a test in the same change. The fallback, "The request failed (code).", is a safety net, not wording.
+
+## The portal speaks client language
+
+- Portal copy comes from `lib/portal/client-language.ts`: `clientStatus` maps the state machine onto the seven client statuses ("Submitted", "Being worked", "Waiting on you", ...), with `PORTAL_TYPES`, `priorityLabel` and `relativeTime` beside it.
+- Internal state names never reach a client, and the portal shows the public thread only, never a work note.
+  YES: `clientStatus("awaiting_client")` reads "Waiting on you". NO: `ticket.state` printed on a portal screen.
