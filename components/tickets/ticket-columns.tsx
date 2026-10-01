@@ -239,16 +239,14 @@ export function ticketColumns({ accounts, hideAccount, showClocks }: ColumnOptio
       sortValue: (row) => row.assignee_name ?? "",
       // "M. Brown", no avatar circle: the render carries the name alone. The
       // name opens the person, like every other person named in a row.
-      render: (row) =>
-        row.assignee_name ? (
-          row.assignee_id ? (
-            <TextLink href={`/roster/${row.assignee_id}`}>{shortName(row.assignee_name)}</TextLink>
-          ) : (
-            <span className="text-xms-ink">{shortName(row.assignee_name)}</span>
-          )
+      render: (row) => {
+        if (!row.assignee_name) return <span className="text-xms-muted">Unassigned</span>;
+        return row.assignee_id ? (
+          <TextLink href={`/roster/${row.assignee_id}`}>{shortName(row.assignee_name)}</TextLink>
         ) : (
-          <span className="text-xms-muted">Unassigned</span>
-        ),
+          <span className="text-xms-ink">{shortName(row.assignee_name)}</span>
+        );
+      },
     },
     {
       key: "sla",

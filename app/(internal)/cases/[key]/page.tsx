@@ -12,7 +12,7 @@ import { AttachmentsCard } from "@/components/tickets/attachments";
 import { CaseForm } from "@/components/tickets/case-form";
 import { EmailPanel } from "@/components/tickets/email-panel";
 import { ContractCard } from "@/components/tickets/contract-card";
-import { ConversationTab } from "@/components/tickets/conversation-tab";
+import { ConversationTab, type ThreadShows } from "@/components/tickets/conversation-tab";
 import { LinksTab } from "@/components/tickets/links-tab";
 import { ResolutionTab } from "@/components/tickets/resolution-tab";
 import { ParticipantsCard } from "@/components/tickets/participants-card";
@@ -37,9 +37,7 @@ import { useGetTicketQuery, type TicketView } from "@/redux/ticketsApi";
 
 const TERMINAL = new Set(["closed", "cancelled", "rejected"]);
 
-type Shows = "all" | "replies" | "notes";
-
-const SHOWS_LABEL: Record<Shows, string> = {
+const SHOWS_LABEL: Record<ThreadShows, string> = {
   all: "Everything",
   replies: "Public replies",
   notes: "Work notes",
@@ -153,7 +151,7 @@ export interface NotesCardProps {
   catalogs: DeskCatalogs;
   tab: string;
   onTabChange: (tab: string) => void;
-  shows: Shows;
+  shows: ThreadShows;
   find: string;
 }
 
@@ -193,8 +191,8 @@ function NotesCard({ ticket, readOnly, catalogs, tab, onTabChange, shows, find }
 }
 
 export interface ThreadStripProps {
-  shows: Shows;
-  onShowsChange: (shows: Shows) => void;
+  shows: ThreadShows;
+  onShowsChange: (shows: ThreadShows) => void;
   find: string;
   onFindChange: (find: string) => void;
 }
@@ -208,7 +206,7 @@ function ThreadStrip({ shows, onShowsChange, find, onFindChange }: ThreadStripPr
           label="Show"
           value={shows}
           display={SHOWS_LABEL[shows]}
-          onChange={(value) => onShowsChange(value as Shows)}
+          onChange={(value) => onShowsChange(value as ThreadShows)}
         >
           <option value="all">Show: Everything</option>
           <option value="replies">Show: Public replies</option>
@@ -301,7 +299,7 @@ function TicketRecord({ ticketKey }: { ticketKey: string }) {
   const [more, setMore] = useState(false);
   // The strip is shared chrome, and it states what the thread holds and what
   // to find in it, which is why the conversation card carries no toggle.
-  const [shows, setShows] = useState<Shows>("all");
+  const [shows, setShows] = useState<ThreadShows>("all");
   const [find, setFind] = useState("");
   // One catalogs call, once the account is known: asking before the ticket
   // arrives fetched the bare catalogs and then the account's (finding 24).

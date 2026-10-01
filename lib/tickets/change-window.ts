@@ -7,7 +7,8 @@
  * an instant is inside a window, because `GET /v1/change-calendar/at`
  * answers that from the same rules the transition gate uses.
  */
-import type { FreezeWindow } from "@/redux/ticketsApi";
+import type { SignalTone } from "@/components/xms/signal-pill";
+import type { FreezeWindow, WindowAt } from "@/redux/ticketsApi";
 
 /**
  * The refusals the window rules answer with.
@@ -184,3 +185,18 @@ export function nextWindow<T extends { starts_at: string }>(windows: readonly T[
 export function daysUntil(instant: string, now: Date): number {
   return Math.floor((Date.parse(instant) - now.getTime()) / 86_400_000);
 }
+
+/** Where an account stands at an instant, as `GET /v1/change-calendar/at` answered. */
+export type WindowMoment = "inside" | "frozen" | "outside";
+
+export function windowMoment(at: Pick<WindowAt, "inside" | "frozen">): WindowMoment {
+  if (at.inside) return "inside";
+  if (at.frozen) return "frozen";
+  return "outside";
+}
+
+export const WINDOW_MOMENT_PILL: Record<WindowMoment, { label: string; tone: SignalTone }> = {
+  inside: { label: "Inside a change window", tone: "ready" },
+  frozen: { label: "Frozen right now", tone: "blocked" },
+  outside: { label: "Outside every window", tone: "needs-input" },
+};

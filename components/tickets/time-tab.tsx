@@ -88,6 +88,24 @@ export function toLogTimeBody(draft: LogTimeDraft): LogTimeBody {
   };
 }
 
+function logRefusal(caught: unknown): string {
+  const overage = overageBlockedMessage(caught);
+  if (overage !== null) return overage;
+  const parsed = apiError(caught);
+  switch (parsed.code) {
+    case "billing_period_locked":
+      return "That date is inside a locked billing period.";
+    case "future_date":
+      return "The date cannot be in the future.";
+    case "ticket_closed":
+      return "The ticket is closed; time stays reportable but cannot be added.";
+    case "bucket_retired":
+      return "That bucket has been retired, so no more time can be logged against it.";
+    default:
+      return describeError(parsed);
+  }
+}
+
 export interface LogTimeFormProps {
   catalogs: DeskCatalogs;
   onSubmit: (body: LogTimeBody) => Promise<void>;
@@ -132,19 +150,7 @@ export function LogTimeForm({ catalogs, onSubmit, pending, billableClass }: LogT
           await onSubmit(toLogTimeBody(draft));
           setDraft({ ...emptyDraft(catalogs, billableClass), performedOn: draft.performedOn });
         } catch (caught) {
-          const parsed = apiError(caught);
-          setError(
-            overageBlockedMessage(caught) ??
-              (parsed.code === "billing_period_locked"
-                ? "That date is inside a locked billing period."
-                : parsed.code === "future_date"
-                  ? "The date cannot be in the future."
-                  : parsed.code === "ticket_closed"
-                    ? "The ticket is closed; time stays reportable but cannot be added."
-                    : parsed.code === "bucket_retired"
-                      ? "That bucket has been retired, so no more time can be logged against it."
-                      : describeError(parsed)),
-          );
+          setError(logRefusal(caught));
         }
       }}
     >
