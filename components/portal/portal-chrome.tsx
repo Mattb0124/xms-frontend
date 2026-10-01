@@ -103,6 +103,15 @@ function PortalChromeView({ children, clerkSignedIn }: { children: ReactNode; cl
     );
   }
 
+  let content: ReactNode;
+  if (isSignIn || me.data) {
+    content = children;
+  } else if (status === 401) {
+    content = clerkSignedIn ? <SessionRefused /> : null;
+  } else {
+    content = <Skeleton lines={5} className="max-w-md" />;
+  }
+
   return (
     <div className="bg-xms-bg flex min-h-full flex-1 flex-col">
       <a
@@ -164,15 +173,7 @@ function PortalChromeView({ children, clerkSignedIn }: { children: ReactNode; cl
         </div>
       </header>
       <main id="portal-main" className="flex w-full flex-1 flex-col gap-6 px-5 py-8">
-        {isSignIn || me.data ? (
-          children
-        ) : status === 401 ? (
-          clerkSignedIn ? (
-            <SessionRefused />
-          ) : null
-        ) : (
-          <Skeleton lines={5} className="max-w-md" />
-        )}
+        {content}
         {!isSignIn && me.isError && status !== 401 ? (
           <p role="alert" className="text-body text-[color:var(--state-overdue-text)]">
             The portal could not load your account. Try again in a moment.

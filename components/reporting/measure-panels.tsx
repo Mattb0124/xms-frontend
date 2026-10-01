@@ -6,7 +6,7 @@ import { PriorityPill, type Priority } from "@/components/xms/priority-pill";
 import { ScoreTile } from "@/components/xms/score-tile";
 import { StatePill } from "@/components/xms/state-pill";
 import { cn } from "@/lib/utils";
-import type { Measures, Notable } from "@/redux/reportingApi";
+import type { Measures, Notable, Ratio } from "@/redux/reportingApi";
 
 /**
  * The measure panels shared by the Operations and Account dashboards
@@ -59,6 +59,31 @@ export function TileStrip({ measures, links }: { measures: Partial<Measures>; li
   );
 }
 
+function SlaRow({ label, ratio }: { label: string; ratio: Ratio }) {
+  return (
+    <div className="flex flex-col gap-1" data-testid={`sla-${label.toLowerCase()}`}>
+      <div className="flex items-baseline justify-between">
+        <span className="text-xms-label text-body">{label}</span>
+        <span className="xms-mono text-xms-ink text-body font-semibold">
+          {formatPercent(ratio)}
+          <span className="text-xms-muted ml-2 text-body font-normal">
+            {ratio.numerator} of {ratio.denominator}
+          </span>
+        </span>
+      </div>
+      <MeterBar
+        percent={ratio.value ?? 0}
+        // Attainment is a higher-is-better measure: at or above target
+        // it is met and drawn on the complete trio, never amber
+        // (frontend review finding 11).
+        met={ratio.value !== null && ratio.value >= SLA_TARGET_PERCENT}
+        breached={ratio.value !== null && ratio.value < SLA_TARGET_PERCENT}
+        className="w-full"
+      />
+    </div>
+  );
+}
+
 export function SlaPanel({ measures }: { measures: Partial<Measures> }) {
   const response = measures.sla_response_attainment;
   const resolution = measures.sla_resolution_attainment;
@@ -66,33 +91,8 @@ export function SlaPanel({ measures }: { measures: Partial<Measures> }) {
   return (
     <Panel title="SLA attainment" note="this period" bare>
       <div className="flex flex-col gap-4">
-        {[
-          { label: "Response", ratio: response },
-          { label: "Resolution", ratio: resolution },
-        ]
-          .filter((row) => row.ratio)
-          .map((row) => (
-            <div key={row.label} className="flex flex-col gap-1" data-testid={`sla-${row.label.toLowerCase()}`}>
-              <div className="flex items-baseline justify-between">
-                <span className="text-xms-label text-body">{row.label}</span>
-                <span className="xms-mono text-xms-ink text-body font-semibold">
-                  {formatPercent(row.ratio)}
-                  <span className="text-xms-muted ml-2 text-body font-normal">
-                    {row.ratio!.numerator} of {row.ratio!.denominator}
-                  </span>
-                </span>
-              </div>
-              <MeterBar
-                percent={row.ratio!.value ?? 0}
-                // Attainment is a higher-is-better measure: at or above target
-                // it is met and drawn on the complete trio, never amber
-                // (frontend review finding 11).
-                met={row.ratio!.value !== null && row.ratio!.value >= SLA_TARGET_PERCENT}
-                breached={row.ratio!.value !== null && row.ratio!.value < SLA_TARGET_PERCENT}
-                className="w-full"
-              />
-            </div>
-          ))}
+        {response ? <SlaRow label="Response" ratio={response} /> : null}
+        {resolution ? <SlaRow label="Resolution" ratio={resolution} /> : null}
       </div>
     </Panel>
   );

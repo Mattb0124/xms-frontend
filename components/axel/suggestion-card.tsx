@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { INPUT, InlineError } from "@/components/admin/primitives";
 import { apiError } from "@/lib/admin/api-error";
 import {
@@ -18,6 +18,7 @@ import {
   useDecideMutation,
   useFeedbackMutation,
   type ClassifyPayload,
+  type DecisionBody,
   type DraftReplyPayload,
   type DuplicatePayload,
   type PrioritisePayload,
@@ -296,6 +297,12 @@ function decisionLabel(decision: string | undefined): string {
   }
 }
 
+function decisionBody(decision: UserDecision, reason: RejectReason, draft: Record<string, unknown>): DecisionBody {
+  if (decision === "rejected") return { decision, reject_reason: reason };
+  if (decision === "edited_accepted") return { decision, applied_payload: draft };
+  return { decision };
+}
+
 /** Five buttons; the rating is a number only, the comment is optional and never required. */
 function FeedbackRow({ suggestionId }: { suggestionId: string }) {
   const [feedback, { isLoading, isSuccess }] = useFeedbackMutation();
@@ -353,15 +360,18 @@ export function AxelSuggestionCard({
   const [error, setError] = useState<string | null>(null);
   const [decided, setDecided] = useState<SuggestionView | null>(null);
 
-  useEffect(() => {
+  const onShown = useEffectEvent((suggestionId: string) => {
     if (suggestion.status === "offered" && !suggestion.decision) {
       trackShown(
-        { suggestion_id: suggestion.id, capability: suggestion.capability, confidence: suggestion.confidence, source },
+        { suggestion_id: suggestionId, capability: suggestion.capability, confidence: suggestion.confidence, source },
         "axel.suggestion.shown",
       );
     }
-    // once per suggestion id on this surface
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
+  // once per suggestion id on this surface
+  useEffect(() => {
+    onShown(suggestion.id);
   }, [suggestion.id]);
 
   const current = decided ?? suggestion;
@@ -370,12 +380,7 @@ export function AxelSuggestionCard({
 
   const submit = async (decision: UserDecision) => {
     setError(null);
-    const body =
-      decision === "rejected"
-        ? { decision, reject_reason: reason }
-        : decision === "edited_accepted"
-          ? { decision, applied_payload: draft }
-          : { decision };
+    const body = decisionBody(decision, reason, draft);
     try {
       const result = await decide({ id: suggestion.id, targetId: suggestion.target_id, ticketKey, body }).unwrap();
       const next = { ...result.suggestion, decision: result.decision };
