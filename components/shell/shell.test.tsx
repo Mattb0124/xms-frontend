@@ -24,8 +24,11 @@ describe("FinderBar", () => {
       axelOpen={false}
       unreadCount={0}
       onNotifications={() => {}}
-      userInitials="MB"
-      onUser={() => {}}
+      account={
+        <button type="button" aria-label="Account menu" className="aix-avatar">
+          <span className="aix-avatar-disc">MB</span>
+        </button>
+      }
       {...overrides}
     />
   );

@@ -11,7 +11,9 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@clerk/nextjs", () => ({
   useAuth: () => auth,
-  SignIn: () => <div>Clerk form</div>,
+  SignIn: ({ forceRedirectUrl }: { forceRedirectUrl?: string }) => (
+    <div data-redirect={forceRedirectUrl}>Clerk form</div>
+  ),
 }));
 
 describe("ClerkSignIn", () => {
@@ -32,5 +34,10 @@ describe("ClerkSignIn", () => {
     render(<ClerkSignIn />);
     expect(screen.queryByText("Clerk form")).not.toBeInTheDocument();
     expect(replace).toHaveBeenCalledWith("/portal");
+  });
+
+  it("sends a finished desk sign-in home", () => {
+    render(<ClerkSignIn redirectUrl="/" />);
+    expect(screen.getByText("Clerk form")).toHaveAttribute("data-redirect", "/");
   });
 });

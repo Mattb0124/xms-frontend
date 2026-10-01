@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ClerkSignOut } from "@/components/portal/clerk-sign-out";
+import { ClerkPortrait } from "@/components/xms/clerk-portrait";
 import { PORTAL_SECONDARY, PortalNotice } from "@/components/portal/primitives";
 import { Skeleton } from "@/components/xms/skeleton";
 import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
@@ -244,7 +245,11 @@ function UserMenu({ me }: { me: PortalMe | undefined }) {
         onClick={() => setOpen((value) => !value)}
         className="aix-avatar"
       >
-        <span className="aix-avatar-disc">{initialsOf(name)}</span>
+        {CLERK_ENABLED ? (
+          <ClerkPortrait initials={initialsOf(name)} />
+        ) : (
+          <span className="aix-avatar-disc">{initialsOf(name)}</span>
+        )}
       </button>
       {open ? (
         <div

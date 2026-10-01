@@ -6,18 +6,18 @@ import { useEffect } from "react";
 
 /**
  * Clerk's sign-in, rendered only when the publishable key is configured.
- * A session that already exists must not mount <SignIn>: Clerk sends that
- * component to /portal, and a refused /portal/me used to send the visitor
- * back here, which refreshed forever.
+ * A session that already exists must not mount <SignIn>: Clerk would send
+ * the visitor on, and a refused session that came back here refreshed forever.
+ * The desk and the portal each name where a finished sign-in lands.
  */
-export function ClerkSignIn() {
+export function ClerkSignIn({ redirectUrl = "/portal" }: { redirectUrl?: string }) {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) router.replace("/portal");
-  }, [isLoaded, isSignedIn, router]);
+    if (isLoaded && isSignedIn) router.replace(redirectUrl);
+  }, [isLoaded, isSignedIn, redirectUrl, router]);
 
   if (!isLoaded || isSignedIn) return null;
-  return <SignIn routing="hash" forceRedirectUrl="/portal" />;
+  return <SignIn routing="hash" forceRedirectUrl={redirectUrl} />;
 }
