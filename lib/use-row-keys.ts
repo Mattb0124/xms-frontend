@@ -22,8 +22,9 @@ export interface RowKeys {
  * React keys for the rows of an editable list whose rows carry no identity of
  * their own. They are held beside the rows rather than in them because the
  * rows are what the editor sends and compares: a key inside one would reach
- * the request body or the saved definition, or mark an untouched draft as
- * changed.
+ * the request body, the URL or the saved definition, or mark an untouched
+ * draft as changed. A draft row that a body builder picks apart field by
+ * field can carry its own id instead, through `keyed` in lib/draft-rows.
  *
  * A row appended at the end, or a list replaced from outside, is matched by
  * position; only a row removed from the middle needs `drop`.

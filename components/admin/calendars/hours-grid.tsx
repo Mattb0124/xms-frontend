@@ -1,7 +1,7 @@
 "use client";
 
 import { INPUT } from "@/components/admin/primitives";
-import { keyed, type Keyed } from "@/lib/admin/draft-rows";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { WEEKDAYS, type DraftWeekGrid, type Interval } from "@/lib/calendars/hours";
 
 export interface HoursGridProps {

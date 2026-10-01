@@ -74,10 +74,18 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 
-function stageAfterConfirm(scanState: Attachment["scan_state"]): UploadStage {
+/** Where a confirmed upload stands on the scan verdict the API returned with it. */
+export function stageAfterConfirm(scanState: Attachment["scan_state"]): UploadStage {
   if (scanState === "quarantined") return "quarantined";
   if (scanState === "clean") return "clean";
   return "scanning";
+}
+
+const IN_FLIGHT: ReadonlySet<UploadStage> = new Set(["presigning", "uploading", "scanning"]);
+
+/** A file with no verdict yet, which holds back whatever is waiting on the uploads. */
+export function isInFlight(stage: UploadStage): boolean {
+  return IN_FLIGHT.has(stage);
 }
 
 async function readError(response: Response): Promise<UploadRefusal> {

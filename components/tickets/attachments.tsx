@@ -10,6 +10,8 @@ import {
   UploadRefusal,
   describeRefusal,
   formatBytes,
+  isInFlight,
+  stageAfterConfirm,
   uploadAttachment,
   type UploadStage,
 } from "@/lib/attachments/upload";
@@ -56,13 +58,6 @@ export interface UseUploadsOptions {
   onDone?: (attachment: Attachment) => void;
 }
 
-/** Where a confirmed upload stands on the scan verdict the API returned. */
-function confirmedStage(scan: ScanState): UploadStage {
-  if (scan === "clean") return "clean";
-  if (scan === "quarantined") return "quarantined";
-  return "scanning";
-}
-
 /**
  * Tracks uploads for one ticket: every file goes through presign, upload
  * and confirm; the list keeps the stage and the verdict so the composer can
@@ -85,7 +80,7 @@ export function useUploads(ticketKey: string | undefined, options: UseUploadsOpt
           visibility: options.visibility?.(),
           onProgress: (progress) => update(id, { stage: progress.stage, percent: progress.percent }),
         });
-        update(id, { attachment, stage: confirmedStage(attachment.scan_state) });
+        update(id, { attachment, stage: stageAfterConfirm(attachment.scan_state) });
         options.onDone?.(attachment);
       } catch (error) {
         const refusal = error instanceof UploadRefusal ? error : new UploadRefusal("error");
@@ -96,7 +91,7 @@ export function useUploads(ticketKey: string | undefined, options: UseUploadsOpt
 
   const remove = (id: string) => setItems((current) => current.filter((item) => item.id !== id));
   const clear = () => setItems([]);
-  const scanning = items.some((item) => ["presigning", "uploading", "scanning"].includes(item.stage));
+  const scanning = items.some((item) => isInFlight(item.stage));
   return { items, add, remove, clear, scanning };
 }
 

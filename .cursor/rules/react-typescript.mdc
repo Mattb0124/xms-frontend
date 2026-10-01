@@ -8,7 +8,7 @@ alwaysApply: false
 
 Applies to new and edited components, hooks, and modules. Match the surrounding file when you are only touching a few lines of an older one.
 
-`eslint.config.mjs` holds these rules where a linter can: `no-nested-ternary` and `react/no-array-index-key`, and with them `@typescript-eslint/no-non-null-assertion` (outside tests, `e2e/` and `test-kit/`), `@typescript-eslint/consistent-type-imports` and `react/jsx-no-useless-fragment`. Fix what they report; never disable one inline.
+`eslint.config.mjs` holds these rules as errors where a linter can: `no-nested-ternary` and `react/no-array-index-key`, and with them `@typescript-eslint/no-non-null-assertion` (outside tests, `e2e/` and `test-kit/`), `@typescript-eslint/consistent-type-imports`, `react/jsx-no-useless-fragment` and `eqeqeq`. Fix what they report. An inline disable does nothing (`noInlineConfig`); a real exception goes in the config with its reason (`guardrails.mdc`).
 
 ## Component structure
 

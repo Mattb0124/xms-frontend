@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FieldRow, INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
-import { keyed, type Keyed } from "@/lib/admin/draft-rows";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { describeCalendarError, calendarError } from "@/lib/calendars/errors";
 import { useTrack } from "@/lib/telemetry/provider";
 import {

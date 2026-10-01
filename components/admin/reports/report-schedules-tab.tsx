@@ -17,7 +17,7 @@ import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
-import { useRowKeys } from "@/lib/admin/use-row-keys";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { deadlineLine, isHeld, reviewPill } from "@/lib/reporting/review";
 import {
   CADENCES,

@@ -7,7 +7,7 @@ import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { keyed, type Keyed } from "@/lib/admin/draft-rows";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { ROLE_OPTIONS, roleLabel } from "@/lib/roster/vocab";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";

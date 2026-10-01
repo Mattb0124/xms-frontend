@@ -37,8 +37,10 @@ useEffect(() => {
 
 ## Keys and draft rows
 
-- A list key comes from the data. A draft row the server has not numbered gets an `id` when the row is created (for example `crypto.randomUUID()`): in the factory that makes an empty row and in the reader that drafts the saved ones (`toFreezeDrafts`). Edits and removals find the row by that id, and the body builder maps each field to the wire by name, as `toFreezeWindows` does, so the id never travels.
-  YES: `key={freeze.id}` on a `FreezeDraft` that carries one. NO: `key={index}` in `FreezeRows`.
+- A list key comes from the data. An editable row the server has not numbered takes its key from one of two helpers, and never from its index (ESLint refuses one):
+  - A draft row that a body builder maps field by field carries its id, given with `keyed(row)` from `lib/draft-rows.ts` where the row is made: in the factory for an empty row and where the saved ones are drafted (`toFreezeDrafts(...).map(keyed)` in `ticket-groups.tsx`). Edits and removals find the row by `id`, and the builder never sends it, as `toFreezeWindows` does not.
+  - A row that is sent, compared or written to the URL as it is (conditions, field-map pairs, routing rules, recipients) keeps its key beside it: `const rowKeys = useRowKeys(rows.length)` from `lib/use-row-keys.ts`, `key={rowKeys.keys[index]}`, and `rowKeys.drop(index)` beside removing a row (`condition-builder.tsx`, `audit-search.tsx`).
+  YES: `key={freeze.id}` on a `Keyed<FreezeDraft>`. NO: `key={index}` in `FreezeRows`, or a module counter of your own.
 
 ## Size
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BatchProperties, CountsStrip, LogTab, RunProgress } from "@/components/admin/migration/batch-summary";
 import { BatchStatusPill } from "@/components/admin/migration/pills";
 import { ReconciliationTab } from "@/components/admin/migration/reconciliation-tab";
@@ -14,8 +14,9 @@ import { TabBar } from "@/components/xms/tab-bar";
 import { useToast } from "@/components/xms/toast";
 import { describeMigrationError, migrationError } from "@/lib/migration/errors";
 import { isRunnable, isRunning, objectKindLabel, runBlockedReason } from "@/lib/migration/vocab";
+import { RUN_PROGRESS_REFRESH_MS } from "@/lib/refresh";
 import { useTrack } from "@/lib/telemetry/provider";
-import { useGetBatchQuery, useRunBatchMutation } from "@/redux/migrationApi";
+import { migrationApi, useGetBatchQuery, useRunBatchMutation } from "@/redux/migrationApi";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
 /**
@@ -26,15 +27,10 @@ import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 function AdminMigrationBatchPageBody() {
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const batch = useGetBatchQuery(id);
-  const running = batch.data ? isRunning(batch.data.status) : false;
-  // Running batches poll every ten seconds, otherwise no polling (technical section 6).
-  const { refetch } = batch;
-  useEffect(() => {
-    if (!running) return;
-    const handle = window.setInterval(() => void refetch(), 10_000);
-    return () => window.clearInterval(handle);
-  }, [running, refetch]);
+  // Whether the batch polls follows from the batch itself, so the cached copy decides it before the read.
+  const cached = migrationApi.endpoints.getBatch.useQueryState(id);
+  const running = cached.data ? isRunning(cached.data.status) : false;
+  const batch = useGetBatchQuery(id, { pollingInterval: running ? RUN_PROGRESS_REFRESH_MS : 0 });
   const accounts = useListGrantedAccountsQuery();
   const [run, runState] = useRunBatchMutation();
   const { push } = useToast();

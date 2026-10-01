@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminMigrationBatchPage from "@/app/(internal)/admin/migration/[id]/page";
 import AdminMigrationNewPage from "@/app/(internal)/admin/migration/new/page";
 import AdminMigrationPage from "@/app/(internal)/admin/migration/page";
+import { RUN_PROGRESS_REFRESH_MS } from "@/lib/refresh";
 import { ACCOUNT_ID, BATCH_ID, INSTANCE_ID, aBatch, aBatchDetail, aReport } from "@/test-kit/migration";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
@@ -103,7 +104,33 @@ describe("AdminMigrationNewPage", () => {
 });
 
 describe("AdminMigrationBatchPage", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("reads a running batch again every ten seconds and stops once it has finished", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], shouldAdvanceTime: true });
+    let batch = aBatchDetail({ status: "loading", dry_run: false });
+    const calls = stubFetch({
+      "GET /v1/admin/me": me(["admin:migration"]),
+      "GET /v1/accounts": granted,
+      [`GET /v1/migration/batches/${BATCH_ID}`]: () => json(batch),
+      [`GET /v1/migration/batches/${BATCH_ID}/records`]: () => json([]),
+    });
+    const reads = () => calls.filter((call) => call.key === `GET /v1/migration/batches/${BATCH_ID}`).length;
+    renderDesk(<AdminMigrationBatchPage />);
+    await screen.findByText("This batch is running.");
+    expect(reads()).toBe(1);
+
+    batch = aBatchDetail({ status: "reconciled", report: aReport() });
+    await vi.advanceTimersByTimeAsync(RUN_PROGRESS_REFRESH_MS);
+    await screen.findByText("Reconciled", { selector: "[data-state]" });
+    expect(reads()).toBe(2);
+
+    await vi.advanceTimersByTimeAsync(RUN_PROGRESS_REFRESH_MS * 3);
+    expect(reads()).toBe(2);
+  });
 
   it("runs a draft with a confirm and shows the finished counts", async () => {
     let ran = false;

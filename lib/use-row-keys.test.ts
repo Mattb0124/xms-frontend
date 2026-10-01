@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
-import { useRowKeys } from "@/lib/admin/use-row-keys";
+import { useRowKeys } from "@/lib/use-row-keys";
 
 /** A list editor in miniature: the rows live in state and each edit changes the keys in the same event. */
 function useEditedList(initial: number) {

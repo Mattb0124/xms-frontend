@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MeterBar } from "@/components/xms/meter-bar";
+import { SLA_TICK_MS } from "@/components/xms/sla-value";
 import { clockDisplay, formatMinutes, localRemainingMinutes, type ClockView, type TicketSla } from "@/lib/tickets/sla";
 import { cn } from "@/lib/utils";
 
@@ -109,7 +110,7 @@ export function SlaTable({
   const [now, setNow] = useState(() => new Date());
   const base = fetchedAt ?? now;
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    const id = window.setInterval(() => setNow(new Date()), SLA_TICK_MS);
     return () => window.clearInterval(id);
   }, []);
   const rows = slaRows(sla, base, now, metAt);

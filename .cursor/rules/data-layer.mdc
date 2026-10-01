@@ -25,10 +25,11 @@ alwaysApply: false
 
 ## Transport and polling
 
-- No `fetch` in a component or a page. A JSON route is an endpoint. A file the reader downloads goes through `downloadFile` or `fetchDownload` in `lib/exports/download.ts`, with the path from the slice (`downloadFile({ url: billingExportPath(accountId, period.id, format) })`). A presigned link the API minted opens with `openExternal` (`security.mdc`).
-- Poll with `pollingInterval: LIVE_REFRESH_MS` (the desk's lists, counts and open record) or `WORKER_REFRESH_MS` (integration health and migration batches, which move with the worker) from `lib/refresh.ts`. A new cadence is a named constant there with its reason.
+- No `fetch` in a component or a page; ESLint refuses it there. A JSON route is an endpoint. A file the reader downloads goes through `downloadFile` or `fetchDownload` in `lib/exports/download.ts`, with the path from the slice (`downloadFile({ url: billingExportPath(accountId, period.id, format) })`). A presigned link the API minted opens with `openExternal` (`security.mdc`).
+- Poll with `pollingInterval: LIVE_REFRESH_MS` (the desk's lists, counts and open record), `WORKER_REFRESH_MS` (integration health and migration batches, which move with the worker) or `RUN_PROGRESS_REFRESH_MS` (a batch while it runs) from `lib/refresh.ts`. A new cadence is a named constant there with its reason.
   YES: `useConnectorHealthQuery(undefined, { pollingInterval: WORKER_REFRESH_MS, refetchOnFocus: true })`. NO: `pollingInterval: 15000`, or a `setInterval` that calls `refetch`.
-- An interval may tick a local clock and nothing else (`SlaValue` counts down between polls).
+- When the record itself decides whether to poll, read it from the cache first with the endpoint's `useQueryState`, which does not subscribe, and pass the interval to the query: `pollingInterval: running ? RUN_PROGRESS_REFRESH_MS : 0` in `app/(internal)/admin/migration/[id]/page.tsx`.
+- An interval may tick a local clock and nothing else: `SlaValue`, the SLA rail and the SLA table count down at `SLA_TICK_MS` between polls.
 
 ## The server is the only author
 

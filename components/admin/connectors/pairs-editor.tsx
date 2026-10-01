@@ -1,7 +1,7 @@
 "use client";
 
 import { INPUT, SECONDARY_BUTTON } from "@/components/admin/primitives";
-import { useRowKeys } from "@/lib/admin/use-row-keys";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { cn } from "@/lib/utils";
 
 export interface PairsEditorProps {
