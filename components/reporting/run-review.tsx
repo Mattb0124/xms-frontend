@@ -277,6 +277,20 @@ function RenditionLinks({ files }: { files: ReviewRun["files"] }) {
   );
 }
 
+function decisionSubtitle(ownRun: boolean, hasEdit: boolean): string {
+  if (ownRun) return "You asked for this run, so a second pair of eyes has to approve it. You may still cancel it.";
+  if (hasEdit) {
+    return "Both buttons send the narrative in the panel above, which a reviewer has rewritten; the API rebuilds the two files first if the edit was never regenerated. Cancel sends nothing.";
+  }
+  return "Nobody has rewritten the narrative, so there is nothing to send but the pack as it was rendered. Cancel sends nothing.";
+}
+
+function approveTitle(ownRun: boolean, hasEdit: boolean): string | undefined {
+  if (ownRun) return "You asked for this run, so somebody else has to approve it.";
+  if (hasEdit) return undefined;
+  return "Nothing has been rewritten yet, so there are no edits to send.";
+}
+
 /**
  * The two ways to send and the one way not to (functional 5.8). Both send
  * buttons call the same route, which is the honest shape: the API ships the
@@ -314,17 +328,7 @@ function Decisions({
   ownRun: boolean;
 }) {
   return (
-    <Panel
-      title="Decision"
-      caption="Approve or cancel"
-      subtitle={
-        ownRun
-          ? "You asked for this run, so a second pair of eyes has to approve it. You may still cancel it."
-          : hasEdit
-            ? "Both buttons send the narrative in the panel above, which a reviewer has rewritten; the API rebuilds the two files first if the edit was never regenerated. Cancel sends nothing."
-            : "Nobody has rewritten the narrative, so there is nothing to send but the pack as it was rendered. Cancel sends nothing."
-      }
-    >
+    <Panel title="Decision" caption="Approve or cancel" subtitle={decisionSubtitle(ownRun, hasEdit)}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-2">
           <button
@@ -332,13 +336,7 @@ function Decisions({
             className={PRIMARY_BUTTON}
             onClick={() => onApprove("with_edits")}
             disabled={ownRun || !hasEdit || approving || cancelling}
-            title={
-              ownRun
-                ? "You asked for this run, so somebody else has to approve it."
-                : hasEdit
-                  ? undefined
-                  : "Nothing has been rewritten yet, so there are no edits to send."
-            }
+            title={approveTitle(ownRun, hasEdit)}
           >
             {approving ? "Sending" : "Approve and send"}
           </button>
@@ -485,8 +483,8 @@ function SectionPanel({ section }: { section: ReviewSection }) {
         <p className="text-xms-label text-body">{EMPTY_SECTION_LINE}</p>
       ) : (
         <div className="flex flex-col gap-4">
-          {section.paragraphs.map((paragraph, index) => (
-            <p key={index} className="text-xms-ink text-body whitespace-pre-wrap">
+          {section.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="text-xms-ink text-body whitespace-pre-wrap">
               {paragraph}
             </p>
           ))}
@@ -514,11 +512,11 @@ function SectionPanel({ section }: { section: ReviewSection }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {table.rows.map((row, index) => (
-                    <tr key={index} className="border-xms-line border-b">
-                      {row.map((cell, cellIndex) => (
-                        <td key={cellIndex} className={cn(CELL, cellIndex === 0 && "xms-mono whitespace-nowrap")}>
-                          {cell}
+                  {table.rows.map((row) => (
+                    <tr key={row.join("|")} className="border-xms-line border-b">
+                      {table.columns.map((column, columnIndex) => (
+                        <td key={column} className={cn(CELL, columnIndex === 0 && "xms-mono whitespace-nowrap")}>
+                          {row[columnIndex]}
                         </td>
                       ))}
                     </tr>
