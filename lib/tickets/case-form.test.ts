@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseFieldPatch } from "@/lib/tickets/case-form";
+import { caseFieldPatch, clientReference, externalRefsBody, syncedReferences } from "@/lib/tickets/case-form";
 
 describe("caseFieldPatch", () => {
   it("sends the committed row with the version the record was read at", () => {
@@ -22,5 +22,20 @@ describe("caseFieldPatch", () => {
   it("writes nothing for a row the form does not own", () => {
     expect(caseFieldPatch("number", "CS1000001", 3)).toBeNull();
     expect(caseFieldPatch("state", "closed", 3)).toBeNull();
+  });
+});
+
+describe("external reference", () => {
+  const refs = { servicenow: "INC0448120", client_reference: "PO-19" };
+
+  it("reads the reference a person typed, and the ones a system wrote", () => {
+    expect(clientReference(refs)).toBe("PO-19");
+    expect(clientReference({})).toBe("");
+    expect(syncedReferences(refs)).toBe("INC0448120");
+  });
+
+  it("keeps the system keys when the typed reference changes or is cleared", () => {
+    expect(externalRefsBody(refs, "PO-20")).toEqual({ servicenow: "INC0448120", client_reference: "PO-20" });
+    expect(externalRefsBody(refs, "  ")).toEqual({ servicenow: "INC0448120" });
   });
 });

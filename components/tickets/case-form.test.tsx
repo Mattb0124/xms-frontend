@@ -155,6 +155,30 @@ describe("CaseForm", () => {
     );
   });
 
+  it("names the channel and the scope flag as fields the form does not edit", async () => {
+    stub(["tickets:view"]);
+    renderDesk(<CaseForm ticket={aTicketView({ source: "email" })} />);
+    expect(await screen.findByText("Set by the channel that opened the case")).toBeInTheDocument();
+    expect(screen.getByText("Set and cleared on the Scope tab")).toBeInTheDocument();
+  });
+
+  it("saves a typed external reference without dropping the one a system wrote", async () => {
+    const calls = stub(["tickets:view", "tickets:work"], {
+      "PATCH /v1/tickets/CS1000199": () => json(aTicketView({ version: 4 })),
+    });
+    renderDesk(
+      <CaseForm ticket={aTicketView({ external_refs: { servicenow: "INC0448120", client_reference: "PO-19" } })} />,
+    );
+    const reference = await screen.findByLabelText("External reference");
+    fireEvent.change(reference, { target: { value: "PO-20" } });
+    fireEvent.blur(reference);
+    await waitFor(() => expect(calls.some((call) => call.key.startsWith("PATCH "))).toBe(true));
+    expect(calls.find((call) => call.key.startsWith("PATCH "))?.body).toEqual({
+      version: 3,
+      external_refs: { servicenow: "INC0448120", client_reference: "PO-20" },
+    });
+  });
+
   it("commits the short description and the description as fields of the form", async () => {
     const calls = stub(["tickets:view", "tickets:work"], {
       "PATCH /v1/tickets/CS1000199": () => json(aTicketView({ version: 4 })),

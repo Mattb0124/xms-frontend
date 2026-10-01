@@ -70,6 +70,7 @@ export async function submitNewTicket(input: SubmitNewTicketInput): Promise<void
     contract_id: input.contractId || undefined,
     requester_email: draft.requester_email.trim() || undefined,
     requester_name: draft.requester_name.trim() || undefined,
+    configuration_item_id: draft.configuration_item_id || undefined,
   };
   try {
     const ticket = await input.create(body);

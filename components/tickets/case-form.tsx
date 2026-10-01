@@ -6,7 +6,7 @@ import { GroupPicker } from "@/components/tickets/group-picker";
 import { RecordForm, RecordRow, type RecordField, type RecordLabels } from "@/components/xms/record-form";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { caseFieldPatch } from "@/lib/tickets/case-form";
+import { caseFieldPatch, clientReference, externalRefsBody, syncedReferences } from "@/lib/tickets/case-form";
 import { describeGroupError } from "@/lib/tickets/groups";
 import { scopeLabel } from "@/lib/tickets/scope";
 import { formatMinutes } from "@/lib/tickets/sla";
@@ -91,7 +91,13 @@ function classificationFields(ticket: TicketView, items: ConfigurationItem[], re
   ];
   return [
     { key: "number", label: "Number", value: ticket.key, readOnly: true, mono: true },
-    { key: "source", label: "Channel", value: SOURCE_LABEL[ticket.source] ?? ticket.source, readOnly: true },
+    {
+      key: "source",
+      label: "Channel",
+      value: SOURCE_LABEL[ticket.source] ?? ticket.source,
+      readOnly: true,
+      hint: "Set by the channel that opened the case",
+    },
     {
       key: "type",
       label: "Ticket type",
@@ -187,7 +193,8 @@ function priorityFields(ticket: TicketView, canOverride: boolean, readOnly?: boo
   ];
 }
 
-function recordFields(ticket: TicketView, time: TicketTime | undefined): RecordField[] {
+function recordFields(ticket: TicketView, time: TicketTime | undefined, readOnly?: boolean): RecordField[] {
+  const synced = syncedReferences(ticket.external_refs);
   return [
     { key: "created_at", label: "Created", value: createdLabel(ticket.created_at), readOnly: true, mono: true },
     { key: "created_by", label: "Created by", value: ticket.created_by_name, readOnly: true },
@@ -208,15 +215,17 @@ function recordFields(ticket: TicketView, time: TicketTime | undefined): RecordF
     {
       key: "external_reference",
       label: "External reference",
-      value: externalReference(ticket.external_refs),
-      readOnly: true,
+      value: clientReference(ticket.external_refs),
+      readOnly,
       mono: true,
+      hint: synced === "" ? undefined : `From sync: ${synced}`,
     },
     {
       key: "out_of_scope",
       label: "Out of scope",
       value: ticket.scope ? scopeLabel(ticket.scope.out_of_scope) : "No",
       readOnly: true,
+      hint: "Set and cleared on the Scope tab",
     },
   ];
 }
@@ -324,7 +333,10 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
   );
 
   const commit = async (key: string, value: string) => {
-    const body = caseFieldPatch(key, value, ticket.version);
+    const body =
+      key === "external_reference"
+        ? { version: ticket.version, external_refs: externalRefsBody(ticket.external_refs, value) }
+        : caseFieldPatch(key, value, ticket.version);
     if (body) await patch({ key: ticket.key, body }).unwrap();
   };
 
@@ -368,7 +380,7 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
             <RecordForm {...form} fields={priorityFields(ticket, canOverride, readOnly)} />
           </FormGroup>
           <FormGroup caption="Record">
-            <RecordForm {...form} fields={recordFields(ticket, time)} />
+            <RecordForm {...form} fields={recordFields(ticket, time, readOnly)} />
           </FormGroup>
         </div>
       </div>
