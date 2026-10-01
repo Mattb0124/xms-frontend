@@ -19,6 +19,10 @@ import {
 import { useTrack } from "@/lib/telemetry/provider";
 import { useAnswerPortalSurveyMutation, usePortalSurveysQuery, type Survey } from "@/redux/portalApi";
 
+function focusedFirst(surveys: Survey[], focusId: string | undefined): Survey[] {
+  return [...surveys.filter((survey) => survey.id === focusId), ...surveys.filter((survey) => survey.id !== focusId)];
+}
+
 /**
  * Surveys (Client Portal functional 5.7, CP-07): the pending surveys of
  * both kinds as cards, each asking the questions its own row carries (the
@@ -34,7 +38,7 @@ export function SurveysPage({ focusId }: { focusId?: string }) {
   const track = useTrack("portal.survey.answer");
   const [notice, setNotice] = useState<{ tone: "info" | "error"; text: string } | null>(null);
 
-  const pending = [...(data?.pending ?? [])].sort((a, b) => (a.id === focusId ? -1 : b.id === focusId ? 1 : 0));
+  const pending = focusedFirst(data?.pending ?? [], focusId);
   const answered = data?.answered ?? [];
   const focused = focusId ? pending.find((survey) => survey.id === focusId) : undefined;
   const focusedAnswered = focusId && !focused ? answered.find((survey) => survey.id === focusId) : undefined;
