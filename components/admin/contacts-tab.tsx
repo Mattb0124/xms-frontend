@@ -40,7 +40,7 @@ export function AccountContactsTab({ accountId }: { accountId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
-  const contacts = data ?? [];
+  const contacts = useMemo(() => data ?? [], [data]);
   const flags = useMemo(() => flagsToOffer(contacts), [contacts]);
 
   const set = async (contact: Contact, flag: string, on: boolean) => {

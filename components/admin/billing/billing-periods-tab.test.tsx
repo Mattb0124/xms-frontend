@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BillingPeriodsTab } from "@/components/admin/billing/billing-periods-tab";
 import { DownloadError } from "@/lib/exports/download";
+import type * as DownloadModule from "@/lib/exports/download";
 import { aBillingExport, aBillingPeriod, aLockedPeriod } from "@/test-kit/time";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
@@ -9,7 +10,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/admin/accounts/acct-1" 
 
 const downloadFile = vi.fn();
 vi.mock("@/lib/exports/download", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/exports/download")>();
+  const actual = await importOriginal<typeof DownloadModule>();
   return { ...actual, downloadFile: (request: unknown) => downloadFile(request) };
 });
 

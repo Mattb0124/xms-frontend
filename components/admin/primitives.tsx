@@ -42,7 +42,7 @@ export function AdminGate({ permission, children }: { permission: string; childr
   if (!me.hasPermission(permission)) {
     return <EmptyBanner title="Not permitted" detail={`This screen needs the ${permission} permission.`} />;
   }
-  return <>{children}</>;
+  return children;
 }
 
 /** Account status on the ramp: onboarding is New, active is Resolved green, suspended amber, offboarded grey. */

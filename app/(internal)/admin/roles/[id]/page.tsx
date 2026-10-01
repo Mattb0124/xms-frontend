@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { PermissionChecklist } from "@/components/admin/permission-checklist";
 import {
   AdminGate,
@@ -55,29 +55,26 @@ function AdminRoleRecordPageBody() {
     }
   };
 
+  const retire = async () => {
+    try {
+      await update({ id, body: { version: data.version, status: "retired" } }).unwrap();
+    } catch (caught) {
+      const parsed = onError(caught);
+      if (parsed.code === "last_administrator") setError(describeError(parsed));
+    }
+  };
+
+  let actions: ReactNode = null;
+  if (data.is_system)
+    actions = <span className="text-xms-label text-body">System role: name and status are fixed</span>;
+  else if (data.status === "active") actions = <ConfirmButton label="Retire" danger onConfirm={retire} />;
+
   return (
     <>
       <RecordBar
         title={data.name}
         pill={<StatePill state={data.status === "active" ? "resolved" : "closed"} label={data.status} />}
-        actions={
-          data.is_system ? (
-            <span className="text-xms-label text-body">System role: name and status are fixed</span>
-          ) : data.status === "active" ? (
-            <ConfirmButton
-              label="Retire"
-              danger
-              onConfirm={async () => {
-                try {
-                  await update({ id, body: { version: data.version, status: "retired" } }).unwrap();
-                } catch (caught) {
-                  const parsed = onError(caught);
-                  if (parsed.code === "last_administrator") setError(describeError(parsed));
-                }
-              }}
-            />
-          ) : null
-        }
+        actions={actions}
       />
       <InlineError message={error} />
       <div className="grid gap-4">

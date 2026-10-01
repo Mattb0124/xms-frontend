@@ -9,12 +9,27 @@ export function impliedClosure(selected: Iterable<string>, catalog: PermissionRo
   const result = new Set<string>();
   const stack = [...selected];
   while (stack.length > 0) {
-    const key = stack.pop()!;
-    if (result.has(key)) continue;
+    const key = stack.pop();
+    if (key === undefined || result.has(key)) continue;
     result.add(key);
     for (const implied of byKey.get(key)?.implies ?? []) if (!result.has(implied)) stack.push(implied);
   }
   return result;
+}
+
+export interface ImplicationNoteProps {
+  implied: boolean;
+  /** The directly granted keys that imply this one. */
+  impliedBy: string[] | undefined;
+  /** The keys this one implies. */
+  implies: string[];
+}
+
+/** Why an implied key is ticked, or else what a key would tick when it is granted. */
+function ImplicationNote({ implied, impliedBy, implies }: ImplicationNoteProps) {
+  if (implied) return <span className="text-xms-muted block text-body">Implied by {impliedBy?.join(", ")}</span>;
+  if (implies.length > 0) return <span className="text-xms-muted block text-body">Implies {implies.join(", ")}</span>;
+  return null;
 }
 
 export interface PermissionChecklistProps {
@@ -40,7 +55,7 @@ export function PermissionChecklist({ catalog, selected, onChange, disabled }: P
     return [...map.entries()];
   }, [catalog]);
 
-  const direct = new Set(selected);
+  const direct = useMemo(() => new Set(selected), [selected]);
   const closure = impliedClosure(selected, catalog);
   const impliedBy = useMemo(() => {
     const result = new Map<string, string[]>();
@@ -51,8 +66,7 @@ export function PermissionChecklist({ catalog, selected, onChange, disabled }: P
       }
     }
     return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, catalog]);
+  }, [direct, catalog]);
 
   const toggle = (key: string) => {
     const next = new Set(direct);
@@ -86,13 +100,7 @@ export function PermissionChecklist({ catalog, selected, onChange, disabled }: P
                     <span className={isImplied ? "text-xms-muted" : "text-xms-ink"}>
                       <span className="xms-mono">{row.key}</span>
                       <span className="text-xms-label block text-body">{row.label}</span>
-                      {isImplied ? (
-                        <span className="text-xms-muted block text-body">
-                          Implied by {impliedBy.get(row.key)?.join(", ")}
-                        </span>
-                      ) : row.implies.length > 0 ? (
-                        <span className="text-xms-muted block text-body">Implies {row.implies.join(", ")}</span>
-                      ) : null}
+                      <ImplicationNote implied={isImplied} impliedBy={impliedBy.get(row.key)} implies={row.implies} />
                     </span>
                   </label>
                 </li>
