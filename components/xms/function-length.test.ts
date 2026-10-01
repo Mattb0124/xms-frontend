@@ -24,16 +24,10 @@ const ALLOWED = new Map<string, number>([
   ["components/admin/saved-queries.tsx:SavedQueriesPanel", 226],
   ["components/admin/security-dashboard.tsx:SecurityDashboard", 234],
   ["components/admin/webhooks/webhooks-tab.tsx:AccountWebhooksTab", 253],
-  ["components/capacity/capacity-grid.tsx:CapacityGrid", 220],
-  ["components/roster/details-tab.tsx:DetailsTab", 213],
-  ["components/shell/finder.tsx:Finder", 261],
   ["components/tickets/case-form.tsx:CaseForm", 305],
   ["components/tickets/saved-views.tsx:SavedViewsBar", 320],
   ["components/tickets/ticket-groups.tsx:TicketGroupsCatalog", 200],
   ["components/tickets/transition-menu.tsx:TransitionMenu", 259],
-  ["components/time/budget-entries.tsx:BudgetEntriesList", 201],
-  ["components/xms/dense-table.tsx:DenseTable", 278],
-  ["components/xms/record-form.tsx:Field", 249],
 ]);
 
 function walk(directory: string): string[] {
