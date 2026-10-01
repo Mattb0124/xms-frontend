@@ -19,11 +19,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * The nonce is minted per request by `proxy.ts` and read back here, so
- * the one inline script this tree writes (next-themes, before the first
- * paint) carries it. The framework's own scripts take it from the request
- * header without being told, and so does `@clerk/nextjs`, which reads
- * `x-nonce` itself.
+ * The nonce is minted per request by `proxy.ts` and read back here for the
+ * two things in this tree that write script tags of their own: next-themes,
+ * whose inline script runs before the first paint, and Clerk, whose client
+ * provider does not read the header itself. The framework's own scripts take
+ * it from the request header without being told.
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;

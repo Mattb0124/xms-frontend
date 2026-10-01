@@ -209,48 +209,48 @@ export function ScopeCard({ ticket }: { ticket: TicketView }) {
           </button>
         ) : null}
 
-        {canDecide && flagged ? (
-          blocked ? (
-            <p className="text-xms-label text-body" data-decision-blocked>
-              {blocked}
+        {canDecide && flagged && blocked ? (
+          <p className="text-xms-label text-body" data-decision-blocked>
+            {blocked}
+          </p>
+        ) : null}
+
+        {canDecide && flagged && !blocked ? (
+          <div className="flex flex-col gap-2" data-testid="scope-decision">
+            <label className={LABEL} htmlFor={`scope-allowance-${ticket.key}`}>
+              Allowance in minutes (optional)
+            </label>
+            <input
+              id={`scope-allowance-${ticket.key}`}
+              inputMode="numeric"
+              className={cn(INPUT, "xms-mono text-body")}
+              value={allowance}
+              onChange={(event) => setAllowance(event.target.value)}
+            />
+            <p className="text-xms-label text-body">
+              Added to the contract period the ticket bills against, so the time logged on it is inside budget. Leave it
+              empty to approve with no extra budget.
             </p>
-          ) : (
-            <div className="flex flex-col gap-2" data-testid="scope-decision">
-              <label className={LABEL} htmlFor={`scope-allowance-${ticket.key}`}>
-                Allowance in minutes (optional)
-              </label>
-              <input
-                id={`scope-allowance-${ticket.key}`}
-                inputMode="numeric"
-                className={cn(INPUT, "xms-mono text-body")}
-                value={allowance}
-                onChange={(event) => setAllowance(event.target.value)}
-              />
-              <p className="text-xms-label text-body">
-                Added to the contract period the ticket bills against, so the time logged on it is inside budget. Leave
-                it empty to approve with no extra budget.
-              </p>
-              <label className={LABEL} htmlFor={`scope-note-${ticket.key}`}>
-                Note (required to decline)
-              </label>
-              <textarea
-                id={`scope-note-${ticket.key}`}
-                rows={2}
-                maxLength={2000}
-                className={cn(INPUT, "h-auto py-1 text-body")}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-              />
-              <div className="flex gap-2">
-                <button type="button" className={PRIMARY_BUTTON} onClick={() => answer("approve")} disabled={busy}>
-                  Approve
-                </button>
-                <button type="button" className={DANGER_BUTTON} onClick={() => answer("decline")} disabled={busy}>
-                  Decline
-                </button>
-              </div>
+            <label className={LABEL} htmlFor={`scope-note-${ticket.key}`}>
+              Note (required to decline)
+            </label>
+            <textarea
+              id={`scope-note-${ticket.key}`}
+              rows={2}
+              maxLength={2000}
+              className={cn(INPUT, "h-auto py-1 text-body")}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+            <div className="flex gap-2">
+              <button type="button" className={PRIMARY_BUTTON} onClick={() => answer("approve")} disabled={busy}>
+                Approve
+              </button>
+              <button type="button" className={DANGER_BUTTON} onClick={() => answer("decline")} disabled={busy}>
+                Decline
+              </button>
             </div>
-          )
+          </div>
         ) : null}
 
         {!canWork && !canDecide ? (

@@ -45,9 +45,6 @@ export function KnowledgeReviewQueue() {
   const [publish] = usePublishArticleMutation();
   const { push } = useToast();
 
-  const failed = (caught: unknown, title: string) =>
-    push({ title, detail: describeError(apiError(caught)), tone: "error" });
-
   const authored: DenseColumn<Article>[] = useMemo(
     () => [
       {
@@ -106,7 +103,7 @@ export function KnowledgeReviewQueue() {
                   await publish({ key: row.display_key, version: row.version }).unwrap();
                   push({ title: `${row.display_key} published`, tone: "success" });
                 } catch (caught) {
-                  failed(caught, "It was not published");
+                  push({ title: "It was not published", detail: describeError(apiError(caught)), tone: "error" });
                 }
               }}
             />
@@ -118,8 +115,7 @@ export function KnowledgeReviewQueue() {
         ),
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [publish],
+    [publish, push],
   );
 
   const arrangement = useListArrangement("knowledge-review", authored);

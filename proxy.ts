@@ -12,8 +12,8 @@ import { CLERK_FRONTEND_API, contentSecurityPolicy, newNonce, NONCE_HEADER } fro
  *
  * Every document request gets its own nonce. It goes out twice: on the
  * request headers, where the framework reads it and stamps it on every
- * script it emits (and where `@clerk/nextjs` reads `x-nonce` for its own
- * script tag), and on the response's Content-Security-Policy, which is what
+ * script it emits (and where the root layout reads `x-nonce` back for Clerk and
+ * next-themes), and on the response's Content-Security-Policy, which is what
  * the browser enforces. Because the policy is per request it cannot live in
  * `next.config.ts` any more, and it does not: that file sets the rest of the
  * security headers and no CSP at all, so a document never carries two

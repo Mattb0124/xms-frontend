@@ -15,9 +15,12 @@
  */
 import { apiError } from "@/lib/admin/api-error";
 import type {
+  CreateTicketGroupBody,
   FreezeWindow,
+  PatchTicketGroupBody,
   RoutableType,
   RoutingRuleInput,
+  TicketGroup,
   TicketGroupKind,
   TicketGroupStatus,
 } from "@/redux/ticketsApi";
@@ -223,6 +226,47 @@ export function toLocalInput(instant: string | null | undefined): string {
   if (Number.isNaN(parsed.getTime())) return "";
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+}
+
+/** A new group as `POST /v1/ticket-groups` takes it. */
+export function ticketGroupCreateBody(draft: TicketGroupDraft): CreateTicketGroupBody {
+  return {
+    account_id: draft.accountId,
+    kind: draft.kind,
+    name: draft.name.trim(),
+    description: draft.description.trim() || undefined,
+    status: draft.status,
+    starts_at: toInstant(draft.startsAt),
+    ends_at: toInstant(draft.endsAt),
+    freeze_windows: toFreezeWindows(draft.freezes),
+  };
+}
+
+/** An edit to the group being edited, as its PATCH takes it. */
+export function ticketGroupPatchBody(
+  editing: Pick<TicketGroup, "version" | "starts_at" | "ends_at" | "freeze_windows">,
+  draft: TicketGroupDraft,
+): PatchTicketGroupBody {
+  const startsAt = toInstant(draft.startsAt);
+  const endsAt = toInstant(draft.endsAt);
+  const freezes = toFreezeWindows(draft.freezes);
+  const moved = scheduleMoved(editing, { startsAt, endsAt, freezes });
+  return {
+    version: editing.version,
+    name: draft.name.trim(),
+    description: draft.description.trim(),
+    status: draft.status,
+    // Sent only where they moved, so a rename does not read as a schedule
+    // change and ask for a reason that has nothing to say.
+    ...(moved
+      ? {
+          starts_at: startsAt,
+          ends_at: endsAt,
+          freeze_windows: freezes,
+          ...(draft.kind === "change_window" ? { change_window_reason: draft.changeWindowReason.trim() } : {}),
+        }
+      : {}),
+  };
 }
 
 /** Plain words for the refusals `/v1/ticket-groups` answers with. */

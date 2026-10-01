@@ -263,15 +263,16 @@ function TranscriptRow({
         </p>
       );
     case "assistant":
+      if (item.text) {
+        return (
+          <p data-chat-el="assistant-body" className="whitespace-pre-wrap">
+            {item.text}
+          </p>
+        );
+      }
       // An empty assistant item is the one that is about to be written into,
       // so it says the turn has started rather than drawing a blank line.
-      return item.text ? (
-        <p data-chat-el="assistant-body" className="whitespace-pre-wrap">
-          {item.text}
-        </p>
-      ) : streaming ? (
-        <p data-chat-el="work-trace">Working...</p>
-      ) : null;
+      return streaming ? <p data-chat-el="work-trace">Working...</p> : null;
     case "activity":
       return <p data-chat-el="work-trace">{item.label}</p>;
     case "attachment":

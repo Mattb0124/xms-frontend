@@ -76,48 +76,56 @@ export function ReportsCard({ accountId }: { accountId: string }) {
         ) : null
       }
     >
-      {runs.isLoading ? (
-        <div className="p-4">
-          <Skeleton lines={3} />
-        </div>
-      ) : runs.data && runs.data.length > 0 ? (
-        <table className="w-full border-collapse text-body">
-          <thead>
-            <tr className="border-xms-line text-xms-ink border-b text-left text-body font-semibold">
-              <th className="px-4 py-2">Period</th>
-              <th className="px-4 py-2">Type</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Generated</th>
-              <th className="px-4 py-2 text-right">Pack</th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.data.map((run: ReportRun) => (
-              <tr key={run.id} className="border-xms-line border-b last:border-b-0" data-run-id={run.id}>
-                <td className="xms-mono px-4 py-2">
-                  {run.period_start} to {run.period_end}
-                </td>
-                <td className="px-4 py-2 uppercase">{run.pack_type}</td>
-                <td className="px-4 py-2">
-                  <RunStatusPill status={run.status} />
-                </td>
-                <td className="xms-mono text-xms-label px-4 py-2 text-body">{formatMoment(run.created_at)}</td>
-                <td className="px-4 py-2 text-right">
-                  {run.pack_id_resolved ? (
-                    <a href={`/reports/packs/${run.pack_id_resolved}`} className="xms-link">
-                      Open pack
-                    </a>
-                  ) : (
-                    <span className="text-xms-muted">{run.error ? "Failed" : "Pending"}</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="text-xms-label px-4 py-6 text-center text-body">No report runs yet.</p>
-      )}
+      <ReportRunsTable loading={runs.isLoading} runs={runs.data} />
     </Panel>
+  );
+}
+
+function ReportRunsTable({ loading, runs }: { loading: boolean; runs: ReportRun[] | undefined }) {
+  if (loading) {
+    return (
+      <div className="p-4">
+        <Skeleton lines={3} />
+      </div>
+    );
+  }
+  if (!runs || runs.length === 0) {
+    return <p className="text-xms-label px-4 py-6 text-center text-body">No report runs yet.</p>;
+  }
+  return (
+    <table className="w-full border-collapse text-body">
+      <thead>
+        <tr className="border-xms-line text-xms-ink border-b text-left text-body font-semibold">
+          <th className="px-4 py-2">Period</th>
+          <th className="px-4 py-2">Type</th>
+          <th className="px-4 py-2">Status</th>
+          <th className="px-4 py-2">Generated</th>
+          <th className="px-4 py-2 text-right">Pack</th>
+        </tr>
+      </thead>
+      <tbody>
+        {runs.map((run) => (
+          <tr key={run.id} className="border-xms-line border-b last:border-b-0" data-run-id={run.id}>
+            <td className="xms-mono px-4 py-2">
+              {run.period_start} to {run.period_end}
+            </td>
+            <td className="px-4 py-2 uppercase">{run.pack_type}</td>
+            <td className="px-4 py-2">
+              <RunStatusPill status={run.status} />
+            </td>
+            <td className="xms-mono text-xms-label px-4 py-2 text-body">{formatMoment(run.created_at)}</td>
+            <td className="px-4 py-2 text-right">
+              {run.pack_id_resolved ? (
+                <a href={`/reports/packs/${run.pack_id_resolved}`} className="xms-link">
+                  Open pack
+                </a>
+              ) : (
+                <span className="text-xms-muted">{run.error ? "Failed" : "Pending"}</span>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

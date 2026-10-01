@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 
 export type ExportFormat = "xlsx" | "csv";
 
+function exportRefusal(error: unknown): string {
+  if (!(error instanceof DownloadError)) return "The export failed.";
+  if (error.code === "invalid_conditions") return "The current filters cannot be exported.";
+  return `The export failed (${error.status}).`;
+}
+
 /**
  * The Queue's Export action (Dashboards functional 5.10, P2.11.4): Excel or
  * CSV of the rows behind the current view and chips. The file is fetched
@@ -49,13 +55,7 @@ export function ExportMenu({
         tone: "success",
       });
     } catch (error) {
-      const detail =
-        error instanceof DownloadError
-          ? error.code === "invalid_conditions"
-            ? "The current filters cannot be exported."
-            : `The export failed (${error.status}).`
-          : "The export failed.";
-      push({ title: "Export not produced", detail, tone: "error" });
+      push({ title: "Export not produced", detail: exportRefusal(error), tone: "error" });
     } finally {
       setBusy(null);
     }

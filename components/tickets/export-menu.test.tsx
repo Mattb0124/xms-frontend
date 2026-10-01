@@ -2,13 +2,14 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ExportMenu } from "@/components/tickets/export-menu";
 import { DownloadError } from "@/lib/exports/download";
+import type * as DownloadModule from "@/lib/exports/download";
 import { renderDesk } from "@/test-kit/desk";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/cases" }));
 
 const downloadFile = vi.fn();
 vi.mock("@/lib/exports/download", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/exports/download")>();
+  const actual = await importOriginal<typeof DownloadModule>();
   return { ...actual, downloadFile: (request: unknown) => downloadFile(request) };
 });
 

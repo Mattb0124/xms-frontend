@@ -1,0 +1,38 @@
+---
+description: XMS Web permission gating. AdminGate around a child that holds the queries, panels with their own read gate, the fail-closed maps, and the route registry
+globs: "app/**,components/**,lib/routes.ts,redux/me.ts"
+alwaysApply: false
+---
+
+# Gating
+
+The API is the authority for every permission; the browser only decides what to draw and what not to ask. A gate fails closed: until `/v1/admin/me` has answered and the key is held, the gated body is not mounted and nothing behind it is asked.
+
+## A screen
+
+- The page renders `<AdminGate permission="...">` around a child, and only the child calls query hooks. In every `app/**/page.tsx`, `components/admin/fail-closed.test.ts` refuses a `use...Query(` in the function that renders the gate: that query would take a 403, and write a security event, before the screen drew its own refusal.
+  YES: `export default function TicketGroupsPage() { return <AdminGate permission="tickets:view"><TicketGroupsCatalog /></AdminGate>; }`
+  NO: `useListTicketGroupsQuery()` called in the same function that renders `<AdminGate>`.
+- Gate on the key the API answers the route to, never a weaker one. The contracts, rate cards, budget, account time and billing period routes gate on `contracts:view`, not on the screen's `tickets:view` or `admin:accounts`.
+
+## A panel inside a screen
+
+- A panel that reads a route on a key the screen's gate does not imply holds its own gate, through `useMe()` from `redux/me.ts`, whose `hasPermission` is false until the permissions load. Either:
+  - mount the querying child only when allowed, as `BucketsPanel` does with `canRead ? <BucketsList ... /> : <p>Reading the buckets needs the time:log permission ...</p>`; or
+  - call the hook with `{ skip: !allowed }` and return the refusal before drawing, as `AccountBudgetView` does with `useAccountBudgetQuery(accountId, { skip: !allowed })`.
+- Name the missing permission in words, as `AdminGate` does: "This screen needs the contracts:view permission."
+- Show a write control only under its write key, which the read key does not imply: `canEdit={me.hasPermission("contracts:manage")}`.
+
+## The fail-closed maps
+
+`components/admin/fail-closed.test.ts` keeps a map for each route family whose key a hosting screen may not imply: the contracts:view routes, the outbound queue, contacts, saved views, the audit and analytics, report review, groups and routing, non-ticket buckets, and request forms.
+
+- Each map lists its hooks with the slice and route each one calls (`{ hook: "useListBucketsQuery", slice: "redux/timeApi.ts", route: "/v1/accounts/${accountId}/buckets" }`) and every file that calls one, with its own `permission` or the `mountedIn` screen that gates it.
+- Calling a listed hook from a new file: add the file to that map's surfaces. A new hook on one of those routes: add it to the map's reads. A new route family on a key its host does not imply: a new map in the same shape.
+- Never drop a surface or a read to make the test pass; fix the gate.
+
+## The registry
+
+- Every internal screen has a row in `SCREENS` in `lib/routes.ts` whose `permission` is the page's gate key (`/reports/runs/[id]` is pinned to `reports:manage`).
+- Build navigation from `visibleScreens(me.permissions)` and `pinnedScreens(me.permissions)`, which return nothing until the permissions load. Never hand-write a menu.
+- Link a registry row through `navigableHref(screen, permitted)`; on `null`, render the label without a link, since a dynamic path given to `next/link` throws.

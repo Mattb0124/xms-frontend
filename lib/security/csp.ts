@@ -27,6 +27,14 @@
 export const CLERK_ORIGINS = "https://*.clerk.accounts.dev https://*.clerk.com https://clerk.com";
 
 /**
+ * Cloudflare Turnstile, the CAPTCHA Clerk's bot protection puts in front of a
+ * sign-up and of a sign-in that turns into one. The challenge is a frame,
+ * which `'strict-dynamic'` does not reach, so frame-src has to name it; in
+ * script-src it serves CSP2-only browsers, as the Clerk origins do.
+ */
+const CLERK_CAPTCHA_ORIGIN = "https://challenges.cloudflare.com";
+
+/**
  * The Clerk instance's own Frontend API origin, read out of its publishable
  * key: `pk_test_` or `pk_live_`, then base64 of `<host>$`.
  *
@@ -57,7 +65,7 @@ export function clerkFrontendApiOrigin(publishableKey: string | undefined): stri
 /** This build's Clerk Frontend API, or null when the build has no Clerk. */
 export const CLERK_FRONTEND_API = clerkFrontendApiOrigin(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
-/** The header the proxy puts the nonce on, and the one Clerk reads it from. */
+/** The request header the proxy puts the nonce on and the root layout reads it back from. */
 export const NONCE_HEADER = "x-nonce";
 
 /** 16 random bytes, base64: no `<`, `>` or `&`, which Clerk refuses in a nonce. */
@@ -83,6 +91,7 @@ export function contentSecurityPolicy({ nonce, allowEval, clerkFrontendApi }: Cs
     "'strict-dynamic'",
     ...(allowEval ? ["'unsafe-eval'"] : []),
     clerk,
+    CLERK_CAPTCHA_ORIGIN,
   ].join(" ");
   return [
     "default-src 'self'",
@@ -91,7 +100,7 @@ export function contentSecurityPolicy({ nonce, allowEval, clerkFrontendApi }: Cs
     "img-src 'self' data: blob: https://img.clerk.com",
     "font-src 'self' data:",
     `connect-src 'self' ${clerk} wss://*.clerk.accounts.dev`,
-    `frame-src ${clerk}`,
+    `frame-src ${clerk} ${CLERK_CAPTCHA_ORIGIN}`,
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

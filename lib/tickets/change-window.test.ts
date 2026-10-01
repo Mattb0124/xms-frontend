@@ -12,6 +12,8 @@ import {
   OVERRIDE_CODES,
   OVERRIDE_PERMISSION,
   shiftMonth,
+  WINDOW_MOMENT_PILL,
+  windowMoment,
 } from "@/lib/tickets/change-window";
 
 const refuse = (data: Record<string, unknown>) => ({ status: 409, data });
@@ -119,5 +121,20 @@ describe("the calendar's month", () => {
     expect(daysUntil("2026-10-03T18:00:00Z", now)).toBe(2);
     // A window already running is not the next one; the "right now" line says so.
     expect(nextWindow([{ starts_at: "2026-09-30T18:00:00Z" }], now)).toBeUndefined();
+  });
+});
+
+describe("right now", () => {
+  it("reads the at route's two flags as one moment, inside a window first", () => {
+    expect(windowMoment({ inside: true, frozen: false })).toBe("inside");
+    expect(windowMoment({ inside: true, frozen: true })).toBe("inside");
+    expect(windowMoment({ inside: false, frozen: true })).toBe("frozen");
+    expect(windowMoment({ inside: false, frozen: false })).toBe("outside");
+  });
+
+  it("words each moment on its own signal trio", () => {
+    expect(WINDOW_MOMENT_PILL.inside).toEqual({ label: "Inside a change window", tone: "ready" });
+    expect(WINDOW_MOMENT_PILL.frozen).toEqual({ label: "Frozen right now", tone: "blocked" });
+    expect(WINDOW_MOMENT_PILL.outside).toEqual({ label: "Outside every window", tone: "needs-input" });
   });
 });
