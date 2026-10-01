@@ -10,6 +10,7 @@ import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useListAssignableUsersQuery } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
@@ -63,7 +64,7 @@ function DispatchScreen() {
       ...(account ? { account_id: [account] } : {}),
       ...(query ? { q: query } : {}),
     },
-    { pollingInterval: 60_000 },
+    { pollingInterval: LIVE_REFRESH_MS },
   );
   const { data: accounts } = useListGrantedAccountsQuery();
   const { data: groups } = useListDirectoryGroupsQuery();

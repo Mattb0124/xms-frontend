@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/xms/skeleton";
 import { waitingHref } from "@/lib/my-work/waiting-links";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { visibleScreens, type Screen } from "@/lib/routes";
 import { useMe } from "@/redux/me";
 import { useWaitingOnMeQuery, type WaitingItem } from "@/redux/api";
@@ -72,7 +73,7 @@ export function WaitingRail() {
   const allowed = me.hasPermission("tickets:view");
   const { data, isLoading, isError, error } = useWaitingOnMeQuery(undefined, {
     skip: !allowed,
-    pollingInterval: 60_000,
+    pollingInterval: LIVE_REFRESH_MS,
   });
   const permitted = useMemo(() => visibleScreens(me.permissions), [me.permissions]);
 

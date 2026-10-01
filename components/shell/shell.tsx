@@ -11,6 +11,7 @@ import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
 import { initials } from "@/components/xms/actor-chip";
 import { HISTORY_KEY, PINS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { isDynamicPath, matchScreen, visibleScreens } from "@/lib/routes";
 import { NARROW_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { useListQuarantineQuery } from "@/redux/emailApi";
@@ -50,7 +51,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const [sidebarChoice, setSidebarChoice] = useState<boolean | null>(null);
   const sidebarOpen = sidebarChoice ?? !narrow;
   const [notifications, setNotifications] = useState(false);
-  const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: 60_000, skip: !me.principal });
+  const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: LIVE_REFRESH_MS, skip: !me.principal });
   // The record bar's Ask Axel opens the shell panel through the address, so
   // the link is a link and a pasted one opens the panel too (render 15).
   const axelParam = useSearchParams().get("axel") === "1";
@@ -73,11 +74,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const canWorkTickets = me.hasPermission("tickets:work");
   const { data: queueStats } = useListTicketsQuery(
     { open: true, limit: 1 },
-    { pollingInterval: 60_000, skip: !canSeeTickets },
+    { pollingInterval: LIVE_REFRESH_MS, skip: !canSeeTickets },
   );
   const { data: quarantine } = useListQuarantineQuery(
     { state: "open" },
-    { pollingInterval: 60_000, skip: !canWorkTickets },
+    { pollingInterval: LIVE_REFRESH_MS, skip: !canWorkTickets },
   );
   // Axel turns run against a ticket, so the full-screen surface takes the one
   // the reader is looking at. The record page has already asked for the same

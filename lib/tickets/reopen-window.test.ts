@@ -24,9 +24,9 @@ describe("reopenSentence", () => {
         "reply",
       ),
     ).toBe("reply inside reopen window (5 working days, deadline 2026-09-21).");
-    expect(
-      elapsedWindowCopy({ days: 5, deadline: "2026-09-21" }),
-    ).toBe("The 5 working-day reopen window ended on 2026-09-21.");
+    expect(elapsedWindowCopy({ days: 5, deadline: "2026-09-21" })).toBe(
+      "The 5 working-day reopen window ended on 2026-09-21.",
+    );
     expect(elapsedWindowCopy({ days: 0, deadline: null })).toBe("The reopen window is set to never.");
   });
 });
