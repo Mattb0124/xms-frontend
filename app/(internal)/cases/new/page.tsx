@@ -127,7 +127,7 @@ function NewTicketForm() {
           currentUserId={me.principal?.userId}
           onChange={update}
         />
-        <NewTicketClassification draft={draft} priority={priority} onChange={update} />
+        <NewTicketClassification draft={draft} accountId={accountId} priority={priority} onChange={update} />
       </div>
       <Panel title="Description">
         <div className="flex flex-col gap-3">

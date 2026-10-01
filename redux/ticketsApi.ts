@@ -144,6 +144,8 @@ export interface CreateTicketBody {
   contract_id?: string;
   requester_email?: string;
   requester_name?: string;
+  /** The configuration item the case is about (TM-19). The server checks it belongs to the account. */
+  configuration_item_id?: string;
 }
 
 export interface PatchTicketBody {
