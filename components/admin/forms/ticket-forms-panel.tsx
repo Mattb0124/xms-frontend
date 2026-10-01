@@ -6,7 +6,7 @@ import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
-import { keyed, type Keyed } from "@/lib/admin/draft-rows";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import {
   controllersFor,
   CUSTOM_PREFIX,

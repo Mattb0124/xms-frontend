@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { StripSelect } from "@/components/xms/filter-select";
 import { ICON, CloseIcon } from "@/components/xms/icons";
 import {
@@ -11,6 +10,7 @@ import {
   type ConditionField,
   type Operator,
 } from "@/lib/conditions";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { cn } from "@/lib/utils";
 
 export interface ConditionBuilderProps {
@@ -37,33 +37,6 @@ function firstOperator(field: ConditionField | undefined): Operator {
 function shownValue(value: Condition["value"]): string {
   if (Array.isArray(value)) return value[0] ?? "";
   return typeof value === "string" ? value : "";
-}
-
-interface RowIds {
-  ids: number[];
-  next: number;
-}
-
-/** One id per row: rows added at the end get fresh ids, and rows gone from the end take theirs. */
-function fitted(state: RowIds, length: number): RowIds {
-  if (state.ids.length === length) return state;
-  if (state.ids.length > length) return { ids: state.ids.slice(0, length), next: state.next };
-  const fresh = Array.from({ length: length - state.ids.length }, (_, offset) => state.next + offset);
-  return { ids: [...state.ids, ...fresh], next: state.next + fresh.length };
-}
-
-/**
- * A key per row that survives the removal of a row above it. The ids live
- * here and not on the conditions, which go to the list route and the URL as
- * they are.
- */
-function useRowIds(length: number) {
-  const [state, setState] = useState<RowIds>(() => fitted({ ids: [], next: 0 }, length));
-  const current = fitted(state, length);
-  if (current !== state) setState(current);
-  const removed = (index: number) =>
-    setState((prev) => ({ ids: prev.ids.filter((_, i) => i !== index), next: prev.next }));
-  return { ids: current.ids, removed };
 }
 
 export interface ValueControlProps {
@@ -131,11 +104,11 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
    * until the reader has said something with it.
    */
   const rows = value.length > 0 ? value : [blank()];
-  const rowIds = useRowIds(rows.length);
+  const rowKeys = useRowKeys(rows.length);
   const update = (index: number, patch: Partial<Condition>) =>
     onChange(rows.map((condition, i) => (i === index ? { ...condition, ...patch } : condition)));
   const remove = (index: number) => {
-    rowIds.removed(index);
+    rowKeys.drop(index);
     onChange(rows.filter((_, i) => i !== index));
   };
   const add = () => {
@@ -151,7 +124,7 @@ export function ConditionBuilder({ fields, value, onChange, className }: Conditi
           const field = fields.find((f) => f.key === condition.field) ?? fields[0];
           const operators = field ? OPERATORS_BY_KIND[field.kind] : [];
           return (
-            <div key={rowIds.ids[index]} className="flex items-center gap-2" data-condition-row>
+            <div key={rowKeys.keys[index]} className="flex items-center gap-2" data-condition-row>
               <StripSelect
                 ariaLabel="Field"
                 value={condition.field}

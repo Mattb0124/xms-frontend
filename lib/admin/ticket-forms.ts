@@ -1,5 +1,5 @@
 import { describeError, type ApiError } from "@/lib/admin/api-error";
-import { keyed, type Keyed } from "@/lib/admin/draft-rows";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import {
   COLUMNS_BY_KIND,
   CONDITIONABLE_KINDS,

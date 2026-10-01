@@ -10,6 +10,7 @@ import { Panel } from "@/components/xms/panel";
 import { SignalPill, type SignalTone } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import {
   describeTicketGroupError,
   ticketGroupCreateBody,
@@ -57,18 +58,9 @@ export function scheduleLabel(group: Pick<TicketGroup, "starts_at" | "ends_at">)
 }
 
 /** One freeze on the form. The id only keys the row; the body is built from the other fields. */
-interface FreezeRow extends FreezeDraft {
-  id: string;
-}
+type FreezeRow = Keyed<FreezeDraft>;
 
 type GroupDraft = Omit<TicketGroupDraft, "freezes"> & { freezes: FreezeRow[] };
-
-let freezeRowCount = 0;
-
-function freezeRow(freeze: FreezeDraft): FreezeRow {
-  freezeRowCount += 1;
-  return { ...freeze, id: `freeze-${freezeRowCount}` };
-}
 
 function emptyDraft(accountId: string): GroupDraft {
   return {
@@ -95,7 +87,7 @@ function toDraft(group: TicketGroup): GroupDraft {
     status: group.status,
     startsAt: toLocalInput(group.starts_at),
     endsAt: toLocalInput(group.ends_at),
-    freezes: toFreezeDrafts(group.freeze_windows).map(freezeRow),
+    freezes: toFreezeDrafts(group.freeze_windows).map(keyed),
     changeWindowReason: "",
   };
 }
@@ -107,7 +99,7 @@ function toDraft(group: TicketGroup): GroupDraft {
  * removed by being absent.
  */
 function FreezeRows({ freezes, onChange }: { freezes: FreezeRow[]; onChange: (freezes: FreezeRow[]) => void }) {
-  const edit = (id: string, change: Partial<FreezeDraft>) =>
+  const edit = (id: number, change: Partial<FreezeDraft>) =>
     onChange(freezes.map((freeze) => (freeze.id === id ? { ...freeze, ...change } : freeze)));
   return (
     <div className="flex flex-col gap-2" data-freezes>
@@ -150,7 +142,7 @@ function FreezeRows({ freezes, onChange }: { freezes: FreezeRow[]; onChange: (fr
       <div>
         <button
           type="button"
-          onClick={() => onChange([...freezes, freezeRow({ startsAt: "", endsAt: "", reason: "" })])}
+          onClick={() => onChange([...freezes, keyed({ startsAt: "", endsAt: "", reason: "" })])}
           className={SECONDARY_BUTTON}
         >
           Add freeze

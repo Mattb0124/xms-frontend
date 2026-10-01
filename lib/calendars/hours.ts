@@ -1,5 +1,5 @@
 import type { CalendarHours } from "@/redux/calendarsApi";
-import { keyed, type Keyed } from "@/lib/admin/draft-rows";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { formatMoment } from "@/lib/format/date";
 
 /**

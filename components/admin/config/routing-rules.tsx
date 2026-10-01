@@ -7,7 +7,7 @@ import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { useRowKeys } from "@/lib/admin/use-row-keys";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { toRoutingRuleInputs, validateRoutingRules, type RoutingRuleDraft } from "@/lib/tickets/groups";
 import { ticketTypeLabel } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";

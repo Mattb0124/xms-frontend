@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { SavedQueriesPanel } from "@/components/admin/saved-queries";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { useRowKeys } from "@/lib/admin/use-row-keys";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { downloadFile } from "@/lib/exports/download";
 import { describeSavedQueryError } from "@/lib/reporting/saved-queries";
 import { useTrack } from "@/lib/telemetry/provider";
