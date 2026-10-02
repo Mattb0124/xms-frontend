@@ -3,8 +3,7 @@
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { SECONDARY_BUTTON } from "@/components/admin/primitives";
-import { DeskFrame } from "@/components/shell/desk-frame";
+import { SignInStage } from "@/components/shell/sign-in-stage";
 import { Shell } from "@/components/shell/shell";
 import { CLERK_ENABLED } from "@/lib/auth/dev-mode";
 import { xmsApi, useMeQuery } from "@/redux/api";
@@ -32,11 +31,11 @@ function ClerkDesk({ children }: { children: ReactNode }) {
 
   if (!isLoaded || !isSignedIn) {
     return (
-      <DeskFrame>
-        <p className="text-xms-label text-body" role="status">
+      <SignInStage>
+        <p className="xms-sign-in-lead" role="status">
           Checking your sign-in
         </p>
-      </DeskFrame>
+      </SignInStage>
     );
   }
   return <SignedInDesk>{children}</SignedInDesk>;
@@ -47,11 +46,11 @@ function SignedInDesk({ children }: { children: ReactNode }) {
   const status = me.error && typeof me.error === "object" && "status" in me.error ? me.error.status : undefined;
   if (me.isLoading) {
     return (
-      <DeskFrame>
-        <p className="text-xms-label text-body" role="status">
+      <SignInStage>
+        <p className="xms-sign-in-lead" role="status">
           Checking your sign-in
         </p>
-      </DeskFrame>
+      </SignInStage>
     );
   }
   if (status === 401 || status === 403) return <DeskRefused />;
@@ -62,14 +61,12 @@ function DeskRefused() {
   const clerk = useClerk();
   const dispatch = useAppDispatch();
   return (
-    <DeskFrame>
-      <h1 className="text-xms-ink text-title font-semibold">Sign-in refused</h1>
-      <p className="text-xms-label max-w-[420px] text-center text-body">
-        This sign-in is not an XMS account. Ask an administrator to invite you.
-      </p>
+    <SignInStage>
+      <h1 className="xms-sign-in-title">Sign-in refused</h1>
+      <p className="xms-sign-in-lead">This sign-in is not an XMS account. Ask an administrator to invite you.</p>
       <button
         type="button"
-        className={SECONDARY_BUTTON}
+        className="xms-sign-in-submit"
         onClick={() => {
           dispatch(xmsApi.util.resetApiState());
           void clerk.signOut({ redirectUrl: "/sign-in" });
@@ -77,6 +74,6 @@ function DeskRefused() {
       >
         Sign out
       </button>
-    </DeskFrame>
+    </SignInStage>
   );
 }

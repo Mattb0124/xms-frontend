@@ -1,34 +1,60 @@
 "use client";
 
+import { useAuth, useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ClerkSignIn } from "@/components/portal/clerk-sign-in";
-import { DeskFrame } from "@/components/shell/desk-frame";
-import { INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { useEffect, useState } from "react";
+import { PasswordSignIn } from "@/components/shell/password-sign-in";
+import { SignInStage } from "@/components/shell/sign-in-stage";
+import type { DeskSignInClient } from "@/components/shell/desk-sign-in-client";
 import { AUTH_DEV_MODE, CLERK_ENABLED } from "@/lib/auth/dev-mode";
 import { setDevToken } from "@/lib/auth/token";
 import { xmsApi } from "@/redux/api";
 import { useAppDispatch } from "@/redux/hooks";
 
 /**
- * Desk sign-in. Clerk when the publishable key is set; a pasted token only
- * on a developer's machine. A session that already exists is sent home by
- * ClerkSignIn, which does not mount the form again.
+ * Desk sign-in, the same card the AI Innovation Platforms web UI uses.
+ * Clerk's own widget is not mounted: a session that already exists reloads
+ * home, and a refused session never comes back here to mount it again.
  */
 export function DeskSignIn() {
   return (
-    <DeskFrame>
-      <h1 className="text-xms-ink text-title font-semibold">Sign in</h1>
-      <p className="text-xms-label text-body">Use your Hackett account to open the desk.</p>
-      {CLERK_ENABLED ? <ClerkSignIn redirectUrl="/" /> : null}
+    <SignInStage>
+      {CLERK_ENABLED ? <ClerkPasswordGate /> : null}
       {AUTH_DEV_MODE && !CLERK_ENABLED ? <DevTokenForm /> : null}
       {!CLERK_ENABLED && !AUTH_DEV_MODE ? (
-        <p className="text-xms-label max-w-[420px] text-center text-body">
-          Sign-in is not configured for this environment. Ask an administrator.
-        </p>
+        <p className="xms-sign-in-lead">Sign-in is not configured for this environment. Ask an administrator.</p>
       ) : null}
-    </DeskFrame>
+    </SignInStage>
   );
+}
+
+function isDeskClient(signIn: object): signIn is DeskSignInClient {
+  return (
+    "password" in signIn &&
+    "finalize" in signIn &&
+    "create" in signIn &&
+    "resetPasswordEmailCode" in signIn &&
+    "status" in signIn
+  );
+}
+
+function ClerkPasswordGate() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signIn } = useSignIn();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) router.replace("/");
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded || isSignedIn || !signIn || !isDeskClient(signIn)) {
+    return (
+      <p className="xms-sign-in-lead" role="status">
+        Checking your sign-in
+      </p>
+    );
+  }
+  return <PasswordSignIn signIn={signIn} />;
 }
 
 function DevTokenForm() {
@@ -38,7 +64,6 @@ function DevTokenForm() {
 
   return (
     <form
-      className="flex w-full max-w-[420px] flex-col gap-3"
       onSubmit={(event) => {
         event.preventDefault();
         setDevToken(token.trim() || null);
@@ -46,32 +71,21 @@ function DevTokenForm() {
         router.replace("/");
       }}
     >
-      <label htmlFor="desk-dev-token" className="text-xms-body text-body">
-        Paste a token from <code className="xms-mono">pnpm dev:token</code> run in the backend folder.
+      <h1 className="xms-sign-in-title">Sign in</h1>
+      <p className="xms-sign-in-lead">to continue to X Managed Services</p>
+      <label className="xms-sign-in-label" htmlFor="desk-dev-token">
+        Paste a token from <code>pnpm dev:token</code> run in the backend folder.
       </label>
       <textarea
         id="desk-dev-token"
         rows={4}
         value={token}
         onChange={(event) => setToken(event.target.value)}
-        className={`${INPUT} h-auto max-w-none py-2`}
+        className="xms-sign-in-area"
       />
-      <div className="flex gap-2">
-        <button type="submit" className={PRIMARY_BUTTON}>
-          Use token
-        </button>
-        <button
-          type="button"
-          className={SECONDARY_BUTTON}
-          onClick={() => {
-            setDevToken(null);
-            dispatch(xmsApi.util.resetApiState());
-            setToken("");
-          }}
-        >
-          Clear
-        </button>
-      </div>
+      <button type="submit" className="xms-sign-in-submit">
+        Use token
+      </button>
     </form>
   );
 }
