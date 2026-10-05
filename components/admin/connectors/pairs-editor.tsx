@@ -1,6 +1,7 @@
 "use client";
 
 import { INPUT, SECONDARY_BUTTON } from "@/components/admin/primitives";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { cn } from "@/lib/utils";
 
 export interface PairsEditorProps {
@@ -30,10 +31,15 @@ export function PairsEditor({
   className,
 }: PairsEditorProps) {
   const rows = Object.entries(pairs);
+  const rowKeys = useRowKeys(rows.length);
   const listId = rightOptions ? `${label.replace(/\s+/g, "-").toLowerCase()}-options` : undefined;
   const update = (index: number, key: string, value: string) => {
     const next = rows.map(([k, v], i) => (i === index ? [key, value] : [k, v]));
     onChange(Object.fromEntries(next));
+  };
+  const remove = (index: number) => {
+    rowKeys.drop(index);
+    onChange(Object.fromEntries(rows.filter((_, i) => i !== index)));
   };
   return (
     <div className={cn("flex flex-col gap-1", className)} data-pairs={label}>
@@ -47,7 +53,7 @@ export function PairsEditor({
         </thead>
         <tbody>
           {rows.map(([key, value], index) => (
-            <tr key={index}>
+            <tr key={rowKeys.keys[index]}>
               <td className="py-1 pr-2">
                 <input
                   aria-label={`${label} ${leftLabel} ${index + 1}`}
@@ -73,7 +79,7 @@ export function PairsEditor({
                     type="button"
                     aria-label={`Remove ${label} row ${index + 1}`}
                     className="text-xms-muted hover:text-xms-ink text-body leading-none"
-                    onClick={() => onChange(Object.fromEntries(rows.filter((_, i) => i !== index)))}
+                    onClick={() => remove(index)}
                   >
                     ×
                   </button>

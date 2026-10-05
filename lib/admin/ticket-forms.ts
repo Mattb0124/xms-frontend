@@ -1,4 +1,5 @@
 import { describeError, type ApiError } from "@/lib/admin/api-error";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import {
   COLUMNS_BY_KIND,
   CONDITIONABLE_KINDS,
@@ -94,6 +95,15 @@ export function draftFromField(field: FormField): FieldDraft {
 
 export function draftFromDefinition(definition: FormDefinition | undefined): FieldDraft[] {
   return (definition?.fields ?? []).map(draftFromField);
+}
+
+/** A field as the builder holds it: fields are added, removed and moved, and options added and removed, so each is keyed. */
+export interface FieldRow extends Keyed<FieldDraft> {
+  options: Keyed<FormFieldOption>[];
+}
+
+export function fieldRow(draft: FieldDraft): FieldRow {
+  return keyed({ ...draft, options: draft.options.map(keyed) });
 }
 
 /** Where a field of this kind may send its answer: the columns it may write, then a custom key. */

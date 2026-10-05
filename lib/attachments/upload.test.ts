@@ -3,8 +3,11 @@ import {
   UploadRefusal,
   describeRefusal,
   formatBytes,
+  isInFlight,
+  stageAfterConfirm,
   uploadAttachment,
   type UploadProgress,
+  type UploadStage,
 } from "@/lib/attachments/upload";
 import { scanChip } from "@/lib/attachments/scan";
 
@@ -81,7 +84,7 @@ describe("uploadAttachment", () => {
     expect(result.scan_state).toBe("clean");
     expect(calls[0]).toMatchObject({
       method: "POST",
-      url: "http://localhost:3001/v1/tickets/CS0001001/attachments/presign",
+      url: `${window.location.origin}/v1/tickets/CS0001001/attachments/presign`,
       body: { file_name: "notes.txt", content_type: "text/plain", size_bytes: 5 },
     });
     expect(calls[1]).toMatchObject({ method: "PUT", url: "http://api.test/v1/storage/upload?key=k&signature=s" });
@@ -89,7 +92,7 @@ describe("uploadAttachment", () => {
     expect(calls[1].body).toBe(file);
     expect(calls[2]).toMatchObject({
       method: "POST",
-      url: "http://localhost:3001/v1/tickets/CS0001001/attachments/att-1/confirm",
+      url: `${window.location.origin}/v1/tickets/CS0001001/attachments/att-1/confirm`,
       body: { visibility: "public" },
     });
     expect(stages.map((stage) => stage.stage)).toEqual(["presigning", "uploading", "uploading", "scanning", "clean"]);
@@ -112,7 +115,7 @@ describe("uploadAttachment", () => {
       portal: true,
     });
     expect(result.scan_state).toBe("quarantined");
-    expect(calls[0].url).toBe("http://localhost:3001/v1/portal/tickets/CS0001001/attachments/presign");
+    expect(calls[0].url).toBe(`${window.location.origin}/v1/portal/tickets/CS0001001/attachments/presign`);
     const form = calls[1].body as FormData;
     expect(form.get("key")).toBe("k");
     expect(form.get("policy")).toBe("p");
@@ -133,6 +136,21 @@ describe("uploadAttachment", () => {
     expect(describeRefusal(new UploadRefusal("unsupported_type"))).toBe("That file type is not accepted.");
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(4096)).toBe("4 KB");
+  });
+});
+
+describe("upload stages", () => {
+  it("reads a confirmed file's stage from its verdict, an unscanned one still scanning", () => {
+    expect(stageAfterConfirm("clean")).toBe("clean");
+    expect(stageAfterConfirm("quarantined")).toBe("quarantined");
+    expect(stageAfterConfirm("pending")).toBe("scanning");
+  });
+
+  it("holds a file in flight until it has a verdict or has failed", () => {
+    const inFlight: UploadStage[] = ["presigning", "uploading", "scanning"];
+    const settled: UploadStage[] = ["clean", "quarantined", "failed"];
+    expect(inFlight.map(isInFlight)).toEqual([true, true, true]);
+    expect(settled.map(isInFlight)).toEqual([false, false, false]);
   });
 });
 

@@ -36,7 +36,12 @@ interface DevUser {
   roles: string[];
 }
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
+function unavailableReason(): string {
+  if (CLERK_ENABLED) return "Sign in through Clerk.";
+  if (!IS_LOCAL_TARGET)
+    return `The pasted token is local only, and this build names the ${DEPLOY_TARGET} deploy target.`;
+  return "Set NEXT_PUBLIC_AUTH_DEV_MODE=true in .env.local to use a pasted token.";
+}
 
 export default function DevSignInPage() {
   const router = useRouter();
@@ -51,7 +56,7 @@ export default function DevSignInPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const response = await fetch(`${API}/v1/dev/users`);
+        const response = await fetch("/v1/dev/users");
         if (!response.ok) throw new Error(`the API answered ${response.status}`);
         const body = (await response.json()) as DevUser[];
         if (!cancelled) setUsers(body);
@@ -69,13 +74,7 @@ export default function DevSignInPage() {
   if (!AUTH_DEV_MODE) {
     return (
       <Panel title="Development sign-in" caption="Not available">
-        <p className="text-xms-body text-body">
-          {CLERK_ENABLED
-            ? "Sign in through Clerk."
-            : !IS_LOCAL_TARGET
-              ? `The pasted token is local only, and this build names the ${DEPLOY_TARGET} deploy target.`
-              : "Set NEXT_PUBLIC_AUTH_DEV_MODE=true in .env.local to use a pasted token."}
-        </p>
+        <p className="text-xms-body text-body">{unavailableReason()}</p>
       </Panel>
     );
   }
@@ -90,7 +89,7 @@ export default function DevSignInPage() {
     setSigningIn(user.email);
     setLoadError(null);
     try {
-      const response = await fetch(`${API}/v1/dev/sign-in`, {
+      const response = await fetch("/v1/dev/sign-in", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: user.email }),

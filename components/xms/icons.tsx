@@ -510,3 +510,15 @@ export function EyeIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** The same eye, crossed, for a password that is currently visible. */
+export function EyeOffIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9.9 4.2A10.5 10.5 0 0 1 12 4c6 0 10 8 10 8a18 18 0 0 1-2.2 3.2" />
+      <path d="M6.1 6.1A18 18 0 0 0 2 12s4 8 10 8a10.5 10.5 0 0 0 5.9-1.9" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+      <path d="m2 2 20 20" />
+    </Icon>
+  );
+}

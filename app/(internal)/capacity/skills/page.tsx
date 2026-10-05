@@ -13,11 +13,28 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { capacityError, describeCapacityError } from "@/lib/capacity/errors";
 import { skillsFilterFromSearch, skillsFilterToSearch, type SkillsPageFilter } from "@/lib/capacity/filters";
 import { ROLE_OPTIONS } from "@/lib/roster/vocab";
-import { useSkillsMatrixAccountQuery, useSkillsMatrixPeopleQuery, type SkillsLens } from "@/redux/capacityApi";
+import {
+  useSkillsMatrixAccountQuery,
+  useSkillsMatrixPeopleQuery,
+  type SkillsLens,
+  type SkillsMatrixAccount,
+} from "@/redux/capacityApi";
 import { useMe } from "@/redux/me";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
 const LENS_LABEL: Record<SkillsLens, string> = { people: "People", account: "Accounts" };
+
+function AccountLens({ view }: { view: SkillsMatrixAccount }) {
+  if (view.accounts.length === 0) {
+    return (
+      <EmptyBanner
+        title="No accounts to cover"
+        detail="The account lens reads the technology codes on the active contracts of the accounts you are granted."
+      />
+    );
+  }
+  return <AccountCoverageCards view={view} />;
+}
 
 function SkillsScreen() {
   const router = useRouter();
@@ -83,16 +100,7 @@ function SkillsScreen() {
           />
         ) : null}
         {filter.lens === "people" && people.data ? <SkillsHeatMap matrix={people.data} role={filter.role} /> : null}
-        {filter.lens === "account" && accounts.data ? (
-          accounts.data.accounts.length === 0 ? (
-            <EmptyBanner
-              title="No accounts to cover"
-              detail="The account lens reads the technology codes on the active contracts of the accounts you are granted."
-            />
-          ) : (
-            <AccountCoverageCards view={accounts.data} />
-          )
-        ) : null}
+        {filter.lens === "account" && accounts.data ? <AccountLens view={accounts.data} /> : null}
       </div>
     </>
   );

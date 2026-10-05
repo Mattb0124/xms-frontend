@@ -1,4 +1,5 @@
 import type { CalendarHours } from "@/redux/calendarsApi";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { formatMoment } from "@/lib/format/date";
 
 /**
@@ -66,6 +67,13 @@ export function hoursToGrid(hours: readonly CalendarHours[]): WeekGrid {
     ];
   }
   return grid;
+}
+
+/** The grid as the editor holds it: a day's intervals are added and removed, so each one is keyed. */
+export type DraftWeekGrid = Record<number, Keyed<Interval>[]>;
+
+export function draftGrid(grid: WeekGrid): DraftWeekGrid {
+  return Object.fromEntries(Object.entries(grid).map(([weekday, intervals]) => [weekday, intervals.map(keyed)]));
 }
 
 export interface GridConversion {

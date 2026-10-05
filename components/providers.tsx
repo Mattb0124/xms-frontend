@@ -19,10 +19,16 @@ function ClerkTokenBridge() {
   return null;
 }
 
-function Identity({ children }: { children: ReactNode }) {
-  if (!CLERK_ENABLED) return <>{children}</>;
+/**
+ * The client ClerkProvider does not read `x-nonce` off the request, so the
+ * nonce is handed to it: under `'strict-dynamic'` the script and preload tags
+ * it renders are blocked without one. Its telemetry is off because it posts
+ * to clerk-telemetry.com, which the policy does not open connect-src to.
+ */
+function Identity({ children, nonce }: { children: ReactNode; nonce?: string }) {
+  if (!CLERK_ENABLED) return children;
   return (
-    <ClerkProvider>
+    <ClerkProvider nonce={nonce} telemetry={false}>
       <ClerkTokenBridge />
       {children}
     </ClerkProvider>
@@ -32,13 +38,14 @@ function Identity({ children }: { children: ReactNode }) {
 /**
  * Store, identity, theme, toasts and telemetry, in that order, once at the
  * root. `nonce` is the request's CSP nonce, read off the headers by the root
- * layout and passed down for the one inline script this tree writes.
+ * layout and passed down to Clerk and next-themes, which write script tags of
+ * their own.
  */
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [store] = useState(makeStore);
   return (
     <ReduxProvider store={store}>
-      <Identity>
+      <Identity nonce={nonce}>
         <ThemeProvider nonce={nonce}>
           <ToastProvider>
             <TelemetryProvider>

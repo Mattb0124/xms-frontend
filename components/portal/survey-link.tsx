@@ -68,44 +68,53 @@ export function SurveyLinkAnswer({ surveyId, token }: { surveyId: string; token:
   const subject = surveySubject(survey);
   const expiry = expiryLabel(survey.expires_at);
 
+  let body: React.ReactNode;
+  if (done) {
+    body = (
+      <p role="status" className="text-xms-ink text-body">
+        {quarterly
+          ? `Thank you. Your answers, ${Object.entries(done.answers ?? {})
+              .map(([key, value]) => `${keyLabel(key)} ${value}`)
+              .join(", ")}, have been recorded.`
+          : `Thank you. Your answer, ${done.score} of 5 (${scoreLabel(done.score)}), has been recorded.`}
+      </p>
+    );
+  } else if (isAnswerable(survey.status)) {
+    body = (
+      <SurveyQuestion
+        id={`survey-${surveyId}`}
+        questions={questions}
+        label={quarterly ? subject : (questions[0]?.text ?? subject)}
+        submitting={sending}
+        onSubmit={async (scores, comment) => {
+          setError(null);
+          try {
+            setDone(
+              await answer({
+                id: surveyId,
+                token,
+                body: answerBody(surveyKind(survey), scores, comment),
+              }).unwrap(),
+            );
+          } catch (caught) {
+            setError(describeSurveyError(surveyError(caught)));
+          }
+        }}
+      />
+    );
+  } else {
+    body = (
+      <p role="status" className="text-xms-ink text-body">
+        {statusLine(survey.status)}
+      </p>
+    );
+  }
+
   return (
     <Frame kind={surveyKind(survey)}>
       <PortalCard>
         <p className="text-xms-label text-body">{subject}</p>
-        {done ? (
-          <p role="status" className="text-xms-ink text-body">
-            {quarterly
-              ? `Thank you. Your answers, ${Object.entries(done.answers ?? {})
-                  .map(([key, value]) => `${keyLabel(key)} ${value}`)
-                  .join(", ")}, have been recorded.`
-              : `Thank you. Your answer, ${done.score} of 5 (${scoreLabel(done.score)}), has been recorded.`}
-          </p>
-        ) : isAnswerable(survey.status) ? (
-          <SurveyQuestion
-            id={`survey-${surveyId}`}
-            questions={questions}
-            label={quarterly ? subject : (questions[0]?.text ?? subject)}
-            submitting={sending}
-            onSubmit={async (scores, comment) => {
-              setError(null);
-              try {
-                setDone(
-                  await answer({
-                    id: surveyId,
-                    token,
-                    body: answerBody(surveyKind(survey), scores, comment),
-                  }).unwrap(),
-                );
-              } catch (caught) {
-                setError(describeSurveyError(surveyError(caught)));
-              }
-            }}
-          />
-        ) : (
-          <p role="status" className="text-xms-ink text-body">
-            {statusLine(survey.status)}
-          </p>
-        )}
+        {body}
         {error ? <PortalNotice tone="error">{error}</PortalNotice> : null}
       </PortalCard>
       <p className="text-xms-label text-body">

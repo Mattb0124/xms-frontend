@@ -2,7 +2,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { proxy } from "@/proxy";
-import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
+import { clerkFrontendApiOrigin, contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
 
 /**
  * Security review finding 25: `script-src` carried `'unsafe-inline'`, so the
@@ -44,7 +44,7 @@ describe("the CSP nonce", () => {
 
 describe("the policy", () => {
   it("allows the nonce and strict-dynamic, and no longer allows inline script", () => {
-    const csp = contentSecurityPolicy({ nonce: "abc123", apiOrigin: "https://api.example.test", allowEval: false });
+    const csp = contentSecurityPolicy({ nonce: "abc123", allowEval: false, clerkFrontendApi: null });
     const scriptSrc = directive(csp, "script-src");
     expect(scriptSrc).toContain("'nonce-abc123'");
     expect(scriptSrc).toContain("'strict-dynamic'");
@@ -56,7 +56,7 @@ describe("the policy", () => {
   });
 
   it("keeps unsafe-inline in style-src, and no nonce there, so it is not ignored", () => {
-    const csp = contentSecurityPolicy({ nonce: "abc123", apiOrigin: "https://api.example.test", allowEval: false });
+    const csp = contentSecurityPolicy({ nonce: "abc123", allowEval: false, clerkFrontendApi: null });
     const styleSrc = directive(csp, "style-src");
     expect(styleSrc).toBe("style-src 'self' 'unsafe-inline'");
     // A nonce in style-src makes 'unsafe-inline' ignored, which would block
@@ -65,19 +65,56 @@ describe("the policy", () => {
   });
 
   it("allows eval only where the caller asks for it", () => {
-    const options = { nonce: "abc123", apiOrigin: "https://api.example.test" };
+    const options = { nonce: "abc123", clerkFrontendApi: null };
     expect(contentSecurityPolicy({ ...options, allowEval: true })).toContain("'unsafe-eval'");
     expect(contentSecurityPolicy({ ...options, allowEval: false })).not.toContain("'unsafe-eval'");
   });
 
   it("keeps the rest of the policy the review asked for", () => {
-    const csp = contentSecurityPolicy({ nonce: "abc123", apiOrigin: "https://api.example.test", allowEval: false });
+    const csp = contentSecurityPolicy({ nonce: "abc123", allowEval: false, clerkFrontendApi: null });
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("form-action 'self'");
     expect(csp).toContain("frame-ancestors 'none'");
-    expect(directive(csp, "connect-src")).toContain("https://api.example.test");
+    const connectSrc = directive(csp, "connect-src");
+    expect(connectSrc).toContain("'self'");
+    expect(connectSrc).toContain("https://*.clerk.com");
+    expect(connectSrc).not.toContain("svc.cluster.local");
+    expect(connectSrc).not.toContain("localhost");
+  });
+});
+
+describe("the Clerk Frontend API", () => {
+  // Publishable keys are public: they are in every page that signs in.
+  const development = "pk_test_ZmFtb3VzLXBvcnBvaXNlLTIyLmNsZXJrLmFjY291bnRzLmRldiQ";
+  const production = "pk_live_Y2xlcmsuYWl4LnRoZWhhY2tldHRncm91cC5jb20k";
+
+  it("is read out of the publishable key, for either instance", () => {
+    expect(clerkFrontendApiOrigin(development)).toBe("https://famous-porpoise-22.clerk.accounts.dev");
+    expect(clerkFrontendApiOrigin(production)).toBe("https://clerk.aix.thehackettgroup.com");
+  });
+
+  it("is nothing when the build has no Clerk", () => {
+    expect(clerkFrontendApiOrigin(undefined)).toBeNull();
+    expect(clerkFrontendApiOrigin("")).toBeNull();
+  });
+
+  it("fails on a key that is not a publishable key, rather than shipping a policy that blocks sign-in", () => {
+    expect(() => clerkFrontendApiOrigin("sk_live_abc")).toThrow();
+    expect(() => clerkFrontendApiOrigin(`pk_live_${btoa("no-terminator.example.com")}`)).toThrow();
+    expect(() => clerkFrontendApiOrigin(`pk_live_${btoa("evil.example.com; script-src *$")}`)).toThrow();
+  });
+
+  it("is allowed wherever Clerk runs: script, connect and frame", () => {
+    const csp = contentSecurityPolicy({
+      nonce: "abc123",
+      allowEval: false,
+      clerkFrontendApi: "https://clerk.aix.thehackettgroup.com",
+    });
+    for (const name of ["script-src", "connect-src", "frame-src"]) {
+      expect(directive(csp, name)).toContain("https://clerk.aix.thehackettgroup.com");
+    }
   });
 });
 

@@ -40,4 +40,15 @@ describe("transition error toasts", () => {
       reload: false,
     });
   });
+
+  it("names the deadline when the reopen window has elapsed", () => {
+    const copy = describeTransitionError(
+      transitionError(rtk(409, { code: "reopen_window_elapsed", days: 5, source: "account", deadline: "2026-09-21" })),
+    );
+    expect(copy).toMatchObject({
+      title: "Window closed",
+      detail: "The 5 working-day reopen window ended on 2026-09-21.",
+      reload: true,
+    });
+  });
 });

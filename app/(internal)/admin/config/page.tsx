@@ -33,6 +33,9 @@ const TABLE = "w-full border-collapse text-body";
 const TH = "text-xms-ink border-xms-line border-b px-3 py-2 text-left font-semibold";
 const TD = "text-xms-ink border-xms-line border-b px-3 py-2 align-top";
 
+/** A version's status on the ramp: active is Resolved green, a draft is New, anything else grey. */
+const VERSION_RAMP: Record<string, string> = { active: "resolved", draft: "new" };
+
 interface MachineBody {
   initial: string;
   states: { key: string; label: string; kind: string; effects?: Record<string, boolean> }[];
@@ -169,6 +172,12 @@ function SlaView({
   );
 }
 
+/** A catalog value as the table shows it: a flag in words, a missing value blank. */
+function cellText(value: unknown): string {
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  return String(value ?? "");
+}
+
 function ItemsView({ title, body }: { title: string; body: { items: Record<string, unknown>[] } }) {
   const columns = Array.from(new Set(body.items.flatMap((item) => Object.keys(item))));
   return (
@@ -188,7 +197,7 @@ function ItemsView({ title, body }: { title: string; body: { items: Record<strin
             <tr key={String(item.key)}>
               {columns.map((column) => (
                 <td key={column} className={`${TD} ${column === "key" ? "xms-mono" : ""}`}>
-                  {typeof item[column] === "boolean" ? (item[column] ? "Yes" : "No") : String(item[column] ?? "")}
+                  {cellText(item[column])}
                 </td>
               ))}
             </tr>
@@ -206,10 +215,7 @@ function VersionsRail({ data }: { data: ConfigDescription }) {
         {data.versions.map((version) => (
           <li key={version.id} className="flex items-center gap-2">
             <span className="xms-mono">v{version.version}</span>
-            <StatePill
-              state={version.status === "active" ? "resolved" : version.status === "draft" ? "new" : "closed"}
-              label={version.status}
-            />
+            <StatePill state={VERSION_RAMP[version.status] ?? "closed"} label={version.status} />
             <span className="xms-mono text-xms-label ml-auto text-body">{formatDate(version.activated_at)}</span>
           </li>
         ))}

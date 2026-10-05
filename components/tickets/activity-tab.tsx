@@ -6,6 +6,7 @@ import { ActorChip } from "@/components/xms/actor-chip";
 import { Skeleton } from "@/components/xms/skeleton";
 import { StatePill } from "@/components/xms/state-pill";
 import { formatMinutes } from "@/lib/tickets/sla";
+import { reopenSentence } from "@/lib/tickets/reopen-window";
 import { humanState } from "@/lib/tickets/transition-errors";
 import { PAUSE_REASONS } from "@/lib/tickets/vocab";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,31 @@ function valueText(value: unknown): string {
   if (value === null || value === undefined) return "empty";
   if (typeof value === "string") return value;
   return JSON.stringify(value);
+}
+
+function reopenReason(item: TimelineItem): string | null {
+  if (item.event_type !== "ticket.reopen_window_decided") return null;
+  const value = item.new_value;
+  if (typeof value === "object" && value !== null && "reason" in value && typeof value.reason === "string") {
+    return value.reason;
+  }
+  if (typeof value === "object" && value !== null && "days" in value) {
+    const view = value as {
+      days: number;
+      source?: string;
+      started_on?: string | null;
+      deadline?: string | null;
+      allowed?: boolean;
+    };
+    return reopenSentence({
+      days: view.days,
+      source: view.source === "type_override" ? "type_override" : "account",
+      started_on: view.started_on ?? null,
+      deadline: view.deadline ?? null,
+      allowed: Boolean(view.allowed),
+    });
+  }
+  return null;
 }
 
 /**
@@ -45,37 +71,42 @@ export function changeSentence(field: string, oldValue: unknown, newValue: unkno
 /** Render 03's activity row: 12px above and below on a row hairline. */
 const ROW = "border-xms-line-row flex flex-wrap items-baseline gap-3 border-b py-3 last:border-b-0";
 
-/** One audit row as a diff sentence; state changes render on the ramp. */
-export function AuditRow({ item }: { item: TimelineItem }) {
-  const isState = item.event_type === "ticket.transition" && item.field === "state";
-  const label = (item.event_type ?? "event").replace(/[._]/g, " ");
+/** What an audit row says happened; a state change renders on the ramp. */
+function AuditSentence({ item }: { item: TimelineItem }) {
+  if (item.event_type === "ticket.transition" && item.field === "state") {
+    return (
+      <>
+        <span className="text-xms-label">moved</span>
+        <StatePill state={String(item.old_value)} label={humanState(String(item.old_value))} />
+        <span className="text-xms-muted">to</span>
+        <StatePill state={String(item.new_value)} label={humanState(String(item.new_value))} />
+      </>
+    );
+  }
+  const reason = reopenReason(item);
+  if (reason) return <span className="text-xms-label">{reason}</span>;
   const opaque = item.field ? changeSentence(item.field, item.old_value, item.new_value) : null;
+  if (opaque) return <span className="text-xms-label">{opaque}</span>;
+  if (item.field) {
+    return (
+      <>
+        <span className="text-xms-label">changed</span>
+        <span className="text-xms-ink font-medium">{item.field.replace(/_/g, " ")}</span>
+        <span className="xms-mono text-xms-label line-through">{valueText(item.old_value)}</span>
+        <span className="xms-mono text-xms-ink">{valueText(item.new_value)}</span>
+      </>
+    );
+  }
+  return <span className="text-xms-label">{(item.event_type ?? "event").replace(/[._]/g, " ")}</span>;
+}
+
+/** One audit row as a diff sentence. */
+export function AuditRow({ item }: { item: TimelineItem }) {
   return (
-    // Render 03's row: the mark, the sentence, and the instant in mono on the
-    // right. The timestamp used to lead, in a 110px column that wrapped onto
-    // two lines and started every sentence in the list at a different place.
     <li className={ROW} data-event={item.event_type}>
       <ActorChip name={item.actor_name ?? "System"} kind={item.actor_kind === "ai" ? "ai" : "user"} />
       <span className="text-xms-ink flex flex-1 flex-wrap items-center gap-2 text-body leading-[1.5]">
-        {isState ? (
-          <>
-            <span className="text-xms-label">moved</span>
-            <StatePill state={String(item.old_value)} label={humanState(String(item.old_value))} />
-            <span className="text-xms-muted">to</span>
-            <StatePill state={String(item.new_value)} label={humanState(String(item.new_value))} />
-          </>
-        ) : opaque ? (
-          <span className="text-xms-label">{opaque}</span>
-        ) : item.field ? (
-          <>
-            <span className="text-xms-label">changed</span>
-            <span className="text-xms-ink font-medium">{item.field.replace(/_/g, " ")}</span>
-            <span className="xms-mono text-xms-label line-through">{valueText(item.old_value)}</span>
-            <span className="xms-mono text-xms-ink">{valueText(item.new_value)}</span>
-          </>
-        ) : (
-          <span className="text-xms-label">{label}</span>
-        )}
+        <AuditSentence item={item} />
       </span>
       <span className="xms-mono text-xms-muted shrink-0 text-body">{formatStamp(item.created_at)}</span>
     </li>

@@ -4,11 +4,13 @@ import { useRef, useState } from "react";
 import { PORTAL_SECONDARY } from "@/components/portal/primitives";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
-import { PORTAL_QUARANTINE_PLACEHOLDER, scanChip } from "@/lib/attachments/scan";
+import { PORTAL_QUARANTINE_PLACEHOLDER, scanChip, type ScanChip } from "@/lib/attachments/scan";
 import {
   UploadRefusal,
   describeRefusal,
   formatBytes,
+  isInFlight,
+  stageAfterConfirm,
   uploadAttachment,
   type UploadStage,
 } from "@/lib/attachments/upload";
@@ -16,6 +18,16 @@ import { formatDateTime } from "@/lib/portal/client-language";
 import { openExternal } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
 import { useLazyDownloadAttachmentQuery, useListAttachmentsQuery, type Attachment } from "@/redux/attachmentsApi";
+
+function chipClass(chip: ScanChip): string {
+  if (chip.danger) {
+    return "border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] text-[color:var(--state-overdue-text)]";
+  }
+  if (chip.ramp === "resolved") {
+    return "border-[color:var(--state-complete-border)] bg-[color:var(--state-complete-bg)] text-[color:var(--state-complete-text)]";
+  }
+  return "border-xms-line bg-xms-tint text-xms-label";
+}
 
 /**
  * Portal attachments in client language (Client Portal functional 5.5): the
@@ -28,14 +40,7 @@ export function PortalScanChip({ state }: { state: UploadStage | Attachment["sca
   return (
     <span
       data-scan={state}
-      className={cn(
-        "inline-flex h-[22px] items-center rounded-pill border px-2 text-body",
-        chip.danger
-          ? "border-[color:var(--state-overdue-border)] bg-[color:var(--state-overdue-bg)] text-[color:var(--state-overdue-text)]"
-          : chip.ramp === "resolved"
-            ? "border-[color:var(--state-complete-border)] bg-[color:var(--state-complete-bg)] text-[color:var(--state-complete-text)]"
-            : "border-xms-line bg-xms-tint text-xms-label",
-      )}
+      className={cn("inline-flex h-[22px] items-center rounded-pill border px-2 text-body", chipClass(chip))}
     >
       {chip.label}
     </span>
@@ -66,14 +71,7 @@ export function usePortalUploads(requestKey: string | undefined) {
           portal: true,
           onProgress: (progress) => update(id, { stage: progress.stage }),
         });
-        update(id, {
-          stage:
-            attachment.scan_state === "clean"
-              ? "clean"
-              : attachment.scan_state === "quarantined"
-                ? "quarantined"
-                : "scanning",
-        });
+        update(id, { stage: stageAfterConfirm(attachment.scan_state) });
       } catch (error) {
         update(id, {
           stage: "failed",
@@ -82,7 +80,7 @@ export function usePortalUploads(requestKey: string | undefined) {
       }
     }
   };
-  const busy = items.some((item) => ["presigning", "uploading", "scanning"].includes(item.stage));
+  const busy = items.some((item) => isInFlight(item.stage));
   return { items, add, busy };
 }
 

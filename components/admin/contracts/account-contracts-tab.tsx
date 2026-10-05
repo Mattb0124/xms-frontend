@@ -8,18 +8,25 @@ import { BucketsPanel } from "@/components/time/buckets-panel";
 import { INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { DenseTable, type DenseColumn } from "@/components/xms/dense-table";
 import { Panel } from "@/components/xms/panel";
-import { SignalPill } from "@/components/xms/signal-pill";
+import { SignalPill, type SignalTone } from "@/components/xms/signal-pill";
 import { useToast } from "@/components/xms/toast";
-import { apiError, describeError } from "@/lib/admin/api-error";
-import { useTrack } from "@/lib/telemetry/provider";
+import { apiError } from "@/lib/admin/api-error";
 import {
-  AFTER_HOURS_HANDLINGS,
-  AFTER_HOURS_HANDLING_LABEL,
-  describeHandling,
-  formatMultiplier,
-} from "@/lib/time/after-hours";
+  HANDLING_HELP,
+  OVERAGE_HELP,
+  ROLLOVER_HELP,
+  describeContractError,
+  draftFromContract,
+  handlingCell,
+  rulesBody,
+  rulesCell,
+  validateRules,
+  type RulesDraft,
+} from "@/lib/contracts/rules";
+import { useTrack } from "@/lib/telemetry/provider";
+import { AFTER_HOURS_HANDLINGS, formatMultiplier } from "@/lib/time/after-hours";
 import { engagementName } from "@/lib/contracts/engagements";
-import { describeOverage, describeRollover, OVERAGE_RULES, ROLLOVER_RULES } from "@/lib/time/budget";
+import { OVERAGE_RULES, ROLLOVER_RULES } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import {
@@ -30,7 +37,6 @@ import {
   type Contract,
   type Engagement,
   type OverageRule,
-  type PatchContractBody,
   type RolloverRule,
 } from "@/redux/ticketsApi";
 
@@ -41,191 +47,223 @@ const MODEL_LABEL: Record<string, string> = {
   fixed_fee: "Fixed fee",
 };
 
+/** Active is complete, a draft is waiting on input, anything else is blocked. */
+const STATUS_TONE: Record<string, SignalTone> = { active: "complete", draft: "needs-input" };
+
 function ContractStatusPill({ status }: { status: string }) {
-  const tone = status === "active" ? "complete" : status === "draft" ? "needs-input" : "blocked";
-  return <SignalPill tone={tone} label={status.charAt(0).toUpperCase() + status.slice(1)} />;
+  return (
+    <SignalPill tone={STATUS_TONE[status] ?? "blocked"} label={status.charAt(0).toUpperCase() + status.slice(1)} />
+  );
 }
 
-/** "Premium 1.5x per contract", "Comp time" or "None" for the list cell. */
-export function handlingCell(contract: Contract): string {
-  return describeHandling(contract) ?? AFTER_HOURS_HANDLING_LABEL[contract.after_hours_handling];
+/** What each fieldset of the rules editor is handed: the draft, and the change to lay over it. */
+export interface RulesFieldsetProps {
+  draft: RulesDraft;
+  onChange: (next: Partial<RulesDraft>) => void;
 }
 
-/** "Overage blocked; carries a month; thresholds 50, 75, 90, 100%" for the list cell. */
-export function rulesCell(contract: Contract): string {
-  const rollover = describeRollover(contract.rollover_rule, contract.rollover_cap_hours);
-  const thresholds =
-    contract.threshold_percents.length > 0 ? `thresholds ${contract.threshold_percents.join(", ")}%` : "no thresholds";
-  return `${describeOverage(contract.overage_rule, contract.overage_multiplier)}; ${rollover.charAt(0).toLowerCase()}${rollover.slice(1)}; ${thresholds}`;
+export interface EngagementFieldsetProps extends RulesFieldsetProps {
+  engagements: Engagement[];
 }
 
-/** Why the draft cannot be sent yet, in the screen's words; null when it can. */
-export function validateHandling(handling: AfterHoursHandling, multiplier: string): string | null {
-  if (handling !== "premium_rate") return null;
-  const value = Number(multiplier);
-  if (multiplier.trim() === "" || !Number.isFinite(value)) return "Premium rate needs a multiplier, for example 1.5.";
-  if (value < 1) return "The multiplier must be 1 or more.";
-  return null;
+function EngagementFieldset({ draft, onChange, engagements }: EngagementFieldsetProps) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-xms-ink font-semibold">Engagement</legend>
+      <label className="flex flex-col gap-1">
+        <span className="text-xms-label">Filed under</span>
+        <select
+          aria-label="Engagement"
+          className={cn(INPUT, "w-[320px]")}
+          value={draft.engagementId}
+          onChange={(event) => onChange({ engagementId: event.target.value })}
+        >
+          <option value="">Not filed under an engagement</option>
+          {engagements.map((engagement) => (
+            <option key={engagement.id} value={engagement.id}>
+              {engagement.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="text-xms-label">
+        {engagements.length === 0
+          ? "This account has no engagement yet. Add one above and the contract can be filed under it."
+          : "The engagement carries the renewal date and the notice period this contract is renewed against."}
+      </p>
+    </fieldset>
+  );
 }
 
-/** The rule set as the editor holds it; numbers stay text until they are sent. */
-export interface RulesDraft {
-  /** The engagement the contract is filed under; empty for none (technical 2.1). */
-  engagementId: string;
-  handling: AfterHoursHandling;
-  multiplier: string;
-  overageRule: OverageRule;
-  overageMultiplier: string;
-  rolloverRule: RolloverRule;
-  capHours: string;
-  /** The percentages as a comma list ("50, 75, 90, 100"). */
-  thresholds: string;
-  notifyClient: boolean;
-  forecastWindow: string;
-  /** The required technology codes as a comma list ("onestream, anaplan"). */
-  technologies: string;
+function AfterHoursFieldset({ draft, onChange }: RulesFieldsetProps) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-xms-ink font-semibold">After hours</legend>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Handling</span>
+          <select
+            aria-label="After-hours handling"
+            className={cn(INPUT, "w-[200px]")}
+            value={draft.handling}
+            onChange={(event) => onChange({ handling: event.target.value as AfterHoursHandling })}
+          >
+            {AFTER_HOURS_HANDLINGS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {draft.handling === "premium_rate" ? (
+          <label className="flex flex-col gap-1">
+            <span className="text-xms-label">Multiplier</span>
+            <input
+              aria-label="Multiplier"
+              inputMode="decimal"
+              className={cn(INPUT, "xms-mono w-[110px]")}
+              value={draft.multiplier}
+              onChange={(event) => onChange({ multiplier: event.target.value })}
+            />
+          </label>
+        ) : null}
+      </div>
+      <p className="text-xms-label">{HANDLING_HELP[draft.handling]}</p>
+    </fieldset>
+  );
 }
 
-function numberText(value: string | null, fallback: string): string {
-  return value ? String(Number(value)) : fallback;
+function BudgetFieldset({ draft, onChange }: RulesFieldsetProps) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-xms-ink font-semibold">Budget</legend>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Overage</span>
+          <select
+            aria-label="Overage rule"
+            className={cn(INPUT, "w-[200px]")}
+            value={draft.overageRule}
+            onChange={(event) => onChange({ overageRule: event.target.value as OverageRule })}
+          >
+            {OVERAGE_RULES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {draft.overageRule === "allow_rate" ? (
+          <label className="flex flex-col gap-1">
+            <span className="text-xms-label">Overage multiplier</span>
+            <input
+              aria-label="Overage multiplier"
+              inputMode="decimal"
+              className={cn(INPUT, "xms-mono w-[110px]")}
+              value={draft.overageMultiplier}
+              onChange={(event) => onChange({ overageMultiplier: event.target.value })}
+            />
+          </label>
+        ) : null}
+        <p className="text-xms-label pb-2">{OVERAGE_HELP[draft.overageRule]}</p>
+      </div>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Rollover</span>
+          <select
+            aria-label="Rollover rule"
+            className={cn(INPUT, "w-[200px]")}
+            value={draft.rolloverRule}
+            onChange={(event) => onChange({ rolloverRule: event.target.value as RolloverRule })}
+          >
+            {ROLLOVER_RULES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {draft.rolloverRule === "cap" ? (
+          <label className="flex flex-col gap-1">
+            <span className="text-xms-label">Cap (hours)</span>
+            <input
+              aria-label="Cap hours"
+              inputMode="decimal"
+              className={cn(INPUT, "xms-mono w-[110px]")}
+              value={draft.capHours}
+              onChange={(event) => onChange({ capHours: event.target.value })}
+            />
+          </label>
+        ) : null}
+        <p className="text-xms-label pb-2">{ROLLOVER_HELP[draft.rolloverRule]}</p>
+      </div>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Thresholds (percent, comma separated)</span>
+          <input
+            aria-label="Thresholds"
+            className={cn(INPUT, "xms-mono w-[220px]")}
+            value={draft.thresholds}
+            onChange={(event) => onChange({ thresholds: event.target.value })}
+            placeholder="50, 75, 90, 100"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xms-label">Forecast window (business days)</span>
+          <input
+            aria-label="Forecast window days"
+            inputMode="numeric"
+            className={cn(INPUT, "xms-mono w-[90px]")}
+            value={draft.forecastWindow}
+            onChange={(event) => onChange({ forecastWindow: event.target.value })}
+          />
+        </label>
+        <label className="flex items-center gap-2 pb-2">
+          <input
+            type="checkbox"
+            aria-label="Notify the client contact at each threshold"
+            checked={draft.notifyClient}
+            onChange={(event) => onChange({ notifyClient: event.target.checked })}
+          />
+          <span className="text-xms-ink">Notify the client contact at each threshold</span>
+        </label>
+      </div>
+      <p className="text-xms-label">
+        Each threshold fires once per period, to the account owners and, when ticked, the client contact.
+      </p>
+    </fieldset>
+  );
 }
 
-export function draftFromContract(contract: Contract): RulesDraft {
-  return {
-    engagementId: contract.engagement_id ?? "",
-    handling: contract.after_hours_handling,
-    multiplier: numberText(contract.after_hours_multiplier, "1.5"),
-    overageRule: contract.overage_rule,
-    overageMultiplier: numberText(contract.overage_multiplier, "1.25"),
-    rolloverRule: contract.rollover_rule,
-    capHours: numberText(contract.rollover_cap_hours, ""),
-    thresholds: contract.threshold_percents.join(", "),
-    notifyClient: contract.threshold_notify_client,
-    forecastWindow: String(contract.forecast_window_days),
-    technologies: contract.technology_codes.join(", "),
-  };
+function CoverageFieldset({ draft, onChange }: RulesFieldsetProps) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-xms-ink font-semibold">Coverage</legend>
+      <label className="flex flex-col gap-1">
+        <span className="text-xms-label">Technologies (codes, comma separated)</span>
+        <input
+          aria-label="Technology codes"
+          className={cn(INPUT, "xms-mono w-[320px]")}
+          value={draft.technologies}
+          onChange={(event) => onChange({ technologies: event.target.value })}
+          placeholder="onestream, anaplan"
+        />
+      </label>
+      <p className="text-xms-label">
+        The skills matrix reads these codes: a technology one person covers at level 3 is a single point of failure, one
+        nobody covers is a gap, and both show as chips on the account record.
+      </p>
+    </fieldset>
+  );
 }
 
-const TECHNOLOGIES_PROBLEM =
-  "Technology codes are lower-case letters, digits, dots, dashes and underscores, up to fifty of them, separated by commas, for example onestream, anaplan.";
-
-const TECHNOLOGY_CODE = /^[a-z0-9][a-z0-9_.-]{0,59}$/;
-
-/** The comma list as lower-case codes, deduplicated in the order given; null when a part is not a code the server takes. */
-export function parseTechnologyCodes(text: string): string[] | null {
-  const codes: string[] = [];
-  for (const part of text.split(",")) {
-    const code = part.trim().toLowerCase();
-    if (code === "") continue;
-    if (!TECHNOLOGY_CODE.test(code)) return null;
-    if (!codes.includes(code)) codes.push(code);
-  }
-  if (codes.length > 50) return null;
-  return codes;
+export interface ContractRulesEditorProps {
+  accountId: string;
+  contract: Contract;
+  engagements: Engagement[];
+  onDone: () => void;
+  refetch: () => unknown;
 }
-
-const THRESHOLDS_PROBLEM =
-  "Thresholds are whole percentages from 1 to 1000, up to ten of them, separated by commas, for example 50, 75, 90, 100.";
-
-/** The comma list as percentages, deduplicated and ascending; null when a part is not a usable whole percentage. */
-export function parseThresholds(text: string): number[] | null {
-  const parts = text
-    .split(",")
-    .map((part) => part.trim())
-    .filter((part) => part !== "");
-  const values: number[] = [];
-  for (const part of parts) {
-    if (!/^\d+$/.test(part)) return null;
-    const value = Number(part);
-    if (value < 1 || value > 1000) return null;
-    if (!values.includes(value)) values.push(value);
-  }
-  if (values.length > 10) return null;
-  return values.sort((a, b) => a - b);
-}
-
-/** Why the rules cannot be sent yet, in the screen's words; null when they can. */
-export function validateRules(draft: RulesDraft): string | null {
-  const handling = validateHandling(draft.handling, draft.multiplier);
-  if (handling) return handling;
-  if (parseThresholds(draft.thresholds) === null) return THRESHOLDS_PROBLEM;
-  if (draft.overageRule === "allow_rate") {
-    const value = Number(draft.overageMultiplier);
-    if (draft.overageMultiplier.trim() === "" || !Number.isFinite(value))
-      return "Allow at overage rate needs a multiplier, for example 1.25.";
-    if (value < 1) return "The overage multiplier must be 1 or more.";
-  }
-  if (draft.rolloverRule === "cap") {
-    const value = Number(draft.capHours);
-    if (draft.capHours.trim() === "" || !Number.isFinite(value) || value < 0)
-      return "Cap needs the carried hours limit, for example 20.";
-  }
-  const window = Number(draft.forecastWindow);
-  if (!Number.isInteger(window) || window < 1 || window > 90)
-    return "The forecast window is a whole number of business days from 1 to 90.";
-  if (parseTechnologyCodes(draft.technologies) === null) return TECHNOLOGIES_PROBLEM;
-  return null;
-}
-
-/**
- * The PATCH body (TB-09, TB-11, TB-13): the whole rule set with the
- * version the screen holds; a multiplier or a cap travels only under the
- * rule that needs it (the server nulls the rest).
- */
-export function rulesBody(version: number, draft: RulesDraft): PatchContractBody {
-  return {
-    version,
-    // Explicit null files the contract under no engagement; the server takes
-    // undefined as "leave it alone", which is not what an emptied picker means.
-    engagement_id: draft.engagementId === "" ? null : draft.engagementId,
-    after_hours_handling: draft.handling,
-    ...(draft.handling === "premium_rate" ? { after_hours_multiplier: Number(draft.multiplier) } : {}),
-    threshold_percents: parseThresholds(draft.thresholds) ?? [],
-    threshold_notify_client: draft.notifyClient,
-    overage_rule: draft.overageRule,
-    ...(draft.overageRule === "allow_rate" ? { overage_multiplier: Number(draft.overageMultiplier) } : {}),
-    rollover_rule: draft.rolloverRule,
-    ...(draft.rolloverRule === "cap" ? { rollover_cap_hours: Number(draft.capHours) } : {}),
-    forecast_window_days: Number(draft.forecastWindow),
-    technology_codes: parseTechnologyCodes(draft.technologies) ?? [],
-  };
-}
-
-function describeContractError(error: unknown): string {
-  const parsed = apiError(error);
-  if (parsed.code === "multiplier_required") {
-    const handling =
-      typeof error === "object" && error !== null && "data" in error
-        ? (error as { data?: { handling?: unknown } }).data?.handling
-        : undefined;
-    return handling === "allow_rate"
-      ? "Allow at overage rate needs a multiplier, for example 1.25."
-      : "Premium rate needs a multiplier, for example 1.5.";
-  }
-  if (parsed.code === "cap_required") return "Cap needs the carried hours limit, for example 20.";
-  if (parsed.code === "stale_version") return "Someone else changed this contract. It has been reloaded.";
-  if (parsed.code === "not_found") return "This contract is not on this account any more.";
-  return describeError(parsed);
-}
-
-const HELP: Record<AfterHoursHandling, string> = {
-  premium_rate: "After-hours, weekend and holiday entries carry this multiplier when logged.",
-  comp_time: "Non-standard entries are counted for comp time on the account's comp-time report.",
-  none: "Non-standard entries are badged but carry no premium and no comp time.",
-};
-
-const OVERAGE_HELP: Record<OverageRule, string> = {
-  block: "An entry that would take the period past its budget is refused.",
-  allow_flag: "The entry saves and is flagged over budget.",
-  allow_rate: "The entry saves at the overage rate and this multiplier.",
-};
-
-const ROLLOVER_HELP: Record<RolloverRule, string> = {
-  none: "Unused hours expire at period end.",
-  carry_month: "Unused hours carry into the next period only, then expire.",
-  carry_term: "Unused hours accumulate until the contract ends.",
-  cap: "Unused hours accumulate, but the carried balance never exceeds the cap.",
-};
 
 /**
  * The inline editor for one contract's rules (TB-09, TB-11, TB-13): the
@@ -237,19 +275,7 @@ const ROLLOVER_HELP: Record<RolloverRule, string> = {
  * and a stale version come back in the screen's words; the stale one also
  * reloads the list.
  */
-function ContractRulesEditor({
-  accountId,
-  contract,
-  engagements,
-  onDone,
-  refetch,
-}: {
-  accountId: string;
-  contract: Contract;
-  engagements: Engagement[];
-  onDone: () => void;
-  refetch: () => unknown;
-}) {
+function ContractRulesEditor({ accountId, contract, engagements, onDone, refetch }: ContractRulesEditorProps) {
   const [draft, setDraft] = useState<RulesDraft>(() => draftFromContract(contract));
   const [problem, setProblem] = useState<string | null>(null);
   const [patch, patchState] = usePatchContractMutation();
@@ -290,181 +316,10 @@ function ContractRulesEditor({
   return (
     <Panel title={`Contract rules for ${contract.key}`} caption={`${contract.name}, version ${contract.version}`}>
       <div className="flex flex-col gap-4 text-body" data-rules-editor={contract.id}>
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-xms-ink font-semibold">Engagement</legend>
-          <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Filed under</span>
-            <select
-              aria-label="Engagement"
-              className={cn(INPUT, "w-[320px]")}
-              value={draft.engagementId}
-              onChange={(event) => set({ engagementId: event.target.value })}
-            >
-              <option value="">Not filed under an engagement</option>
-              {engagements.map((engagement) => (
-                <option key={engagement.id} value={engagement.id}>
-                  {engagement.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="text-xms-label">
-            {engagements.length === 0
-              ? "This account has no engagement yet. Add one above and the contract can be filed under it."
-              : "The engagement carries the renewal date and the notice period this contract is renewed against."}
-          </p>
-        </fieldset>
-
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-xms-ink font-semibold">After hours</legend>
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xms-label">Handling</span>
-              <select
-                aria-label="After-hours handling"
-                className={cn(INPUT, "w-[200px]")}
-                value={draft.handling}
-                onChange={(event) => set({ handling: event.target.value as AfterHoursHandling })}
-              >
-                {AFTER_HOURS_HANDLINGS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {draft.handling === "premium_rate" ? (
-              <label className="flex flex-col gap-1">
-                <span className="text-xms-label">Multiplier</span>
-                <input
-                  aria-label="Multiplier"
-                  inputMode="decimal"
-                  className={cn(INPUT, "xms-mono w-[110px]")}
-                  value={draft.multiplier}
-                  onChange={(event) => set({ multiplier: event.target.value })}
-                />
-              </label>
-            ) : null}
-          </div>
-          <p className="text-xms-label">{HELP[draft.handling]}</p>
-        </fieldset>
-
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-xms-ink font-semibold">Budget</legend>
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xms-label">Overage</span>
-              <select
-                aria-label="Overage rule"
-                className={cn(INPUT, "w-[200px]")}
-                value={draft.overageRule}
-                onChange={(event) => set({ overageRule: event.target.value as OverageRule })}
-              >
-                {OVERAGE_RULES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {draft.overageRule === "allow_rate" ? (
-              <label className="flex flex-col gap-1">
-                <span className="text-xms-label">Overage multiplier</span>
-                <input
-                  aria-label="Overage multiplier"
-                  inputMode="decimal"
-                  className={cn(INPUT, "xms-mono w-[110px]")}
-                  value={draft.overageMultiplier}
-                  onChange={(event) => set({ overageMultiplier: event.target.value })}
-                />
-              </label>
-            ) : null}
-            <p className="text-xms-label pb-2">{OVERAGE_HELP[draft.overageRule]}</p>
-          </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xms-label">Rollover</span>
-              <select
-                aria-label="Rollover rule"
-                className={cn(INPUT, "w-[200px]")}
-                value={draft.rolloverRule}
-                onChange={(event) => set({ rolloverRule: event.target.value as RolloverRule })}
-              >
-                {ROLLOVER_RULES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {draft.rolloverRule === "cap" ? (
-              <label className="flex flex-col gap-1">
-                <span className="text-xms-label">Cap (hours)</span>
-                <input
-                  aria-label="Cap hours"
-                  inputMode="decimal"
-                  className={cn(INPUT, "xms-mono w-[110px]")}
-                  value={draft.capHours}
-                  onChange={(event) => set({ capHours: event.target.value })}
-                />
-              </label>
-            ) : null}
-            <p className="text-xms-label pb-2">{ROLLOVER_HELP[draft.rolloverRule]}</p>
-          </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xms-label">Thresholds (percent, comma separated)</span>
-              <input
-                aria-label="Thresholds"
-                className={cn(INPUT, "xms-mono w-[220px]")}
-                value={draft.thresholds}
-                onChange={(event) => set({ thresholds: event.target.value })}
-                placeholder="50, 75, 90, 100"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xms-label">Forecast window (business days)</span>
-              <input
-                aria-label="Forecast window days"
-                inputMode="numeric"
-                className={cn(INPUT, "xms-mono w-[90px]")}
-                value={draft.forecastWindow}
-                onChange={(event) => set({ forecastWindow: event.target.value })}
-              />
-            </label>
-            <label className="flex items-center gap-2 pb-2">
-              <input
-                type="checkbox"
-                aria-label="Notify the client contact at each threshold"
-                checked={draft.notifyClient}
-                onChange={(event) => set({ notifyClient: event.target.checked })}
-              />
-              <span className="text-xms-ink">Notify the client contact at each threshold</span>
-            </label>
-          </div>
-          <p className="text-xms-label">
-            Each threshold fires once per period, to the account owners and, when ticked, the client contact.
-          </p>
-        </fieldset>
-
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-xms-ink font-semibold">Coverage</legend>
-          <label className="flex flex-col gap-1">
-            <span className="text-xms-label">Technologies (codes, comma separated)</span>
-            <input
-              aria-label="Technology codes"
-              className={cn(INPUT, "xms-mono w-[320px]")}
-              value={draft.technologies}
-              onChange={(event) => set({ technologies: event.target.value })}
-              placeholder="onestream, anaplan"
-            />
-          </label>
-          <p className="text-xms-label">
-            The skills matrix reads these codes: a technology one person covers at level 3 is a single point of failure,
-            one nobody covers is a gap, and both show as chips on the account record.
-          </p>
-        </fieldset>
-
+        <EngagementFieldset draft={draft} onChange={set} engagements={engagements} />
+        <AfterHoursFieldset draft={draft} onChange={set} />
+        <BudgetFieldset draft={draft} onChange={set} />
+        <CoverageFieldset draft={draft} onChange={set} />
         <InlineError message={problem} />
         <div className="flex items-center gap-2">
           <button type="button" className={PRIMARY_BUTTON} onClick={onSave} disabled={patchState.isLoading}>

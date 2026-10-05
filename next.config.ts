@@ -48,7 +48,12 @@ const nextConfig: NextConfig = {
   // covered the control and nothing could scroll out from under it. No part of
   // the product reads it, so it is off.
   devIndicators: false,
-  images: { unoptimized: true },
+  // Clerk profile photos are served from img.clerk.com. The CSP already
+  // allows that host in img-src; the image component needs the same host.
+  images: {
+    unoptimized: true,
+    remotePatterns: [{ protocol: "https", hostname: "img.clerk.com", pathname: "/**" }],
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

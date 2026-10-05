@@ -30,6 +30,13 @@ export interface AccountRow {
 
 export type SyncMode = "off" | "ingest_only" | "bidirectional";
 
+export interface EmailBranding {
+  accent?: string;
+  logo_url?: string;
+  footer_text?: string;
+  sender_display_name?: string;
+}
+
 export interface AccountSettings {
   id: string;
   account_id: string;
@@ -40,7 +47,7 @@ export interface AccountSettings {
   ai_enabled: boolean;
   ai_opt_ins: Record<string, string>;
   ai_region_ok: boolean;
-  email_branding: Record<string, unknown>;
+  email_branding: EmailBranding;
   outbound_identity: string | null;
   inbound_aliases: string[];
   retention_days: number;
@@ -51,6 +58,8 @@ export interface AccountSettings {
   container_time_entries: number | null;
   container_elapsed_days: number | null;
   container_effort_minutes: number | null;
+  /** Working days after resolve during which a matched ticket may reopen; 0 never. */
+  reopen_window_business_days?: number;
   version: number;
 }
 

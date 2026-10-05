@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { ConfirmButton, INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
-import { useToast } from "@/components/xms/toast";
+import { useToast, type ToastItem } from "@/components/xms/toast";
 import { apiError } from "@/lib/admin/api-error";
 import {
+  conditionsLabel,
   describeSavedQueryError,
   draftFromSavedQuery,
   emptySavedQueryDraft,
@@ -31,46 +32,29 @@ import {
 
 const PAGE = 100;
 
-/**
- * The saved queries of the audit search (Audit & Analytics 7.1). Named
- * condition sets over the same three streams: run one, load one back into the
- * builder, save what is in the builder now, rename and delete your own.
- *
- * Everything here stands on `audit:read`, the permission the search itself
- * takes, so this panel is mounted inside the screen's gate and asks nothing
- * of its own. The one exception is sharing, which needs `audit:export`
- * because a shared query is how audit rows are put in front of other people:
- * the switch is not offered without that key rather than offered and refused.
- */
-export function SavedQueriesPanel({
-  conditions,
-  onRan,
-  onLoad,
-}: {
-  /** What the condition builder holds right now, as the request body would carry it. */
-  conditions: AuditCondition[];
-  /** The first page of a run, with the query that answered it, for the results table above. */
-  onRan: (page: SavedQueryPage) => void;
-  /** Put a saved query's conditions back into the builder without running it. */
-  onLoad: (query: AuditSavedQuery) => void;
-}) {
-  const me = useMe();
+function refusal(title: string, error: unknown): Omit<ToastItem, "id"> {
+  const { code, details, permission } = apiError(error);
+  return { title, detail: describeSavedQueryError(code, details, permission), tone: "error" };
+}
+
+/** The save form's draft, the query it rewrites (none for a new one), what the last attempt refused, and the save. */
+function useSavedQueryForm(conditions: AuditCondition[]) {
   const { push } = useToast();
-  const mayShare = me.hasPermission("audit:export");
-  const { data, isLoading } = useAuditSavedQueriesQuery();
   const [create, creating] = useCreateAuditSavedQueryMutation();
   const [patch] = usePatchAuditSavedQueryMutation();
-  const [remove] = useDeleteAuditSavedQueryMutation();
-  const [run, running] = useRunAuditSavedQueryMutation();
   const [draft, setDraft] = useState<SavedQueryDraft | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
 
-  const queries = data ?? [];
+  const open = (id: string | null, opened: SavedQueryDraft) => {
+    setEditing(id);
+    setProblems([]);
+    setDraft(opened);
+  };
 
-  const refuse = (title: string, error: unknown) => {
-    const { code, details, permission } = apiError(error);
-    push({ title, detail: describeSavedQueryError(code, details, permission), tone: "error" });
+  const close = () => {
+    setDraft(null);
+    setEditing(null);
   };
 
   const save = async () => {
@@ -83,18 +67,51 @@ export function SavedQueriesPanel({
       if (editing) await patch({ id: editing, body }).unwrap();
       else await create(body).unwrap();
       push({ title: editing ? `${body.name} updated` : `${body.name} saved`, tone: "success" });
-      setDraft(null);
-      setEditing(null);
+      close();
     } catch (error) {
-      refuse(editing ? "The saved query was not updated" : "The saved query was not saved", error);
+      push(refusal(editing ? "The saved query was not updated" : "The saved query was not saved", error));
     }
   };
+
+  return { draft, setDraft, editing, problems, creating: creating.isLoading, open, close, save };
+}
+
+export interface SavedQueriesPanelProps {
+  /** What the condition builder holds right now, as the request body would carry it. */
+  conditions: AuditCondition[];
+  /** The first page of a run, with the query that answered it, for the results table above. */
+  onRan: (page: SavedQueryPage) => void;
+  /** Put a saved query's conditions back into the builder without running it. */
+  onLoad: (query: AuditSavedQuery) => void;
+}
+
+/**
+ * The saved queries of the audit search (Audit & Analytics 7.1). Named
+ * condition sets over the same three streams: run one, load one back into the
+ * builder, save what is in the builder now, rename and delete your own.
+ *
+ * Everything here stands on `audit:read`, the permission the search itself
+ * takes, so this panel is mounted inside the screen's gate and asks nothing
+ * of its own. The one exception is sharing, which needs `audit:export`
+ * because a shared query is how audit rows are put in front of other people:
+ * the switch is not offered without that key rather than offered and refused.
+ */
+export function SavedQueriesPanel({ conditions, onRan, onLoad }: SavedQueriesPanelProps) {
+  const me = useMe();
+  const { push } = useToast();
+  const viewer = me.principal?.userId;
+  const { data, isLoading } = useAuditSavedQueriesQuery();
+  const [remove] = useDeleteAuditSavedQueryMutation();
+  const [run, running] = useRunAuditSavedQueryMutation();
+  const form = useSavedQueryForm(conditions);
+
+  const queries = data ?? [];
 
   const runOne = async (query: AuditSavedQuery) => {
     try {
       onRan(await run({ id: query.id, limit: PAGE }).unwrap());
     } catch (error) {
-      refuse(`${query.name} did not run`, error);
+      push(refusal(`${query.name} did not run`, error));
     }
   };
 
@@ -102,12 +119,9 @@ export function SavedQueriesPanel({
     try {
       await remove(query.id).unwrap();
       push({ title: `${query.name} deleted`, tone: "success" });
-      if (editing === query.id) {
-        setEditing(null);
-        setDraft(null);
-      }
+      if (form.editing === query.id) form.close();
     } catch (error) {
-      refuse(`${query.name} was not deleted`, error);
+      push(refusal(`${query.name} was not deleted`, error));
     }
   };
 
@@ -117,89 +131,24 @@ export function SavedQueriesPanel({
       caption="Named condition sets"
       subtitle="A saved query holds conditions and nothing else. What it shows is decided when it runs, by the accounts granted to whoever runs it."
       actions={
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(null);
-            setProblems([]);
-            setDraft(emptySavedQueryDraft());
-          }}
-          className={SECONDARY_BUTTON}
-        >
+        <button type="button" onClick={() => form.open(null, emptySavedQueryDraft())} className={SECONDARY_BUTTON}>
           Save these conditions
         </button>
       }
     >
       <div className="flex flex-col gap-3" data-testid="saved-queries">
-        {draft ? (
-          <form
-            aria-label={editing ? "Edit saved query" : "Save these conditions"}
-            className="border-xms-line flex flex-wrap items-end gap-3 rounded-card border p-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void save();
-            }}
-          >
-            <span className="flex flex-col gap-1">
-              <label htmlFor="saved-query-name" className="text-xms-label text-body">
-                Name
-              </label>
-              <input
-                id="saved-query-name"
-                value={draft.name}
-                onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-                className={cn(INPUT, "w-[240px]")}
-              />
-            </span>
-            <span className="flex flex-col gap-1">
-              <label htmlFor="saved-query-description" className="text-xms-label text-body">
-                Description
-              </label>
-              <input
-                id="saved-query-description"
-                value={draft.description}
-                onChange={(event) => setDraft({ ...draft, description: event.target.value })}
-                className={cn(INPUT, "w-[320px]")}
-              />
-            </span>
-            {mayShare ? (
-              <label className="text-xms-body flex items-center gap-2 pb-2 text-body">
-                <input
-                  type="checkbox"
-                  checked={draft.shared}
-                  onChange={(event) => setDraft({ ...draft, shared: event.target.checked })}
-                />
-                Share with everyone who can read the audit
-              </label>
-            ) : (
-              <p className="text-xms-label pb-2 text-body">{SHARING_NEEDS_EXPORT}</p>
-            )}
-            <button type="submit" disabled={creating.isLoading} className={PRIMARY_BUTTON}>
-              {editing ? "Update" : "Save"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setDraft(null);
-                setEditing(null);
-              }}
-              className={SECONDARY_BUTTON}
-            >
-              Cancel
-            </button>
-            <p className="text-xms-label basis-full text-body">
-              {editing
-                ? "Updating rewrites the conditions with the ones in the builder now."
-                : `${conditions.length} condition${conditions.length === 1 ? "" : "s"} from the builder above.`}
-            </p>
-            {problems.length > 0 ? (
-              <ul className="basis-full text-body text-[color:var(--state-overdue-text)]">
-                {problems.map((problem) => (
-                  <li key={problem}>{problem}</li>
-                ))}
-              </ul>
-            ) : null}
-          </form>
+        {form.draft ? (
+          <SaveQueryForm
+            draft={form.draft}
+            editing={Boolean(form.editing)}
+            conditionCount={conditions.length}
+            mayShare={me.hasPermission("audit:export")}
+            problems={form.problems}
+            creating={form.creating}
+            onChange={form.setDraft}
+            onSave={() => void form.save()}
+            onCancel={form.close}
+          />
         ) : null}
 
         {isLoading ? <p className="text-xms-label text-body">Reading the saved queries.</p> : null}
@@ -219,7 +168,7 @@ export function SavedQueriesPanel({
               <span className="min-w-0">
                 <span className="text-xms-ink block truncate text-body font-medium">{query.name}</span>
                 <span className="text-xms-label block text-body">
-                  {savedQueryLine(query, me.principal?.userId)}
+                  {savedQueryLine(query, viewer)}
                   {query.description ? `. ${query.description}` : ""}
                 </span>
               </span>
@@ -239,15 +188,11 @@ export function SavedQueriesPanel({
                 >
                   Load into builder
                 </button>
-                {isOwner(query, me.principal?.userId) ? (
+                {isOwner(query, viewer) ? (
                   <>
                     <button
                       type="button"
-                      onClick={() => {
-                        setEditing(query.id);
-                        setProblems([]);
-                        setDraft(draftFromSavedQuery(query));
-                      }}
+                      onClick={() => form.open(query.id, draftFromSavedQuery(query))}
                       className="text-xms-accent text-body hover:underline"
                     >
                       Rename
@@ -266,5 +211,95 @@ export function SavedQueriesPanel({
         </ul>
       </div>
     </Panel>
+  );
+}
+
+export interface SaveQueryFormProps {
+  draft: SavedQueryDraft;
+  /** Whether the draft rewrites a query already saved rather than adding one. */
+  editing: boolean;
+  /** How many conditions the builder holds, which are what the query is saved with. */
+  conditionCount: number;
+  mayShare: boolean;
+  problems: string[];
+  creating: boolean;
+  onChange: (draft: SavedQueryDraft) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+function SaveQueryForm({
+  draft,
+  editing,
+  conditionCount,
+  mayShare,
+  problems,
+  creating,
+  onChange,
+  onSave,
+  onCancel,
+}: SaveQueryFormProps) {
+  return (
+    <form
+      aria-label={editing ? "Edit saved query" : "Save these conditions"}
+      className="border-xms-line flex flex-wrap items-end gap-3 rounded-card border p-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
+    >
+      <span className="flex flex-col gap-1">
+        <label htmlFor="saved-query-name" className="text-xms-label text-body">
+          Name
+        </label>
+        <input
+          id="saved-query-name"
+          value={draft.name}
+          onChange={(event) => onChange({ ...draft, name: event.target.value })}
+          className={cn(INPUT, "w-[240px]")}
+        />
+      </span>
+      <span className="flex flex-col gap-1">
+        <label htmlFor="saved-query-description" className="text-xms-label text-body">
+          Description
+        </label>
+        <input
+          id="saved-query-description"
+          value={draft.description}
+          onChange={(event) => onChange({ ...draft, description: event.target.value })}
+          className={cn(INPUT, "w-[320px]")}
+        />
+      </span>
+      {mayShare ? (
+        <label className="text-xms-body flex items-center gap-2 pb-2 text-body">
+          <input
+            type="checkbox"
+            checked={draft.shared}
+            onChange={(event) => onChange({ ...draft, shared: event.target.checked })}
+          />
+          Share with everyone who can read the audit
+        </label>
+      ) : (
+        <p className="text-xms-label pb-2 text-body">{SHARING_NEEDS_EXPORT}</p>
+      )}
+      <button type="submit" disabled={creating} className={PRIMARY_BUTTON}>
+        {editing ? "Update" : "Save"}
+      </button>
+      <button type="button" onClick={onCancel} className={SECONDARY_BUTTON}>
+        Cancel
+      </button>
+      <p className="text-xms-label basis-full text-body">
+        {editing
+          ? "Updating rewrites the conditions with the ones in the builder now."
+          : `${conditionsLabel(conditionCount)} from the builder above.`}
+      </p>
+      {problems.length > 0 ? (
+        <ul className="basis-full text-body text-[color:var(--state-overdue-text)]">
+          {problems.map((problem) => (
+            <li key={problem}>{problem}</li>
+          ))}
+        </ul>
+      ) : null}
+    </form>
   );
 }

@@ -48,7 +48,7 @@ export function clerkTokenProvider(getToken: () => Promise<string | null>): Toke
   return { kind: "clerk", getToken };
 }
 
-let current: TokenProvider = CLERK_ENABLED ? noTokenProvider : AUTH_DEV_MODE ? devTokenProvider : noTokenProvider;
+let current: TokenProvider = !CLERK_ENABLED && AUTH_DEV_MODE ? devTokenProvider : noTokenProvider;
 
 export function setTokenProvider(provider: TokenProvider): void {
   current = provider;

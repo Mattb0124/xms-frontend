@@ -1,0 +1,34 @@
+################################################################################
+# xms-frontend delivery.
+#
+# The stages live in the platform repository so that the registry, the deploy
+# role, the cluster and the chart are described once for every XMS service.
+################################################################################
+
+# The branch picks the environment: dev -> dev, demo -> demo, main -> prod.
+trigger:
+  branches:
+    include:
+      - dev
+      - demo
+      - main
+
+pr: none
+
+resources:
+  repositories:
+    - repository: platform
+      type: git
+      name: XMS/AwsAccountXms
+      ref: refs/heads/main
+
+extends:
+  template: delivery/pipelines/build-deploy.yml@platform
+  parameters:
+    service: xms-frontend
+    ecrRepository: xms/frontend
+    servicePort: 3000
+    # Bake the environment's Clerk publishable key and deploy target into the
+    # image. The platform picks both from the branch: dev and demo use the
+    # Clerk development instance, main the production one.
+    clerkFrontend: true

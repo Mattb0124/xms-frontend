@@ -11,6 +11,8 @@
  * form can say what is wrong before a round trip, and so the list can be drawn.
  */
 
+import { configError } from "@/lib/admin/config-errors";
+
 export type McpTransport = "streamable_http" | "stdio";
 
 export interface McpServerDefinition {
@@ -63,6 +65,10 @@ export function retiredSlugs(library: McpLibraryBody, chosen: string[]): string[
   return chosen.filter((slug) => !known.has(slug));
 }
 
+export function serverAddress(server: McpServerDefinition): string | undefined {
+  return server.transport === "streamable_http" ? server.url : server.command;
+}
+
 const SLUG = /^[a-z][a-z0-9-]{1,48}$/;
 const SECRET_ISH = /(secret|token|password|passwd|pwd|api[-_]?key|authorization|bearer)/i;
 const PLACEHOLDER_ONLY = /^\$\{[A-Za-z_][A-Za-z0-9_]*\}$/;
@@ -112,4 +118,50 @@ export function headersFromText(text: string): Record<string, string> {
     if (key) headers[key] = value;
   }
   return headers;
+}
+
+/** The connection the form saves: headers only when there are any, and a blank secret reference as none. */
+export function serverFromDraft(draft: McpServerDefinition, headerText: string): McpServerDefinition {
+  const headers = headersFromText(headerText);
+  return {
+    ...draft,
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
+    secret_ref: draft.secret_ref?.trim() ? draft.secret_ref.trim() : null,
+  };
+}
+
+/**
+ * The catalog with one connection saved over the one opened as
+ * `originalSlug`, or added where nothing was opened. Renaming a connection
+ * carries its enabled state across, so an account does not silently lose a
+ * system because the slug was corrected.
+ */
+export function withServer(
+  library: McpLibraryBody,
+  saved: McpServerDefinition,
+  originalSlug: string | null,
+): McpLibraryBody {
+  const servers = library.servers ?? [];
+  return {
+    servers: originalSlug
+      ? servers.map((server) => (server.slug === originalSlug ? saved : server))
+      : [...servers, saved],
+    enabled: (library.enabled ?? []).map((slug) => (slug === originalSlug ? saved.slug : slug)),
+  };
+}
+
+/** The catalog without one connection, which leaves it enabled nowhere. */
+export function withoutServer(library: McpLibraryBody, slug: string): McpLibraryBody {
+  return {
+    servers: (library.servers ?? []).filter((server) => server.slug !== slug),
+    enabled: (library.enabled ?? []).filter((entry) => entry !== slug),
+  };
+}
+
+/**
+ * The library and an account's selection are both configuration catalogs, so
+ * a refused save lists the server's problems where it gave any.
+ */
+export function describeSaveRefusal(caught: unknown): string {
+  return configError(caught).problems?.join("; ") ?? "That could not be saved.";
 }

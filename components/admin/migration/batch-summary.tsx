@@ -116,8 +116,8 @@ export function LogTab({ batch }: { batch: BatchDetail }) {
     <Panel title="Log" caption={`${batch.log.length} lines`}>
       {batch.log.length === 0 ? <p className="text-xms-label text-body">Nothing logged yet. Run the batch.</p> : null}
       <ol className="flex flex-col gap-1" aria-label="Log lines">
-        {batch.log.map((entry, index) => (
-          <li key={`${entry.at}-${index}`} className="flex gap-3 text-body">
+        {batch.log.map((entry) => (
+          <li key={`${entry.at}:${entry.message}`} className="flex gap-3 text-body">
             <span className="xms-mono text-xms-label shrink-0 text-body">{formatDate(entry.at)}</span>
             <span className="text-xms-ink">{entry.message}</span>
           </li>

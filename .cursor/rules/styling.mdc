@@ -1,0 +1,43 @@
+---
+description: XMS Web styling. The token layers, utilities over raw values, signal pills, Panel eyebrow and subtitle, dense lists, figures, the AI treatment, and the surface rules the house tests hold
+globs: "app/**/*.tsx,components/**/*.tsx,styles/**,app/globals.css"
+alwaysApply: false
+---
+
+# Styling
+
+Load the `xms-web-design-system` skill for a new surface; the wireframes are the source of truth.
+
+## Tokens
+
+- `app/globals.css` imports the layers in order: `fonts.css`, `aiinnovation-tokens.css` (vendored primitives), `house.css` (the `--aix-*` aliases and the `--state-*` trios), `aix-tokens.css` (the vendored AIX chat skin), `xms-scope.css` (the `--xms-*` identity, light and dark, and the shared treatments) and `theme.css` (the Tailwind v4 bridge; there is no `tailwind.config.js`).
+- Never edit `aiinnovation-tokens.css` or `aix-tokens.css`; an override goes in `xms-scope.css`. A new colour token gets its dark value under `.dark .xms-scope` (`styles/tokens/tokens.test.ts` checks the core colours have one) and a `theme.css` entry when components use it as a utility.
+
+## In a component
+
+- Use the utilities: `text-xms-ink`, `bg-xms-card`, `border-xms-line`, `text-body`, `text-lead`, `rounded-control`. No raw hex, `rgb()` or named colour; an arbitrary value only wraps a token.
+  YES: `text-[color:var(--state-overdue-text)]`. NO: `text-[#dc2626]`.
+- `var()` breaks Tailwind opacity modifiers: write `bg-xms-accent-tint`, not `bg-xms-accent/25`.
+- `style` carries only geometry or a token chosen from data: ``style={{ width: `${fill}%`, background: FILL[tone] }}`` in `budget-view.tsx`.
+- Keep text at 14px or more. `--xms-text-xs`, `--xms-text-sm` and `--xms-text-md` are all 14px; write no smaller arbitrary size.
+
+## Signals and colour
+
+- A ticket state is a `StatePill` on the v3 ramp and a priority a `PriorityPill`. Any other status is a `SignalPill` with a `SignalTone` (`complete`, `needs-input`, `overdue`, `blocked`, `ready`) on the `--state-*` trios, mapped from the domain status once, in `lib/` (`ENGAGEMENT_STATUS`).
+- Colour in a row is state, priority and the clock alone. Never draw `<AccountDot>` or `<TypeBar>`; the account and the type are text.
+- Dense lists have no row striping. Build one with `DenseTable` inside a `Panel` (the `xms-web-data-table` skill).
+- Violet marks AI-origin content (summaries, suggestions, drafts, synthesis) and nothing else: `.xms-ai`, the `--xms-ai-*` tokens, `origin="ai"` on `NudgeCard`. Never use it for a status or a decoration.
+
+## Panels, records and figures
+
+- `Panel` takes a `title`, an optional `caption` eyebrow above it and a `subtitle` that explains the panel in one sentence. The caption is a short noun phrase in sentence case, at most 40 characters and with no semicolon; nothing uppercases it.
+  YES: `caption="No contract yet"`. NO: `caption="TIME WITHOUT A TICKET"`, or a caption that explains the panel.
+- A read-only record value is text with a tooltip (`readOnly` on a `RecordForm` field), never a disabled input.
+- One face, Lato, with tabular figures where numbers line up: a key through `KeyLink` or `KeyText`, an SLA value through `SlaValue`, a column of figures in `xms-mono`.
+
+## Surfaces (`components/xms/surfaces.test.tsx`)
+
+- Write no `focus-visible:ring`, `focus-visible:outline`, `focus:border-` or `focus-within:border-`; the one focus treatment is in `xms-scope.css`.
+- Size an icon with `ICON` from `components/xms/icons.tsx` (`size={ICON.action}`), never `size={16}`.
+- A text link is `TextLink` (`.xms-link`), never `text-xms-accent hover:underline`. Put no arrow glyph on a back link.
+- A page is full width: no `mx-auto` or named `max-w-*` on a page shell. Cap the control instead (`INPUT` is `max-w-[420px]`).

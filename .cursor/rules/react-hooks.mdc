@@ -1,0 +1,47 @@
+---
+description: XMS Web React hooks. Effects only to sync with the outside, derived values in render, state reset by events or keys, useEffectEvent for latest-value reads, stable ids for draft rows, and the 200-line limit
+globs: "app/**/*.tsx,components/**,lib/**/use-*.ts,lib/**/*.tsx"
+alwaysApply: false
+---
+
+# React hooks
+
+The Next ESLint config runs eslint-plugin-react-hooks 7: `rules-of-hooks` and the compiler rules (`set-state-in-effect`, `set-state-in-render`, `refs`, `purity`, `immutability`) are errors, and `exhaustive-deps` warns. Hold it to zero warnings like every other rule (`guardrails.mdc`).
+
+## Effects
+
+- Use an effect only to synchronise with something outside React: a timer, a subscription, the DOM, `localStorage`, a telemetry call on a change. Compute a value that follows from props, state or query data during render.
+  YES: `const available = useMemo(() => choices.filter((choice) => !chosen.includes(choice.key)), [choices, chosen]);` in `personalize-columns.tsx`.
+  NO: `useEffect(() => setRows(data ?? []), [data]);`.
+- Use `useMemo` only when the work is expensive or its identity feeds a dependency; otherwise a plain `const`.
+- Reset state in the event handler that causes the change, not in an effect that watches for it. To reseed a form when the record it edits changes, key it: ``<DestinationEditor key={data ? `${data.id}:${data.version}` : "empty"} />`` in `finance-tab.tsx`.
+- Keep render pure: no `Date.now()`, `performance.now()` or `Math.random()` in a component body (`purity`), and no `ref.current` read or write while rendering (`refs`). A clock that ticks is state set by an interval effect, as in `SlaValue`.
+
+## Dependencies
+
+- List every value the effect reads. When it needs the latest value of something that must not re-run it, read that in a `useEffectEvent` and call the event from the effect. Never silence `react-hooks/exhaustive-deps`. YES, for the portal search telemetry in `search-home.tsx`:
+
+```tsx
+const onSearchSettled = useEffectEvent(() => {
+  trackSearch({ scope: "portal", term_length: query.length, result_count: matches.data?.items.length ?? 0 }, "search.run");
+});
+useEffect(() => {
+  if (query.length < 2 || matches.isFetching) return;
+  onSearchSettled();
+}, [query, matches.isFetching]);
+```
+
+  NO: the same effect with `// eslint-disable-next-line react-hooks/exhaustive-deps` above its dependency list.
+- Call an effect event only from inside an effect. Never pass it to a child or list it as a dependency.
+- Call every hook before the first early return. To not ask, pass `{ skip }`; never call a query hook conditionally.
+
+## Keys and draft rows
+
+- A list key comes from the data. An editable row the server has not numbered takes its key from one of two helpers, and never from its index (ESLint refuses one):
+  - A draft row that a body builder maps field by field carries its id, given with `keyed(row)` from `lib/draft-rows.ts` where the row is made: in the factory for an empty row and where the saved ones are drafted (`toFreezeDrafts(...).map(keyed)` in `ticket-groups.tsx`). Edits and removals find the row by `id`, and the builder never sends it, as `toFreezeWindows` does not.
+  - A row that is sent, compared or written to the URL as it is (conditions, field-map pairs, routing rules, recipients) keeps its key beside it: `const rowKeys = useRowKeys(rows.length)` from `lib/use-row-keys.ts`, `key={rowKeys.keys[index]}`, and `rowKeys.drop(index)` beside removing a row (`condition-builder.tsx`, `audit-search.tsx`).
+  YES: `key={freeze.id}` on a `Keyed<FreezeDraft>`. NO: `key={index}` in `FreezeRows`, or a module counter of your own.
+
+## Size
+
+- A component or hook stays under 200 lines; `components/xms/function-length.test.ts` counts both. Before it gets there, move state and handlers into a `useXxx` hook beside it (`useQueueBulk` in `components/tickets/use-queue-bulk.ts`, `useMapLifecycle` in `components/admin/connectors/map-lifecycle.ts`) and blocks of markup into child components.

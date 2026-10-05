@@ -17,9 +17,16 @@ import { ICON, PlusIcon } from "@/components/xms/icons";
 import { ScoreTile } from "@/components/xms/score-tile";
 import { Skeleton } from "@/components/xms/skeleton";
 import { attentionOrder, isAtRisk, isBreached, TILES, underLens, type TileKey } from "@/lib/my-work/attention";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/redux/me";
 import { useListGrantedAccountsQuery, useListTicketsQuery, type TicketView } from "@/redux/ticketsApi";
+
+function briefLine(breached: number, open: number, atRisk: number): string {
+  if (breached > 0) return `${breached} of your tickets ${breached === 1 ? "has" : "have"} breached; start there.`;
+  if (open === 0) return "Nothing is assigned to you. The Cases list has the unassigned work.";
+  return `${open} open on your desk, ${atRisk} at risk.`;
+}
 
 /**
  * My work (render 08, User Experience 3.1, Wireframes section 3.3): four
@@ -37,14 +44,14 @@ export default function MyWorkPage() {
   const ready = Boolean(me.permissions) && me.hasPermission("tickets:view");
   const { data, isLoading } = useListTicketsQuery(
     { mine: true, open: true, limit: 100 },
-    { pollingInterval: 60_000, skip: !ready },
+    { pollingInterval: LIVE_REFRESH_MS, skip: !ready },
   );
   // The second half of "mine first, then group unassigned": the server
   // resolves my groups from the membership table, so the browser never names
   // them (TM-08).
   const { data: groupWork } = useListTicketsQuery(
     { my_groups: true, unassigned: true, open: true, limit: 50 },
-    { pollingInterval: 60_000, skip: !ready },
+    { pollingInterval: LIVE_REFRESH_MS, skip: !ready },
   );
   const { data: accounts } = useListGrantedAccountsQuery(undefined, { skip: !ready });
   const accountsById = useMemo(() => new Map((accounts ?? []).map((account) => [account.id, account])), [accounts]);
@@ -139,15 +146,7 @@ export default function MyWorkPage() {
           />
         ))}
       </div>
-      <BriefLine
-        text={
-          breached > 0
-            ? `${breached} of your tickets ${breached === 1 ? "has" : "have"} breached; start there.`
-            : mine.length === 0
-              ? "Nothing is assigned to you. The Cases list has the unassigned work."
-              : `${mine.length} open on your desk, ${atRisk} at risk.`
-        }
-      />
+      <BriefLine text={briefLine(breached, mine.length, atRisk)} />
       {/* The render puts the list on the left and Time today and Waiting on me
           in a 300px rail beside it. */}
       {isLoading && !data ? (

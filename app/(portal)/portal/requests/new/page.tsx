@@ -67,6 +67,19 @@ export default function PortalNewRequestPage() {
     />
   );
 
+  const chosenForm = (view: PortalFormView) =>
+    view.source === "published" ? (
+      <DynamicRequestForm
+        key={view.form_version_id ?? view.ticket_type}
+        view={view}
+        submitting={state.isLoading}
+        error={refusal}
+        onSubmit={(body) => void send(body, (error) => setRefusal(submissionError(error)))}
+      />
+    ) : (
+      fixedForm(view.ticket_type as "incident" | "service_request")
+    );
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xms-ink text-title font-semibold">New request</h1>
@@ -74,19 +87,7 @@ export default function PortalNewRequestPage() {
         {anyPublished ? (
           <div className="flex flex-col gap-5">
             <RequestTypeChoice items={items} value={type} onChange={setType} />
-            {chosen.data ? (
-              chosen.data.source === "published" ? (
-                <DynamicRequestForm
-                  key={chosen.data.form_version_id ?? chosen.data.ticket_type}
-                  view={chosen.data}
-                  submitting={state.isLoading}
-                  error={refusal}
-                  onSubmit={(body) => void send(body, (error) => setRefusal(submissionError(error)))}
-                />
-              ) : (
-                fixedForm(chosen.data.ticket_type as "incident" | "service_request")
-              )
-            ) : null}
+            {chosen.data ? chosenForm(chosen.data) : null}
           </div>
         ) : (
           fixedForm()

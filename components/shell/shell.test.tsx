@@ -5,7 +5,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FinderBar } from "@/components/shell/finder-bar";
 import { Shell } from "@/components/shell/shell";
-import { visibleScreens } from "@/lib/routes";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 
 const push = vi.fn();
@@ -25,8 +24,11 @@ describe("FinderBar", () => {
       axelOpen={false}
       unreadCount={0}
       onNotifications={() => {}}
-      userInitials="MB"
-      onUser={() => {}}
+      account={
+        <button type="button" aria-label="Account menu" className="aix-avatar">
+          <span className="aix-avatar-disc">MB</span>
+        </button>
+      }
       {...overrides}
     />
   );

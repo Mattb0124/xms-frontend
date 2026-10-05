@@ -1,16 +1,17 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import { ContentHeaderBar } from "@/components/shell/content-header-bar";
+import { DeskAccountButton, DeskAccountMenu, DeskAccountProvider } from "@/components/shell/desk-account";
 import { Finder, type FinderRecent } from "@/components/shell/finder";
 import { FinderBar } from "@/components/shell/finder-bar";
 import { AxelChat } from "@/components/axel/axel-chat";
 import { AxelPanel } from "@/components/shell/axel-panel";
 import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { PinnedSidebar, sidebarItems } from "@/components/shell/pinned-sidebar";
-import { initials } from "@/components/xms/actor-chip";
 import { HISTORY_KEY, PINS_KEY, usePersistedList, useToggleInList } from "@/lib/persisted-set";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { isDynamicPath, matchScreen, visibleScreens } from "@/lib/routes";
 import { NARROW_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { useListQuarantineQuery } from "@/redux/emailApi";
@@ -50,7 +51,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const [sidebarChoice, setSidebarChoice] = useState<boolean | null>(null);
   const sidebarOpen = sidebarChoice ?? !narrow;
   const [notifications, setNotifications] = useState(false);
-  const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: 60_000, skip: !me.principal });
+  const { data: unread } = useUnreadCountQuery(undefined, { pollingInterval: LIVE_REFRESH_MS, skip: !me.principal });
   // The record bar's Ask Axel opens the shell panel through the address, so
   // the link is a link and a pasted one opens the panel too (render 15).
   const axelParam = useSearchParams().get("axel") === "1";
@@ -73,11 +74,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const canWorkTickets = me.hasPermission("tickets:work");
   const { data: queueStats } = useListTicketsQuery(
     { open: true, limit: 1 },
-    { pollingInterval: 60_000, skip: !canSeeTickets },
+    { pollingInterval: LIVE_REFRESH_MS, skip: !canSeeTickets },
   );
   const { data: quarantine } = useListQuarantineQuery(
     { state: "open" },
-    { pollingInterval: 60_000, skip: !canWorkTickets },
+    { pollingInterval: LIVE_REFRESH_MS, skip: !canWorkTickets },
   );
   // Axel turns run against a ticket, so the full-screen surface takes the one
   // the reader is looking at. The record page has already asked for the same
@@ -107,14 +108,16 @@ export function Shell({ children }: { children: ReactNode }) {
   // read "Ticket" ten times (AIBL-329). A record names itself: the ticket the
   // shell has already fetched for Axel gives its key and its description, and
   // nothing extra is asked for to get them.
-  useEffect(() => {
+  const recordVisit = useEffectEvent(() => {
     if (!current) return;
     const label =
       axelTicket && current.screen === "ticket" ? `${axelTicket.key}  ${axelTicket.short_description}` : current.label;
     const entry: FinderRecent = { path: currentHref, label, at: new Date().toISOString() };
     const rest = historyRaw.filter((raw) => parseHistory(raw)?.path !== currentHref);
     setHistory([JSON.stringify(entry), ...rest]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => {
+    recordVisit();
   }, [currentHref, axelTicket?.key]);
 
   const history = useMemo<FinderRecent[]>(
@@ -147,53 +150,58 @@ export function Shell({ children }: { children: ReactNode }) {
   }, [onKey]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <FinderBar
-        finder={
-          <Finder
-            screens={screens}
-            recents={history}
-            pinned={new Set(sidebarItems(me.permissions, new Set(pins)).map((screen) => screen.path))}
-            // A dynamic path is a pattern, not an address, so it can never be
-            // one the sidebar links; the pin is refused rather than stored and
-            // filtered out again on the way back.
-            onTogglePin={(path: string) => {
-              if (!isDynamicPath(path)) togglePin(path);
-            }}
-            canSeeTickets={canSeeTickets}
-            canSeeKnowledge={me.hasPermission("knowledge:view")}
-          />
-        }
-        onAxel={() => setAxelChat((open) => !open)}
-        axelOpen={axelChat}
-        unreadCount={unread?.count ?? 0}
-        onNotifications={() => setNotifications((open) => !open)}
-        userInitials={me.principal?.displayName ? initials(me.principal.displayName) : "?"}
-        onUser={() => {}}
-      />
-      {notifications ? (
-        <div className="relative">
-          <NotificationsMenu onClose={() => setNotifications(false)} />
-        </div>
-      ) : null}
-      <div className="flex min-h-0 flex-1">
-        {sidebarOpen ? (
-          <PinnedSidebar
-            permissions={me.permissions}
-            extraPins={new Set(pins)}
-            counts={counts}
-            // Empty since the star came off the scope pill (AIBL-321), and
-            // empty before that too: this filtered on "Saved view" where the
-            // favourites list wrote "saved view", so the section never drew a
-            // row in its life. The prop stays so the saved views the server
-            // holds (/v1/views) have somewhere to arrive.
-            starredViews={[]}
-            currentPath={pathname}
-          />
+    <DeskAccountProvider>
+      <div className="flex h-full min-h-0 flex-col">
+        <FinderBar
+          finder={
+            <Finder
+              screens={screens}
+              recents={history}
+              pinned={new Set(sidebarItems(me.permissions, new Set(pins)).map((screen) => screen.path))}
+              // A dynamic path is a pattern, not an address, so it can never be
+              // one the sidebar links; the pin is refused rather than stored and
+              // filtered out again on the way back.
+              onTogglePin={(path: string) => {
+                if (!isDynamicPath(path)) togglePin(path);
+              }}
+              canSeeTickets={canSeeTickets}
+              canSeeKnowledge={me.hasPermission("knowledge:view")}
+            />
+          }
+          onAxel={() => setAxelChat((open) => !open)}
+          axelOpen={axelChat}
+          unreadCount={unread?.count ?? 0}
+          onNotifications={() => setNotifications((open) => !open)}
+          account={<DeskAccountButton />}
+        />
+        <DeskAccountMenu />
+        {notifications ? (
+          <div className="relative">
+            <NotificationsMenu onClose={() => setNotifications(false)} />
+          </div>
         ) : null}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <ContentHeaderBar current={current} screens={screens} onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}>
-            {/* The work area, and the reason the canvas is grey: the vendored
+        <div className="flex min-h-0 flex-1">
+          {sidebarOpen ? (
+            <PinnedSidebar
+              permissions={me.permissions}
+              extraPins={new Set(pins)}
+              counts={counts}
+              // Empty since the star came off the scope pill (AIBL-321), and
+              // empty before that too: this filtered on "Saved view" where the
+              // favourites list wrote "saved view", so the section never drew a
+              // row in its life. The prop stays so the saved views the server
+              // holds (/v1/views) have somewhere to arrive.
+              starredViews={[]}
+              currentPath={pathname}
+            />
+          ) : null}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <ContentHeaderBar
+              current={current}
+              screens={screens}
+              onToggleSidebar={() => setSidebarChoice(!sidebarOpen)}
+            >
+              {/* The work area, and the reason the canvas is grey: the vendored
                 token file paints the body white, and every screen was drawn on
                 white with white cards on it, so nothing had an edge.
 
@@ -204,21 +212,22 @@ export function Shell({ children }: { children: ReactNode }) {
                 Reading width is capped on the control (see `INPUT`), never on
                 the page. `components/xms/surfaces.test.tsx` fails if a page
                 shell brings one back. */}
-            <main className="bg-xms-bg flex flex-1 flex-col overflow-auto px-5 pt-[18px] pb-10">{children}</main>
-          </ContentHeaderBar>
-        </div>
-        {/* The panel pushes the content, it does not overlay it (Wireframes v2
+              <main className="bg-xms-bg flex flex-1 flex-col overflow-auto px-5 pt-[18px] pb-10">{children}</main>
+            </ContentHeaderBar>
+          </div>
+          {/* The panel pushes the content, it does not overlay it (Wireframes v2
             section 2), so it is a sibling column rather than a portal. */}
-        {axel ? (
-          <AxelPanel context={current?.path.includes("[") ? "ticket" : "desk"} onClose={() => setAxel(false)} />
-        ) : null}
-      </div>
-      {/* Everything below the finder bar, which stays live above it: the
+          {axel ? (
+            <AxelPanel context={current?.path.includes("[") ? "ticket" : "desk"} onClose={() => setAxel(false)} />
+          ) : null}
+        </div>
+        {/* Everything below the finder bar, which stays live above it: the
           reader can move to another screen without closing Axel first, which
           is the behaviour the AIX chat has. */}
-      {axelChat ? (
-        <AxelChat ticketId={axelTicket?.id ?? null} ticketKey={axelTicket?.key} onClose={() => setAxelChat(false)} />
-      ) : null}
-    </div>
+        {axelChat ? (
+          <AxelChat ticketId={axelTicket?.id ?? null} ticketKey={axelTicket?.key} onClose={() => setAxelChat(false)} />
+        ) : null}
+      </div>
+    </DeskAccountProvider>
   );
 }

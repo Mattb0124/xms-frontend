@@ -45,9 +45,11 @@ const CARDS = [
 export default function AdminPage() {
   const me = useMe();
   if (!me.permissions) return <Skeleton lines={4} className="max-w-md" />;
-  const visible = CARDS.map((card) => ({ ...card, entry: SCREENS.find((s) => s.screen === card.screen)! })).filter(
-    (card) => card.entry.permission === null || me.hasPermission(card.entry.permission),
-  );
+  const visible = CARDS.flatMap((card) => {
+    const entry = SCREENS.find((s) => s.screen === card.screen);
+    if (!entry || (entry.permission !== null && !me.hasPermission(entry.permission))) return [];
+    return [{ ...card, entry }];
+  });
   if (visible.length === 0) {
     return (
       <EmptyBanner

@@ -1,0 +1,50 @@
+---
+description: The pre-push gate, the guard tests that hold the house rules, and what to update when a change adds a screen, a gated read or an API route
+alwaysApply: true
+---
+
+# Guardrails
+
+## The gate
+
+- Run `pnpm check` before every push and push only when it is green. It runs `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm check:config` and `pnpm test`.
+- Treat it as the only gate. The image build runs `pnpm build` alone, which type-checks but does not lint, format-check or test, and `azure-pipelines.yml` sets `pr: none`, so no pipeline validates a pull request.
+- The house rules in `eslint.config.mjs` are errors, and `pnpm lint` runs with `--max-warnings=0`, so a warning from the framework's own rules (`react-hooks/exhaustive-deps`, `@next/next/*`) fails the gate as well.
+- Never silence a check inline: no `eslint-disable`, `@ts-ignore`, `@ts-expect-error` or `prettier-ignore`, and no `.only` or unconditional `.skip`. ESLint runs with `noInlineConfig`, so a disable comment changes nothing and its warning fails the lint. A real exception goes in `eslint.config.mjs`, scoped to its files, with its reason in a comment, as the index keys of `skeleton.tsx` and `demand-overlay.tsx` are.
+  YES: move the latest-value read into `useEffectEvent`. NO: `// eslint-disable-next-line react-hooks/exhaustive-deps`.
+- Let `pnpm format` write the formatting that `pnpm format:check` reads.
+- A run that reports an unhandled error after every test passed has failed. Find what outlived its test file; never rerun until it goes green. `vitest.setup.ts` already keeps each file's animation frames inside its window (`test-kit/animation-frames.ts`).
+
+## What the linter refuses
+
+Each of these is an error with the way out in its message:
+
+- An HTML-injection sink: `dangerouslySetInnerHTML`, `innerHTML`, `outerHTML`, `insertAdjacentHTML`.
+- `window.open` outside `lib/safe-url.ts`, and `localStorage` or `sessionStorage` outside `lib/persisted-set.ts` and `lib/auth/token.ts`.
+- `fetch` or `process.env` in `components/` and `app/`, route handlers and the local dev sign-in aside.
+- A portal file importing from `components/tickets`, `app/(internal)` or `redux/ticketsApi`.
+- `==` and `!=`, except against `null`; nested ternaries; index keys; non-null assertions outside tests; type imports without `type`; a fragment around a single child; `console.log`.
+
+## The guard tests
+
+They scan the source tree and fail the gate. Fix the code they name; never loosen a pattern, raise a limit or skip one.
+
+- `components/admin/fail-closed.test.ts`: no query before a gate decides, and the permission maps.
+- `components/xms/function-length.test.ts`: no component or hook of 200 lines or more.
+- `components/xms/house-copy.test.ts`, `surfaces.test.tsx` and `panel.test.tsx` beside it: copy, surfaces and panels.
+- `styles/tokens/tokens.test.ts`, `lib/safe-url.test.ts`, `lib/routes.test.ts`, `proxy.test.ts`, `next.config.test.ts`, `components/portal/portal-links.test.ts`, `test-kit/shared-fixtures.test.ts` and `scripts/check-next-config.mjs`.
+
+An exemption list only shrinks. `ALLOWED` in `function-length.test.ts` is empty: no component or hook in the app reaches 200 lines, and none is added to it. `WIRE_CONTRACTS` in `house-copy.test.ts` is closed at five.
+YES: move the state of a component nearing 200 lines into a `useXxx` hook beside it. NO: an `ALLOWED` entry so a new 230-line component passes.
+
+## The change
+
+- One concern per change: a refactor, a feature and a rename are three commits.
+- The runtime dependencies in `package.json` are few on purpose: Next, React, Redux Toolkit, Clerk, next-themes, the AWS STS client and `server-only`, with no UI kit, date library or CSS-in-JS. Add one only with its reason in the commit body.
+
+## What to update in the same change
+
+- A screen: its row in `SCREENS` in `lib/routes.ts`, with `permission` set to the page's gate key, and a page that renders `<AdminGate>` around a child holding the queries (`gating.mdc`). A portal page gets its row in `PORTAL_SCREENS`, which names it for telemetry only.
+- A hook that reads a route behind a permission: its read in the matching map in `components/admin/fail-closed.test.ts`, and every file that calls it among that map's surfaces.
+- An API route: the endpoint in its `redux/<area>Api.ts`, any new tag type in `tagTypes` in `redux/api.ts`, a slice test asserting the path, query and body, and a `describe...Error` case with a test for each refusal code it answers with (`data-layer.mdc`).
+- A portal link: a literal `href="/portal/..."` must name a page that exists.

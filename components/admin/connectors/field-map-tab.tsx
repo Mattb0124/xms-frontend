@@ -154,8 +154,9 @@ export function FieldMapTab({ instance }: { instance: ConnectorInstance }) {
                 </tr>
               </thead>
               <tbody>
-                {sampleRows.map((record, index) => (
-                  <tr key={index} className="border-xms-line border-b">
+                {/* A sample is a whole ServiceNow record, so it always carries its own sys_id. */}
+                {sampleRows.map((record) => (
+                  <tr key={pickValue(record, "sys_id")} className="border-xms-line border-b">
                     {externals.map((field) => (
                       <td
                         key={field}

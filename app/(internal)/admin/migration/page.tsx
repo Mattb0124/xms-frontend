@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/xms/skeleton";
 import { TabBar } from "@/components/xms/tab-bar";
 import { filterFromSearch, filterToSearch } from "@/lib/migration/filters";
 import { BATCH_STATUSES, OBJECT_KINDS } from "@/lib/migration/vocab";
+import { WORKER_REFRESH_MS } from "@/lib/refresh";
 import { useListBatchesQuery, type BatchFilter } from "@/redux/migrationApi";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 
@@ -28,7 +29,7 @@ function MigrationScreen() {
   const search = useSearchParams();
   const searchString = search.toString();
   const filter = useMemo(() => filterFromSearch(new URLSearchParams(searchString)), [searchString]);
-  const batches = useListBatchesQuery(filter, { pollingInterval: 30_000, refetchOnFocus: true });
+  const batches = useListBatchesQuery(filter, { pollingInterval: WORKER_REFRESH_MS, refetchOnFocus: true });
   const accounts = useListGrantedAccountsQuery();
   const [tab, setTab] = useState("batches");
   const names = useMemo(
@@ -76,17 +77,23 @@ function MigrationScreen() {
         <TabBar tabs={TABS} active={tab} onChange={setTab} />
         {tab === "batches" ? (
           <BatchList rows={batches.data ?? []} accountNames={names} loading={batches.isLoading} />
-        ) : filter.account_id ? (
-          <ReconciliationTab accountId={filter.account_id} />
         ) : (
-          <Panel title="Reconciliation" caption="One account at a time">
-            <p className="text-xms-label text-body">
-              Add an account filter to see its reconciliation reports, or open a batch and use its Reconciliation tab.
-            </p>
-          </Panel>
+          <ReconciliationBody accountId={filter.account_id} />
         )}
       </div>
     </>
+  );
+}
+
+/** The reports are read one account at a time, so the tab asks for the account filter until one is set. */
+function ReconciliationBody({ accountId }: { accountId: string | undefined }) {
+  if (accountId) return <ReconciliationTab accountId={accountId} />;
+  return (
+    <Panel title="Reconciliation" caption="One account at a time">
+      <p className="text-xms-label text-body">
+        Add an account filter to see its reconciliation reports, or open a batch and use its Reconciliation tab.
+      </p>
+    </Panel>
   );
 }
 

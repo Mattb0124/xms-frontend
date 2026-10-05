@@ -17,6 +17,7 @@ import { Panel } from "@/components/xms/panel";
 import { SignalPill } from "@/components/xms/signal-pill";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
+import { useRowKeys } from "@/lib/use-row-keys";
 import { deadlineLine, isHeld, reviewPill } from "@/lib/reporting/review";
 import {
   CADENCES,
@@ -37,6 +38,7 @@ import {
   requestedByLabel,
   reviewRequiredNote,
   runNowBody,
+  runNowHeadline,
   scheduleBody,
   scheduleError,
   validateRunNow,
@@ -96,7 +98,12 @@ function RecipientRow({
   onRemove: () => void;
 }) {
   const n = index + 1;
-  const users = recipient.kind === "internal" ? internalUsers : recipient.kind === "portal_user" ? portalUsers : [];
+  const usersByKind: Record<RecipientKind, UserRecord[]> = {
+    internal: internalUsers,
+    portal_user: portalUsers,
+    contact: [],
+  };
+  const users = usersByKind[recipient.kind];
   return (
     <div className="flex flex-wrap items-center gap-2" data-recipient={index}>
       <select
@@ -189,6 +196,7 @@ function ScheduleForm({
 }) {
   const internal = useListUsersQuery({ kind: "internal" });
   const portal = useListPortalUsersQuery(accountId);
+  const recipientKeys = useRowKeys(draft.distribution.length);
   const max = maxRunDay(draft.cadence);
   return (
     <Panel title={title} caption="The worker runs it in the account's time zone">
@@ -295,7 +303,7 @@ function ScheduleForm({
           ) : null}
           {draft.distribution.map((recipient, index) => (
             <RecipientRow
-              key={index}
+              key={recipientKeys.keys[index]}
               index={index}
               recipient={recipient}
               internalUsers={userOptions(internal.data)}
@@ -303,7 +311,10 @@ function ScheduleForm({
               onChange={(next) =>
                 onChange({ ...draft, distribution: draft.distribution.map((row, i) => (i === index ? next : row)) })
               }
-              onRemove={() => onChange({ ...draft, distribution: draft.distribution.filter((_, i) => i !== index) })}
+              onRemove={() => {
+                recipientKeys.drop(index);
+                onChange({ ...draft, distribution: draft.distribution.filter((_, i) => i !== index) });
+              }}
             />
           ))}
           <div>
@@ -359,14 +370,8 @@ function RunNowPanel({
       const outcome = await runNow({ id: schedule.id, accountId, body: runNowBody(start, end) }).unwrap();
       setResult(outcome);
       track({ account_id: accountId, schedule_id: schedule.id, run_id: outcome.run_id, status: outcome.status });
-      // A schedule with review required holds its run: nothing was sent, and
-      // saying it was would be the one thing functional 5.8 forbids.
       push({
-        title: isHeld(outcome.status)
-          ? "Report pack held for review"
-          : outcome.status === "sent"
-            ? "Report pack sent"
-            : "Report pack built, nobody reached",
+        title: runNowHeadline(outcome.status),
         detail: `${outcome.period.start} to ${outcome.period.end}`,
         tone: outcome.status === "failed" ? "error" : "success",
       });

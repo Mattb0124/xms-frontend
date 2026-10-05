@@ -202,12 +202,21 @@ export function MessageRow({ item, viaEmail }: { item: TimelineItem; viaEmail?: 
   );
 }
 
+/** What the record's thread strip can say the thread holds. */
+export type ThreadShows = "all" | "replies" | "notes";
+
+const THREAD_KINDS: Record<ThreadShows, readonly TimelineItem["kind"][]> = {
+  all: ["comment", "work_note"],
+  replies: ["comment"],
+  notes: ["work_note"],
+};
+
 export interface ConversationTabProps {
   ticketKey: string;
   requesterLine: string;
   readOnly?: boolean;
   /** What the strip's filter says the thread holds. */
-  shows?: "all" | "replies" | "notes";
+  shows?: ThreadShows;
   /** What the strip's search field is looking for in it. */
   find?: string;
 }
@@ -236,13 +245,7 @@ export function ConversationTab({
   // screen says what it is showing.
   const needle = find.trim().toLowerCase();
   const messages = (data ?? [])
-    .filter((item) =>
-      shows === "replies"
-        ? item.kind === "comment"
-        : shows === "notes"
-          ? item.kind === "work_note"
-          : item.kind === "comment" || item.kind === "work_note",
-    )
+    .filter((item) => THREAD_KINDS[shows].includes(item.kind))
     .filter((item) => (needle ? `${item.body ?? ""} ${item.actor_name ?? ""}`.toLowerCase().includes(needle) : true));
   const blockedReason = uploads.scanning && !acknowledged ? "A file is still being scanned." : undefined;
   return (

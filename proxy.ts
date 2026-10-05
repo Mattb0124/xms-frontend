@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
+import { CLERK_FRONTEND_API, contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/csp";
 
 /**
  * The nonce proxy (security review finding 25).
@@ -12,8 +12,8 @@ import { contentSecurityPolicy, newNonce, NONCE_HEADER } from "@/lib/security/cs
  *
  * Every document request gets its own nonce. It goes out twice: on the
  * request headers, where the framework reads it and stamps it on every
- * script it emits (and where `@clerk/nextjs` reads `x-nonce` for its own
- * script tag), and on the response's Content-Security-Policy, which is what
+ * script it emits (and where the root layout reads `x-nonce` back for Clerk and
+ * next-themes), and on the response's Content-Security-Policy, which is what
  * the browser enforces. Because the policy is per request it cannot live in
  * `next.config.ts` any more, and it does not: that file sets the rest of the
  * security headers and no CSP at all, so a document never carries two
@@ -26,8 +26,8 @@ export function proxy(request: NextRequest): NextResponse {
   const nonce = newNonce();
   const csp = contentSecurityPolicy({
     nonce,
-    apiOrigin: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001",
     allowEval: process.env.NODE_ENV !== "production",
+    clerkFrontendApi: CLERK_FRONTEND_API,
   });
 
   const headers = new Headers(request.headers);

@@ -57,3 +57,50 @@ describe("an activity row whose values are identifiers", () => {
     expect(screen.getByText("Close")).toBeInTheDocument();
   });
 });
+
+describe("a reopen-window audit row", () => {
+  it("prints the desk reason sentence instead of the raw JSON", () => {
+    render(
+      <ul>
+        <AuditRow
+          item={anAudit({
+            event_type: "ticket.reopen_window_decided",
+            field: "reopen_window",
+            new_value: {
+              allowed: true,
+              days: 5,
+              source: "account",
+              started_on: "2026-09-14",
+              deadline: "2026-09-21",
+              reason: "Reopened inside the 5 working-day window (deadline 2026-09-21).",
+            },
+          })}
+        />
+      </ul>,
+    );
+    expect(screen.getByText("Reopened inside the 5 working-day window (deadline 2026-09-21).")).toBeInTheDocument();
+    expect(screen.queryByText(/reopen window/i)).not.toBeInTheDocument();
+  });
+
+  it("prints the inbound reply sentence the server sent", () => {
+    render(
+      <ul>
+        <AuditRow
+          item={anAudit({
+            event_type: "ticket.reopen_window_decided",
+            field: "reopen_window",
+            new_value: {
+              allowed: true,
+              days: 5,
+              source: "account",
+              started_on: "2026-09-14",
+              deadline: "2026-09-21",
+              reason: "reply inside reopen window (5 working days, deadline 2026-09-21).",
+            },
+          })}
+        />
+      </ul>,
+    );
+    expect(screen.getByText("reply inside reopen window (5 working days, deadline 2026-09-21).")).toBeInTheDocument();
+  });
+});

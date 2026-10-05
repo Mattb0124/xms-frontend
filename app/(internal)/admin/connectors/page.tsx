@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { ConnectorHealthList } from "@/components/admin/connectors/health-list";
 import { AdminGate } from "@/components/admin/primitives";
+import { WORKER_REFRESH_MS } from "@/lib/refresh";
 import { useListAccountsQuery } from "@/redux/adminApi";
 import { useConnectorHealthQuery } from "@/redux/connectorsApi";
 import { useMe } from "@/redux/me";
@@ -14,17 +15,13 @@ import { useMe } from "@/redux/me";
  */
 function AdminConnectorsPageBody() {
   const me = useMe();
-  const health = useConnectorHealthQuery(undefined, { pollingInterval: 30_000, refetchOnFocus: true });
+  const health = useConnectorHealthQuery(undefined, { pollingInterval: WORKER_REFRESH_MS, refetchOnFocus: true });
   const accounts = useListAccountsQuery(undefined, { skip: !me.hasPermission("admin:accounts") });
   const names = useMemo(
     () => Object.fromEntries((accounts.data ?? []).map((account) => [account.id, account.name])),
     [accounts.data],
   );
-  return (
-    <>
-      <ConnectorHealthList rows={health.data ?? []} accountNames={names} loading={health.isLoading} />
-    </>
-  );
+  return <ConnectorHealthList rows={health.data ?? []} accountNames={names} loading={health.isLoading} />;
 }
 
 /** Registered as `admin.connectors`: the sync health screen over every instance the reader can see. */

@@ -11,8 +11,9 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 - **Tokens live in `styles/tokens`.** `aiinnovation-tokens.css` is vendored and never edited; `house.css` holds the `--aix-*` aliases and `--state-*` signal trios; `xms-scope.css` holds the identity; `theme.css` is the Tailwind v4 bridge (there is no `tailwind.config.js`). No raw hex in components.
 - **The server is the only author of truth.** SLA due times, breach latches, derived priority, burn-down and permissions arrive from the API; the browser renders and counts down. Where a figure needs its basis to be read correctly, the label carries it ("Remaining of plan"), never a recomputation in the browser.
 - **A gated screen asks nothing before the gate decides.** The component that renders `<AdminGate>` may not call a query hook: the body lives in a child the gate mounts once the permission is held, so no screen takes a 403, and writes a security event, before drawing its own refusal. `components/admin/fail-closed.test.ts` scans every page for it. The same test carries the contracts:view map: the contracts, rate cards, budget, account time and billing period routes are guarded by `contracts:view`, which Consultants and Dispatchers do not hold, so every surface reading one gates on that key and never a weaker one, and the account tabs leave those entries out. Only the contract position stayed on `tickets:view`, so the ticket record's contract card did too. The same test carries the connector outbound queue, which the API answers to `admin:connectors` alone: every file calling `useListOutboundQuery` or `useRetryOutboundMutation` is listed with the screen whose gate mounts it. It carries the account's contacts the same way, which the API answers to `admin:accounts` alone: every file calling `useListContactsQuery` or `useSetContactFlagsMutation` is listed with the screen whose gate mounts it. It carries the held report run the same way, which the API answers to `reports:manage` alone: every file calling `useReviewRunQuery`, `useEditRunNarrativeMutation`, `useRegenerateReportRunMutation`, `useApproveReportRunMutation` or `useCancelReportRunMutation` is listed with the screen whose gate mounts it, and the registry entry for `/reports/runs/[id]` is pinned to that key so no weaker reader is offered the link. It carries the Queue's saved views the same way: `/v1/views` answers to `tickets:view`, the Queue's own gate, so the map exists to keep it there rather than to raise it. The analytics map now covers the audit's saved queries (five routes on `audit:read`, the key the search itself takes) and the Security screen's integrity route. Two maps were added with the 2026-09-08 group and time work, and both carry two keys rather than one, so each surface names its own: the routing defaults and the group catalog read under `tickets:view` and write under `admin:config` and `tickets:work`, and the non-ticket buckets read under `time:log` and write under `contracts:manage`. Neither write key is implied by its read key, and neither read key is implied by the account record's `admin:accounts` or its Contracts tab's `contracts:view`, which is why the routing panel and the buckets panel hold their own read gates instead of riding on the screen's. A map was added with the request forms (CP-03): all six form routes answer to `admin:config`, read and write alike, which `admin:accounts` does not imply, so the builder holds its own guard and every hook is pinned to the route it reads.
-- **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short ALL-CAPS noun phrase; whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
-- **Build fails on lint or type errors.** `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`; the pipeline gate runs `pnpm check` before any image is built.
+- **Panels read eyebrow, title, subtitle.** `Panel`'s `caption` is a short noun phrase in sentence case, at most 40 characters and with no semicolon (`.xms-caption` has drawn it as written since the shouted eyebrow was retired); whatever explains the panel goes in `subtitle`, in sentence case. Read-only record values are text with a tooltip, never disabled inputs. `components/xms/panel.test.tsx` holds `components/capacity` and `components/time` to the eyebrow rule.
+- **`pnpm check` is the only gate, so run it before every push.** Pipeline 415 builds the image on a push to dev, demo or main with `pnpm install` and `pnpm build`, which type-checks but neither lints, format-checks nor tests, and it validates no pull request (`pr: none`). `scripts/check-next-config.mjs` rejects `ignoreBuildErrors` and `ignoreDuringBuilds`. Lint runs with `--max-warnings=0` and `noInlineConfig`: an exception lives in `eslint.config.mjs` with its reason, never in a comment beside the code.
+- **The house rules live in `.cursor/rules/*.mdc`** (guardrails, architecture, data layer, gating, security, styling, React hooks, React and TypeScript, testing, copy and errors). Cursor loads them by file; any other agent reads the ones a change touches before writing it. ESLint and the guard tests hold most of them.
 - Tests are **Vitest** (unit and component) and **Playwright** (golden paths in `e2e/`); every `*.test.ts(x)` is discovered, there is no allowlist.
 - **A test file never imports another test file.** Vitest registers a module's suites the moment it is imported, so a fixture taken out of `redux/timeApi.test.ts` re-ran that file's own `describe` blocks inside the importer: fifty-seven files did it and the gate reported 1744 tests over the 1013 that existed. Every shared builder lives in a `test-kit/*` module, which declares no suite at all, and `test-kit/shared-fixtures.test.ts` scans for both halves of that rule.
 - No em-dashes in copy; ServiceNow vocabulary where it aids adoption (CS keys, work notes, resolution codes).
@@ -22,13 +23,13 @@ The Next.js and React application for XMS (Xelerated Managed Services): the inte
 The CSP carries a **per-request nonce** and is therefore not in
 `next.config.ts` at all: `lib/security/csp.ts` builds it and `proxy.ts`
 sends it, setting the nonce on the request headers (where the framework reads
-it, and where `@clerk/nextjs` reads `x-nonce` for its own script tag) and the
-policy on the response. Nothing else may send a CSP: two policies on one
-response are enforced as the intersection of both.
+it) and the policy on the response. Nothing else may send a CSP: two policies
+on one response are enforced as the intersection of both.
 
-`script-src` is `'self' 'nonce-<n>' 'strict-dynamic'` plus the Clerk origins;
-`'self'` and the origins are there for CSP2-only browsers, which ignore
-`'strict-dynamic'`. `'unsafe-eval'` is added in development only.
+`script-src` is `'self' 'nonce-<n>' 'strict-dynamic'` plus the Clerk origins
+and Cloudflare's challenge origin, which Clerk's bot protection loads and
+`frame-src` also names; `'self'` and the origins are there for CSP2-only
+browsers, which ignore `'strict-dynamic'`. `'unsafe-eval'` is added in development only.
 `style-src` deliberately keeps `'unsafe-inline'`: `next/font` and next-themes
 write inline styles that carry no nonce, and a nonce in `style-src` would
 make `'unsafe-inline'` ignored and break the page. Inline style is not a
@@ -36,7 +37,12 @@ script-execution sink here, so the residual risk is style injection on a page
 with no HTML-injection sink at all.
 
 The root layout reads the nonce back out of the headers and passes it to
-next-themes, the one inline script this tree writes itself. The file is
+next-themes, the one inline script this tree writes itself, and through
+`Providers` to `ClerkProvider`'s `nonce` prop. Clerk is rendered inside a
+client component, where it never reads `x-nonce` itself: without the prop its
+scripts carried no nonce and `'strict-dynamic'` refused them. `telemetry={false}`
+keeps it from calling a telemetry host the policy does not list
+(`components/providers.test.tsx`, `lib/security/csp.test.ts`). The file is
 `proxy.ts` exporting `proxy`: Next 16.3 deprecated the `middleware`
 convention and renamed it, and only the file and the export name changed,
 not the request and response objects or the `config.matcher` grammar.
@@ -45,7 +51,9 @@ What must stay true, and is what kept the risk bounded before the nonce
 landed: no HTML-injection sink anywhere (no `dangerouslySetInnerHTML`, no
 `innerHTML`, no markdown renderer), every `href`, `window.open` and download
 target built from server data validated through `lib/safe-url`, and no cookie
-authentication. Security review 2026-09-08, findings 25 and 26; finding 25 is
+authentication. ESLint holds the first two: it refuses `dangerouslySetInnerHTML`,
+`innerHTML`, `outerHTML` and `insertAdjacentHTML`, and `window.open` outside
+`lib/safe-url`. Security review 2026-09-08, findings 25 and 26; finding 25 is
 closed.
 
 ## Commands
@@ -55,7 +63,7 @@ closed.
 - `pnpm test`, `pnpm test:e2e`
 - `pnpm generate:api-types` regenerates `src/api-types` from the backend's `openapi.json` (set `XMS_OPENAPI_PATH`)
 
-## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel, then the group queue with the routing defaults, the group catalog and the change calendar, non-ticket time, then the shared fixtures moved into test-kit and the per-account request forms, authored on the account and filled in on the portal)
+## Layout (as built 2026-09-08, capacity and billing cut with the skills matrix and forward demand, then CSAT and report schedules, then API clients and the finance connector, per ADR-14, then the 2026-09-08 review's fidelity pass, then the ServiceNow connector's outbound half, then the quarterly relationship survey, the ticket scope flag and the account's contacts, then the PDF rendition and review before send, then the out-of-scope filter, the read behind the survey link, the Portfolio-wide audit filter, the records behind the Security dashboard rows, the editable narrative, then the server's saved views, the audit's saved queries, the integrity panel and the core-loop funnel, then the group queue with the routing defaults, the group catalog and the change calendar, non-ticket time, then the shared fixtures moved into test-kit and the per-account request forms, authored on the account and filled in on the portal, then the 2026-10-01 clean-code pass: the house lint rules as errors, every function under 200 lines, and the rules those functions held moved to lib)
 
 ```
 proxy.ts                the per-request CSP nonce: sets it on the request headers and the response policy
@@ -476,7 +484,8 @@ lib/integrations/       api-clients (API_CLIENT_STATUS, DEFAULT_RATE_LIMIT (600)
                         with emptyDestinationDraft, draftFromDestination and destinationBody (only the chosen kind's
                         field is sent), secretKidLabel, responseStatusLabel, acknowledgementLabel, financeError and
                         describeFinanceError for invalid_endpoint with its problem, endpoint_required,
-                        prefix_required, period_not_locked with the status and no_destination)
+                        prefix_required, period_not_locked with the status and no_destination), webhooks (pausedLine,
+                        eventsLabel, eligibleClients (the active clients granted the account), lastErrorLine)
 lib/exports/            fetchDownload (bearer fetch to a blob, filename from Content-Disposition, x-row-count), saveBlob (object
                         URL and a temporary anchor), downloadFile; presigned pack URLs never come through here
 lib/tickets/export-conditions  the Queue's view and chips expressed as the server ConditionSet (base64url) for /v1/exports/tickets
@@ -497,7 +506,8 @@ components/admin/audit-search (scopeOf and accountLabel: the Operator chip from 
                         account; rowsToQuery and rowsFromConditions, which reads a saved query back into the builder
                         with a datetime in the control's local wording rather than the ISO instant),
                         saved-queries (SavedQueriesPanel: the list, Run, Load into builder, save, rename and delete),
-                        security-dashboard (CountList, whose rows carry an optional href), integrity-panel
+                        security-dashboard (SecurityDashboard over lib/reporting/security), count-list (CountList,
+                        whose rows carry an optional href, shared with the usage dashboard), integrity-panel
                         (IntegrityPanel: the chain, the archive, the streams and the retention policy),
                         usage-dashboard (the per-account strip), usage-funnel (FunnelPanel with the step strip and the
                         per-account table, AdoptionPanel)
@@ -506,6 +516,9 @@ lib/reporting/saved-queries  the SavedQueryDraft with emptySavedQueryDraft and d
                         builder), savedQueryBody, ownerLabel and savedQueryLine, isOwner, SHARING_NEEDS_EXPORT and
                         describeSavedQueryError (not_found worded as deleted or unshared, never as forbidden, since
                         the API answers the same 404 to a query that is gone and to someone else's private one)
+lib/reporting/security  isDenial, isAdminChange, isDataEvent, securityTiles (the tile sums), pausedKindLabel, pausedLabel,
+                        pausedDetail, deadLetterDetail, and securityLinks with pausedHref and deadLetterHref (a row links
+                        only where a screen answers it and the reader holds its permission)
 lib/reporting/integrity  momentLabel, digestLabel, bytesLabel, verificationLine (never verified is a warning, not a
                         pass), chainSummary (a mismatch leads), archiveLine, spanLine and retentionLines (the months
                         as the declared policy, with detach_job_built said in words)
@@ -538,14 +551,16 @@ components/admin/contracts/  engagements-panel (EngagementsPanel above the contr
                         engagement the server marked expiring, "Hosting renewal renews in 23 days", amber until the
                         notice period is entered and red after it; contracts:view, nothing rendered when nothing is
                         expiring),
-                        account-contracts-tab (DenseTable of contracts with handlingCell, rulesCell, the Engagement
-                        column and the Technologies
-                        column, ContractRulesEditor over patchContract with draftFromContract, the engagement picker
-                        (an emptied picker sends engagement_id null, never undefined), parseThresholds,
-                        parseTechnologyCodes, validateRules and rulesBody (technology_codes with the rule set);
-                        multiplier_required, cap_required and stale_version worded), rate-cards (RateCardsPanel with
+                        account-contracts-tab (DenseTable of contracts with the handling and rules cells, the
+                        Engagement column and the Technologies column, ContractRulesEditor over patchContract and
+                        lib/contracts/rules, the engagement picker (an emptied picker sends engagement_id null,
+                        never undefined)), rate-cards (RateCardsPanel with
                         a disclosure per contract and the Account default section, NewRateCardForm with validateRateCard and
                         toRateCardBody, describeRateCardError for rate_card_exists and duplicate_role)
+lib/contracts/rules     the contract rule set: HANDLING_HELP, OVERAGE_HELP and ROLLOVER_HELP, handlingCell and rulesCell,
+                        validateHandling, the RulesDraft with draftFromContract, parseThresholds, parseTechnologyCodes,
+                        validateRules and rulesBody (technology_codes with the rule set), describeContractError
+                        (multiplier_required, cap_required, stale_version)
 lib/contracts/engagements  ENGAGEMENT_STATUS labels and tones, renewalLabel, noticeLabel and noticeDeadline, alertsLabel
                         (0 reads as the notice period), ownerLabel and engagementName, expiringEngagements with
                         renewalChipLabel, renewalChipTone and renewalChipTitle, the EngagementDraft with
@@ -563,9 +578,12 @@ lib/tickets/            vocab (seed fallback), use-catalogs (resolution codes, a
                         decisionBlockedReason (the flagger, and nothing pending), flagBody, withdrawBody, decisionBody
                         (an allowance only as a whole number of minutes above zero, never with a decline), validateFlag
                         and validateDecision, scopeError and describeScopeError for all six refusal codes plus
-                        stale_version)
+                        stale_version), case-form (caseFieldPatch: one record field as the PATCH it sends, the
+                        rows that may be emptied sent as null)
 lib/attachments/        uploadAttachment (presign, PUT or POST form, confirm; stages and typed refusals), formatBytes,
-                        scanChip and originLabel (desk and portal copy), the quarantine placeholders
+                        stageAfterConfirm (the stage a confirmed file's verdict puts it in) and isInFlight (no
+                        verdict yet, which holds the composer's Send and the portal's form), scanChip and originLabel
+                        (desk and portal copy), the quarantine placeholders
 components/admin/       AdminGate (fails closed), GrantsReconcile (whole-set save), PermissionChecklist (implied keys
                         ticked and greyed), AccountSettingsTab (AI section gated on ai:configure), IntakeTab (aliases with state
                         pills and the loop guard reason), contacts-tab (AccountContactsTab: the contacts with their flags as
@@ -574,17 +592,20 @@ lib/admin/contacts      FLAG_LABELS and FLAG_MEANINGS, flagLabel and flagMeaning
                         flag a row already carries), toggleFlag (one box, the whole set back), contactFlagsBody,
                         contactLabel, flagsLine, contactsError and describeContactsError (stale_version, not_found)
 components/admin/time-zone-field  searchable IANA zone input over a datalist, plain text where the list is unavailable
-components/admin/calendars/  account-calendars-tab, calendar-editor (calendarPatch diff), hours-grid, preview-panel
+components/admin/calendars/  account-calendars-tab, calendar-editor (over lib/calendars/draft), hours-grid, preview-panel
                         (PreviewResultView), holiday-libraries (list, create form, parseHolidayLines)
 lib/calendars/          errors (typed invalid_time_zone, invalid_hours with problems, bad_start), hours (the week grid grammar:
-                        parseHHMM, gridToHours with the server-worded checks, hoursToGrid, formatInZone, viewerTimeZone)
-components/roster/      people-list (PeopleList, SkillChip, GroupChip), new-person-form, import-button, details-tab (changedFields),
+                        parseHHMM, gridToHours with the server-worded checks, hoursToGrid, formatInZone, viewerTimeZone),
+                        draft (CalendarDraft, draftFromCalendar, calendarPatch (only what changed), calendarBody)
+components/roster/      people-list (PeopleList, SkillChip, GroupChip), new-person-form, import-button, details-tab (over
+                        lib/roster/person-draft),
                         calendar-tab, pto-tab (canWritePto, ptoBody, rangeLabel; the list and form only for self or
                         capacity:manage), skills-tab (LevelControl, whole-set save), certifications-tab (ExpiryPill)
 lib/roster/             vocab (ROLE_OPTIONS, roleLabel, SKILL_LEVELS, ISO_WEEKDAYS, expiryState, formatPercent), filters (the
-                        list URL grammar), errors (typed person_exists, day_end_before_start, skill_exists, duplicate_skill ...)
-components/capacity/    capacity-grid (CapacityGrid: presentAccounts, changedCells with versions and notes, StatusPill, inline
-                        cells, Save allocations, Add account, the remaining total), capacity-tabs (the four link-tabs:
+                        list URL grammar), errors (typed person_exists, day_end_before_start, skill_exists, duplicate_skill ...),
+                        person-draft (PersonDraft, draftFromPerson, changedFields: the PATCH carries only what changed)
+components/capacity/    capacity-grid (CapacityGrid over lib/capacity/allocations: StatusPill, inline cells, Save
+                        allocations, Add account, the remaining total), capacity-tabs (the four link-tabs:
                         Capacity, Planned versus actual, Skills matrix, Demand), skills-heat-map (SkillsHeatMap, heatMapRows;
                         columns grouped by kind, cells on levelCellClass), account-coverage (AccountCoverageCards,
                         CoveragePill, useSkillName over the skills catalog with the code as the fallback), coverage-chips
@@ -603,7 +624,8 @@ lib/capacity/           vocab (PTO kinds and fractionLabel, CAPACITY_STATUS labe
                         written only for account with each lens keeping its own filter, the demand range written only where
                         it leaves the current month plus three), errors (typed invalid_range, bad_month, person_ids_required,
                         stale_version with current, forbidden with account_id, not_found by entity, bad_lens,
-                        subject_required, invalid_import with problems, unknown_account with keys)
+                        subject_required, invalid_import with problems, unknown_account with keys), allocations
+                        (cellKey, presentAccounts, changedCells with the version each cell was read at and its note)
 components/admin/billing/  billing-periods-tab (BillingPeriodsTab, BillingStatusPill, BillingExportsList, PeriodPeople with
                         the submitted, approved and locked names)
 lib/time/billing        BILLING_STATUS, BILLING_TRANSITIONS with the permission per move, allowedActions, canExport,
@@ -655,6 +677,11 @@ lib/connectors/         vocab (XMS field table, tone maps, externalRecordUrl, bi
                         isRetryable, the ConflictOutcome readers keptFields, droppedFields, dropReasonLabel and conflictSummary,
                         SyncCardOutbound and pendingLabel), errors (typed 409 and 400 bodies), use-connector-errors
 lib/admin/              apiError/describeError (typed error bodies) and useMutationErrors (stale_version toasts + refetch)
+lib/draft-rows          keyed and Keyed: an id given to a draft row when it is made, which no body builder sends
+lib/use-row-keys        useRowKeys: keys held beside rows that are sent, compared or put in the URL as they are, with
+                        drop(index) beside a removal; the two ways an editable list keys its rows, never by index
+lib/refresh             LIVE_REFRESH_MS (60 s, the desk), WORKER_REFRESH_MS (30 s, connector health and migration
+                        batches) and RUN_PROGRESS_REFRESH_MS (10 s, a batch while it runs): every polling cadence
 app/(portal)/portal/    the client portal (P2.16.3) inside its own light chrome (never the internal shell):
                         / search-first home (own requests plus the knowledge placeholder), /sign-in (dev token paste,
                         Clerk SignIn when configured), /requests (Open or All, org-wide toggle with
@@ -742,6 +769,9 @@ test-kit/integrations.ts  constructed API client and finance fixtures (anApiClie
                         aFinanceDelivery) with the ids API_CLIENT_ID, FINANCE_ACCOUNT_ID, OTHER_ACCOUNT_ID and
                         BILLING_PERIOD_ID; no live key, endpoint or account
 test-kit/desk.tsx       renderDesk (store plus toasts) for desk component tests, re-exporting the fetch stub
+test-kit/animation-frames.ts  holdAnimationFrames, which vitest.setup.ts installs on every jsdom file: the frames still
+                        waiting are run before the window closes, and one asked for after it runs on a microtask, so
+                        Redux Toolkit's batched notifications never fire on a closed window as an unhandled error
 test-kit/my-work.ts     constructed My work fixtures (aWaitingItem, aWaiting written the way the API writes it today,
                         aPlatformWaiting in the older platform URL space, WAITING_ACCOUNT_ID)
 components/my-work/     waiting-rail (WaitingRail over GET /v1/me/waiting: a row per item with a non-zero count linking to
@@ -865,7 +895,7 @@ styles/tokens/          the four token layers
 e2e/                    Playwright golden paths; tickets.spec.ts runs only with E2E_API_TOKEN (see its header)
 ```
 
-Environment: `NEXT_PUBLIC_API_BASE_URL` (API origin, also in the CSP), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (enables Clerk),
+Environment: `BACKEND_URL` (server-only upstream, never `NEXT_PUBLIC_`), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (enables Clerk),
 `NEXT_PUBLIC_DEPLOY_TARGET` (`local` | `dev` | `demo` | `production`; unset reads as `local` in a development build and
 `production` in a built one) and `NEXT_PUBLIC_AUTH_DEV_MODE=true` (dev token paste; local target only, and the build
 fails when it is on for any other). See `.env.example`.

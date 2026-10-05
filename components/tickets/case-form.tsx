@@ -1,25 +1,27 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { AssigneePicker } from "@/components/tickets/assignee-picker";
 import { GroupPicker } from "@/components/tickets/group-picker";
 import { RecordForm, RecordRow, type RecordField, type RecordLabels } from "@/components/xms/record-form";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { caseFieldPatch, clientReference, externalRefsBody, syncedReferences } from "@/lib/tickets/case-form";
 import { describeGroupError } from "@/lib/tickets/groups";
 import { scopeLabel } from "@/lib/tickets/scope";
 import { formatMinutes } from "@/lib/tickets/sla";
 import { LEVELS, PRIORITIES, SOURCE_LABEL, TICKET_TYPES } from "@/lib/tickets/vocab";
-import { useListConfigurationItemsQuery } from "@/redux/configurationItemsApi";
+import { useListConfigurationItemsQuery, type ConfigurationItem } from "@/redux/configurationItemsApi";
 import { useMe } from "@/redux/me";
 import {
   useListAccountContractsQuery,
   useListGrantedAccountsQuery,
   usePatchTicketMutation,
-  type PatchTicketBody,
+  type Contract,
+  type GrantedAccount,
   type TicketView,
 } from "@/redux/ticketsApi";
-import { useContractPositionQuery, useTicketTimeQuery, type TimeEntry } from "@/redux/timeApi";
+import { useContractPositionQuery, useTicketTimeQuery, type TicketTime, type TimeEntry } from "@/redux/timeApi";
 
 /**
  * The one external reference the record carries, as ServiceNow prints its
@@ -75,6 +77,210 @@ export function FormGroup({ caption, children }: { caption: string; children: Re
   );
 }
 
+function classificationFields(ticket: TicketView, items: ConfigurationItem[], readOnly?: boolean): RecordField[] {
+  const current = ticket.configuration_item_id;
+  // The item in force stays choosable even when the register no longer
+  // lists it as active, and names itself while the register is loading, so
+  // the select never falls back to "Not set" over a value it holds.
+  const configurationOptions = [
+    { value: "", label: "Not set" },
+    ...items.map((item) => ({ value: item.id, label: item.name })),
+    ...(current && !items.some((item) => item.id === current)
+      ? [{ value: current, label: ticket.configuration_item_name ?? "" }]
+      : []),
+  ];
+  return [
+    { key: "number", label: "Number", value: ticket.key, readOnly: true, mono: true },
+    {
+      key: "source",
+      label: "Channel",
+      value: SOURCE_LABEL[ticket.source] ?? ticket.source,
+      readOnly: true,
+      hint: "Set by the channel that opened the case",
+    },
+    {
+      key: "type",
+      label: "Ticket type",
+      value: ticket.type,
+      kind: "select",
+      options: TICKET_TYPES.map((type) => ({ value: type.value, label: type.label })),
+      readOnly: true,
+    },
+    { key: "category", label: "Category", value: ticket.category ?? "", readOnly },
+    readOnly
+      ? {
+          key: "configuration_item_id",
+          label: "Configuration item",
+          value: ticket.configuration_item_name ?? "",
+          readOnly: true,
+        }
+      : {
+          key: "configuration_item_id",
+          label: "Configuration item",
+          value: current ?? "",
+          kind: "select",
+          options: configurationOptions,
+        },
+  ];
+}
+
+function customerFields(
+  ticket: TicketView,
+  account: GrantedAccount | undefined,
+  offeredContracts: Contract[] | undefined,
+  contractName: string,
+): RecordField[] {
+  return [
+    {
+      key: "account",
+      label: "Account",
+      // Never the id. Until the directory answers, the row is empty and
+      // says so in the words every other unset row uses.
+      value: account ? `${account.key} · ${account.name}` : "",
+      readOnly: true,
+    },
+    {
+      key: "requester",
+      label: "Requester",
+      value: ticket.requester ? ticket.requester.display_name : "",
+      readOnly: true,
+    },
+    // The directory must have arrived before the select is offered: the
+    // value is the contract's id, and until the directory is here there is
+    // no option carrying it.
+    offeredContracts
+      ? {
+          key: "contract_id",
+          label: "Contract",
+          value: ticket.contract_id,
+          kind: "select",
+          options: offeredContracts.map((contract) => ({
+            value: contract.id,
+            label: `${contract.key} ${contract.name}`.trim(),
+          })),
+        }
+      : { key: "contract_id", label: "Contract", value: contractName, readOnly: true },
+  ];
+}
+
+function priorityFields(ticket: TicketView, canOverride: boolean, readOnly?: boolean): RecordField[] {
+  return [
+    {
+      key: "impact",
+      label: "Impact",
+      value: ticket.impact ?? "",
+      kind: "select",
+      options: [{ value: "", label: "Not set" }, ...LEVELS],
+      readOnly,
+    },
+    {
+      key: "urgency",
+      label: "Urgency",
+      value: ticket.urgency ?? "",
+      kind: "select",
+      options: [{ value: "", label: "Not set" }, ...LEVELS],
+      readOnly,
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      value: ticket.priority,
+      kind: "select",
+      options: PRIORITIES.map((level) => ({ value: level, label: level.toUpperCase() })),
+      hint: ticket.priority_overridden ? "Overridden by hand" : "Derived from the matrix",
+      readOnly: readOnly || !canOverride,
+    },
+  ];
+}
+
+function recordFields(ticket: TicketView, time: TicketTime | undefined, readOnly?: boolean): RecordField[] {
+  const synced = syncedReferences(ticket.external_refs);
+  return [
+    { key: "created_at", label: "Created", value: createdLabel(ticket.created_at), readOnly: true, mono: true },
+    { key: "created_by", label: "Created by", value: ticket.created_by_name, readOnly: true },
+    {
+      key: "total_time",
+      label: "Total time",
+      value: time ? formatMinutes(time.total_minutes) : "",
+      readOnly: true,
+      mono: true,
+    },
+    {
+      key: "billable_time",
+      label: "Billable time",
+      value: time ? formatMinutes(billableMinutes(time.entries)) : "",
+      readOnly: true,
+      mono: true,
+    },
+    {
+      key: "external_reference",
+      label: "External reference",
+      value: clientReference(ticket.external_refs),
+      readOnly,
+      mono: true,
+      hint: synced === "" ? undefined : `From sync: ${synced}`,
+    },
+    {
+      key: "out_of_scope",
+      label: "Out of scope",
+      value: ticket.scope ? scopeLabel(ticket.scope.out_of_scope) : "No",
+      readOnly: true,
+      hint: "Set and cleared on the Scope tab",
+    },
+  ];
+}
+
+function descriptionFields(ticket: TicketView, readOnly?: boolean): RecordField[] {
+  return [
+    { key: "short_description", label: "Short description", value: ticket.short_description, readOnly },
+    { key: "description", label: "Description", value: ticket.description ?? "", kind: "textarea", readOnly },
+  ];
+}
+
+/**
+ * Reassignment (TM-08): a ticket moves to a group or to a person, and both
+ * are one row for one concept. They are drawn in place, as ServiceNow draws
+ * its Assignment group and Assigned to, rather than behind the text-at-rest
+ * reveal the rail needed. The group picker resolves the directory itself, and
+ * the assignee picker asks for nothing until it is focused.
+ */
+function AssignmentRows({ ticket, readOnly }: { ticket: TicketView; readOnly?: boolean }) {
+  const me = useMe();
+  const [patch] = usePatchTicketMutation();
+  const { push } = useToast();
+  return (
+    <>
+      <RecordRow label="Assignment group" htmlFor="ticket-group" labels={LABELS} field="group">
+        <GroupPicker
+          id="ticket-group"
+          aria-label="Group"
+          value={ticket.group_id}
+          disabled={readOnly}
+          onChange={(groupId) =>
+            patch({ key: ticket.key, body: { version: ticket.version, group_id: groupId } })
+              .unwrap()
+              .catch((error) => push({ title: "Not saved", detail: describeGroupError(error), tone: "error" }))
+          }
+        />
+      </RecordRow>
+      <RecordRow label="Assigned to" htmlFor="ticket-assignee" labels={LABELS} field="assignee">
+        <AssigneePicker
+          id="ticket-assignee"
+          value={ticket.assignee_id}
+          valueLabel={ticket.assignee_name}
+          disabled={readOnly}
+          currentUserId={me.principal?.userId}
+          onChange={(user) =>
+            patch({ key: ticket.key, body: { version: ticket.version, assignee_id: user?.id ?? null } })
+              .unwrap()
+              .catch((error) => push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }))
+          }
+        />
+      </RecordRow>
+    </>
+  );
+}
+
 /**
  * The case form, laid out the ServiceNow way (Matt's direction 2026-09-15):
  * two columns of label-left rows, then the short description and the
@@ -114,6 +320,9 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
   const { push } = useToast();
   const canOverride = me.hasPermission("tickets:override-priority");
   const account = accounts?.find((row) => row.id === ticket.account_id);
+  // A reader who may not read the account's contract directory cannot be
+  // offered the choice, so for them the row is the name and nothing else.
+  const offeredContracts = canReadContracts && !readOnly ? contracts : undefined;
 
   // The account's register, for the row that names one. Skipped where the
   // form is read only, so a reader who cannot change the row does not fetch
@@ -123,195 +332,12 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
     { skip: readOnly },
   );
 
-  const classification = useMemo<RecordField[]>(() => {
-    const items = configurationItems ?? [];
-    const current = ticket.configuration_item_id;
-    // The item in force stays choosable even when the register no longer
-    // lists it as active, and names itself while the register is loading, so
-    // the select never falls back to "Not set" over a value it holds.
-    const configurationOptions = [
-      { value: "", label: "Not set" },
-      ...items.map((item) => ({ value: item.id, label: item.name })),
-      ...(current && !items.some((item) => item.id === current)
-        ? [{ value: current, label: ticket.configuration_item_name ?? "" }]
-        : []),
-    ];
-    return [
-      { key: "number", label: "Number", value: ticket.key, readOnly: true, mono: true },
-      { key: "source", label: "Channel", value: SOURCE_LABEL[ticket.source] ?? ticket.source, readOnly: true },
-      {
-        key: "type",
-        label: "Ticket type",
-        value: ticket.type,
-        kind: "select",
-        options: TICKET_TYPES.map((type) => ({ value: type.value, label: type.label })),
-        readOnly: true,
-      },
-      { key: "category", label: "Category", value: ticket.category ?? "", readOnly },
-      readOnly
-        ? {
-            key: "configuration_item_id",
-            label: "Configuration item",
-            value: ticket.configuration_item_name ?? "",
-            readOnly: true,
-          }
-        : {
-            key: "configuration_item_id",
-            label: "Configuration item",
-            value: current ?? "",
-            kind: "select",
-            options: configurationOptions,
-          },
-    ];
-  }, [ticket, readOnly, configurationItems]);
-
-  const customer = useMemo<RecordField[]>(
-    () => [
-      {
-        key: "account",
-        label: "Account",
-        // Never the id. Until the directory answers, the row is empty and
-        // says so in the words every other unset row uses.
-        value: account ? `${account.key} · ${account.name}` : "",
-        readOnly: true,
-      },
-      {
-        key: "requester",
-        label: "Requester",
-        value: ticket.requester ? ticket.requester.display_name : "",
-        readOnly: true,
-      },
-      // A reader who may not read the account's contract directory cannot be
-      // offered the choice, so for them the row is the name and nothing else.
-      // The directory must have arrived before the select is offered: the
-      // value is the contract's id, and until the directory is here there is
-      // no option carrying it.
-      canReadContracts && !readOnly && contracts
-        ? {
-            key: "contract_id",
-            label: "Contract",
-            value: ticket.contract_id,
-            kind: "select" as const,
-            options: contracts.map((contract) => ({
-              value: contract.id,
-              label: `${contract.key} ${contract.name}`.trim(),
-            })),
-          }
-        : { key: "contract_id", label: "Contract", value: contractName, readOnly: true },
-    ],
-    [ticket, account, contracts, contractName, canReadContracts, readOnly],
-  );
-
-  const state = useMemo<RecordField[]>(
-    () => [{ key: "state", label: "State", value: ticket.state_label, readOnly: true }],
-    [ticket.state_label],
-  );
-
-  const priority = useMemo<RecordField[]>(
-    () => [
-      {
-        key: "impact",
-        label: "Impact",
-        value: ticket.impact ?? "",
-        kind: "select",
-        options: [{ value: "", label: "Not set" }, ...LEVELS],
-        readOnly,
-      },
-      {
-        key: "urgency",
-        label: "Urgency",
-        value: ticket.urgency ?? "",
-        kind: "select",
-        options: [{ value: "", label: "Not set" }, ...LEVELS],
-        readOnly,
-      },
-      {
-        key: "priority",
-        label: "Priority",
-        value: ticket.priority,
-        kind: "select",
-        options: PRIORITIES.map((level) => ({ value: level, label: level.toUpperCase() })),
-        hint: ticket.priority_overridden ? "Overridden by hand" : "Derived from the matrix",
-        readOnly: readOnly || !canOverride,
-      },
-    ],
-    [ticket, readOnly, canOverride],
-  );
-
-  const record = useMemo<RecordField[]>(
-    () => [
-      { key: "created_at", label: "Created", value: createdLabel(ticket.created_at), readOnly: true, mono: true },
-      { key: "created_by", label: "Created by", value: ticket.created_by_name, readOnly: true },
-      {
-        key: "total_time",
-        label: "Total time",
-        value: time ? formatMinutes(time.total_minutes) : "",
-        readOnly: true,
-        mono: true,
-      },
-      {
-        key: "billable_time",
-        label: "Billable time",
-        value: time ? formatMinutes(billableMinutes(time.entries)) : "",
-        readOnly: true,
-        mono: true,
-      },
-      {
-        key: "external_reference",
-        label: "External reference",
-        value: externalReference(ticket.external_refs),
-        readOnly: true,
-        mono: true,
-      },
-      {
-        key: "out_of_scope",
-        label: "Out of scope",
-        value: ticket.scope ? scopeLabel(ticket.scope.out_of_scope) : "No",
-        readOnly: true,
-      },
-    ],
-    [ticket, time],
-  );
-
-  const description = useMemo<RecordField[]>(
-    () => [
-      { key: "short_description", label: "Short description", value: ticket.short_description, readOnly },
-      { key: "description", label: "Description", value: ticket.description ?? "", kind: "textarea", readOnly },
-    ],
-    [ticket.short_description, ticket.description, readOnly],
-  );
-
   const commit = async (key: string, value: string) => {
-    const body: PatchTicketBody = { version: ticket.version };
-    switch (key) {
-      case "short_description":
-        body.short_description = value;
-        break;
-      case "description":
-        body.description = value === "" ? null : value;
-        break;
-      case "category":
-        body.category = value === "" ? null : value;
-        break;
-      case "configuration_item_id":
-        body.configuration_item_id = value === "" ? null : value;
-        break;
-      case "contract_id":
-        body.contract_id = value;
-        break;
-      case "impact":
-        body.impact = value === "" ? null : (value as PatchTicketBody["impact"]);
-        break;
-      case "urgency":
-        body.urgency = value === "" ? null : (value as PatchTicketBody["urgency"]);
-        break;
-      case "priority":
-        body.priority = value as PatchTicketBody["priority"];
-        break;
-      default:
-        return;
-    }
-    await patch({ key: ticket.key, body }).unwrap();
+    const body =
+      key === "external_reference"
+        ? { version: ticket.version, external_refs: externalRefsBody(ticket.external_refs, value) }
+        : caseFieldPatch(key, value, ticket.version);
+    if (body) await patch({ key: ticket.key, body }).unwrap();
   };
 
   const rollback = (_key: string, _restored: string, error: unknown) => {
@@ -336,62 +362,31 @@ export function CaseForm({ ticket, readOnly }: { ticket: TicketView; readOnly?: 
       <div className="grid grid-cols-1 items-start gap-x-8 gap-y-6 p-4 md:grid-cols-2">
         <div className="flex flex-col gap-6">
           <FormGroup caption="Classification">
-            <RecordForm {...form} fields={classification} />
+            <RecordForm {...form} fields={classificationFields(ticket, configurationItems ?? [], readOnly)} />
           </FormGroup>
           <FormGroup caption="Customer">
-            <RecordForm {...form} fields={customer} />
+            <RecordForm {...form} fields={customerFields(ticket, account, offeredContracts, contractName)} />
           </FormGroup>
         </div>
         <div className="flex flex-col gap-6">
           <FormGroup caption="Assignment">
-            <RecordForm {...form} fields={state} />
-            {/* Reassignment (TM-08): a ticket moves to a group or to a person,
-                and both are one row for one concept. They are drawn in place,
-                as ServiceNow draws its Assignment group and Assigned to, rather
-                than behind the text-at-rest reveal the rail needed. The group
-                picker resolves the directory itself, and the assignee picker
-                asks for nothing until it is focused. */}
-            <RecordRow label="Assignment group" htmlFor="ticket-group" labels={LABELS} field="group">
-              <GroupPicker
-                id="ticket-group"
-                aria-label="Group"
-                value={ticket.group_id}
-                disabled={readOnly}
-                onChange={(groupId) =>
-                  patch({ key: ticket.key, body: { version: ticket.version, group_id: groupId } })
-                    .unwrap()
-                    .catch((error) => push({ title: "Not saved", detail: describeGroupError(error), tone: "error" }))
-                }
-              />
-            </RecordRow>
-            <RecordRow label="Assigned to" htmlFor="ticket-assignee" labels={LABELS} field="assignee">
-              <AssigneePicker
-                id="ticket-assignee"
-                value={ticket.assignee_id}
-                valueLabel={ticket.assignee_name}
-                disabled={readOnly}
-                currentUserId={me.principal?.userId}
-                onChange={(user) =>
-                  patch({ key: ticket.key, body: { version: ticket.version, assignee_id: user?.id ?? null } })
-                    .unwrap()
-                    .catch((error) =>
-                      push({ title: "Not saved", detail: describeError(apiError(error)), tone: "error" }),
-                    )
-                }
-              />
-            </RecordRow>
+            <RecordForm
+              {...form}
+              fields={[{ key: "state", label: "State", value: ticket.state_label, readOnly: true }]}
+            />
+            <AssignmentRows ticket={ticket} readOnly={readOnly} />
           </FormGroup>
           <FormGroup caption="Priority">
-            <RecordForm {...form} fields={priority} />
+            <RecordForm {...form} fields={priorityFields(ticket, canOverride, readOnly)} />
           </FormGroup>
           <FormGroup caption="Record">
-            <RecordForm {...form} fields={record} />
+            <RecordForm {...form} fields={recordFields(ticket, time, readOnly)} />
           </FormGroup>
         </div>
       </div>
       <div className="border-xms-line border-t p-4">
         <FormGroup caption="Description">
-          <RecordForm {...form} fields={description} />
+          <RecordForm {...form} fields={descriptionFields(ticket, readOnly)} />
         </FormGroup>
       </div>
     </section>

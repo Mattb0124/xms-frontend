@@ -26,6 +26,14 @@ export interface NewBatchFormProps {
   onCancel?: () => void;
 }
 
+/** The instance picker's empty option, saying why there is nothing to pick yet. */
+function instancePlaceholder(accountId: string, loading: boolean, count: number): string {
+  if (!accountId) return "Choose the account first";
+  if (loading) return "Loading instances";
+  if (count === 0) return "No connector on this account";
+  return "Choose an instance";
+}
+
 /**
  * "New batch" (Data Migration functional 5.2): account, object kind, source
  * kind, the source instance from the account's connectors, the range and
@@ -153,13 +161,7 @@ export function NewBatchForm({ accounts, initial, onCreated, onCancel }: NewBatc
               onChange={(event) => set("instance_id", event.target.value)}
             >
               <option value="">
-                {!form.account_id
-                  ? "Choose the account first"
-                  : instances.isLoading
-                    ? "Loading instances"
-                    : (instances.data ?? []).length === 0
-                      ? "No connector on this account"
-                      : "Choose an instance"}
+                {instancePlaceholder(form.account_id, instances.isLoading, (instances.data ?? []).length)}
               </option>
               {(instances.data ?? []).map((instance) => (
                 <option key={instance.id} value={instance.id}>

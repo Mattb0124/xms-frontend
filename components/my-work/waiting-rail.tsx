@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Skeleton } from "@/components/xms/skeleton";
 import { waitingHref } from "@/lib/my-work/waiting-links";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { visibleScreens, type Screen } from "@/lib/routes";
 import { useMe } from "@/redux/me";
 import { useWaitingOnMeQuery, type WaitingItem } from "@/redux/api";
@@ -72,7 +73,7 @@ export function WaitingRail() {
   const allowed = me.hasPermission("tickets:view");
   const { data, isLoading, isError, error } = useWaitingOnMeQuery(undefined, {
     skip: !allowed,
-    pollingInterval: 60_000,
+    pollingInterval: LIVE_REFRESH_MS,
   });
   const permitted = useMemo(() => visibleScreens(me.permissions), [me.permissions]);
 
@@ -80,6 +81,26 @@ export function WaitingRail() {
   if (isError && isNotDeployed(error)) return null;
 
   const rows = waitingRows(data?.items);
+  let body: ReactNode;
+  if (isLoading && !data) {
+    body = <Skeleton lines={3} />;
+  } else if (isError) {
+    body = <p className="text-xms-muted text-body">The waiting list could not be loaded.</p>;
+  } else if (rows.length === 0) {
+    body = (
+      <p className="text-xms-muted text-body" data-testid="waiting-empty">
+        Nothing is waiting on you
+      </p>
+    );
+  } else {
+    body = (
+      <div data-testid="waiting-rail">
+        {rows.map((item) => (
+          <WaitingRow key={item.key} item={item} permitted={permitted} />
+        ))}
+      </div>
+    );
+  }
 
   // Render 08 draws a plain title and the rows. The ALL-CAPS "MY WORK" eyebrow
   // over it named the screen the card was already on, and the "Counted by the
@@ -89,21 +110,7 @@ export function WaitingRail() {
   return (
     <section className="xms-card p-4" aria-label="Waiting on me">
       <h2 className="text-xms-ink mb-[6px] text-body leading-[1.3] font-semibold">Waiting on me</h2>
-      {isLoading && !data ? (
-        <Skeleton lines={3} />
-      ) : isError ? (
-        <p className="text-xms-muted text-body">The waiting list could not be loaded.</p>
-      ) : rows.length === 0 ? (
-        <p className="text-xms-muted text-body" data-testid="waiting-empty">
-          Nothing is waiting on you
-        </p>
-      ) : (
-        <div data-testid="waiting-rail">
-          {rows.map((item) => (
-            <WaitingRow key={item.key} item={item} permitted={permitted} />
-          ))}
-        </div>
-      )}
+      {body}
     </section>
   );
 }

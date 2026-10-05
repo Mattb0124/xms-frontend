@@ -38,7 +38,9 @@ import {
 } from "@/redux/timeApi";
 
 const HEAD = "text-xms-ink px-3 py-2 text-left text-body font-semibold whitespace-nowrap";
+
 const CELL = "text-xms-ink px-3 py-2 align-top text-body";
+
 const SMALL = "h-[26px] px-2 text-body";
 
 export function BillingStatusPill({ status }: { status: BillingPeriod["status"] }) {
@@ -131,38 +133,56 @@ function SummaryCell({ period }: { period: BillingPeriod }) {
   );
 }
 
-/**
- * Billing periods on the account record (Time & Budget functional 5.7,
- * TB-14): one per calendar month with its state, the summary figures the
- * server kept at submit and lock, the moves the state and the viewer's
- * permissions allow (Submit and Reopen under contracts:manage; Approve
- * and Lock under time:lock-period), the finance file as CSV or Excel for
- * a locked period fetched with the bearer, and the export records with
- * their checksums. Reading needs contracts:view, the permission the API
- * puts on /v1/accounts/:id/billing-periods; fails closed.
- */
-export function BillingPeriodsTab({ accountId }: { accountId: string }) {
-  const me = useMe();
-  const allowed = me.hasPermission("contracts:view");
-  const canLock = me.hasPermission("time:lock-period");
-  const { data, isLoading, isError } = useBillingPeriodsQuery(accountId, { skip: !allowed });
+/** One billing period per calendar month. */
+function NewPeriodForm({ accountId }: { accountId: string }) {
   const [create, { isLoading: creating }] = useCreateBillingPeriodMutation();
+  const { push } = useToast();
+  const [month, setMonth] = useState(() => currentMonth());
+  return (
+    <Panel title="New period" caption="One billing period per calendar month">
+      <form
+        className="flex flex-wrap items-end gap-3"
+        aria-label="New billing period"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          try {
+            const period = await create({ accountId, body: billingPeriodBody(month) }).unwrap();
+            push({ title: "Period created", detail: periodLabel(period), tone: "success" });
+          } catch (caught) {
+            push({ title: "Not created", detail: describeBillingError(billingError(caught)), tone: "error" });
+          }
+        }}
+      >
+        <label className="flex flex-col gap-1 text-body">
+          <span className="text-xms-label">Month</span>
+          <input
+            type="month"
+            aria-label="Period month"
+            required
+            className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-body")}
+            value={month}
+            onChange={(event) => setMonth(event.target.value)}
+          />
+        </label>
+        <button type="submit" className={cn(PRIMARY_BUTTON, "h-[30px]")} disabled={creating || !month}>
+          New period
+        </button>
+      </form>
+    </Panel>
+  );
+}
+
+export interface PeriodTransition {
+  move: (period: BillingPeriod, action: BillingAction) => Promise<void>;
+  /** One move at a time, across the whole list. */
+  moving: boolean;
+}
+
+/** A move on a period, and the toast saying what it did or why it was refused. */
+function usePeriodTransition(accountId: string): PeriodTransition {
   const [transition, { isLoading: moving }] = useTransitionBillingPeriodMutation();
-  const dispatch = useAppDispatch();
   const { push } = useToast();
   const trackMove = useTrack("billing.period.transition");
-  const trackExport = useTrack("export.run");
-  const [month, setMonth] = useState(() => currentMonth());
-  const [open, setOpen] = useState<string | null>(null);
-  const [exporting, setExporting] = useState<string | null>(null);
-
-  if (!allowed) {
-    return (
-      <Panel title="Billing periods" caption="Needs the contracts:view permission">
-        <p className="text-xms-label text-body">You can see this account but not its billing periods.</p>
-      </Panel>
-    );
-  }
 
   const move = async (period: BillingPeriod, action: BillingAction) => {
     try {
@@ -182,6 +202,22 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
       });
     }
   };
+
+  return { move, moving };
+}
+
+export interface PeriodExport {
+  exportFile: (period: BillingPeriod, format: BillingExportFormat) => Promise<void>;
+  /** `${period id}:${format}` while that file is being produced; one file at a time, across the whole list. */
+  exporting: string | null;
+}
+
+/** The finance file for a period, fetched with the bearer, and its export records read again once it is produced. */
+function usePeriodExport(accountId: string): PeriodExport {
+  const dispatch = useAppDispatch();
+  const { push } = useToast();
+  const trackExport = useTrack("export.run");
+  const [exporting, setExporting] = useState<string | null>(null);
 
   const exportFile = async (period: BillingPeriod, format: BillingExportFormat) => {
     setExporting(`${period.id}:${format}`);
@@ -211,40 +247,154 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
     }
   };
 
+  return { exportFile, exporting };
+}
+
+export interface PeriodRowProps {
+  accountId: string;
+  period: BillingPeriod;
+  /** The moves the period's status and the viewer's permissions allow. */
+  actions: BillingAction[];
+  exportable: boolean;
+  /** Whether this period's export records are open; one period's at a time. */
+  expanded: boolean;
+  onToggleExports: () => void;
+  transition: PeriodTransition;
+  exporter: PeriodExport;
+}
+
+function PeriodRow({
+  accountId,
+  period,
+  actions,
+  exportable,
+  expanded,
+  onToggleExports,
+  transition,
+  exporter,
+}: PeriodRowProps) {
+  const { move, moving } = transition;
+  const { exportFile, exporting } = exporter;
+  return (
+    <tr className="border-xms-line border-b align-top" data-period={period.id} data-status={period.status}>
+      <td className={CELL}>
+        <span className="xms-stack">
+          <span className="text-xms-ink font-medium">{periodLabel(period)}</span>
+          <span className="xms-mono text-xms-label text-body">
+            {period.starts_on} to {period.ends_on}
+          </span>
+        </span>
+      </td>
+      <td className={CELL}>
+        <span className="flex flex-col gap-1">
+          <span>
+            <BillingStatusPill status={period.status} />
+          </span>
+          {period.status === "approved" && period.auto_lock_at ? (
+            <span className="text-xms-label text-body">Locks on its own {period.auto_lock_at.slice(0, 10)}</span>
+          ) : null}
+          <PeriodPeople period={period} />
+        </span>
+      </td>
+      <td className={CELL}>
+        <SummaryCell period={period} />
+      </td>
+      <td className={cn(CELL, "xms-mono text-xms-label text-body")} title={period.checksum ?? undefined}>
+        {checksumPrefix(period.checksum)}
+      </td>
+      <td className={cn(CELL, "text-right")}>
+        <div className="flex flex-wrap items-start justify-end gap-2">
+          {actions.map((action) =>
+            action === "lock" || action === "approve" ? (
+              <ConfirmButton
+                key={action}
+                label={BILLING_TRANSITIONS[action].label}
+                disabled={moving}
+                className={SMALL}
+                onConfirm={() => move(period, action)}
+              />
+            ) : (
+              <button
+                key={action}
+                type="button"
+                className={cn(SECONDARY_BUTTON, SMALL)}
+                disabled={moving}
+                onClick={() => void move(period, action)}
+              >
+                {BILLING_TRANSITIONS[action].label}
+              </button>
+            ),
+          )}
+          {exportable ? (
+            <>
+              <button
+                type="button"
+                className={cn(SECONDARY_BUTTON, SMALL)}
+                disabled={exporting !== null}
+                onClick={() => void exportFile(period, "csv")}
+              >
+                {exporting === `${period.id}:csv` ? "Exporting" : "CSV"}
+              </button>
+              <button
+                type="button"
+                className={cn(SECONDARY_BUTTON, SMALL)}
+                disabled={exporting !== null}
+                onClick={() => void exportFile(period, "xlsx")}
+              >
+                {exporting === `${period.id}:xlsx` ? "Exporting" : "Excel"}
+              </button>
+              <button
+                type="button"
+                className={cn(SECONDARY_BUTTON, SMALL)}
+                aria-expanded={expanded}
+                aria-controls={`exports-${period.id}`}
+                onClick={onToggleExports}
+              >
+                {expanded ? "Hide exports" : "Exports"}
+              </button>
+            </>
+          ) : null}
+        </div>
+        {expanded ? (
+          <div id={`exports-${period.id}`} className="mt-2 text-left">
+            <BillingExportsList accountId={accountId} periodId={period.id} />
+          </div>
+        ) : null}
+      </td>
+    </tr>
+  );
+}
+
+/**
+ * Billing periods on the account record (Time & Budget functional 5.7,
+ * TB-14): one per calendar month with its state, the summary figures the
+ * server kept at submit and lock, the moves the state and the viewer's
+ * permissions allow (Submit and Reopen under contracts:manage; Approve
+ * and Lock under time:lock-period), the finance file as CSV or Excel for
+ * a locked period fetched with the bearer, and the export records with
+ * their checksums. Reading needs contracts:view, the permission the API
+ * puts on /v1/accounts/:id/billing-periods; fails closed.
+ */
+export function BillingPeriodsTab({ accountId }: { accountId: string }) {
+  const me = useMe();
+  const allowed = me.hasPermission("contracts:view");
+  const canLock = me.hasPermission("time:lock-period");
+  const { data, isLoading, isError } = useBillingPeriodsQuery(accountId, { skip: !allowed });
+  const transition = usePeriodTransition(accountId);
+  const exporter = usePeriodExport(accountId);
+  const [open, setOpen] = useState<string | null>(null);
+
+  if (!allowed) {
+    return (
+      <Panel title="Billing periods" caption="Needs the contracts:view permission">
+        <p className="text-xms-label text-body">You can see this account but not its billing periods.</p>
+      </Panel>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4" data-testid="billing-periods">
-      {canLock ? (
-        <Panel title="New period" caption="One billing period per calendar month">
-          <form
-            className="flex flex-wrap items-end gap-3"
-            aria-label="New billing period"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              try {
-                const period = await create({ accountId, body: billingPeriodBody(month) }).unwrap();
-                push({ title: "Period created", detail: periodLabel(period), tone: "success" });
-              } catch (caught) {
-                push({ title: "Not created", detail: describeBillingError(billingError(caught)), tone: "error" });
-              }
-            }}
-          >
-            <label className="flex flex-col gap-1 text-body">
-              <span className="text-xms-label">Month</span>
-              <input
-                type="month"
-                aria-label="Period month"
-                required
-                className={cn(INPUT, "xms-mono h-[30px] w-[160px] text-body")}
-                value={month}
-                onChange={(event) => setMonth(event.target.value)}
-              />
-            </label>
-            <button type="submit" className={cn(PRIMARY_BUTTON, "h-[30px]")} disabled={creating || !month}>
-              New period
-            </button>
-          </form>
-        </Panel>
-      ) : null}
+      {canLock ? <NewPeriodForm accountId={accountId} /> : null}
       <Panel title="Billing periods" caption="Open, submitted, approved, locked, exported" flush>
         {isLoading && !data ? (
           <div className="p-4">
@@ -264,106 +414,19 @@ export function BillingPeriodsTab({ accountId }: { accountId: string }) {
               </tr>
             </thead>
             <tbody>
-              {data.map((period) => {
-                const actions = allowedActions(period.status, me.hasPermission);
-                const exportable = canLock && canExport(period.status);
-                const expanded = open === period.id;
-                return (
-                  <tr
-                    key={period.id}
-                    className="border-xms-line border-b align-top"
-                    data-period={period.id}
-                    data-status={period.status}
-                  >
-                    <td className={CELL}>
-                      <span className="xms-stack">
-                        <span className="text-xms-ink font-medium">{periodLabel(period)}</span>
-                        <span className="xms-mono text-xms-label text-body">
-                          {period.starts_on} to {period.ends_on}
-                        </span>
-                      </span>
-                    </td>
-                    <td className={CELL}>
-                      <span className="flex flex-col gap-1">
-                        <span>
-                          <BillingStatusPill status={period.status} />
-                        </span>
-                        {period.status === "approved" && period.auto_lock_at ? (
-                          <span className="text-xms-label text-body">
-                            Locks on its own {period.auto_lock_at.slice(0, 10)}
-                          </span>
-                        ) : null}
-                        <PeriodPeople period={period} />
-                      </span>
-                    </td>
-                    <td className={CELL}>
-                      <SummaryCell period={period} />
-                    </td>
-                    <td className={cn(CELL, "xms-mono text-xms-label text-body")} title={period.checksum ?? undefined}>
-                      {checksumPrefix(period.checksum)}
-                    </td>
-                    <td className={cn(CELL, "text-right")}>
-                      <div className="flex flex-wrap items-start justify-end gap-2">
-                        {actions.map((action) =>
-                          action === "lock" || action === "approve" ? (
-                            <ConfirmButton
-                              key={action}
-                              label={BILLING_TRANSITIONS[action].label}
-                              disabled={moving}
-                              className={SMALL}
-                              onConfirm={() => move(period, action)}
-                            />
-                          ) : (
-                            <button
-                              key={action}
-                              type="button"
-                              className={cn(SECONDARY_BUTTON, SMALL)}
-                              disabled={moving}
-                              onClick={() => void move(period, action)}
-                            >
-                              {BILLING_TRANSITIONS[action].label}
-                            </button>
-                          ),
-                        )}
-                        {exportable ? (
-                          <>
-                            <button
-                              type="button"
-                              className={cn(SECONDARY_BUTTON, SMALL)}
-                              disabled={exporting !== null}
-                              onClick={() => void exportFile(period, "csv")}
-                            >
-                              {exporting === `${period.id}:csv` ? "Exporting" : "CSV"}
-                            </button>
-                            <button
-                              type="button"
-                              className={cn(SECONDARY_BUTTON, SMALL)}
-                              disabled={exporting !== null}
-                              onClick={() => void exportFile(period, "xlsx")}
-                            >
-                              {exporting === `${period.id}:xlsx` ? "Exporting" : "Excel"}
-                            </button>
-                            <button
-                              type="button"
-                              className={cn(SECONDARY_BUTTON, SMALL)}
-                              aria-expanded={expanded}
-                              aria-controls={`exports-${period.id}`}
-                              onClick={() => setOpen(expanded ? null : period.id)}
-                            >
-                              {expanded ? "Hide exports" : "Exports"}
-                            </button>
-                          </>
-                        ) : null}
-                      </div>
-                      {expanded ? (
-                        <div id={`exports-${period.id}`} className="mt-2 text-left">
-                          <BillingExportsList accountId={accountId} periodId={period.id} />
-                        </div>
-                      ) : null}
-                    </td>
-                  </tr>
-                );
-              })}
+              {data.map((period) => (
+                <PeriodRow
+                  key={period.id}
+                  accountId={accountId}
+                  period={period}
+                  actions={allowedActions(period.status, me.hasPermission)}
+                  exportable={canLock && canExport(period.status)}
+                  expanded={open === period.id}
+                  onToggleExports={() => setOpen(open === period.id ? null : period.id)}
+                  transition={transition}
+                  exporter={exporter}
+                />
+              ))}
               {data.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-xms-label px-4 py-8 text-center text-body">

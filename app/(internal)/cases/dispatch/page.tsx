@@ -4,12 +4,13 @@ import { useMemo, useState } from "react";
 import { AdminGate, fullName } from "@/components/admin/primitives";
 import { HeaderFilters, HeaderSearch, HeaderSearchField } from "@/components/shell/content-header-bar";
 import { accountHue } from "@/components/tickets/ticket-columns";
-import { DispatchRow } from "@/components/xms/dispatch-card";
+import { DispatchRow, type DispatchOption } from "@/components/xms/dispatch-card";
 import { EmptyBanner } from "@/components/xms/empty-banner";
 import { FilterSelect, StripSelect } from "@/components/xms/filter-select";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { LIVE_REFRESH_MS } from "@/lib/refresh";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useListAssignableUsersQuery } from "@/redux/adminApi";
 import { useMe } from "@/redux/me";
@@ -18,6 +19,8 @@ import {
   useListGrantedAccountsQuery,
   useListTicketsQuery,
   usePatchTicketMutation,
+  type GrantedAccount,
+  type TicketView,
 } from "@/redux/ticketsApi";
 
 /**
@@ -36,6 +39,45 @@ export function ageLabel(iso: string, now: Date = new Date()): string {
   if (hours < 48) return "yesterday";
   const days = Math.floor(hours / 24);
   return days < 365 ? `${days}d` : `${Math.floor(days / 365)}y`;
+}
+
+interface RouteChoice {
+  groupId: string;
+  assigneeId: string;
+}
+
+export interface UnroutedListProps {
+  rows: TicketView[];
+  accountsById: Map<string, GrantedAccount>;
+  groups: DispatchOption[];
+  assignees: DispatchOption[];
+  currentUserId: string;
+  onRoute: (ticket: TicketView, choice: RouteChoice) => void;
+}
+
+function UnroutedList({ rows, accountsById, groups, assignees, currentUserId, onRoute }: UnroutedListProps) {
+  if (rows.length === 0) return <EmptyBanner title="Nothing waiting for triage." />;
+  return (
+    <section className="xms-card overflow-hidden" aria-label="Unrouted requests">
+      {rows.map((ticket) => {
+        const owner = accountsById.get(ticket.account_id);
+        return (
+          <DispatchRow
+            key={ticket.id}
+            ticketKey={ticket.key}
+            shortDescription={ticket.short_description}
+            account={{ name: owner?.name ?? "Account", hue: accountHue(owner?.key) }}
+            age={ageLabel(ticket.created_at)}
+            groups={groups}
+            assignees={assignees}
+            groupId={ticket.group_id ?? ""}
+            currentUserId={currentUserId}
+            onConfirm={(choice) => onRoute(ticket, choice)}
+          />
+        );
+      })}
+    </section>
+  );
 }
 
 /**
@@ -63,7 +105,7 @@ function DispatchScreen() {
       ...(account ? { account_id: [account] } : {}),
       ...(query ? { q: query } : {}),
     },
-    { pollingInterval: 60_000 },
+    { pollingInterval: LIVE_REFRESH_MS },
   );
   const { data: accounts } = useListGrantedAccountsQuery();
   const { data: groups } = useListDirectoryGroupsQuery();
@@ -75,6 +117,18 @@ function DispatchScreen() {
   const accountsById = useMemo(() => new Map((accounts ?? []).map((row) => [row.id, row])), [accounts]);
   const groupOptions = useMemo(() => (groups ?? []).map((group) => ({ id: group.id, label: group.name })), [groups]);
   const assigneeOptions = useMemo(() => (users ?? []).map((user) => ({ id: user.id, label: fullName(user) })), [users]);
+
+  const route = (ticket: TicketView, { groupId, assigneeId }: RouteChoice) =>
+    patch({
+      key: ticket.key,
+      body: { version: ticket.version, group_id: groupId || null, assignee_id: assigneeId || null },
+    })
+      .unwrap()
+      .then(() => {
+        track({ ticket: ticket.key, assigned: Boolean(assigneeId) });
+        push({ title: `${ticket.key} routed`, tone: "success" });
+      })
+      .catch((error) => push({ title: "Not routed", detail: describeError(apiError(error)), tone: "error" }));
 
   const toolbar = (
     <>
@@ -111,41 +165,15 @@ function DispatchScreen() {
       {toolbar}
       {isLoading && !data ? (
         <Skeleton lines={6} />
-      ) : rows.length === 0 ? (
-        <EmptyBanner title="Nothing waiting for triage." />
       ) : (
-        <section className="xms-card overflow-hidden" aria-label="Unrouted requests">
-          {rows.map((ticket) => {
-            const owner = accountsById.get(ticket.account_id);
-            return (
-              <DispatchRow
-                key={ticket.id}
-                ticketKey={ticket.key}
-                shortDescription={ticket.short_description}
-                account={{ name: owner?.name ?? "Account", hue: accountHue(owner?.key) }}
-                age={ageLabel(ticket.created_at)}
-                groups={groupOptions}
-                assignees={assigneeOptions}
-                groupId={ticket.group_id ?? ""}
-                currentUserId={me.principal?.userId ?? ""}
-                onConfirm={({ groupId, assigneeId }) =>
-                  patch({
-                    key: ticket.key,
-                    body: { version: ticket.version, group_id: groupId || null, assignee_id: assigneeId || null },
-                  })
-                    .unwrap()
-                    .then(() => {
-                      track({ ticket: ticket.key, assigned: Boolean(assigneeId) });
-                      push({ title: `${ticket.key} routed`, tone: "success" });
-                    })
-                    .catch((error) =>
-                      push({ title: "Not routed", detail: describeError(apiError(error)), tone: "error" }),
-                    )
-                }
-              />
-            );
-          })}
-        </section>
+        <UnroutedList
+          rows={rows}
+          accountsById={accountsById}
+          groups={groupOptions}
+          assignees={assigneeOptions}
+          currentUserId={me.principal?.userId ?? ""}
+          onRoute={route}
+        />
       )}
     </div>
   );

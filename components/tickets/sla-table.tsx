@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MeterBar } from "@/components/xms/meter-bar";
+import { SLA_TICK_MS } from "@/components/xms/sla-value";
 import { clockDisplay, formatMinutes, localRemainingMinutes, type ClockView, type TicketSla } from "@/lib/tickets/sla";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,13 @@ export interface SlaRow {
   metAt: string | null;
 }
 
+function slaStage(clock: ClockView, breached: boolean): SlaStage {
+  if (clock.met) return "Met";
+  if (breached) return "Breached";
+  if (clock.paused) return "Paused";
+  return "In progress";
+}
+
 /**
  * The rows for a ticket's clocks. Every due time, pause and target is the
  * server's; the only thing counted here is the minutes since the record was
@@ -48,11 +56,10 @@ export function slaRows(
     // due time now behind us. `clock.breached` alone is not set on every
     // clock that is past due, since the sweep that latches it runs behind.
     const breached = clock.breached || clockDisplay(clock, now).tone === "breach";
-    const stage: SlaStage = clock.met ? "Met" : breached ? "Breached" : clock.paused ? "Paused" : "In progress";
     return {
       kind: clock.kind,
       definition: clock.kind === "response" ? "Response" : "Resolution",
-      stage,
+      stage: slaStage(clock, breached),
       elapsedMinutes: Math.max(0, elapsed),
       percent: clock.targetMinutes > 0 ? (Math.max(0, elapsed) / clock.targetMinutes) * 100 : 0,
       leftMinutes: Math.max(0, remaining),
@@ -103,7 +110,7 @@ export function SlaTable({
   const [now, setNow] = useState(() => new Date());
   const base = fetchedAt ?? now;
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    const id = window.setInterval(() => setNow(new Date()), SLA_TICK_MS);
     return () => window.clearInterval(id);
   }, []);
   const rows = slaRows(sla, base, now, metAt);

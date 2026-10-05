@@ -1,11 +1,12 @@
 "use client";
 
 import { INPUT } from "@/components/admin/primitives";
-import { WEEKDAYS, type Interval, type WeekGrid } from "@/lib/calendars/hours";
+import { keyed, type Keyed } from "@/lib/draft-rows";
+import { WEEKDAYS, type DraftWeekGrid, type Interval } from "@/lib/calendars/hours";
 
 export interface HoursGridProps {
-  value: WeekGrid;
-  onChange: (next: WeekGrid) => void;
+  value: DraftWeekGrid;
+  onChange: (next: DraftWeekGrid) => void;
   disabled?: boolean;
 }
 
@@ -17,7 +18,7 @@ const TIME = `${INPUT} xms-mono h-[30px] w-[96px]`;
  * conversion to minutes lives in lib/calendars/hours.
  */
 export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
-  const update = (weekday: number, intervals: Interval[]) => onChange({ ...value, [weekday]: intervals });
+  const update = (weekday: number, intervals: Keyed<Interval>[]) => onChange({ ...value, [weekday]: intervals });
   return (
     <table className="w-full border-collapse text-body" aria-label="Working hours">
       <thead>
@@ -39,7 +40,7 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
                 <div className="flex flex-wrap items-center gap-2">
                   {intervals.length === 0 ? <span className="text-xms-muted text-body">Not a working day</span> : null}
                   {intervals.map((interval, index) => (
-                    <span key={index} className="inline-flex items-center gap-1">
+                    <span key={interval.id} className="inline-flex items-center gap-1">
                       <input
                         aria-label={`${day.label} interval ${index + 1} start`}
                         className={TIME}
@@ -49,7 +50,9 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
                         onChange={(event) =>
                           update(
                             day.value,
-                            intervals.map((row, i) => (i === index ? { ...row, start: event.target.value } : row)),
+                            intervals.map((row) =>
+                              row.id === interval.id ? { ...row, start: event.target.value } : row,
+                            ),
                           )
                         }
                       />
@@ -63,7 +66,9 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
                         onChange={(event) =>
                           update(
                             day.value,
-                            intervals.map((row, i) => (i === index ? { ...row, end: event.target.value } : row)),
+                            intervals.map((row) =>
+                              row.id === interval.id ? { ...row, end: event.target.value } : row,
+                            ),
                           )
                         }
                       />
@@ -74,7 +79,7 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
                         onClick={() =>
                           update(
                             day.value,
-                            intervals.filter((_, i) => i !== index),
+                            intervals.filter((row) => row.id !== interval.id),
                           )
                         }
                         className="text-xms-muted hover:text-xms-ink text-body leading-none disabled:opacity-50"
@@ -90,7 +95,7 @@ export function HoursGrid({ value, onChange, disabled }: HoursGridProps) {
                       const last = intervals[intervals.length - 1];
                       update(day.value, [
                         ...intervals,
-                        last ? { start: last.end, end: "" } : { start: "09:00", end: "17:00" },
+                        keyed(last ? { start: last.end, end: "" } : { start: "09:00", end: "17:00" }),
                       ]);
                     }}
                     className="text-xms-accent text-body disabled:opacity-50"

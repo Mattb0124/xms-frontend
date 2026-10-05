@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FieldRow, INPUT, InlineError, PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/admin/primitives";
 import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { describeCalendarError, calendarError } from "@/lib/calendars/errors";
 import { useTrack } from "@/lib/telemetry/provider";
 import {
@@ -12,6 +13,8 @@ import {
   type Holiday,
   type HolidayCalendar,
 } from "@/redux/calendarsApi";
+
+const BLANK_HOLIDAY: Holiday = { date: "", label: "" };
 
 /** Parses pasted "YYYY-MM-DD<tab or comma>Label" lines into holidays; blank and malformed lines are skipped. */
 export function parseHolidayLines(text: string): Holiday[] {
@@ -67,7 +70,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
   const track = useTrack("holiday_calendar.create");
   const [country, setCountry] = useState("");
   const [name, setName] = useState("");
-  const [rows, setRows] = useState<Holiday[]>([{ date: "", label: "" }]);
+  const [rows, setRows] = useState<Keyed<Holiday>[]>(() => [keyed(BLANK_HOLIDAY)]);
   const [pasted, setPasted] = useState("");
   const [error, setError] = useState<string | null>(null);
   const valid = rows.filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && row.label.trim() !== "");
@@ -89,7 +92,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
             track({ holiday_calendar_id: created.id, country: created.country, holidays: created.holidays.length });
             setCountry("");
             setName("");
-            setRows([{ date: "", label: "" }]);
+            setRows([keyed(BLANK_HOLIDAY)]);
             setPasted("");
             onCreated?.(created);
           } catch (caught) {
@@ -124,14 +127,14 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
           <legend className="xms-caption px-1">Dates</legend>
           <div className="flex flex-col gap-2">
             {rows.map((row, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={row.id} className="flex items-center gap-2">
                 <input
                   type="date"
                   aria-label={`Holiday ${index + 1} date`}
                   className={`${INPUT} xms-mono w-[170px]`}
                   value={row.date}
                   onChange={(event) =>
-                    setRows(rows.map((r, i) => (i === index ? { ...r, date: event.target.value } : r)))
+                    setRows(rows.map((r) => (r.id === row.id ? { ...r, date: event.target.value } : r)))
                   }
                 />
                 <input
@@ -141,7 +144,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
                   className={INPUT}
                   value={row.label}
                   onChange={(event) =>
-                    setRows(rows.map((r, i) => (i === index ? { ...r, label: event.target.value } : r)))
+                    setRows(rows.map((r) => (r.id === row.id ? { ...r, label: event.target.value } : r)))
                   }
                 />
                 <button
@@ -149,7 +152,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
                   aria-label={`Remove holiday ${index + 1}`}
                   className="text-xms-muted hover:text-xms-ink text-body leading-none"
                   onClick={() =>
-                    setRows(rows.length === 1 ? [{ date: "", label: "" }] : rows.filter((_, i) => i !== index))
+                    setRows(rows.length === 1 ? [{ ...row, ...BLANK_HOLIDAY }] : rows.filter((r) => r.id !== row.id))
                   }
                 >
                   ×
@@ -160,7 +163,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
               <button
                 type="button"
                 className={SECONDARY_BUTTON}
-                onClick={() => setRows([...rows, { date: "", label: "" }])}
+                onClick={() => setRows([...rows, keyed(BLANK_HOLIDAY)])}
               >
                 Add date
               </button>
@@ -178,7 +181,7 @@ export function NewHolidayLibraryForm({ onCreated }: { onCreated?: (library: Hol
             onBlur={() => {
               const parsed = parseHolidayLines(pasted);
               if (parsed.length === 0) return;
-              setRows((current) => [...current.filter((row) => row.date || row.label), ...parsed]);
+              setRows((current) => [...current.filter((row) => row.date || row.label), ...parsed.map(keyed)]);
               setPasted("");
             }}
           />

@@ -6,6 +6,7 @@ import { formatMinutes, LogTimeForm } from "@/components/tickets/time-tab";
 import { useToast } from "@/components/xms/toast";
 import { useTrack } from "@/lib/telemetry/provider";
 import { useCatalogs } from "@/lib/tickets/use-catalogs";
+import { consumesLabel } from "@/lib/time/budget";
 import { cn } from "@/lib/utils";
 import { useListGrantedAccountsQuery } from "@/redux/ticketsApi";
 import { bucketCodeLabel, useListBucketsQuery, useLogBucketTimeMutation, type Bucket } from "@/redux/timeApi";
@@ -97,12 +98,7 @@ export function BucketLog() {
         <>
           <p className="text-xms-body text-body" data-bucket-class>
             {bucket.label} is classed {className(bucket.billable_class)}, which{" "}
-            {consumes === undefined
-              ? "the account's catalog decides the burn for"
-              : consumes
-                ? "consumes the contract"
-                : "does not consume the contract"}
-            .
+            {consumes === undefined ? "the account's catalog decides the burn for" : consumesLabel(consumes)}.
           </p>
           <LogTimeForm
             catalogs={catalogs}

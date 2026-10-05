@@ -7,6 +7,7 @@ import { Panel } from "@/components/xms/panel";
 import { Skeleton } from "@/components/xms/skeleton";
 import { useToast } from "@/components/xms/toast";
 import { apiError, describeError } from "@/lib/admin/api-error";
+import { keyed, type Keyed } from "@/lib/draft-rows";
 import { ROLE_OPTIONS, roleLabel } from "@/lib/roster/vocab";
 import { useTrack } from "@/lib/telemetry/provider";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,11 @@ export interface RateCardDraft {
   currency: string;
   note: string;
   lines: RateLineDraft[];
+}
+
+/** The draft as the New version form holds it: lines are added and removed, so each one is keyed. */
+interface RateCardFormDraft extends RateCardDraft {
+  lines: Keyed<RateLineDraft>[];
 }
 
 export function emptyRateCardDraft(currency: string): RateCardDraft {
@@ -136,15 +142,18 @@ export function NewRateCardForm({
   contract?: Pick<Contract, "id" | "key" | "currency">;
   onDone: () => void;
 }) {
-  const [draft, setDraft] = useState<RateCardDraft>(() => emptyRateCardDraft(contract?.currency ?? "USD"));
+  const [draft, setDraft] = useState<RateCardFormDraft>(() => {
+    const empty = emptyRateCardDraft(contract?.currency ?? "USD");
+    return { ...empty, lines: empty.lines.map(keyed) };
+  });
   const [problem, setProblem] = useState<string | null>(null);
   const [create, createState] = useCreateRateCardMutation();
   const { push } = useToast();
   const track = useTrack("rate_card.create");
   const scope = contract ? contract.key : "the account default";
 
-  const setLine = (index: number, patch: Partial<RateLineDraft>) =>
-    setDraft({ ...draft, lines: draft.lines.map((line, at) => (at === index ? { ...line, ...patch } : line)) });
+  const setLine = (id: number, patch: Partial<RateLineDraft>) =>
+    setDraft({ ...draft, lines: draft.lines.map((line) => (line.id === id ? { ...line, ...patch } : line)) });
 
   return (
     <form
@@ -212,13 +221,13 @@ export function NewRateCardForm({
         </thead>
         <tbody>
           {draft.lines.map((line, index) => (
-            <tr key={index} data-rate-line={index + 1}>
+            <tr key={line.id} data-rate-line={index + 1}>
               <td className="py-1 pr-3">
                 <select
                   aria-label={`Role ${index + 1}`}
                   className={cn(INPUT, "w-[190px]")}
                   value={line.role}
-                  onChange={(event) => setLine(index, { role: event.target.value })}
+                  onChange={(event) => setLine(line.id, { role: event.target.value })}
                 >
                   {ROLE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -233,7 +242,7 @@ export function NewRateCardForm({
                   inputMode="decimal"
                   className={cn(INPUT, "xms-mono w-[110px]")}
                   value={line.billRate}
-                  onChange={(event) => setLine(index, { billRate: event.target.value })}
+                  onChange={(event) => setLine(line.id, { billRate: event.target.value })}
                 />
               </td>
               <td className="py-1 pr-3">
@@ -242,7 +251,7 @@ export function NewRateCardForm({
                   inputMode="decimal"
                   className={cn(INPUT, "xms-mono w-[110px]")}
                   value={line.overageRate}
-                  onChange={(event) => setLine(index, { overageRate: event.target.value })}
+                  onChange={(event) => setLine(line.id, { overageRate: event.target.value })}
                   placeholder="optional"
                 />
               </td>
@@ -252,7 +261,7 @@ export function NewRateCardForm({
                   className={cn(SECONDARY_BUTTON, "h-[26px] px-2 text-body")}
                   aria-label={`Remove line ${index + 1}`}
                   disabled={draft.lines.length === 1}
-                  onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, at) => at !== index) })}
+                  onClick={() => setDraft({ ...draft, lines: draft.lines.filter((other) => other.id !== line.id) })}
                 >
                   Remove
                 </button>
@@ -268,7 +277,7 @@ export function NewRateCardForm({
           onClick={() =>
             setDraft({
               ...draft,
-              lines: [...draft.lines, { role: ROLE_OPTIONS[0].value, billRate: "", overageRate: "" }],
+              lines: [...draft.lines, keyed({ role: ROLE_OPTIONS[0].value, billRate: "", overageRate: "" })],
             })
           }
         >

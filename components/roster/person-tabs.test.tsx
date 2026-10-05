@@ -2,8 +2,9 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CalendarTab } from "@/components/roster/calendar-tab";
 import { CertificationsTab, ExpiryPill } from "@/components/roster/certifications-tab";
-import { changedFields, DetailsTab } from "@/components/roster/details-tab";
+import { DetailsTab } from "@/components/roster/details-tab";
 import { SkillsTab } from "@/components/roster/skills-tab";
+import { changedFields } from "@/lib/roster/person-draft";
 import { aCertification, aPersonDetail, aPersonSkill, aSkill, PERSON_ID, SKILL_ID } from "@/test-kit/roster";
 import { json, renderDesk, stubFetch } from "@/test-kit/desk";
 

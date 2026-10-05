@@ -1,5 +1,6 @@
 import type { SignalTone } from "@/components/xms/signal-pill";
 import { apiError, describeError, type ApiError } from "@/lib/admin/api-error";
+import { isHeld } from "@/lib/reporting/review";
 import type {
   Cadence,
   CreateScheduleBody,
@@ -10,6 +11,7 @@ import type {
   RecipientKind,
   ReportSchedule,
   RunNowBody,
+  RunNowResult,
 } from "@/redux/reportingApi";
 
 /**
@@ -45,9 +47,15 @@ export function maxRunDay(cadence: Cadence): number {
   return cadence === "weekly" ? 7 : 31;
 }
 
+const NATURAL_PERIOD: Record<Cadence, PeriodKind> = {
+  weekly: "previous_week",
+  monthly: "previous_month",
+  quarterly: "previous_quarter",
+};
+
 /** The server's default when none is given: the period the cadence naturally covers. */
 export function defaultPeriodKind(cadence: Cadence): PeriodKind {
-  return cadence === "weekly" ? "previous_week" : cadence === "monthly" ? "previous_month" : "previous_quarter";
+  return NATURAL_PERIOD[cadence];
 }
 
 export function periodKindLabel(kind: PeriodKind): string {
@@ -229,6 +237,17 @@ export function validateRunNow(start: string, end: string): string | null {
 
 export function runNowBody(start: string, end: string): RunNowBody {
   return start && end ? { period_start: start, period_end: end } : {};
+}
+
+/**
+ * What Run now says it did. A schedule with review required holds its run:
+ * nothing was sent, and saying it was would be the one thing functional 5.8
+ * forbids.
+ */
+export function runNowHeadline(status: RunNowResult["status"]): string {
+  if (isHeld(status)) return "Report pack held for review";
+  if (status === "sent") return "Report pack sent";
+  return "Report pack built, nobody reached";
 }
 
 // Delivery ---------------------------------------------------------------------------

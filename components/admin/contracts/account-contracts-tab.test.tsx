@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AccountContractsTab } from "@/components/admin/contracts/account-contracts-tab";
 import {
-  AccountContractsTab,
   draftFromContract,
   handlingCell,
   parseTechnologyCodes,
@@ -10,7 +10,7 @@ import {
   rulesCell,
   validateHandling,
   validateRules,
-} from "@/components/admin/contracts/account-contracts-tab";
+} from "@/lib/contracts/rules";
 import {
   ACCOUNT_ID,
   CONTRACT_ID,

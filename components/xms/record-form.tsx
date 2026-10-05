@@ -197,29 +197,16 @@ export function readOnlyText(field: RecordField): string {
   return field.value;
 }
 
-function Field({
-  field,
-  onCommit,
-  onRollback,
-  layout = "rows",
-  labels,
-  boxed,
-  bare,
-}: {
-  field: RecordField;
-  onCommit: RecordFormProps["onCommit"];
-  onRollback?: RecordFormProps["onRollback"];
-  layout?: "rows" | "stacked";
-  labels?: RecordLabels;
-  boxed?: boolean;
-  /** Render the value alone: the row wrapper and the label belong to a paired row. */
-  bare?: boolean;
-}) {
+const fieldId = (field: RecordField) => `record-field-${field.key}`;
+
+/** The value a field is editing, its commit, and the rollback when the commit is refused. */
+function useFieldDraft(
+  field: RecordField,
+  onCommit: RecordFormProps["onCommit"],
+  onRollback: RecordFormProps["onRollback"],
+) {
   const [draft, setDraft] = useState(field.value);
   const [pending, setPending] = useState(false);
-  // A stacked field opens its control on click and closes it again on blur, so
-  // the panel reads as a list of values rather than a wall of empty boxes.
-  const [editing, setEditing] = useState(false);
   // Reset the draft when the server value changes (derive state from props
   // during render; no effect needed).
   const [seenValue, setSeenValue] = useState(field.value);
@@ -243,107 +230,130 @@ function Field({
     }
   };
 
-  const id = `record-field-${field.key}`;
-  const stacked = layout === "stacked";
-  // A value nobody can change is text, not a disabled input: an input-shaped
-  // box reads as editable, and a fixed-height box clips "AUS - Austral Mining"
-  // to "AUS - Austral M" with no ellipsis and no tooltip (review finding 9).
-  // Render 02 continues the value with its caption on the same line
-  // ("P2 · derived from the matrix"); everywhere else the caption is the
-  // line under it.
-  const hintNode = field.hint ? (
-    field.inlineHint ? (
-      <span className="text-xms-label text-body">{`· ${field.hint}`}</span>
-    ) : (
-      <span className="text-xms-label text-body">{field.hint}</span>
-    )
-  ) : null;
+  return { draft, setDraft, pending, commit };
+}
 
-  if (field.readOnly) {
-    const text = readOnlyText(field);
-    const value = (
-      <>
-        <span
-          data-readonly-value
-          title={text || undefined}
-          className={cn(
-            "text-xms-ink text-body break-words",
-            stacked && "leading-[1.4] font-medium",
-            field.mono && "xms-mono",
-            !text && "text-xms-muted font-normal",
-          )}
-        >
-          {text || "Not set"}
+/**
+ * Render 02 continues the value with its caption on the same line
+ * ("P2 · derived from the matrix"); everywhere else the caption is the
+ * line under it.
+ */
+function FieldHint({ field }: { field: RecordField }) {
+  if (!field.hint) return null;
+  return <span className="text-xms-label text-body">{field.inlineHint ? `· ${field.hint}` : field.hint}</span>;
+}
+
+export interface ReadOnlyFieldProps {
+  field: RecordField;
+  stacked: boolean;
+  labels?: RecordLabels;
+  boxed?: boolean;
+  bare?: boolean;
+}
+
+/**
+ * A value nobody can change is text, not a disabled input: an input-shaped
+ * box reads as editable, and a fixed-height box clips "AUS - Austral Mining"
+ * to "AUS - Austral M" with no ellipsis and no tooltip (review finding 9).
+ */
+function ReadOnlyField({ field, stacked, labels, boxed, bare }: ReadOnlyFieldProps) {
+  const text = readOnlyText(field);
+  const value = (
+    <>
+      <span
+        data-readonly-value
+        title={text || undefined}
+        className={cn(
+          "text-xms-ink text-body break-words",
+          stacked && "leading-[1.4] font-medium",
+          field.mono && "xms-mono",
+          !text && "text-xms-muted font-normal",
+        )}
+      >
+        {text || "Not set"}
+      </span>
+      <FieldHint field={field} />
+    </>
+  );
+  if (stacked) {
+    if (bare) {
+      return (
+        <span className="flex items-baseline gap-[6px]" data-field={field.key}>
+          {value}
         </span>
-        {hintNode}
-      </>
-    );
-    if (stacked) {
-      if (bare) {
-        return (
-          <span className="flex items-baseline gap-[6px]" data-field={field.key}>
-            {value}
-          </span>
-        );
-      }
-      return (
-        <div className={STACK_ROW} data-field={field.key}>
-          <span className={STACK_LABEL}>{field.label}</span>
-          {field.inlineHint ? <span className="flex items-baseline gap-[6px]">{value}</span> : value}
-        </div>
-      );
-    }
-    if (boxed) {
-      // A long prose value (a read-only description) keeps its lines inside
-      // the box; anything else is one line, clipped with the tooltip to read.
-      const prose = field.kind === "textarea";
-      return (
-        <div className={cn(rowClass(labels), "items-center")} data-field={field.key}>
-          <span className={rowLabelClass(labels)}>{field.label}</span>
-          <span className="flex min-w-0 items-center gap-2">
-            <span
-              data-readonly-value
-              title={text || undefined}
-              className={cn(
-                READONLY_BOX,
-                prose
-                  ? "min-h-[34px] py-[6px] leading-[1.4] break-words whitespace-pre-wrap"
-                  : "h-[34px] truncate leading-[32px]",
-                field.mono && "xms-mono",
-                !text && "text-xms-muted",
-              )}
-            >
-              {text || "Not set"}
-            </span>
-            {field.hint ? <span className="text-xms-label shrink-0 text-body">{field.hint}</span> : null}
-          </span>
-        </div>
       );
     }
     return (
-      <div className={cn(rowClass(labels), "items-baseline")} data-field={field.key}>
-        <span className={rowLabelClass(labels)}>{field.label}</span>
-        <span className="flex flex-col gap-[2px]">{value}</span>
+      <div className={STACK_ROW} data-field={field.key}>
+        <span className={STACK_LABEL}>{field.label}</span>
+        {field.inlineHint ? <span className="flex items-baseline gap-[6px]">{value}</span> : value}
       </div>
     );
   }
+  if (boxed) {
+    // A long prose value (a read-only description) keeps its lines inside
+    // the box; anything else is one line, clipped with the tooltip to read.
+    const prose = field.kind === "textarea";
+    return (
+      <div className={cn(rowClass(labels), "items-center")} data-field={field.key}>
+        <span className={rowLabelClass(labels)}>{field.label}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            data-readonly-value
+            title={text || undefined}
+            className={cn(
+              READONLY_BOX,
+              prose
+                ? "min-h-[34px] py-[6px] leading-[1.4] break-words whitespace-pre-wrap"
+                : "h-[34px] truncate leading-[32px]",
+              field.mono && "xms-mono",
+              !text && "text-xms-muted",
+            )}
+          >
+            {text || "Not set"}
+          </span>
+          {field.hint ? <span className="text-xms-label shrink-0 text-body">{field.hint}</span> : null}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className={cn(rowClass(labels), "items-baseline")} data-field={field.key}>
+      <span className={rowLabelClass(labels)}>{field.label}</span>
+      <span className="flex flex-col gap-[2px]">{value}</span>
+    </div>
+  );
+}
+
+export interface FieldControlProps {
+  field: RecordField;
+  draft: string;
+  pending: boolean;
+  bare?: boolean;
+  autoFocus: boolean;
+  onDraftChange: (value: string) => void;
+  onCommit: (value: string) => void;
+  onClose: () => void;
+}
+
+/** A select commits as soon as it changes; text commits when it loses focus. */
+function FieldControl({ field, draft, pending, bare, autoFocus, onDraftChange, onCommit, onClose }: FieldControlProps) {
   const common = {
-    id,
+    id: fieldId(field),
     // With no label element of its own, a paired control still has to say
     // what it is.
     "aria-label": bare ? field.label : undefined,
     disabled: pending,
     "aria-busy": pending || undefined,
-    autoFocus: stacked && editing ? true : undefined,
+    autoFocus: autoFocus ? true : undefined,
   };
-  let control;
   if (field.kind === "select") {
-    control = (
+    return (
       <select
         {...common}
         value={draft}
-        onChange={(event) => void commit(event.target.value)}
-        onBlur={() => setEditing(false)}
+        onChange={(event) => onCommit(event.target.value)}
+        onBlur={onClose}
         className={CONTROL}
       >
         {(field.options ?? []).map((option) => (
@@ -353,83 +363,133 @@ function Field({
         ))}
       </select>
     );
-  } else if (field.kind === "textarea") {
-    control = (
+  }
+  const closeAndCommit = () => {
+    onClose();
+    onCommit(draft);
+  };
+  if (field.kind === "textarea") {
+    return (
       <textarea
         {...common}
         value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={() => {
-          setEditing(false);
-          void commit(draft);
-        }}
+        onChange={(event) => onDraftChange(event.target.value)}
+        onBlur={closeAndCommit}
         rows={3}
         className={cn(CONTROL, "h-auto py-2")}
       />
     );
-  } else {
-    control = (
-      <input
-        {...common}
-        type="text"
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={() => {
-          setEditing(false);
-          void commit(draft);
-        }}
-        className={cn(CONTROL, field.mono && "xms-mono")}
-      />
+  }
+  return (
+    <input
+      {...common}
+      type="text"
+      value={draft}
+      onChange={(event) => onDraftChange(event.target.value)}
+      onBlur={closeAndCommit}
+      className={cn(CONTROL, field.mono && "xms-mono")}
+    />
+  );
+}
+
+export interface StackedEditableProps {
+  field: RecordField;
+  editing: boolean;
+  bare?: boolean;
+  onOpen: () => void;
+  /** The field's control, drawn in place of the value while the row is open. */
+  children: ReactNode;
+}
+
+function StackedEditable({ field, editing, bare, onOpen, children }: StackedEditableProps) {
+  const text = readOnlyText(field);
+  const shown = editing ? (
+    children
+  ) : (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={bare ? field.label : undefined}
+      className={cn(
+        "hover:bg-xms-row-hover -mx-1 rounded-control px-1 py-[1px] text-left text-body font-medium",
+        text ? "text-xms-ink" : "text-xms-muted font-normal",
+        field.mono && "xms-mono",
+      )}
+    >
+      {text || "Not set"}
+    </button>
+  );
+  if (bare) {
+    return (
+      <span className="flex items-baseline gap-[6px]" data-field={field.key}>
+        {shown}
+        <FieldHint field={field} />
+      </span>
     );
   }
-  if (stacked) {
-    const text = readOnlyText(field);
-    const shown = editing ? (
-      control
-    ) : (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        aria-label={bare ? field.label : undefined}
-        className={cn(
-          "hover:bg-xms-row-hover -mx-1 rounded-control px-1 py-[1px] text-left text-body font-medium",
-          text ? "text-xms-ink" : "text-xms-muted font-normal",
-          field.mono && "xms-mono",
-        )}
-      >
-        {text || "Not set"}
-      </button>
-    );
-    if (bare) {
-      return (
-        <span className="flex items-baseline gap-[6px]" data-field={field.key}>
+  return (
+    <div className={STACK_ROW} data-field={field.key}>
+      <label htmlFor={fieldId(field)} className={STACK_LABEL}>
+        {field.label}
+      </label>
+      {field.inlineHint ? (
+        <span className="flex items-baseline gap-[6px]">
           {shown}
-          {hintNode}
+          <FieldHint field={field} />
         </span>
-      );
-    }
+      ) : (
+        <>
+          {shown}
+          <FieldHint field={field} />
+        </>
+      )}
+    </div>
+  );
+}
+
+export interface FieldProps {
+  field: RecordField;
+  onCommit: RecordFormProps["onCommit"];
+  onRollback?: RecordFormProps["onRollback"];
+  layout?: "rows" | "stacked";
+  labels?: RecordLabels;
+  boxed?: boolean;
+  /** Render the value alone: the row wrapper and the label belong to a paired row. */
+  bare?: boolean;
+}
+
+function Field({ field, onCommit, onRollback, layout = "rows", labels, boxed, bare }: FieldProps) {
+  const { draft, setDraft, pending, commit } = useFieldDraft(field, onCommit, onRollback);
+  // A stacked field opens its control on click and closes it again on blur, so
+  // the panel reads as a list of values rather than a wall of empty boxes.
+  const [editing, setEditing] = useState(false);
+  const stacked = layout === "stacked";
+
+  if (field.readOnly) {
+    return <ReadOnlyField field={field} stacked={stacked} labels={labels} boxed={boxed} bare={bare} />;
+  }
+  const control = (
+    <FieldControl
+      field={field}
+      draft={draft}
+      pending={pending}
+      bare={bare}
+      autoFocus={stacked && editing}
+      onDraftChange={setDraft}
+      onCommit={(value) => void commit(value)}
+      onClose={() => setEditing(false)}
+    />
+  );
+  if (stacked) {
     return (
-      <div className={STACK_ROW} data-field={field.key}>
-        <label htmlFor={id} className={STACK_LABEL}>
-          {field.label}
-        </label>
-        {field.inlineHint ? (
-          <span className="flex items-baseline gap-[6px]">
-            {shown}
-            {hintNode}
-          </span>
-        ) : (
-          <>
-            {shown}
-            {hintNode}
-          </>
-        )}
-      </div>
+      <StackedEditable field={field} editing={editing} bare={bare} onOpen={() => setEditing(true)}>
+        {control}
+      </StackedEditable>
     );
   }
   return (
     <div className={cn(rowClass(labels), "items-center")} data-field={field.key}>
-      <label htmlFor={id} className={rowLabelClass(labels)}>
+      <label htmlFor={fieldId(field)} className={rowLabelClass(labels)}>
         {field.label}
       </label>
       {boxed ? (
@@ -440,7 +500,7 @@ function Field({
       ) : (
         <span className="flex min-w-0 flex-col gap-[2px]">
           {control}
-          {hintNode}
+          <FieldHint field={field} />
         </span>
       )}
     </div>

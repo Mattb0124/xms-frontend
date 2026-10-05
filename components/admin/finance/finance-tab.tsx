@@ -35,7 +35,7 @@ import {
   type FinanceFormat,
 } from "@/redux/integrationsApi";
 import { useMe } from "@/redux/me";
-import { useBillingPeriodsQuery } from "@/redux/timeApi";
+import { useBillingPeriodsQuery, type BillingPeriod } from "@/redux/timeApi";
 
 const HEAD = "text-xms-ink px-3 py-2 text-left text-body font-semibold whitespace-nowrap";
 const CELL = "text-xms-ink px-3 py-2 align-top text-body";
@@ -111,105 +111,103 @@ function DestinationEditor({
   const set = (patch: Partial<DestinationDraft>) => setDraft((previous) => ({ ...previous, ...patch }));
 
   return (
-    <>
-      <form
-        className="flex flex-col gap-3"
-        aria-label="Finance destination"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          setError(null);
-          try {
-            const saved = await save({ accountId, body: destinationBody(draft) }).unwrap();
-            track({ account_id: accountId, kind: saved.kind, enabled: saved.enabled });
-            if (saved.secret) onSecret(saved.secret);
-            push({
-              title: "Destination saved",
-              detail: `${DESTINATION_KINDS[saved.kind].label}, ${FINANCE_FORMATS[saved.format]}`,
-              tone: "success",
-            });
-          } catch (caught) {
-            setError(describeFinanceError(financeError(caught)));
-          }
-        }}
-      >
-        <fieldset className="flex flex-col gap-1">
-          <legend className="text-xms-label text-body">Kind</legend>
-          {(Object.keys(DESTINATION_KINDS) as DestinationKind[]).map((kind) => (
-            <label key={kind} className="flex items-start gap-2 text-body">
-              <input
-                type="radio"
-                name="destination-kind"
-                className="mt-[3px]"
-                checked={draft.kind === kind}
-                onChange={() => set({ kind })}
-              />
-              <span>
-                <span className="text-xms-ink">{DESTINATION_KINDS[kind].label}</span>
-                <span className="text-xms-label"> {DESTINATION_KINDS[kind].detail}</span>
-              </span>
-            </label>
-          ))}
-        </fieldset>
-        {draft.kind === "https" ? (
-          <label className="flex flex-col gap-1 text-body">
-            <span className="text-xms-label">Endpoint URL</span>
+    <form
+      className="flex flex-col gap-3"
+      aria-label="Finance destination"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setError(null);
+        try {
+          const saved = await save({ accountId, body: destinationBody(draft) }).unwrap();
+          track({ account_id: accountId, kind: saved.kind, enabled: saved.enabled });
+          if (saved.secret) onSecret(saved.secret);
+          push({
+            title: "Destination saved",
+            detail: `${DESTINATION_KINDS[saved.kind].label}, ${FINANCE_FORMATS[saved.format]}`,
+            tone: "success",
+          });
+        } catch (caught) {
+          setError(describeFinanceError(financeError(caught)));
+        }
+      }}
+    >
+      <fieldset className="flex flex-col gap-1">
+        <legend className="text-xms-label text-body">Kind</legend>
+        {(Object.keys(DESTINATION_KINDS) as DestinationKind[]).map((kind) => (
+          <label key={kind} className="flex items-start gap-2 text-body">
             <input
-              aria-label="Endpoint URL"
-              className={cn(INPUT, "xms-mono")}
-              placeholder="https://finance.example.com/xms/billing"
-              value={draft.endpointUrl}
-              onChange={(event) => set({ endpointUrl: event.target.value })}
+              type="radio"
+              name="destination-kind"
+              className="mt-[3px]"
+              checked={draft.kind === kind}
+              onChange={() => set({ kind })}
             />
-            {data && data.kind === "https" ? (
-              <span className="text-xms-label" data-secret-kid>
-                {secretKidLabel(data)}. Changing the endpoint mints a new secret, shown once.
-              </span>
-            ) : (
-              <span className="text-xms-label">Saving an HTTPS endpoint mints a signing secret, shown once.</span>
-            )}
-          </label>
-        ) : (
-          <label className="flex flex-col gap-1 text-body">
-            <span className="text-xms-label">Object prefix</span>
-            <input
-              aria-label="Object prefix"
-              className={cn(INPUT, "xms-mono")}
-              placeholder="finance/xms"
-              value={draft.objectPrefix}
-              onChange={(event) => set({ objectPrefix: event.target.value })}
-            />
-            <span className="text-xms-label">
-              Lower case letters, digits and the separators / _ . and -, up to 200 characters.
+            <span>
+              <span className="text-xms-ink">{DESTINATION_KINDS[kind].label}</span>
+              <span className="text-xms-label"> {DESTINATION_KINDS[kind].detail}</span>
             </span>
           </label>
-        )}
+        ))}
+      </fieldset>
+      {draft.kind === "https" ? (
         <label className="flex flex-col gap-1 text-body">
-          <span className="text-xms-label">Format</span>
-          <select
-            className={cn(INPUT, "w-[200px]")}
-            value={draft.format}
-            onChange={(event) => set({ format: event.target.value as FinanceFormat })}
-          >
-            {(Object.keys(FINANCE_FORMATS) as FinanceFormat[]).map((format) => (
-              <option key={format} value={format}>
-                {FINANCE_FORMATS[format]}
-              </option>
-            ))}
-          </select>
+          <span className="text-xms-label">Endpoint URL</span>
+          <input
+            aria-label="Endpoint URL"
+            className={cn(INPUT, "xms-mono")}
+            placeholder="https://finance.example.com/xms/billing"
+            value={draft.endpointUrl}
+            onChange={(event) => set({ endpointUrl: event.target.value })}
+          />
+          {data && data.kind === "https" ? (
+            <span className="text-xms-label" data-secret-kid>
+              {secretKidLabel(data)}. Changing the endpoint mints a new secret, shown once.
+            </span>
+          ) : (
+            <span className="text-xms-label">Saving an HTTPS endpoint mints a signing secret, shown once.</span>
+          )}
         </label>
-        <label className="flex items-center gap-2 text-body">
-          <input type="checkbox" checked={draft.enabled} onChange={(event) => set({ enabled: event.target.checked })} />
-          <span className="text-xms-ink">Enabled</span>
-          <span className="text-xms-label text-body">A disabled destination refuses every delivery.</span>
+      ) : (
+        <label className="flex flex-col gap-1 text-body">
+          <span className="text-xms-label">Object prefix</span>
+          <input
+            aria-label="Object prefix"
+            className={cn(INPUT, "xms-mono")}
+            placeholder="finance/xms"
+            value={draft.objectPrefix}
+            onChange={(event) => set({ objectPrefix: event.target.value })}
+          />
+          <span className="text-xms-label">
+            Lower case letters, digits and the separators / _ . and -, up to 200 characters.
+          </span>
         </label>
-        <InlineError message={error} />
-        <div>
-          <button type="submit" className={PRIMARY_BUTTON} disabled={saving}>
-            Save destination
-          </button>
-        </div>
-      </form>
-    </>
+      )}
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Format</span>
+        <select
+          className={cn(INPUT, "w-[200px]")}
+          value={draft.format}
+          onChange={(event) => set({ format: event.target.value as FinanceFormat })}
+        >
+          {(Object.keys(FINANCE_FORMATS) as FinanceFormat[]).map((format) => (
+            <option key={format} value={format}>
+              {FINANCE_FORMATS[format]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex items-center gap-2 text-body">
+        <input type="checkbox" checked={draft.enabled} onChange={(event) => set({ enabled: event.target.checked })} />
+        <span className="text-xms-ink">Enabled</span>
+        <span className="text-xms-label text-body">A disabled destination refuses every delivery.</span>
+      </label>
+      <InlineError message={error} />
+      <div>
+        <button type="submit" className={PRIMARY_BUTTON} disabled={saving}>
+          Save destination
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -236,16 +234,72 @@ function DestinationForm({ accountId }: { accountId: string }) {
   );
 }
 
+export interface DeliverNowFormProps {
+  accountId: string;
+  deliverable: BillingPeriod[];
+  names: Record<string, string>;
+}
+
+/** Deliver now over the account's locked or exported periods, posting the period alone. */
+function DeliverNowForm({ accountId, deliverable, names }: DeliverNowFormProps) {
+  const [deliver, { isLoading: delivering }] = useDeliverPeriodNowMutation();
+  const track = useTrack("finance.deliver");
+  const { push } = useToast();
+  const [periodId, setPeriodId] = useState("");
+
+  if (deliverable.length === 0) {
+    return <p className="text-xms-label text-body">No period is locked yet. Lock one on the Billing tab first.</p>;
+  }
+
+  const chosen = periodId || deliverable[0]?.id || "";
+
+  return (
+    <form
+      className="flex flex-wrap items-end gap-3"
+      aria-label="Deliver a period"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        try {
+          const delivery = await deliver({ accountId, period_id: chosen }).unwrap();
+          track({ account_id: accountId, period_id: chosen, status: delivery.status });
+          push({
+            title: "Delivery started",
+            detail: `${names[chosen] ?? chosen}: ${DELIVERY_STATUS[delivery.status].label.toLowerCase()}`,
+            tone: "success",
+          });
+        } catch (caught) {
+          push({ title: "Not delivered", detail: describeFinanceError(financeError(caught)), tone: "error" });
+        }
+      }}
+    >
+      <label className="flex flex-col gap-1 text-body">
+        <span className="text-xms-label">Period</span>
+        <select
+          aria-label="Period"
+          className={cn(INPUT, "h-[30px] w-[220px] text-body")}
+          value={chosen}
+          onChange={(event) => setPeriodId(event.target.value)}
+        >
+          {deliverable.map((period) => (
+            <option key={period.id} value={period.id}>
+              {periodLabel(period)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button type="submit" className={cn(PRIMARY_BUTTON, "h-[30px]")} disabled={delivering || !chosen}>
+        Deliver now
+      </button>
+    </form>
+  );
+}
+
 /** Every hand-over of a locked period, newest first, with Deliver now over the locked periods. */
 function DeliveriesPanel({ accountId }: { accountId: string }) {
   const me = useMe();
   const canReadPeriods = me.hasPermission("contracts:view");
   const { data, isLoading, isError } = useFinanceDeliveriesQuery({ account_id: accountId });
   const periods = useBillingPeriodsQuery(accountId, { skip: !canReadPeriods });
-  const [deliver, { isLoading: delivering }] = useDeliverPeriodNowMutation();
-  const track = useTrack("finance.deliver");
-  const { push } = useToast();
-  const [periodId, setPeriodId] = useState("");
 
   const deliverable = useMemo(
     () => (periods.data ?? []).filter((period) => isDeliverable(period.status)),
@@ -257,55 +311,15 @@ function DeliveriesPanel({ accountId }: { accountId: string }) {
     return map;
   }, [periods.data]);
 
-  const chosen = periodId || deliverable[0]?.id || "";
-
   return (
     <div className="flex flex-col gap-4">
       <Panel title="Deliver now" caption="A locked or exported period; a re-delivery supersedes the earlier one">
-        {!canReadPeriods ? (
+        {canReadPeriods ? (
+          <DeliverNowForm accountId={accountId} deliverable={deliverable} names={names} />
+        ) : (
           <p className="text-xms-label text-body">
             The billing periods need the contracts:view permission, so there is nothing to pick here.
           </p>
-        ) : deliverable.length === 0 ? (
-          <p className="text-xms-label text-body">No period is locked yet. Lock one on the Billing tab first.</p>
-        ) : (
-          <form
-            className="flex flex-wrap items-end gap-3"
-            aria-label="Deliver a period"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              try {
-                const delivery = await deliver({ accountId, period_id: chosen }).unwrap();
-                track({ account_id: accountId, period_id: chosen, status: delivery.status });
-                push({
-                  title: "Delivery started",
-                  detail: `${names[chosen] ?? chosen}: ${DELIVERY_STATUS[delivery.status].label.toLowerCase()}`,
-                  tone: "success",
-                });
-              } catch (caught) {
-                push({ title: "Not delivered", detail: describeFinanceError(financeError(caught)), tone: "error" });
-              }
-            }}
-          >
-            <label className="flex flex-col gap-1 text-body">
-              <span className="text-xms-label">Period</span>
-              <select
-                aria-label="Period"
-                className={cn(INPUT, "h-[30px] w-[220px] text-body")}
-                value={chosen}
-                onChange={(event) => setPeriodId(event.target.value)}
-              >
-                {deliverable.map((period) => (
-                  <option key={period.id} value={period.id}>
-                    {periodLabel(period)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="submit" className={cn(PRIMARY_BUTTON, "h-[30px]")} disabled={delivering || !chosen}>
-              Deliver now
-            </button>
-          </form>
         )}
       </Panel>
       <Panel title="Deliveries" caption="Newest first" flush>

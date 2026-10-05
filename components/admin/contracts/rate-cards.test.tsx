@@ -135,7 +135,7 @@ describe("RateCardsPanel", () => {
       "GET /v1/admin/me": me(["contracts:view", "contracts:manage"]),
       [CARDS]: () => {
         const last = calls[calls.length - 1];
-        const own = last.search.includes("contract_id") ? (saved ? [contractCard()] : []) : [];
+        const own = last.search.includes("contract_id") && saved ? [contractCard()] : [];
         return json([...own, accountDefault()]);
       },
       [PUT]: () => {

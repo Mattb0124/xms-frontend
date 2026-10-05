@@ -28,6 +28,13 @@ export function loggedPercent(day: Pick<TimesheetDay, "expected_minutes" | "logg
   return Math.max(0, Math.min(100, Math.round((day.logged_minutes / day.expected_minutes) * 100)));
 }
 
+/** The line in place of the nudge, before the day has loaded and once there is nothing to nudge about. */
+function restingLine(day: TimesheetDay | undefined): string {
+  if (!day) return "Reading today's time.";
+  if (day.expected_minutes === 0) return "Nothing is expected today.";
+  return "The day is fully logged.";
+}
+
 /**
  * "Time today" on My work (render 08, User Experience 3.1, P2.18.3): the
  * title with the day as a fraction in mono on the right, a meter under it,
@@ -93,13 +100,7 @@ export function TimeTodayCard({ today = localToday(), className }: { today?: str
           </div>
         </div>
       ) : (
-        <p className="text-xms-muted text-body leading-[1.55]">
-          {day
-            ? day.expected_minutes === 0
-              ? "Nothing is expected today."
-              : "The day is fully logged."
-            : "Reading today's time."}
-        </p>
+        <p className="text-xms-muted text-body leading-[1.55]">{restingLine(day)}</p>
       )}
     </section>
   );

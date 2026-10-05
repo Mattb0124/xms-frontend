@@ -2,8 +2,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getBearerToken } from "@/lib/auth/token";
 import { rememberRequestId } from "@/lib/telemetry/request-id";
 
-/** Build-time base URL for the XMS API (never a secret; see .env.example). */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
+/**
+ * Same origin. In the browser every `/v1` call goes to this host, and
+ * `app/v1/[...path]` forwards it to BACKEND_URL on the server. The upstream
+ * address is never read here. On the server this is empty: nothing in a
+ * Server Component should dial the API through this client.
+ */
+export const API_BASE_URL = typeof window === "undefined" ? "" : window.location.origin;
 
 export interface Principal {
   kind: "internal" | "portal" | "api_client" | "harness";
